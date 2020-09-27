@@ -1,0 +1,18 @@
+{
+  "name": "vasile.js",
+  "version": "1.0.0",
+  "description": "The fastest (Vanilla.js based) front-end javascript framework",
+  "main": "index.js",
+  "scripts": {
+    "flow": "flow",
+    "build": "flow-remove-types --pretty --sourcemaps src/ -d lib/",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "flow-bin": "^0.134.0",
+    "flow-remove-types": "^2.134.0"
+  }
+}
