@@ -3,6 +3,8 @@ import type {Callable, IDefinition} from "./interfaces/idefinition";
 import {DataDefinition} from "./data";
 import {PropertyDefinition} from "./property";
 import {ComponentCore} from "./interfaces/core";
+import {AttributeDefinition} from "./attribute";
+import {Value} from "./value";
 
 
 
@@ -18,22 +20,32 @@ export class Template {
     $style : { [key : string] : IDefinition };
     $binds : { [key : string] : IDefinition };
     $event : { [key : string] : IDefinition };
+    $dom   : { [key : string] : IDefinition };
+    $refs  : { [key : string] : IDefinition };
 
-    #el : HTMLElement;
+    constructor() {
+        this.createProps();
+        this.createData();
+        this.createAttrs();
+        this.createStyle();
+        this.createBinds();
+        this.createEvents();
+        this.createDom();
+    }
 
-    createProps    () { /* to be overloaded */ }
-    createData     () { /* to be overloaded */ }
-    createAttrs    () { /* to be overloaded */ }
-    createStyle    () { /* to be overloaded */ }
-    createBinds    () { /* to be overloaded */ }
-    createEvents   () { /* to be overloaded */ }
-    createChildren () { /* to be overloaded */ }
+    createProps  () { /* to be overloaded */ }
+    createData   () { /* to be overloaded */ }
+    createAttrs  () { /* to be overloaded */ }
+    createStyle  () { /* to be overloaded */ }
+    createBinds  () { /* to be overloaded */ }
+    createEvents () { /* to be overloaded */ }
+    createDom    () { /* to be overloaded */ }
 
-    prop (name : string, _type : Function, ...init : Array<any>) {
+    defProp (name : string, _type : Function, ...init : Array<any>) {
         this.$props[name] = new PropertyDefinition(name, _type, ...init);
     }
 
-    props (props : { [key: string] : Function}) {
+    defProps (props : { [key: string] : Function}) {
         for (let i in props) {
             if (props.hasOwnProperty(i)) {
                 this.$props[i] = new PropertyDefinition(i, props[i]);
@@ -41,7 +53,7 @@ export class Template {
         }
     }
 
-    data (
+    defData (
         nameOrSet : string | { [key : string] : any },
         funcOrAny : ?Callable | ?any = null
     ) : void {
@@ -65,6 +77,16 @@ export class Template {
 
         throw "Wrong function call";
     }
+
+    defAttr (name : string, value : string | Value | Callable) {
+        if (value instanceof Function) {
+            this.$attrs[name] = new AttributeDefinition(name, null, value);
+        }
+        else {
+            this.$attrs[name] = new AttributeDefinition(name, value);
+        }
+    }
+
     //createAttrs
     //createStyle
     //createBinds
