@@ -78,7 +78,7 @@ export class Template {
         throw "Wrong function call";
     }
 
-    defAttr (name : string, value : string | Value | Callable) {
+    defAttr (name : string, value : string | Value | Function) {
         if (value instanceof Function) {
             this.$attrs[name] = new AttributeDefinition(name, null, value);
         }
@@ -92,10 +92,6 @@ export class Template {
     //createBinds
     //createEvents
     //createChildren
-
-    get $el () : HTMLElement {
-        return this.#el;
-    }
 }
 
 /**
