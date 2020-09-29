@@ -4,7 +4,7 @@ import type {Callable, IDefinition} from "./interfaces/idefinition";
 import type {IValue} from "./interfaces/ivalue";
 import type {IBind} from "./interfaces/ibind";
 import {ComponentCore} from "./interfaces/core";
-import {Value} from "./value";
+import {JitValue, Value} from "./value";
 
 
 
@@ -71,6 +71,9 @@ export class DataDefinition implements IDefinition {
         else {
             if (this.#value instanceof Value) {
                 return new Value(this.#value.get());
+            }
+            else if (this.#value instanceof JitValue) {
+                return this.#value.create(rt, ts);
             }
             else {
                 return new Value(this.#value);

@@ -2,7 +2,7 @@
 import type {Callable} from "./interfaces/idefinition";
 import type {IBind} from "./interfaces/ibind";
 import type {IValue} from "./interfaces/ivalue";
-import {Bind1x1, BindingDescription} from "./bind";
+import {Bind1x1, BindingDefinition} from "./bind";
 import {JitValue, Value} from "./value";
 import {DataDefinition} from "./data";
 import {ComponentCore} from "./interfaces/core";
@@ -50,7 +50,7 @@ export class AttributeDefinition extends DataDefinition {
 /**
  * Represents a Attribute binding description
  */
-export class AttributeBindingDefinition extends BindingDescription {
+export class AttributeBindingDefinition extends BindingDefinition {
     /**
      * Constructs a attribute binding description
      * @param name {string} is the name of attribute
@@ -67,15 +67,11 @@ export class AttributeBindingDefinition extends BindingDescription {
 
     /**
      * Updates element attribute by name
-     * @param rt is the root component
-     * @param ts is the this component
      * @returns {*} a function which will update attribute value
      */
-    bound(rt: ComponentCore, ts: ComponentCore): Function {
-        let bound = this.func.bind(null, rt, ts, ...this.values);
-
-        return function () {
-            let value : string = bound();
+    bound(): Function {
+        return function (rt : ComponentCore, ts : ComponentCore, v : IValue) {
+            let value : string = v.get();
 
             if (value) {
                 ts.$el.setAttribute(this.name, value);

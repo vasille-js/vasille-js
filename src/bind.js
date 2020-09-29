@@ -28,7 +28,10 @@ export class Bind1x1 implements IBind {
         this.#value = value;
         this.#func = func.bind(this.#sync, value);
         this.#linked = !link;
-        if (link) this.link();
+        if (link) {
+            this.link();
+            this.#func.call();
+        }
     }
 
     get () : any {
@@ -99,9 +102,12 @@ export class Bind1xN implements IBind, Destroyable {
      */
     constructor(func : Function, values : Array<IValue>, link : boolean = true) {
         this.#values = values;
-        this.#func = func.bind(null, ...values);
+        this.#func = func.bind(this.#sync, ...values);
         this.#linked = false;
-        if (link) this.link();
+        if (link) {
+            this.link();
+            this.#func.call();
+        }
     }
 
     get () : any {
@@ -162,10 +168,12 @@ export class Bind1xN implements IBind, Destroyable {
 /**
  * Describe a common binding logic
  */
-export class BindingDescription implements IDefinition {
-    #name   : string;
-    #func   : Function;
-    #values : Array<JitValue>;
+export class BindingDefinition implements IDefinition, Destroyable {
+    #name    : string;
+    #func    : Function;
+    #values  : Array<JitValue>;
+    #binding : IBind;
+    #bound   : Function;
 
     /**
      * Constructs a common binding logic
@@ -209,10 +217,8 @@ export class BindingDescription implements IDefinition {
 
     /**
      * Is a virtual function to get the specific bind function
-     * @param rt is the root component
-     * @param ts is the this component
      */
-    bound(rt : ComponentCore, ts : ComponentCore) : Function {
+    bound() : Function {
         throw "Must be implemented in child class";
     };
 
@@ -222,22 +228,32 @@ export class BindingDescription implements IDefinition {
      * @param ts is the this component
      * @returns {IBind} the new created bind
      */
-    create (rt : ComponentCore, ts : ComponentCore) : Bind1x1 | Bind1xN {
-        let bound  = this.bound(rt, ts);
+    create (rt : ComponentCore, ts : ComponentCore) : IBind {
         let values : Array<IValue> = [];
 
         for (let v of this.#values) {
             values.push(v.create(rt, ts));
         }
 
-        bound();
         if (this.#values.length === 1) {
-            return new Bind1x1(bound, values[0]);
+            this.#binding = new Bind1x1(this.#func, values[0]);
         }
         else if (this.#values.length > 1) {
-            return new Bind1xN(bound, values);
+            this.#binding = new Bind1xN(this.#func, values);
+        }
+        else {
+            throw "There must be a value as minimum";
         }
 
-        throw "There must be a value as minimum";
+        this.#bound = this.bound().bind(null, rt, ts, this.#binding);
+        this.#binding.on(this.#bound);
+
+        return this.#binding;
+    }
+
+    destroy() {
+        if (this.#binding) {
+            this.#binding.off(this.#bound);
+        }
     }
 }
