@@ -31,10 +31,14 @@ export class AttributeDefinition extends DataDefinition {
         let value = super.createValue(rt, ts);
         let watch = function (value : IValue) {
             if (value.get()) {
-                ts.$el.setAttribute(this.name, value.get());
+                window.requestAnimationFrame(function () {
+                    ts.el.setAttribute(this.name, value.get());
+                }.bind(this));
             }
             else {
-                ts.$el.removeAttribute(this.name);
+                window.requestAnimationFrame(function () {
+                    ts.el.removeAttribute(this.name);
+                }.bind(this));
             }
         }.bind(this);
 
@@ -74,10 +78,14 @@ export class AttributeBindingDefinition extends BindingDefinition {
             let value : string = v.get();
 
             if (value) {
-                ts.$el.setAttribute(this.name, value);
+                window.requestAnimationFrame(function () {
+                    ts.el.setAttribute(this.name, value);
+                }.bind(this));
             }
             else {
-                ts.$el.removeAttribute(this.name);
+                window.requestAnimationFrame(function () {
+                    ts.el.removeAttribute(this.name);
+                }.bind(this));
             }
         }.bind(this);
     }

@@ -186,23 +186,23 @@ export class JitValue implements IDefinition {
 
         switch (this.#Type) {
             case JitType.PROP:
-                extracted = rt.$props[this.#name];
+                extracted = rt.props[this.#name];
                 break;
 
             case JitType.DATA:
-                extracted = rt.$data[this.#name];
+                extracted = rt.data[this.#name];
                 break;
 
             case JitType.ATTR:
-                extracted = rt.$attrs[this.#name];
+                extracted = rt.attrs[this.#name];
                 break;
 
             case JitType.CSS:
-                extracted = rt.$style[this.#name];
+                extracted = rt.style[this.#name];
                 break;
 
             case JitType.BIND:
-                extracted = rt.$binds[this.#name];
+                extracted = rt.binds[this.#name];
                 break;
         }
 

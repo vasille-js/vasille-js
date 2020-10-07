@@ -6,7 +6,7 @@ import type {IBind} from "./ibind";
 
 
 
-export type Callable = (rt : ComponentCore, ts : ComponentCore) => any;
+export type Callable = Function;
 
 export interface IDefinition {
     create(rt : ComponentCore, ts : ComponentCore) : IValue | IBind;

@@ -36,27 +36,27 @@ export class ComponentCore implements Destroyable {
         this.#binds = Object.freeze(binds);
     }
 
-    $el () : HTMLElement {
+    get el () : HTMLElement {
         return this.#el;
     }
 
-    $props () : LiveFields {
+    get props () : LiveFields {
         return this.#props;
     }
 
-    $data () : LiveFields {
+    get data () : LiveFields {
         return this.#data;
     }
 
-    $attrs () : LiveFields {
+    get attrs () : LiveFields {
         return this.#attrs;
     }
 
-    $style () : LiveFields {
+    get style () : LiveFields {
         return this.#style;
     }
 
-    $binds () : LiveFields {
+    get binds () : LiveFields {
         return this.#binds;
     }
 

@@ -36,7 +36,9 @@ export class StyleDefinition extends DataDefinition {
     create(rt : ComponentCore, ts : ComponentCore): IBind {
         let value = super.create(rt, ts);
         let watch = function (value : IValue) {
-            ts.$el.style.setProperty(this.name, value.get());
+            window.requestAnimationFrame(function () {
+                ts.el.style.setProperty(this.name, value.get());
+            }.bind(this));
         }.bind(this);
 
         watch(value);
@@ -68,7 +70,9 @@ export class StyleBindingDefinition extends BindingDefinition {
      */
     bound() : Function {
         return function (rt : ComponentCore, ts : ComponentCore, v : IValue) {
-            ts.$el.style.setProperty(this.name, v.get());
+            window.requestAnimationFrame(function () {
+                ts.el.style.setProperty(this.name, v.get());
+            }.bind(this));
         }.bind(this);
     }
 }
