@@ -14,8 +14,8 @@ import {Event} from "./event";
 export class Node implements Instantiable {
     parent   : Node;
     children : Array<{| node : Node, slot : ?string |}>;
-    next     : Node;
-    prev     : Node;
+    next     : ?Node;
+    prev     : ?Node;
     $ref     : string;
     $refArr  : boolean;
 
@@ -201,7 +201,7 @@ export class ElementNode extends Node {
         let last : ?Node = null;
 
         if (this.children.length) {
-            last = this.children[this.children.length - 1];
+            last = this.children[this.children.length - 1].node;
         }
 
         if (last) {
@@ -232,7 +232,7 @@ export class ElementNode extends Node {
     }
 
     defChild (tagName : string, callback : ?(node : ElementNode) => void) : ElementNode {
-        let node = new Core(tagName);
+        let node = new ElementNode(tagName);
         this.pushNode(node, null);
         if (callback) {
             callback(node);
@@ -241,7 +241,7 @@ export class ElementNode extends Node {
     }
 
     defCustomChild (func : Function, callback : ?(node : ElementNode) => void) : ElementNode {
-        let node = new Function();
+        let node = new func();
         this.pushNode(node, null);
         if (callback) {
             callback(node);
