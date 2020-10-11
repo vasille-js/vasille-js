@@ -11,3 +11,7 @@ export type Callable = Function;
 export interface IDefinition {
     create(rt : ComponentCore, ts : ComponentCore) : IValue | IBind;
 }
+
+export interface Instantiable {
+    get lastInstance () : ComponentCore;
+}

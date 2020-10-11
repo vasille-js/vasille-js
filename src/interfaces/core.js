@@ -1,13 +1,12 @@
 // @flow
 
 import type {IValue} from "./ivalue";
-import type {IBind} from "./ibind";
 import type {Destroyable} from "./destroyable";
 import {destroyObject} from "./destroyObject";
 
 
 
-export type LiveFields = { [key : string] : IValue | IBind };
+export type LiveFields = { [key : string] : IValue };
 
 /**
  * Represents an Vasille.js component core

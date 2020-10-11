@@ -1,7 +1,7 @@
 // @flow
 import type {IValue} from "./interfaces/ivalue";
 import type {Destroyable} from "./interfaces/destroyable";
-import type {IDefinition} from "./interfaces/idefinition";
+import type {IDefinition, Instantiable} from "./interfaces/idefinition";
 import type {IBind} from "./interfaces/ibind";
 import {ComponentCore} from "./interfaces/core";
 
@@ -166,8 +166,7 @@ export const JitType = {
     PROP : 0,
     DATA : 1,
     ATTR : 2,
-    CSS  : 3,
-    BIND : 4
+    CSS  : 3
 }
 
 type JitInnerType = $Values<typeof JitType>;
@@ -175,34 +174,33 @@ type JitInnerType = $Values<typeof JitType>;
 export class JitValue implements IDefinition {
     #Type : JitInnerType;
     #name : string;
+    #self : ?Instantiable;
 
-    constructor(type : JitInnerType, name : string) {
+    constructor(type : JitInnerType, name : string, self : ?Instantiable = null) {
         this.#Type = type;
         this.#name = name;
+        this.#self = self;
     }
 
     create(rt : ComponentCore, ts : ComponentCore) : IValue | IBind {
+        let component = this.#self ? this.#self.lastInstance : rt;
         let extracted;
 
         switch (this.#Type) {
             case JitType.PROP:
-                extracted = rt.props[this.#name];
+                extracted = component.props[this.#name];
                 break;
 
             case JitType.DATA:
-                extracted = rt.data[this.#name];
+                extracted = component.data[this.#name];
                 break;
 
             case JitType.ATTR:
-                extracted = rt.attrs[this.#name];
+                extracted = component.attrs[this.#name];
                 break;
 
             case JitType.CSS:
-                extracted = rt.style[this.#name];
-                break;
-
-            case JitType.BIND:
-                extracted = rt.binds[this.#name];
+                extracted = component.style[this.#name];
                 break;
         }
 
