@@ -13,31 +13,36 @@ export type LiveFields = { [key : string] : IValue | IBind };
  * Represents an Vasille.js component core
  */
 export class ComponentCore implements Destroyable {
-    #el     : HTMLElement;
+    #el    : HTMLElement | Text;
     #props : LiveFields;
     #data  : LiveFields;
     #attrs : LiveFields;
     #style : LiveFields;
-    #binds : LiveFields;
 
     constructor (
-        el : HTMLElement,
+        el : HTMLElement | Text,
         props : LiveFields,
         data: LiveFields,
         attrs: LiveFields,
-        style: LiveFields,
-        binds: LiveFields
+        style: LiveFields
     ) {
         this.#el    = el;
         this.#props = Object.freeze(props);
         this.#data  = Object.freeze(data);
         this.#attrs = Object.freeze(attrs);
         this.#style = Object.freeze(style);
-        this.#binds = Object.freeze(binds);
     }
 
-    get el () : HTMLElement {
-        return this.#el;
+    get el () : ?HTMLElement {
+        if (this.#el instanceof HTMLElement) {
+            return this.#el;
+        }
+    }
+
+    get text () : ?Text {
+        if (this.#el instanceof Text) {
+            return this.#el;
+        }
     }
 
     get props () : LiveFields {
@@ -56,15 +61,10 @@ export class ComponentCore implements Destroyable {
         return this.#style;
     }
 
-    get binds () : LiveFields {
-        return this.#binds;
-    }
-
     destroy () {
         destroyObject(this.#props);
         destroyObject(this.#data);
         destroyObject(this.#attrs);
         destroyObject(this.#style);
-        destroyObject(this.#binds);
     }
 }

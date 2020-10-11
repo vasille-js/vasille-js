@@ -1,14 +1,60 @@
 // @flow
 import type {Callable, IDefinition} from "./interfaces/idefinition";
+import type {IValue} from "./interfaces/ivalue";
 import {DataDefinition} from "./data";
 import {PropertyDefinition} from "./property";
 import {ComponentCore} from "./interfaces/core";
 import {AttributeBindingDefinition, AttributeDefinition} from "./attribute";
-import {JitValue} from "./value";
+import {JitValue, Value} from "./value";
 import {StyleBindingDefinition, StyleDefinition} from "./style";
 import {EventDefinition} from "./event";
 
 
+
+export class NodeDefinition {
+    parent  : NodeDefinition;
+    childen : Array<NodeDefinition>;
+    next    : NodeDefinition;
+    prev    : NodeDefinition;
+
+    create (rt : ComponentCore, ts : ComponentCore) : ComponentCore {
+        throw "never be called";
+    }
+}
+
+export class TextNodeDefinition extends NodeDefinition {
+    #value : IValue;
+
+    constructor (text : IValue | String) {
+        super();
+
+        if (text instanceof String) {
+            this.#value = new Value(text);
+        }
+        else {
+            this.#value = text;
+        }
+    }
+
+    create(rt: ComponentCore, ts: ComponentCore) : ComponentCore {
+        let value : IValue;
+
+        if (this.#value instanceof JitValue) {
+            value = this.#value.create(rt, ts);
+        }
+        else {
+            value = this.#value;
+        }
+
+        let node = document.createTextNode(value.get());
+
+        value.on(function (v : IValue) {
+            node.replaceData(0, -1, v.get());
+        }.bind(null, value));
+
+        return new ComponentCore(node, {}, {"$" : value}, {}, {});
+    }
+}
 
 /**
  * Represents an Vasille.js component template
