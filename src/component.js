@@ -4,7 +4,7 @@ import {DataDefinition} from "./data";
 import {PropertyDefinition} from "./property";
 import {ComponentCore} from "./interfaces/core";
 import {AttributeBindingDefinition, AttributeDefinition} from "./attribute";
-import {JitValue, Value} from "./value";
+import {JitValue} from "./value";
 import {StyleBindingDefinition, StyleDefinition} from "./style";
 import {EventDefinition} from "./event";
 
@@ -81,7 +81,7 @@ export class Template {
         throw "Wrong function call";
     }
 
-    defAttr (name : string, value : string | Value | Callable) {
+    defAttr (name : string, value : string | JitValue | Callable) {
         if (value instanceof Function) {
             this.$attrs[name] = new AttributeDefinition(name, null, value);
         }
@@ -90,7 +90,7 @@ export class Template {
         }
     }
 
-    defAttrs (obj : { [key : string] : string | Value }) {
+    defAttrs (obj : { [key : string] : string | JitValue }) {
         for (let i in obj) {
             this.$attrs[i] = new AttributeDefinition(i, obj[i]);
         }
@@ -100,7 +100,7 @@ export class Template {
         this.$attrs[name] = new AttributeBindingDefinition(name, calculator, ...values);
     }
 
-    defStyle (name : string, value : string | Value | Callable) {
+    defStyle (name : string, value : string | JitValue | Callable) {
         if (value instanceof Function) {
             this.$style[name] = new StyleDefinition(name, null, value);
         }
@@ -109,7 +109,7 @@ export class Template {
         }
     }
 
-    defStyles (obj : { [key : string] : string | Value }) {
+    defStyles (obj : { [key : string] : string | JitValue }) {
         for (let i in obj) {
             this.$style[i] = new StyleDefinition(i, obj[i]);
         }
