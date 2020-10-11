@@ -1,14 +1,14 @@
 // @flow
 import type {IDefinition} from "./interfaces/idefinition";
 import {Value} from "./value";
-import {ComponentCore} from "./interfaces/core";
+import {Core} from "./interfaces/core";
 
 
 
 /**
  * Defines a Component property
  */
-export class PropertyDefinition implements IDefinition {
+export class Property implements IDefinition {
     #name : string;
     #Type : Function;
     #init : Array<any>;
@@ -53,7 +53,7 @@ export class PropertyDefinition implements IDefinition {
      * Create a value of property
      * @returns {Value} a property value object
      */
-    create (rt : ComponentCore, ts : ComponentCore) : Value {
+    create (rt : Core, ts : Core) : Value {
         return new Value(new this.#Type(...this.#init));
     }
 }

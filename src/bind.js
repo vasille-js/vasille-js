@@ -3,7 +3,7 @@ import type {IBind} from "./interfaces/ibind";
 import type {Destroyable} from "./interfaces/destroyable";
 import type {IValue} from "./interfaces/ivalue";
 import type {IDefinition} from "./interfaces/idefinition";
-import {ComponentCore} from "./interfaces/core";
+import {Core} from "./interfaces/core";
 import {JitValue, Value} from "./value";
 
 
@@ -168,7 +168,7 @@ export class Bind1xN implements IBind, Destroyable {
 /**
  * Describe a common binding logic
  */
-export class BindingDefinition implements IDefinition, Destroyable {
+export class Binding implements IDefinition, Destroyable {
     #name    : string;
     #func    : Function;
     #values  : Array<JitValue>;
@@ -228,7 +228,7 @@ export class BindingDefinition implements IDefinition, Destroyable {
      * @param ts is the this component
      * @returns {IBind} the new created bind
      */
-    create (rt : ComponentCore, ts : ComponentCore) : IBind {
+    create (rt : Core, ts : Core) : IBind {
         let values : Array<IValue> = [];
 
         for (let v of this.#values) {

@@ -11,7 +11,7 @@ export type LiveFields = { [key : string] : IValue };
 /**
  * Represents an Vasille.js component core
  */
-export class ComponentCore implements Destroyable {
+export class Core implements Destroyable {
     #el    : HTMLElement | Text;
     #props : LiveFields;
     #data  : LiveFields;

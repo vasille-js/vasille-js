@@ -2,17 +2,17 @@
 import type {Callable} from "./interfaces/idefinition";
 import type {IBind} from "./interfaces/ibind";
 import type {IValue} from "./interfaces/ivalue";
-import {DataDefinition} from "./data";
+import {Data} from "./data";
 import {JitValue} from "./value";
-import {Bind1x1, BindingDefinition} from "./bind";
-import {ComponentCore} from "./interfaces/core";
+import {Bind1x1, Binding} from "./bind";
+import {Core} from "./interfaces/core";
 
 
 
 /**
  * Represent a value bound to an style attribute
  */
-export class StyleDefinition extends DataDefinition {
+export class Style extends Data {
     /**
      * Constructs a style description
      * @param name {string} is the name of style property
@@ -33,7 +33,7 @@ export class StyleDefinition extends DataDefinition {
      * @param ts is the this component
      * @returns {Bind1x1} a bind for style attribute
      */
-    create(rt : ComponentCore, ts : ComponentCore): IBind {
+    create(rt : Core, ts : Core): IBind {
         let value = super.create(rt, ts);
         let watch = function (value : IValue) {
             window.requestAnimationFrame(function () {
@@ -49,7 +49,7 @@ export class StyleDefinition extends DataDefinition {
 /**
  * Describes a style attribute
  */
-export class StyleBindingDefinition extends BindingDefinition {
+export class StyleBinding extends Binding {
     /**
      * Constructs a style binding attribute
      * @param name is the name of style property
@@ -69,7 +69,7 @@ export class StyleBindingDefinition extends BindingDefinition {
      * @returns {*} a function to update style property
      */
     bound() : Function {
-        return function (rt : ComponentCore, ts : ComponentCore, v : IValue) {
+        return function (rt : Core, ts : Core, v : IValue) {
             window.requestAnimationFrame(function () {
                 ts.el.style.setProperty(this.name, v.get());
             }.bind(this));

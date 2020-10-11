@@ -1,28 +1,28 @@
 // @flow
 import type {Callable, Instantiable} from "./interfaces/idefinition";
 import type {IValue} from "./interfaces/ivalue";
-import {DataDefinition} from "./data";
-import {PropertyDefinition} from "./property";
-import {ComponentCore} from "./interfaces/core";
-import {AttributeBindingDefinition, AttributeDefinition} from "./attribute";
+import {Data} from "./data";
+import {Property} from "./property";
+import {Core} from "./interfaces/core";
+import {AttributeBinding, Attribute} from "./attribute";
 import {JitValue, Value} from "./value";
-import {StyleBindingDefinition, StyleDefinition} from "./style";
-import {EventDefinition} from "./event";
+import {StyleBinding, Style} from "./style";
+import {Event} from "./event";
 
 
 
-export class NodeDefinition implements Instantiable {
-    parent  : NodeDefinition;
-    childen : Array<{| node : NodeDefinition, slot : ?string |}>;
-    next    : NodeDefinition;
-    prev    : NodeDefinition;
-    $ref    : string;
-    $refArr : boolean;
+export class Node implements Instantiable {
+    parent   : Node;
+    children : Array<{| node : Node, slot : ?string |}>;
+    next     : Node;
+    prev     : Node;
+    $ref     : string;
+    $refArr  : boolean;
 
     // Instantiable interface realization
-    lastInstance : ComponentCore;
+    lastInstance : Core;
 
-    create (rt : ComponentCore, ts : ComponentCore) : ComponentCore {
+    create (rt : Core, ts : Core) : Core {
         throw "never be called";
     }
 
@@ -32,7 +32,7 @@ export class NodeDefinition implements Instantiable {
     }
 }
 
-export class TextNodeDefinition extends NodeDefinition {
+export class TextNode extends Node {
     #value : IValue;
 
     constructor (text : IValue | String) {
@@ -46,7 +46,7 @@ export class TextNodeDefinition extends NodeDefinition {
         }
     }
 
-    create(rt: ComponentCore, ts: ComponentCore) : ComponentCore {
+    create(rt: Core, ts: Core) : Core {
         let value : IValue;
 
         if (this.#value instanceof JitValue) {
@@ -62,7 +62,7 @@ export class TextNodeDefinition extends NodeDefinition {
             node.replaceData(0, -1, v.get());
         }.bind(null, value));
 
-        this.lastInstance = new ComponentCore(node, {}, {"$" : value}, {}, {});
+        this.lastInstance = new Core(node, {}, {"$" : value}, {}, {});
         return this.lastInstance;
     }
 }
@@ -71,15 +71,15 @@ export class TextNodeDefinition extends NodeDefinition {
  * Represents an Vasille.js component template
  * each template must have an id
  */
-export class ElementNodeDefinition extends NodeDefinition {
+export class ElementNode extends Node {
     #tagName  : string;
     #building : boolean;
 
-    $props : { [key : string] : PropertyDefinition };
-    $data  : { [key : string] : DataDefinition };
-    $attrs : { [key : string] : AttributeDefinition | AttributeBindingDefinition };
-    $style : { [key : string] : StyleDefinition | StyleBindingDefinition };
-    $event : { [key : string] : EventDefinition };
+    $props : { [key : string] : Property };
+    $data  : { [key : string] : Data };
+    $attrs : { [key : string] : Attribute | AttributeBinding };
+    $style : { [key : string] : Style | StyleBinding };
+    $event : { [key : string] : Event };
 
     constructor(tagName : string) {
         super();
@@ -104,15 +104,15 @@ export class ElementNodeDefinition extends NodeDefinition {
     createEvents () { /* to be overloaded */ }
     createDom    () { /* to be overloaded */ }
 
-    defProp (name : string, _type : Function, ...init : Array<any>) : ElementNodeDefinition {
-        this.$props[name] = new PropertyDefinition(name, _type, ...init);
+    defProp (name : string, _type : Function, ...init : Array<any>) : ElementNode {
+        this.$props[name] = new Property(name, _type, ...init);
         return this;
     }
 
-    defProps (props : { [key: string] : Function }) : ElementNodeDefinition {
+    defProps (props : { [key: string] : Function }) : ElementNode {
         for (let i in props) {
             if (props.hasOwnProperty(i)) {
-                this.$props[i] = new PropertyDefinition(i, props[i]);
+                this.$props[i] = new Property(i, props[i]);
             }
         }
         return this;
@@ -121,21 +121,21 @@ export class ElementNodeDefinition extends NodeDefinition {
     defData (
         nameOrSet : string | { [key : string] : any },
         funcOrAny : ?Callable | ?any = null
-    ) : ElementNodeDefinition {
+    ) : ElementNode {
         if (nameOrSet instanceof String && funcOrAny instanceof Function) {
-            this.$data[nameOrSet] = new DataDefinition(nameOrSet, null, funcOrAny);
+            this.$data[nameOrSet] = new Data(nameOrSet, null, funcOrAny);
             return this;
         }
 
         if (nameOrSet instanceof String) {
-            this.$data[nameOrSet] = new DataDefinition(nameOrSet, funcOrAny);
+            this.$data[nameOrSet] = new Data(nameOrSet, funcOrAny);
             return this;
         }
 
         if (nameOrSet instanceof Object && funcOrAny == null) {
             for (let i in nameOrSet) {
                 if (nameOrSet.hasOwnProperty(i)) {
-                    this.$data[i] = new DataDefinition(i, nameOrSet[i]);
+                    this.$data[i] = new Data(i, nameOrSet[i]);
                 }
             }
             return this;
@@ -144,64 +144,64 @@ export class ElementNodeDefinition extends NodeDefinition {
         throw "Wrong function call";
     }
 
-    defAttr (name : string, value : string | JitValue | Callable) : ElementNodeDefinition {
+    defAttr (name : string, value : string | JitValue | Callable) : ElementNode {
         if (value instanceof Function) {
-            this.$attrs[name] = new AttributeDefinition(name, null, value);
+            this.$attrs[name] = new Attribute(name, null, value);
         }
         else {
-            this.$attrs[name] = new AttributeDefinition(name, value);
+            this.$attrs[name] = new Attribute(name, value);
         }
         return this;
     }
 
-    defAttrs (obj : { [key : string] : string | JitValue }) : ElementNodeDefinition {
+    defAttrs (obj : { [key : string] : string | JitValue }) : ElementNode {
         for (let i in obj) {
-            this.$attrs[i] = new AttributeDefinition(i, obj[i]);
+            this.$attrs[i] = new Attribute(i, obj[i]);
         }
         return this;
     }
 
-    bindAttr (name : string, calculator : Function, ...values : Array<JitValue>) : ElementNodeDefinition {
-        this.$attrs[name] = new AttributeBindingDefinition(name, calculator, ...values);
+    bindAttr (name : string, calculator : Function, ...values : Array<JitValue>) : ElementNode {
+        this.$attrs[name] = new AttributeBinding(name, calculator, ...values);
         return this;
     }
 
-    defStyle (name : string, value : string | JitValue | Callable) : ElementNodeDefinition {
+    defStyle (name : string, value : string | JitValue | Callable) : ElementNode {
         if (value instanceof Function) {
-            this.$style[name] = new StyleDefinition(name, null, value);
+            this.$style[name] = new Style(name, null, value);
         }
         else {
-            this.$style[name] = new StyleDefinition(name, value);
+            this.$style[name] = new Style(name, value);
         }
         return this;
     }
 
-    defStyles (obj : { [key : string] : string | JitValue }) : ElementNodeDefinition {
+    defStyles (obj : { [key : string] : string | JitValue }) : ElementNode {
         for (let i in obj) {
-            this.$style[i] = new StyleDefinition(i, obj[i]);
+            this.$style[i] = new Style(i, obj[i]);
         }
         return this;
     }
 
-    bindStyle (name : string, calculator : Function, ...values : Array<JitValue>) : ElementNodeDefinition {
-        this.$style[name] = new StyleBindingDefinition(name, calculator, ...values);
+    bindStyle (name : string, calculator : Function, ...values : Array<JitValue>) : ElementNode {
+        this.$style[name] = new StyleBinding(name, calculator, ...values);
         return this;
     }
 
-    defEvent (name : string, event : Function) : ElementNodeDefinition {
-        this.$event[name] = new EventDefinition(name, event);
+    defEvent (name : string, event : Function) : ElementNode {
+        this.$event[name] = new Event(name, event);
         return this;
     }
 
-    pushNode (node : NodeDefinition, slot : ?string) {
+    pushNode (node : Node, slot : ?string) {
         if (!this.#building && !slot) {
             slot = "default";
         }
 
-        let last : ?NodeDefinition = null;
+        let last : ?Node = null;
 
-        if (this.childen.length) {
-            last = this.childen[this.childen.length - 1];
+        if (this.children.length) {
+            last = this.children[this.children.length - 1];
         }
 
         if (last) {
@@ -210,11 +210,11 @@ export class ElementNodeDefinition extends NodeDefinition {
         node.prev   = last;
         node.parent = this;
 
-        this.childen.push({ node, slot });
+        this.children.push({ node, slot });
     }
 
-    defText (text : string, callback : ?(text : TextNodeDefinition) => void) : ElementNodeDefinition {
-        let node = new TextNodeDefinition(new String(text));
+    defText (text : string, callback : ?(text : TextNode) => void) : ElementNode {
+        let node = new TextNode(new String(text));
         this.pushNode(node, null);
         if (callback) {
             callback(node);
@@ -222,8 +222,8 @@ export class ElementNodeDefinition extends NodeDefinition {
         return this;
     }
 
-    bindText (text : IValue, callback : ?(text : TextNodeDefinition) => void) : ElementNodeDefinition {
-        let node = new TextNodeDefinition(text);
+    bindText (text : IValue, callback : ?(text : TextNode) => void) : ElementNode {
+        let node = new TextNode(text);
         this.pushNode(node, null);
         if (callback) {
             callback(node);
@@ -231,8 +231,8 @@ export class ElementNodeDefinition extends NodeDefinition {
         return this;
     }
 
-    defChild (tagName : string, callback : ?(node : ElementNodeDefinition) => void) : ElementNodeDefinition {
-        let node = new ComponentCore(tagName);
+    defChild (tagName : string, callback : ?(node : ElementNode) => void) : ElementNode {
+        let node = new Core(tagName);
         this.pushNode(node, null);
         if (callback) {
             callback(node);
@@ -240,7 +240,7 @@ export class ElementNodeDefinition extends NodeDefinition {
         return this;
     }
 
-    defCustomChild (func : Function, callback : ?(node : ElementNodeDefinition) => void) : ElementNodeDefinition {
+    defCustomChild (func : Function, callback : ?(node : ElementNode) => void) : ElementNode {
         let node = new Function();
         this.pushNode(node, null);
         if (callback) {
@@ -253,5 +253,5 @@ export class ElementNodeDefinition extends NodeDefinition {
 /**
  * Represents an Vasille.js component
  */
-export class Component extends ComponentCore {
+export class Component extends Core {
 }

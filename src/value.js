@@ -3,7 +3,7 @@ import type {IValue} from "./interfaces/ivalue";
 import type {Destroyable} from "./interfaces/destroyable";
 import type {IDefinition, Instantiable} from "./interfaces/idefinition";
 import type {IBind} from "./interfaces/ibind";
-import {ComponentCore} from "./interfaces/core";
+import {Core} from "./interfaces/core";
 
 
 
@@ -182,7 +182,7 @@ export class JitValue implements IDefinition {
         this.#self = self;
     }
 
-    create(rt : ComponentCore, ts : ComponentCore) : IValue | IBind {
+    create(rt : Core, ts : Core) : IValue | IBind {
         let component = this.#self ? this.#self.lastInstance : rt;
         let extracted;
 

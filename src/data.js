@@ -3,7 +3,7 @@
 import type {Callable, IDefinition} from "./interfaces/idefinition";
 import type {IValue} from "./interfaces/ivalue";
 import type {IBind} from "./interfaces/ibind";
-import {ComponentCore} from "./interfaces/core";
+import {Core} from "./interfaces/core";
 import {JitValue, Value} from "./value";
 
 
@@ -11,7 +11,7 @@ import {JitValue, Value} from "./value";
 /**
  * Describes a data field with default value
  */
-export class DataDefinition implements IDefinition {
+export class Data implements IDefinition {
     #name  : string;
     #value : ?any;
     #func  : ?Callable;
@@ -58,7 +58,7 @@ export class DataDefinition implements IDefinition {
      * @param ts is the this component
      * @returns {Value} a value binding
      */
-    createValue (rt : ComponentCore, ts : ComponentCore) : IValue {
+    createValue (rt : Core, ts : Core) : IValue {
         if (this.#func) {
             let v = this.#func(rt, ts);
             if (v instanceof Value) {
@@ -81,7 +81,7 @@ export class DataDefinition implements IDefinition {
         }
     }
 
-    create (rt : ComponentCore, ts : ComponentCore) : IValue | IBind {
+    create (rt : Core, ts : Core) : IValue | IBind {
         return this.createValue(rt, ts);
     }
 }

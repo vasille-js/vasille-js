@@ -2,17 +2,17 @@
 import type {Callable} from "./interfaces/idefinition";
 import type {IBind} from "./interfaces/ibind";
 import type {IValue} from "./interfaces/ivalue";
-import {Bind1x1, BindingDefinition} from "./bind";
+import {Bind1x1, Binding} from "./bind";
 import {JitValue, Value} from "./value";
-import {DataDefinition} from "./data";
-import {ComponentCore} from "./interfaces/core";
+import {Data} from "./data";
+import {Core} from "./interfaces/core";
 
 
 
 /**
  * Represents a value bound to an attribute
  */
-export class AttributeDefinition extends DataDefinition {
+export class Attribute extends Data {
     constructor (
         name  : string,
         value : ?any      = null,
@@ -27,7 +27,7 @@ export class AttributeDefinition extends DataDefinition {
      * @param ts is the this component
      * @returns {Bind1x1} attribute 1 to 1 bind
      */
-    createBind(rt: ComponentCore, ts: ComponentCore): IBind {
+    createBind(rt: Core, ts: Core): IBind {
         let value = super.createValue(rt, ts);
         let watch = function (value : IValue) {
             if (value.get()) {
@@ -46,7 +46,7 @@ export class AttributeDefinition extends DataDefinition {
         return new Bind1x1(watch, value);
     }
 
-    create(rt: ComponentCore, ts: ComponentCore): IValue | IBind {
+    create(rt: Core, ts: Core): IValue | IBind {
         return this.createBind(rt, ts);
     }
 }
@@ -54,7 +54,7 @@ export class AttributeDefinition extends DataDefinition {
 /**
  * Represents a Attribute binding description
  */
-export class AttributeBindingDefinition extends BindingDefinition {
+export class AttributeBinding extends Binding {
     /**
      * Constructs a attribute binding description
      * @param name {string} is the name of attribute
@@ -74,7 +74,7 @@ export class AttributeBindingDefinition extends BindingDefinition {
      * @returns {*} a function which will update attribute value
      */
     bound(): Function {
-        return function (rt : ComponentCore, ts : ComponentCore, v : IValue) {
+        return function (rt : Core, ts : Core, v : IValue) {
             let value : string = v.get();
 
             if (value) {

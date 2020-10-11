@@ -2,12 +2,12 @@
 
 import type {IDefinition} from "./interfaces/idefinition";
 import type {IValue} from "./interfaces/ivalue";
-import {ComponentCore} from "./interfaces/core";
+import {Core} from "./interfaces/core";
 import {Value} from "./value";
 
 
 
-export class EventDefinition implements IDefinition {
+export class Event implements IDefinition {
     #name    : string;
     #handler : Function;
 
@@ -20,7 +20,7 @@ export class EventDefinition implements IDefinition {
         return this.#name;
     }
 
-    create(rt : ComponentCore, ts : ComponentCore) : IValue {
+    create(rt : Core, ts : Core) : IValue {
         let listener = this.#handler.bind(null, rt, ts);
         let value    = new Value(listener);
 
