@@ -1,10 +1,6 @@
 // @flow
 import type {IValue} from "./interfaces/ivalue";
 import type {Destroyable} from "./interfaces/destroyable";
-import type {IDefinition, Instantiable} from "./interfaces/idefinition";
-import type {IBind} from "./interfaces/ibind";
-import {Core} from "./interfaces/core";
-
 
 
 /**
@@ -159,55 +155,5 @@ export class Rebind implements IValue, Destroyable {
         for (let handler of this.#bound) {
             this.#value.off(handler);
         }
-    }
-}
-
-export const JitType = {
-    PROP : 0,
-    DATA : 1,
-    ATTR : 2,
-    CSS  : 3
-}
-
-type JitInnerType = $Values<typeof JitType>;
-
-export class JitValue implements IDefinition {
-    #Type : JitInnerType;
-    #name : string;
-    #self : ?Instantiable;
-
-    constructor(type : JitInnerType, name : string, self : ?Instantiable = null) {
-        this.#Type = type;
-        this.#name = name;
-        this.#self = self;
-    }
-
-    create(rt : Core, ts : Core) : IValue | IBind {
-        let component = this.#self ? this.#self.lastInstance : rt;
-        let extracted;
-
-        switch (this.#Type) {
-            case JitType.PROP:
-                extracted = component.props[this.#name];
-                break;
-
-            case JitType.DATA:
-                extracted = component.data[this.#name];
-                break;
-
-            case JitType.ATTR:
-                extracted = component.attrs[this.#name];
-                break;
-
-            case JitType.CSS:
-                extracted = component.style[this.#name];
-                break;
-        }
-
-        if (typeof extracted !== "undefined") {
-            return extracted;
-        }
-
-        throw "Expected JitValue not found";
     }
 }

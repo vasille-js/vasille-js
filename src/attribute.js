@@ -1,54 +1,43 @@
 // @flow
 import type {Callable} from "./interfaces/idefinition";
-import type {IBind} from "./interfaces/ibind";
 import type {IValue} from "./interfaces/ivalue";
 import {Bind1x1, Binding} from "./bind";
-import {JitValue, Value} from "./value";
-import {Data} from "./data";
-import {Core} from "./interfaces/core";
-
+import {Value} from "./value";
+import {datify} from "./data";
+import {BaseNode} from "./node";
 
 
 /**
- * Represents a value bound to an attribute
+ * Creates a attribute 1 to 1 bind
+ * @param rt is the root component
+ * @param ts is the this component
+ * @param name is attribute name
+ * @param value is attribute value
+ * @param func is attribute value calculation function
+ * @returns {Bind1x1} attribute 1 to 1 bind
  */
-export class Attribute extends Data {
-    constructor (
-        name  : string,
-        value : ?any      = null,
-        func  : ?Callable = null
-    ) {
-        super(name, value, func);
-    }
+export function attributify(
+    rt: BaseNode, ts: BaseNode,
+    name: string,
+    value: ?any = null,
+    func: ?Callable = null): Bind1x1 {
 
-    /**
-     * Creates a attribute 1 to 1 bind
-     * @param rt is the root component
-     * @param ts is the this component
-     * @returns {Bind1x1} attribute 1 to 1 bind
-     */
-    createBind(rt: Core, ts: Core): IBind {
-        let value = super.createValue(rt, ts);
-        let watch = function (value : IValue) {
-            if (value.get()) {
-                window.requestAnimationFrame(function () {
-                    ts.el.setAttribute(this.name, value.get());
-                }.bind(this));
-            }
-            else {
-                window.requestAnimationFrame(function () {
-                    ts.el.removeAttribute(this.name);
-                }.bind(this));
-            }
-        }.bind(this);
+    let v = datify(rt, ts, value, func);
+    let watch = function (value: IValue) {
+        if (value.get()) {
+            window.requestAnimationFrame(function () {
+                if (ts.el) ts.el.setAttribute(name, value.get());
+            });
+        } else {
+            window.requestAnimationFrame(function () {
+                if (ts.el) ts.el.removeAttribute(name);
+            });
+        }
+        return value.get();
+    };
 
-        watch(value);
-        return new Bind1x1(watch, value);
-    }
-
-    create(rt: Core, ts: Core): IValue | IBind {
-        return this.createBind(rt, ts);
-    }
+    watch(v);
+    return new Bind1x1(watch, v);
 }
 
 /**
@@ -57,36 +46,41 @@ export class Attribute extends Data {
 export class AttributeBinding extends Binding {
     /**
      * Constructs a attribute binding description
+     * @param rt is root component
+     * @param ts is this component
      * @param name {string} is the name of attribute
      * @param func {Function} is the function to bound
      * @param values {Array<Value>} is the array of value to bind to
      */
     constructor(
-        name : string,
-        func: Function,
-        ...values : Array<JitValue>
+        rt        : BaseNode,
+        ts        : BaseNode,
+        name      : string,
+        func      : Function,
+        ...values : Array<IValue>
     ) {
-        super(name, func, ...values);
+        super(rt, ts, name, func, ...values);
     }
 
     /**
      * Updates element attribute by name
      * @returns {*} a function which will update attribute value
      */
-    bound(): Function {
-        return function (rt : Core, ts : Core, v : IValue) {
-            let value : string = v.get();
+    bound(name : string): Function {
+        return function (rt: BaseNode, ts: BaseNode, v: IValue) {
+            let value: string = v.get();
 
             if (value) {
                 window.requestAnimationFrame(function () {
-                    ts.el.setAttribute(this.name, value);
-                }.bind(this));
-            }
-            else {
+                    if (ts.el) ts.el.setAttribute(name, value);
+                });
+            } else {
                 window.requestAnimationFrame(function () {
-                    ts.el.removeAttribute(this.name);
-                }.bind(this));
+                    if (ts.el) ts.el.removeAttribute(name);
+                });
             }
-        }.bind(this);
+
+            return v.get();
+        };
     }
 }

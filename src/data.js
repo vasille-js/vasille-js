@@ -1,87 +1,31 @@
 // @flow
 
-import type {Callable, IDefinition} from "./interfaces/idefinition";
-import type {IValue} from "./interfaces/ivalue";
-import type {IBind} from "./interfaces/ibind";
+import type {Callable} from "./interfaces/idefinition";
 import {Core} from "./interfaces/core";
-import {JitValue, Value} from "./value";
-
+import {Value} from "./value";
+import {isValue} from "./interfaces/types";
 
 
 /**
- * Describes a data field with default value
+ * Constructs a data field value
+ * @param rt {Core} is root component
+ * @param ts {Core} is this component
+ * @param value {?any} is the default value of field
+ * @param func {?Callable} is the function to calc filed value
  */
-export class Data implements IDefinition {
-    #name  : string;
-    #value : ?any;
-    #func  : ?Callable;
-
-    /**
-     * Constructs a data field description
-     * @param name is the name of field
-     * @param value is the default value of field
-     * @param func is the function to calc filed value
-     */
-    constructor(name : string, value : ?any = null, func : ?Callable = null) {
-        this.#name = name;
-        this.#func = func;
-        this.#value = value;
-    }
-
-    /**
-     * Gets the name of field
-     * @returns {string} the name of field
-     */
-    get name () : string {
-        return this.#name;
-    }
-
-    /**
-     * Gets the value of field
-     * @returns {?*} the value of field
-     */
-    get value () : ?any {
-        return this.#value;
-    }
-
-    /**
-     * Gets the calculate function
-     * @returns {?Callable} the calculate function
-     */
-    get func () : ?Callable {
-        return this.#func;
-    }
-
-    /**
-     * Creates a value binding
-     * @param rt is the root component
-     * @param ts is the this component
-     * @returns {Value} a value binding
-     */
-    createValue (rt : Core, ts : Core) : IValue {
-        if (this.#func) {
-            let v = this.#func(rt, ts);
-            if (v instanceof Value) {
-                return new Value(v.get());
-            }
-            else {
-                return new Value(v);
-            }
+export function datify (rt: Core, ts: Core, value: ?any = null, func: ?Callable = null) : Value {
+    if (func) {
+        let v = func.func(rt, ts);
+        if (isValue(v)) {
+            return new Value(v.get());
+        } else {
+            return new Value(v);
         }
-        else {
-            if (this.#value instanceof Value) {
-                return new Value(this.#value.get());
-            }
-            else if (this.#value instanceof JitValue) {
-                return this.#value.create(rt, ts);
-            }
-            else {
-                return new Value(this.#value);
-            }
+    } else {
+        if (value && isValue(value)) {
+            return new Value(value.get());
+        } else {
+            return new Value(value);
         }
-    }
-
-    create (rt : Core, ts : Core) : IValue | IBind {
-        return this.createValue(rt, ts);
     }
 }

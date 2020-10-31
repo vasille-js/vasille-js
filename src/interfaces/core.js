@@ -7,63 +7,67 @@ import {destroyObject} from "./destroyObject";
 
 
 export type LiveFields = { [key : string] : IValue };
+export type CoreEl = HTMLElement | Text | Comment;
 
 /**
  * Represents an Vasille.js component core
  */
 export class Core implements Destroyable {
-    #el    : HTMLElement | Text;
-    #props : LiveFields;
-    #data  : LiveFields;
-    #attrs : LiveFields;
-    #style : LiveFields;
+    $el    : CoreEl;
+    $props : LiveFields = {};
+    $data  : LiveFields = {};
+    $attrs : LiveFields = {};
+    $style : LiveFields = {};
 
-    constructor (
-        el : HTMLElement | Text,
-        props : LiveFields,
-        data: LiveFields,
-        attrs: LiveFields,
-        style: LiveFields
-    ) {
-        this.#el    = el;
-        this.#props = Object.freeze(props);
-        this.#data  = Object.freeze(data);
-        this.#attrs = Object.freeze(attrs);
-        this.#style = Object.freeze(style);
+    constructor (el : CoreEl) {
+        this.$el = el;
+    }
+
+    get coreEl () : ?CoreEl {
+        return this.$el;
     }
 
     get el () : ?HTMLElement {
-        if (this.#el instanceof HTMLElement) {
-            return this.#el;
+        let el = this.coreEl;
+        if (el instanceof HTMLElement) {
+            return el;
         }
     }
 
     get text () : ?Text {
-        if (this.#el instanceof Text) {
-            return this.#el;
+        let el = this.coreEl;
+        if (el instanceof Text) {
+            return el;
+        }
+    }
+
+    get comment () : ?Comment {
+        let el = this.coreEl;
+        if (el instanceof Comment) {
+            return el;
         }
     }
 
     get props () : LiveFields {
-        return this.#props;
+        return this.$props;
     }
 
     get data () : LiveFields {
-        return this.#data;
+        return this.$data;
     }
 
     get attrs () : LiveFields {
-        return this.#attrs;
+        return this.$attrs;
     }
 
     get style () : LiveFields {
-        return this.#style;
+        return this.$style;
     }
 
     destroy () {
-        destroyObject(this.#props);
-        destroyObject(this.#data);
-        destroyObject(this.#attrs);
-        destroyObject(this.#style);
+        destroyObject(this.$props);
+        destroyObject(this.$data);
+        destroyObject(this.$attrs);
+        destroyObject(this.$style);
     }
 }

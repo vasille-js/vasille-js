@@ -1,59 +1,62 @@
 // @flow
-import type {IDefinition} from "./interfaces/idefinition";
-import {Value} from "./value";
+import {Rebind, Value} from "./value";
 import {Core} from "./interfaces/core";
-
+import type {Callable} from "./interfaces/idefinition";
+import {BaseNode, ElementNode, Node} from "./node";
+import {isValue} from "./interfaces/types";
+import type {IValue} from "./interfaces/ivalue";
 
 
 /**
  * Defines a Component property
  */
-export class Property implements IDefinition {
-    #name : string;
-    #Type : Function;
-    #init : Array<any>;
+export class Property {
+    #Type: Function;
+    #init: Array<any>;
 
     /**
      * Construct a property definition
-     * @param name {String} is the property name
      * @param _type {Function} is the property constructor
      * @param init {args} are arguments to initialize the type
      */
-    constructor(name : string, _type : Function, ...init : Array<any>) {
-        this.#name = name;
+    constructor(_type: Function, ...init: Array<any>) {
         this.#Type = _type;
         this.#init = init;
     }
 
-    /**
-     * Gets the name of property
-     * @returns {string} the name of property
-     */
-    get name () : string {
-        return this.#name;
-    }
-
-    /**
-     * Gets the property constructor
-     * @returns {Function} property constructor
-     */
     get type () : Function {
         return this.#Type;
     }
 
     /**
-     * Gets the constructor arguments
-     * @returns {Array<*>} constructor arguments
-     */
-    get initial () : Array<any> {
-        return this.#init;
-    }
-
-    /**
-     * Create a value of property
+     * Create a default value of property
      * @returns {Value} a property value object
      */
-    create (rt : Core, ts : Core) : Value {
+    createDefaultValue(): Value {
         return new Value(new this.#Type(...this.#init));
+    }
+}
+
+/**
+ * Constructs a property field value
+ * @param rt {Core} is root component
+ * @param ts {Core} is this component
+ * @param value {?any} is the initial value of field
+ * @param func {?Callable} is the function to calc filed value
+ */
+export function propertify (rt: BaseNode, ts: Node, value: ?any = null, func: ?Callable = null) : IValue {
+    if (func) {
+        let v = func.func(rt, ts);
+        if (isValue(v)) {
+            return v;
+        } else {
+            return new Value(v);
+        }
+    } else {
+        if (value && isValue(value)) {
+            return value;
+        } else {
+            return new Value(value);
+        }
     }
 }

@@ -2,10 +2,8 @@
 import type {IBind} from "./interfaces/ibind";
 import type {Destroyable} from "./interfaces/destroyable";
 import type {IValue} from "./interfaces/ivalue";
-import type {IDefinition} from "./interfaces/idefinition";
 import {Core} from "./interfaces/core";
-import {JitValue, Value} from "./value";
-
+import {Value} from "./value";
 
 
 /**
@@ -25,13 +23,18 @@ export class Bind1x1 implements IBind {
      */
     constructor (func : Function, value : IValue, link : boolean = true) {
         value.on(func);
+        let bounded = func.bind(null, value);
+        let handler = function () {
+            this.#sync.set(bounded());
+        }.bind(this);
         this.#value = value;
-        this.#func = func.bind(this.#sync, value);
+        this.#func = handler;
         this.#linked = !link;
         if (link) {
             this.link();
             this.#func.call();
         }
+        this.#sync.set(bounded());
     }
 
     get () : any {
@@ -101,13 +104,18 @@ export class Bind1xN implements IBind, Destroyable {
      * @param link links immediately
      */
     constructor(func : Function, values : Array<IValue>, link : boolean = true) {
+        let bounded = func.bind(this.#sync, ...values);
+        let handler = function () {
+            this.#sync.set(bounded());
+        }.bind(this);
         this.#values = values;
-        this.#func = func.bind(this.#sync, ...values);
+        this.#func = handler;
         this.#linked = false;
         if (link) {
             this.link();
             this.#func.call();
         }
+        this.#sync.set(bounded());
     }
 
     get () : any {
@@ -168,92 +176,71 @@ export class Bind1xN implements IBind, Destroyable {
 /**
  * Describe a common binding logic
  */
-export class Binding implements IDefinition, Destroyable {
-    #name    : string;
-    #func    : Function;
-    #values  : Array<JitValue>;
+export class Binding implements IValue, Destroyable {
     #binding : IBind;
     #bound   : Function;
 
     /**
      * Constructs a common binding logic
+     * @param rt is root component
+     * @param ts is this component
      * @param name {string} is a name of property/attribute
      * @param func {Function} is a function to run to bind
-     * @param values {Array<JitValue>} is a values array to bind
+     * @param values {Array<Value>} is a values array to bind
      */
     constructor(
+        rt : Core, ts : Core,
         name : string,
         func: Function,
-        ...values : Array<JitValue>
+        ...values : Array<IValue>
     ) {
-        this.#name   = name;
-        this.#values = values;
-        this.#func   = func;
-    }
-
-    /**
-     * Gets name of abstraction
-     * @returns {string} the name of abstraction
-     */
-    get name () : string {
-        return this.#name;
-    }
-
-    /**
-     * Gets bound function
-     * @returns {Function} the bound function
-     */
-    get func () : Function {
-        return this.#func;
-    }
-
-    /**
-     * Gets bind value array
-     * @returns {Array<JitValue>} bind value array
-     */
-    get values () : Array<JitValue> {
-        return this.#values;
-    }
-
-    /**
-     * Is a virtual function to get the specific bind function
-     */
-    bound() : Function {
-        throw "Must be implemented in child class";
-    };
-
-    /**
-     * Creates a bind to live update attribute/property value
-     * @param rt is the root component
-     * @param ts is the this component
-     * @returns {IBind} the new created bind
-     */
-    create (rt : Core, ts : Core) : IBind {
-        let values : Array<IValue> = [];
-
-        for (let v of this.#values) {
-            values.push(v.create(rt, ts));
+        if (values.length === 1) {
+            this.#binding = new Bind1x1(func, values[0]);
         }
-
-        if (this.#values.length === 1) {
-            this.#binding = new Bind1x1(this.#func, values[0]);
-        }
-        else if (this.#values.length > 1) {
-            this.#binding = new Bind1xN(this.#func, values);
+        else if (values.length > 1) {
+            this.#binding = new Bind1xN(func, values);
         }
         else {
             throw "There must be a value as minimum";
         }
 
-        this.#bound = this.bound().bind(null, rt, ts, this.#binding);
+        this.#bound = this.bound(name).bind(null, rt, ts, this.#binding);
         this.#binding.on(this.#bound);
-
-        return this.#binding;
     }
 
+    /**
+     * Is a virtual function to get the specific bind function
+     */
+    bound(name : string) : Function {
+        throw "Must be implemented in child class";
+    };
+
+
+    get () : any {
+        return this.#binding.get();
+    }
+
+    set (any : any) : IValue {
+        this.#binding.set(any);
+        return this;
+    }
+
+    on (func : Function) : IValue {
+        this.#binding.on(func);
+        return this;
+    }
+
+    off (func : Function) : IValue {
+        this.#binding.off(func);
+        return this;
+    }
+
+    /**
+     * Just clear bindings
+     */
     destroy() {
         if (this.#binding) {
-            this.#binding.off(this.#bound);
+            this.#binding.destroy();
         }
     }
 }

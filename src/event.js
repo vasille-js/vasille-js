@@ -1,36 +1,30 @@
 // @flow
 
-import type {IDefinition} from "./interfaces/idefinition";
-import type {IValue} from "./interfaces/ivalue";
 import {Core} from "./interfaces/core";
 import {Value} from "./value";
 
 
+/**
+ * Covert a event function to a Vasille.js value
+ * @param rt is the root component
+ * @param ts is the this component
+ * @param name is the event name
+ * @param handler is the handler function
+ * @returns {Value} a Vasille.js value
+ */
+export function eventify(rt: Core, ts: Core, name: string, handler: Function): Value {
+    let listener = handler.bind(null, rt, ts);
+    let value = new Value(listener);
+    let el = ts.el;
 
-export class Event implements IDefinition {
-    #name    : string;
-    #handler : Function;
-
-    constructor (name : string, handler : Function) {
-        this.#name    = name;
-        this.#handler = handler;
+    if (el) {
+        el.addEventListener(name, listener);
+        value.on(function () {
+            el.removeEventListener(name, this.listener);
+            this.listener = value.get().bind(null, rt, ts);
+            el.addEventListener(name, this.listener);
+        }.bind({listener}));
     }
 
-    get name () : string {
-        return this.#name;
-    }
-
-    create(rt : Core, ts : Core) : IValue {
-        let listener = this.#handler.bind(null, rt, ts);
-        let value    = new Value(listener);
-
-        ts.el.addEventListener(this.#name, listener);
-        value.on(function (name : string, v : Value) {
-            ts.el.removeEventListener(name, this.listener);
-            this.listener = v.get().bind(null, rt, ts);
-            ts.el.addEventListener(name, this.listener);
-        }.bind({listener}, this.#name, value));
-
-        return value;
-    }
+    return value;
 }
