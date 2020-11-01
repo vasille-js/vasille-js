@@ -1,36 +1,37 @@
 // @flow
 
-import type {Callable} from "./interfaces/idefinition";
+import {Callable} from "./interfaces/idefinition";
+import {IValue}   from "./interfaces/ivalue";
 
-import {Core}    from "./interfaces/core";
-import {Value}   from "./value";
-import {isValue} from "./interfaces/types";
+import {BaseNode} from "./node";
+import {Value}    from "./value";
 
 
 
 /**
  * Constructs a data field value
- * @param rt {Core} is root component
- * @param ts {Core} is this component
- * @param value {?any} is the default value of field
- * @param func {?Callable} is the function to calc filed value
+ * @param rt {BaseNode} Root component
+ * @param ts {BaseNode} This component
+ * @param value {?*} The default value of field
+ * @param func {?Callable} The function to calc filed value
+ * @return {Value} A new generated value
  */
 export function datify (
-    rt    : Core,
-    ts    : Core,
+    rt    : BaseNode,
+    ts    : BaseNode,
     value : ?any = null,
     func  : ?Callable = null
 ) : Value {
     if (func) {
         let v = func.func(rt, ts);
 
-        if (isValue(v)) {
+        if (v instanceof IValue) {
             return new Value(v.get());
         } else {
             return new Value(v);
         }
     } else {
-        if (value && isValue(value)) {
+        if (value instanceof IValue) {
             return new Value(value.get());
         } else {
             return new Value(value);

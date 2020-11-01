@@ -1,16 +1,14 @@
 // @flow
-import type {IValue} from "./interfaces/ivalue";
+import {Callable} from "./interfaces/idefinition";
+import {IValue}   from "./interfaces/ivalue";
 
 import {BaseNode, Node} from "./node";
-import {Callable}       from "./interfaces/idefinition";
-import {Core}           from "./interfaces/core";
-import {isValue}        from "./interfaces/types";
 import {Value}          from "./value";
 
 
 
 /**
- * Defines a Component property
+ * Defines a node property
  */
 export class Property {
     #Type : Function;
@@ -29,6 +27,10 @@ export class Property {
         this.#init = init;
     }
 
+    /**
+     * Gets the constructor of property
+     * @return {Function}
+     */
     get type () : Function {
         return this.#Type;
     }
@@ -44,10 +46,11 @@ export class Property {
 
 /**
  * Constructs a property field value
- * @param rt {Core} is root component
- * @param ts {Core} is this component
+ * @param rt {BaseNode} is root component
+ * @param ts {Node} is this component
  * @param value {?any} is the initial value of field
  * @param func {?Callable} is the function to calc filed value
+ * @return {IValue} Given value or new generated
  */
 export function propertify (
     rt    : BaseNode,
@@ -58,13 +61,13 @@ export function propertify (
     if (func) {
         let v = func.func(rt, ts);
 
-        if (isValue(v)) {
+        if (v instanceof IValue) {
             return v;
         } else {
             return new Value(v);
         }
     } else {
-        if (value && isValue(value)) {
+        if (value instanceof IValue) {
             return value;
         } else {
             return new Value(value);

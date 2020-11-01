@@ -1,20 +1,20 @@
 // @flow
 
-import {Core}  from "./interfaces/core";
-import {Value} from "./value";
+import {BaseNode} from "./node";
+import {Value}    from "./value";
 
 
 /**
  * Covert a event function to a Vasille.js value
- * @param rt is the root component
- * @param ts is the this component
- * @param name is the event name
- * @param handler is the handler function
+ * @param rt {BaseNode} is the root component
+ * @param ts {BaseNode} is the this component
+ * @param name {String} is the event name
+ * @param handler {Function} is the handler function
  * @returns {Value} a Vasille.js value
  */
 export function eventify (
-    rt      : Core,
-    ts      : Core,
+    rt      : BaseNode,
+    ts      : BaseNode,
     name    : string,
     handler : Function
 ) : Value {

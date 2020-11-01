@@ -1,21 +1,20 @@
 // @flow
-import type {Callable} from "./interfaces/idefinition";
-import type {IValue}   from "./interfaces/ivalue";
+import {Callable} from "./interfaces/idefinition";
+import {IValue}   from "./interfaces/ivalue";
 
 import {Bind1, Binding} from "./bind";
-import {Value}          from "./value";
-import {datify}         from "./data";
 import {BaseNode}       from "./node";
+import {propertify}     from "./property";
 
 
 /**
  * Creates a attribute 1 to 1 bind
- * @param rt is the root component
- * @param ts is the this component
- * @param name is attribute name
- * @param value is attribute value
- * @param func is attribute value calculation function
- * @returns {Bind1} attribute 1 to 1 bind
+ * @param rt {BaseNode} is the root component
+ * @param ts {BaseNode} is the this component
+ * @param name {String} is attribute name
+ * @param value {?any} is attribute value
+ * @param func {?Callable} is attribute value calculation function
+ * @returns {AttributeBinding} 1 to 1 bind of attribute
  */
 export function attributify (
     rt    : BaseNode,
@@ -23,52 +22,37 @@ export function attributify (
     name  : string,
     value : ?any = null,
     func  : ?Callable = null
-) : Bind1 {
-
-    let v = datify(rt, ts, value, func);
-    let watch = function (value: IValue) {
-        if (value.get()) {
-            window.requestAnimationFrame(function () {
-                if (ts.el) ts.el.setAttribute(name, value.get());
-            });
-        }
-        else {
-            window.requestAnimationFrame(function () {
-                if (ts.el) ts.el.removeAttribute(name);
-            });
-        }
-        return value.get();
-    };
-
-    watch(v);
-    return new Bind1(watch, v);
+) : AttributeBinding {
+    return new AttributeBinding(rt, ts, name, null, propertify(rt, ts, value, func));
 }
 
 /**
  * Represents a Attribute binding description
+ * @extends Binding
  */
 export class AttributeBinding extends Binding {
     /**
      * Constructs a attribute binding description
-     * @param rt is root component
-     * @param ts is this component
-     * @param name {string} is the name of attribute
-     * @param func {Function} is the function to bound
-     * @param values {Array<Value>} is the array of value to bind to
+     * @param rt {BaseNode} is root component
+     * @param ts {BaseNode} is this component
+     * @param name {String} is the name of attribute
+     * @param func {?Function} is the function to bound
+     * @param values {Array<IValue>} is the array of values to bind to
      */
     constructor (
         rt        : BaseNode,
         ts        : BaseNode,
         name      : string,
-        func      : Function,
+        func      : ?Function,
         ...values : Array<IValue>
     ) {
         super(rt, ts, name, func, ...values);
     }
 
     /**
-     * Updates element attribute by name
-     * @returns {*} a function which will update attribute value
+     * Generates a function which updates the attribute value
+     * @param name {String} The name of attribute
+     * @returns {Function} a function which will update attribute value
      */
     bound (name : string) : Function {
         return function (rt: BaseNode, ts: BaseNode, v: IValue) {

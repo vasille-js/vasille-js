@@ -1,13 +1,22 @@
 // @flow
-import type {Destroyable} from "./interfaces/destroyable";
-import type {IValue}      from "./interfaces/ivalue";
+import {IValue} from "./interfaces/ivalue";
 
 
 /**
  * Declares a notifiable value
+ * @implements IValue
  */
-export class Value implements IValue {
-    #value    : any;
+export class Value extends IValue {
+    /**
+     * The encapsulated value
+     * @type {*}
+     */
+    #value : any;
+
+    /**
+     * Array of handlers
+     * @type {Array<Function>}
+     */
     #onchange : Array<Function>;
 
     /**
@@ -15,6 +24,7 @@ export class Value implements IValue {
      * @param value {any} is initial value
      */
     constructor (value : any) {
+        super();
         this.#value = value;
         this.#onchange = [];
     }
@@ -66,12 +76,18 @@ export class Value implements IValue {
         }
         return this;
     }
+
+    destroy() {
+        super.destroy();
+        this.#onchange.splice(0);
+    }
 }
 
 /**
  * Declares a notifiable bind to a value
+ * @implements IValue
  */
-export class Rebind implements IValue, Destroyable {
+export class Rebind extends IValue {
     #value    : IValue;
     #onchange : Array<Function> = [];
     #bound    : Array<Function> = [];
@@ -81,6 +97,7 @@ export class Rebind implements IValue, Destroyable {
      * @param value {IValue} is initial value
      */
     constructor (value : IValue) {
+        super();
         this.#onchange = [];
         this.set(value);
     }
@@ -151,6 +168,9 @@ export class Rebind implements IValue, Destroyable {
         return this;
     }
 
+    /**
+     * Removes all bounded functions
+     */
     destroy () {
         for (let handler of this.#bound) {
             this.#value.off(handler);

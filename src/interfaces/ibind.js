@@ -1,13 +1,28 @@
 // @flow
-import type {IValue} from "./ivalue";
-import type {Destroyable} from "./destroyable";
+import {IValue} from "./ivalue";
 
 
 
 /**
  * Mark an object which can be bound
+ * @interface
  */
-export interface IBind extends IValue, Destroyable {
-    link () : IBind;
-    unlink () : IBind;
+export class IBind extends IValue {
+    /**
+     * Ensure the binding to be bound
+     * @return a pointer to this
+     * @throws must be overwritten
+     */
+    link () : IBind {
+        throw "Must be overwritten";
+    }
+
+    /**
+     * Ensure the binding to be unbound
+     * @return a pointer to this
+     * @throws must be overwritten
+     */
+    unlink () : IBind {
+        throw "Must be overwritten";
+    }
 }

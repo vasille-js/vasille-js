@@ -1,34 +1,59 @@
 // @flow
-import type {CoreEl}      from "./interfaces/core";
-import type {Destroyable} from "./interfaces/destroyable";
-import type {IValue}      from "./interfaces/ivalue";
-import type {ValueType}   from "./interfaces/types";
+import type {CoreEl} from "./interfaces/core";
+import {Core}        from "./interfaces/core";
+import {Callable}    from "./interfaces/idefinition";
+import {IValue}      from "./interfaces/ivalue";
 
 import {AttributeBinding, attributify} from "./attribute";
-import {Bind1, BindN}                  from "./bind";
-import {Callable}                      from "./interfaces/idefinition";
-import {Core}                          from "./interfaces/core";
+import {Bind1, Binding, BindN}         from "./bind";
 import {datify}                        from "./data";
 import {eventify}                      from "./event";
-import {Property, propertify}          from "./property";
-import {Rebind, Value}                 from "./value";
+import {propertify, Property}          from "./property";
 import {StyleBinding, stylify}         from "./style";
-
+import {Rebind, Value}                 from "./value";
 
 
 export interface INode {
     appendChild (node : CoreEl) : void;
 }
 
+/**
+ * Represents a Vasille.js node
+ * @extends Core
+ */
 export class Node extends Core {
+    /**
+     * A link to a parent node
+     * @type {Node}
+     */
     parent : Node;
-    next   : ?Node;
-    prev   : ?Node;
-    $rt    : BaseNode;
 
+    /**
+     * The next node
+     * @type {?Node}
+     */
+    next : ?Node;
+
+    /**
+     * The previous node
+     * @type {?Node}
+     */
+    prev : ?Node;
+
+    /**
+     * The root node
+     * @type {BaseNode}
+     */
+    $rt : BaseNode;
+
+    /**
+     * Construct the base of a node
+     * @param root {?BaseNode} The root node
+     * @param el {HTMLElement | Text | Comment} The encapsulated node
+     */
     constructor (
         root: ?BaseNode,
-        el: CoreEl | null
+        el: ?CoreEl
     ) {
         if (el && root) {
             super(el);
@@ -36,6 +61,11 @@ export class Node extends Core {
         }
     }
 
+    /**
+     * Creates a reference to this element
+     * @param reference {String} The reference name
+     * @param likeArray {Boolean} Store reference to array
+     */
     ref (
         reference: string,
         likeArray: boolean = false
@@ -53,29 +83,57 @@ export class Node extends Core {
         }
     }
 
+    /**
+     * Runs garbage collector
+     */
     destroy () : void {
         super.destroy();
+
+        if (!this.$rt) return;
+
         for (let i in this.$rt.refs) {
             if (this.$rt.refs[i] === this) {
                 delete this.$rt.refs[i];
+            }
+            else if (this.$rt.refs[i] instanceof Array && this.$rt.refs[i].includes(this)) {
+                this.$rt.refs[i].splice(this.$rt.refs[i].indexOf(this), 1);
             }
         }
     }
 }
 
-export class TextNode extends Node implements Destroyable {
-    #value   : IValue;
+/**
+ * Represents a text node
+ */
+export class TextNode extends Node {
+    /**
+     * Contains the text of node as Value
+     * @type {IValue}
+     */
+    #value : IValue;
+
+    /**
+     * User defined handler to handle text change
+     * @type {Function}
+     */
     #handler : Function;
 
+    /**
+     * Constructs a text node
+     * @param rt {BaseNode} The root node
+     * @param ts {BaseNode} The this node
+     * @param text {String | IValue}
+     */
     constructor(
         rt   : BaseNode,
         ts   : BaseNode,
         text : IValue | string
     ) {
-        let value = text instanceof Value  ||
-                    text instanceof Rebind ||
-                    text instanceof Bind1  ||
-                    text instanceof BindN  ? text : new Value(text);
+        let value = text instanceof Value   ||
+                    text instanceof Rebind  ||
+                    text instanceof Bind1   ||
+                    text instanceof BindN   ||
+                    text instanceof Binding ? text : new Value(text);
         let node  = document.createTextNode(value.get());
 
         super(rt, node);
@@ -90,10 +148,17 @@ export class TextNode extends Node implements Destroyable {
         ts.appendChild(node);
     }
 
+    /**
+     * Gets the text of node
+     * @type {IValue}
+     */
     get value() : IValue {
         return this.#value;
     }
 
+    /**
+     * Runs garbage collector
+     */
     destroy () : void {
         super.destroy();
         this.#value.off(this.#handler);
@@ -104,17 +169,53 @@ type TextNodeCB    = ?(text : TextNode) => void;
 type ElementNodeCB = ?(text : ElementNode) => void;
 
 /**
- * Represents an Vasille.js component template
- * each template must have an id
+ * Represents an Vasille.js node which can contains children
+ * @extends Node
  */
 export class BaseNode extends Node implements INode {
-    children   : Array<Node> = [];
-    #building  : boolean;
-    $event     : { [key : string] : IValue }             = {};
-    refs       : { [key : string] : Node | Array<Node> } = {};
-    slots      : { [key : string] : BaseNode }           = {};
-    $propsDefs : { [key : string] : Property }           = {};
+    /**
+     * The children list
+     * @type {Array<Node>}
+     */
+    children : Array<Node> = [];
 
+    /**
+     * The building active state
+     * @type {boolean}
+     */
+    #building : boolean;
+
+    /**
+     * List of events
+     * @type {Object<String, IValue>}
+     */
+    $event : { [key : string] : IValue } = {};
+
+    /**
+     * List of references
+     * @type {Object<String, Node|Array<Node>>}
+     */
+    refs : { [key : string] : Node | Array<Node> } = {};
+
+    /**
+     * List of slots
+     * @type {Object<String, BaseNode>}
+     */
+    slots : { [key : string] : BaseNode } = {};
+
+    /**
+     * List of defined properties
+     * @type {Object<String, Property>}
+     */
+    $propsDefs : { [key : string] : Property } = {};
+
+    /**
+     * Constructs a base node which can contain children
+     * @param rt {?BaseNode} The root node
+     * @param ts {?BaseNode} The this node
+     * @param node {HTMLElement | Text | Comment | null} The encapsulated node
+     * @param props {Object} Node properties values
+     */
     constructor(
         rt    : ?BaseNode,
         ts    : ?BaseNode,
@@ -138,7 +239,6 @@ export class BaseNode extends Node implements INode {
         this.createData();
         this.createAttrs();
         this.createStyle();
-        this.createBinds();
         this.createEvents();
 
         this.created();
@@ -148,29 +248,56 @@ export class BaseNode extends Node implements INode {
         this.mounted();
     }
 
+    /**
+     * Runs garbage collector
+     */
     destroy () : void {
         super.destroy();
+
+        for (let i in this.$rt.slots) {
+            if (this.$rt.slots[i] === this) {
+                delete this.$rt.slots[i];
+            }
+        }
 
         for (let child of this.children) {
             child.destroy();
         }
     }
 
+    /**
+     * Get the current root (this on building, $rt on filling)
+     * @type {BaseNode}
+     */
     get rt () : BaseNode {
         return this.#building ? this : this.$rt;
     }
 
-    created() { /* to be overloaded */ }
-    mounted() { /* to be overloaded */ }
+    /** To be overloaded: created event handler */
+    created() {}
+    /** To be overloaded: mounted event handler */
+    mounted() {}
 
-    createProps  () { /* to be overloaded */ }
-    createData   () { /* to be overloaded */ }
-    createAttrs  () { /* to be overloaded */ }
-    createStyle  () { /* to be overloaded */ }
-    createBinds  () { /* to be overloaded */ }
-    createEvents () { /* to be overloaded */ }
-    createDom    () { /* to be overloaded */ }
+    /** To be overloaded: property creation milestone */
+    createProps () {}
+    /** To be overloaded: data creation milestone */
+    createData () {}
+    /** To be overloaded: attributes creation milestone */
+    createAttrs  () {}
+    /** To be overloaded: style attributes creation milestone */
+    createStyle () {}
+    /** To be overloaded: events creation milestone */
+    createEvents () {}
+    /** To be overloaded: DOM creation milestone */
+    createDom () {}
 
+    /**
+     * Defines a property
+     * @param name {String} The name of property
+     * @param _type {Function} The type checker and constructor
+     * @param init {...any} Constructor arguments
+     * @return {BaseNode} A pointer to this
+     */
     defProp (
         name    : string,
         _type   : Function,
@@ -180,7 +307,12 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
-    defProps (props : { [key: string]: Function }): BaseNode {
+    /**
+     * Defines a set of properties without constructor arguments
+     * @param props {Object<String, Function>} The collection of properties
+     * @return {BaseNode} A pointer to this
+     */
+    defProps (props : { [key : string] : Function }): BaseNode {
         for (let i in props) {
             if (props.hasOwnProperty(i)) {
                 this.$propsDefs[i] = new Property(props[i]);
@@ -189,6 +321,11 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
+    /**
+     * Initializes the node properties
+     * @param props {Object<String, Callable | IValue | *>} Properties values
+     * @private
+     */
     initProps (props : { [key: string]: Callable | IValue | any }) {
         // add properties from object
         for (let i in props) {
@@ -213,6 +350,7 @@ export class BaseNode extends Node implements INode {
             }
         }
 
+        // Create default value for missing properties
         for (let i in this.$propsDefs) {
             if (!this.$props[i]) {
                 this.$props[i] = this.$propsDefs[i].createDefaultValue();
@@ -220,6 +358,12 @@ export class BaseNode extends Node implements INode {
         }
     }
 
+    /**
+     * Crates the object data
+     * @param nameOrSet {string | Object<String, *>} The data name of set of data
+     * @param funcOrAny {?Callable | ?*} Function to calculate a value or a value
+     * @return {BaseNode} A pointer to this
+     */
     defData (
         nameOrSet : string | { [key: string] : any },
         funcOrAny : ?Callable | ?any = null
@@ -246,9 +390,15 @@ export class BaseNode extends Node implements INode {
         throw "Wrong function call";
     }
 
+    /**
+     * Defines a attribute
+     * @param name {String} The name of attribute
+     * @param value {String | IValue | Callable} A value or a value getter
+     * @return {BaseNode} A pointer to this
+     */
     defAttr (
         name  : string,
-        value : string | ValueType | Callable
+        value : string | IValue | Callable
     ) : BaseNode {
         if (!this.el) {
             throw "Just elements accepts attributes";
@@ -262,6 +412,11 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
+    /**
+     * Defines a set of attributes
+     * @param obj {Object<String, String | IValue>} A set attributes
+     * @return {BaseNode} A pointer to this
+     */
     defAttrs (obj : { [key: string] : string | IValue }) : BaseNode {
         if (!this.el) {
             throw "Just elements accepts attributes";
@@ -273,6 +428,13 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
+    /**
+     * Creates and binds a multivalued binding to attribute
+     * @param name {String} The name of attribute
+     * @param calculator {Function} Binding calculator (must return a value)
+     * @param values {...IValue} Values to bind
+     * @return {BaseNode} A pointer to this
+     */
     bindAttr (
         name       : string,
         calculator : Function,
@@ -286,6 +448,12 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
+    /**
+     * Defines a style attribute
+     * @param name {String} The name of style attribute
+     * @param value {String | IValue | Callable} A value or a value getter
+     * @return {BaseNode} A pointer to this
+     */
     defStyle (
         name  : string,
         value : string | IValue | Callable
@@ -296,12 +464,18 @@ export class BaseNode extends Node implements INode {
 
         if (value instanceof Callable) {
             this.$style[name] = stylify(this.rt, this, name, null, value);
-        } else {
+        }
+        else {
             this.$style[name] = stylify(this.rt, this, name, value);
         }
         return this;
     }
 
+    /**
+     * Defines a set of style attributes
+     * @param obj {Object<String, String | IValue>} A set of style attributes
+     * @return {BaseNode} A pointer to this
+     */
     defStyles (obj : { [key: string]: string | IValue }) : BaseNode {
         if (!this.el) {
             throw "Just elements accepts style attributes";
@@ -313,6 +487,13 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
+    /**
+     * Creates and binds a calculator to a style attribute
+     * @param name {String} Name of style attribute
+     * @param calculator {Function} A calculator for style value
+     * @param values {...IValue} Values to bind
+     * @return {BaseNode} A pointer to this
+     */
     bindStyle (
         name       : string,
         calculator : Function,
@@ -326,6 +507,12 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
+    /**
+     * Defines a element event
+     * @param name {String} Event name
+     * @param event {Function} Event handler as function
+     * @return {BaseNode} A pointer to this
+     */
     defEvent (
         name  : string,
         event : Function
@@ -334,12 +521,25 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
+    /**
+     * Register current node as named slot
+     * @param name {String} The name of slot
+     */
     slot (name : string) {
         this.$rt.slots[name] = this;
     }
 
+    /**
+     * The last inserted child (Child are not destructible)
+     * @type {?Node}
+     */
     #lastChild : ?Node = null;
 
+    /**
+     * Pushes a node to children immediately
+     * @param node {Node} A node to push
+     * @private
+     */
     pushNodeNow (node : Node) : void {
         if (this.#lastChild) {
             this.#lastChild.next = node;
@@ -351,6 +551,11 @@ export class BaseNode extends Node implements INode {
         this.#lastChild = node;
     }
 
+    /**
+     * Pushes a node with children slot checking
+     * @param node {Node} A node to push
+     * @param slotName {String} The slot name
+     */
     pushNode (
         node     : Node,
         slotName : ?string
@@ -369,6 +574,11 @@ export class BaseNode extends Node implements INode {
         }
     }
 
+    /**
+     * Append a child in correct parent (to be overwritten)
+     * @param node {HTMLElement | Text | Comment} A node to push
+     * @private
+     */
     appendChild (node : CoreEl) : void {
         if (!this.el) {
             throw "This node doesn't accept children";
@@ -377,6 +587,13 @@ export class BaseNode extends Node implements INode {
         this.el.appendChild(node);
     }
 
+    /**
+     * Defines a text fragment
+     * @param text {String | IValue} A text fragment string
+     * @param cbOrSlot {String | Function} Callback or slot name
+     * @param cb2 {Function} Callback if previous is slot name
+     * @return {BaseNode} A pointer to this
+     */
     defText (
         text     : string | IValue,
         cbOrSlot : string | TextNodeCB,
@@ -395,6 +612,13 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
+    /**
+     * Defines a tag element
+     * @param tagName {String} is the tag name
+     * @param cbOrSlot {String | Function} Callback or slot name
+     * @param cb2 {Function} Callback if previous is slot name
+     * @return {BaseNode} A pointer to this
+     */
     defTag (
         tagName  : string,
         cbOrSlot : string | ElementNodeCB,
@@ -413,6 +637,14 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
+    /**
+     * Defines a custom element
+     * @param func {Function} Custom element constructor
+     * @param props {Object} List of properties values
+     * @param cbOrSlot {String | Function} Callback or slot name
+     * @param cb2 {?Function} Callback if previous is slot name
+     * @return {BaseNode} A pointer to this
+     */
     defElement (
         func     : Function,
         props    : Object,
@@ -434,12 +666,22 @@ export class BaseNode extends Node implements INode {
 }
 
 /**
- * Represents an Vasille.js component template
- * each template must have an id
+ * Represents an Vasille.js HTML element node
  */
 export class ElementNode extends BaseNode {
+    /**
+     * Pointer to embed HTML node
+     * @type {HTMLElement}
+     */
     #node: HTMLElement;
 
+    /**
+     * Constructs a element node
+     * @param rt {BaseNode} The root node
+     * @param ts {BaseNode} The this node
+     * @param tagName {String} Name of HTML tag
+     * @param props {Object} A list of properties values
+     */
     constructor(
         rt      : ?BaseNode,
         ts      : ?BaseNode,
@@ -451,14 +693,32 @@ export class ElementNode extends BaseNode {
         this.#node = node;
     }
 
+    /**
+     * Returns a pointer to HTML element
+     * @return {HTMLElement}
+     */
     get el() : HTMLElement {
         return this.#node;
     }
 }
 
+/**
+ * Represents a Vasille.js shadow node
+ */
 export class ShadowNode extends BaseNode {
+    /**
+     * A HTML comment used as shadow
+     * @type {?Comment}
+     */
     $shadow : ?Comment;
 
+    /**
+     * Constructs a shadow node
+     * @param rt {?BaseNode} The root node
+     * @param ts {?BaseNode} The this node
+     * @param cName {String} The comment string & component name
+     * @param props {Object} A set of properties values
+     */
     constructor(
         rt    : ?BaseNode,
         ts    : ?BaseNode,
@@ -470,10 +730,41 @@ export class ShadowNode extends BaseNode {
         this.$shadow = shadow;
     }
 
+    /**
+     * Gets the last child or shadow comment
+     * @return {?HTMLElement | ?Text | ?Comment}
+     */
     get coreEl () : ?CoreEl {
         if (this.children.length) {
             return this.children[this.children.length - 1].coreEl;
         }
         return this.$shadow;
+    }
+ }
+
+/**
+ * Represents a Vasille.js application node
+ */
+ export class AppNode extends BaseNode {
+     /**
+      * The debug state of application, if true will output debug data
+      * @type {boolean}
+      */
+    debug : boolean = false;
+
+     /**
+      * Constructs a app node
+      * @param node {HTMLElement} The root of application
+      * @param props {{debug : boolean}} Application properties
+      */
+    constructor(
+        node  : HTMLElement,
+        props : {debug : boolean}
+    ) {
+        super(null, null, node, {});
+
+        if (props.debug instanceof Boolean) {
+            this.debug = props.debug;
+        }
     }
  }
