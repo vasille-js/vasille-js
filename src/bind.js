@@ -1,15 +1,16 @@
 // @flow
-import type {IBind} from "./interfaces/ibind";
+import type {IBind}       from "./interfaces/ibind";
 import type {Destroyable} from "./interfaces/destroyable";
-import type {IValue} from "./interfaces/ivalue";
-import {Core} from "./interfaces/core";
-import {Value} from "./value";
+import type {IValue}      from "./interfaces/ivalue";
+
+import {Value}    from "./value";
+import {BaseNode} from "./node";
 
 
 /**
  * A binding engine core
  */
-export class Bind1x1 implements IBind {
+export class Bind1 implements IBind {
     #value  : IValue;
     #func   : Function;
     #linked : boolean;
@@ -21,19 +22,26 @@ export class Bind1x1 implements IBind {
      * @param value {Value} is a value to bind
      * @param link links immediately
      */
-    constructor (func : Function, value : IValue, link : boolean = true) {
-        value.on(func);
+    constructor (
+        func  : Function,
+        value : IValue,
+        link  : boolean = true
+    ) {
         let bounded = func.bind(null, value);
         let handler = function () {
             this.#sync.set(bounded());
         }.bind(this);
-        this.#value = value;
-        this.#func = handler;
+
+        this.#value  = value;
+        this.#func   = handler;
         this.#linked = !link;
+
         if (link) {
             this.link();
             this.#func.call();
         }
+
+        value.on(this.#func);
         this.#sync.set(bounded());
     }
 
@@ -58,9 +66,9 @@ export class Bind1x1 implements IBind {
 
     /**
      * Ensure the binding to be bound
-     * @returns {Bind1x1} a pointer to this
+     * @returns {Bind1} a pointer to this
      */
-    link () : Bind1x1 {
+    link () : Bind1 {
         if (!this.#linked) {
             this.#value.on(this.#func);
             this.#linked = true;
@@ -70,9 +78,9 @@ export class Bind1x1 implements IBind {
 
     /**
      * Ensure the binding to be unbound
-     * @returns {Bind1x1} a pointer to this
+     * @returns {Bind1} a pointer to this
      */
-    unlink () : Bind1x1 {
+    unlink () : Bind1 {
         if (this.#linked) {
             this.#value.off(this.#func);
             this.#linked = false;
@@ -91,7 +99,7 @@ export class Bind1x1 implements IBind {
 /**
  * Bind some values to one function
  */
-export class Bind1xN implements IBind, Destroyable {
+export class BindN implements IBind, Destroyable {
     #values : Array<IValue>;
     #func   : Function;
     #linked : boolean;
@@ -103,18 +111,25 @@ export class Bind1xN implements IBind, Destroyable {
      * @param values {Array<IValue>} are values to bound to
      * @param link links immediately
      */
-    constructor(func : Function, values : Array<IValue>, link : boolean = true) {
+    constructor(
+        func   : Function,
+        values : Array<IValue>,
+        link   : boolean = true
+    ) {
         let bounded = func.bind(this.#sync, ...values);
         let handler = function () {
             this.#sync.set(bounded());
         }.bind(this);
+
         this.#values = values;
-        this.#func = handler;
+        this.#func   = handler;
         this.#linked = false;
+
         if (link) {
             this.link();
             this.#func.call();
         }
+
         this.#sync.set(bounded());
     }
 
@@ -139,9 +154,9 @@ export class Bind1xN implements IBind, Destroyable {
 
     /**
      * Binds function to each value
-     * @returns {Bind1xN} a pointer to this
+     * @returns {BindN} a pointer to this
      */
-    link() : Bind1xN {
+    link() : BindN {
         if (!this.#linked) {
             for (let value of this.#values) {
                 value.on(this.#func);
@@ -153,9 +168,9 @@ export class Bind1xN implements IBind, Destroyable {
 
     /**
      * Unbind function from value
-     * @returns {Bind1xN} a pointer to this
+     * @returns {BindN} a pointer to this
      */
-    unlink() : Bind1xN {
+    unlink() : BindN {
         if (this.#linked) {
             for (let value of this.#values) {
                 value.off(this.#func);
@@ -189,16 +204,17 @@ export class Binding implements IValue, Destroyable {
      * @param values {Array<Value>} is a values array to bind
      */
     constructor(
-        rt : Core, ts : Core,
-        name : string,
-        func: Function,
+        rt        : BaseNode,
+        ts        : BaseNode,
+        name      : string,
+        func      : Function,
         ...values : Array<IValue>
     ) {
         if (values.length === 1) {
-            this.#binding = new Bind1x1(func, values[0]);
+            this.#binding = new Bind1(func, values[0]);
         }
         else if (values.length > 1) {
-            this.#binding = new Bind1xN(func, values);
+            this.#binding = new BindN(func, values);
         }
         else {
             throw "There must be a value as minimum";
@@ -211,7 +227,7 @@ export class Binding implements IValue, Destroyable {
     /**
      * Is a virtual function to get the specific bind function
      */
-    bound(name : string) : Function {
+    bound (name : string) : Function {
         throw "Must be implemented in child class";
     };
 

@@ -1,10 +1,11 @@
 // @flow
 import type {Callable} from "./interfaces/idefinition";
-import type {IValue} from "./interfaces/ivalue";
-import {Bind1x1, Binding} from "./bind";
-import {Value} from "./value";
-import {datify} from "./data";
-import {BaseNode} from "./node";
+import type {IValue}   from "./interfaces/ivalue";
+
+import {Bind1, Binding} from "./bind";
+import {Value}          from "./value";
+import {datify}         from "./data";
+import {BaseNode}       from "./node";
 
 
 /**
@@ -14,13 +15,15 @@ import {BaseNode} from "./node";
  * @param name is attribute name
  * @param value is attribute value
  * @param func is attribute value calculation function
- * @returns {Bind1x1} attribute 1 to 1 bind
+ * @returns {Bind1} attribute 1 to 1 bind
  */
-export function attributify(
-    rt: BaseNode, ts: BaseNode,
-    name: string,
-    value: ?any = null,
-    func: ?Callable = null): Bind1x1 {
+export function attributify (
+    rt    : BaseNode,
+    ts    : BaseNode,
+    name  : string,
+    value : ?any = null,
+    func  : ?Callable = null
+) : Bind1 {
 
     let v = datify(rt, ts, value, func);
     let watch = function (value: IValue) {
@@ -28,7 +31,8 @@ export function attributify(
             window.requestAnimationFrame(function () {
                 if (ts.el) ts.el.setAttribute(name, value.get());
             });
-        } else {
+        }
+        else {
             window.requestAnimationFrame(function () {
                 if (ts.el) ts.el.removeAttribute(name);
             });
@@ -37,7 +41,7 @@ export function attributify(
     };
 
     watch(v);
-    return new Bind1x1(watch, v);
+    return new Bind1(watch, v);
 }
 
 /**
@@ -52,7 +56,7 @@ export class AttributeBinding extends Binding {
      * @param func {Function} is the function to bound
      * @param values {Array<Value>} is the array of value to bind to
      */
-    constructor(
+    constructor (
         rt        : BaseNode,
         ts        : BaseNode,
         name      : string,
@@ -66,7 +70,7 @@ export class AttributeBinding extends Binding {
      * Updates element attribute by name
      * @returns {*} a function which will update attribute value
      */
-    bound(name : string): Function {
+    bound (name : string) : Function {
         return function (rt: BaseNode, ts: BaseNode, v: IValue) {
             let value: string = v.get();
 
@@ -74,7 +78,8 @@ export class AttributeBinding extends Binding {
                 window.requestAnimationFrame(function () {
                     if (ts.el) ts.el.setAttribute(name, value);
                 });
-            } else {
+            }
+            else {
                 window.requestAnimationFrame(function () {
                     if (ts.el) ts.el.removeAttribute(name);
                 });

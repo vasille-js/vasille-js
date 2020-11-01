@@ -1,6 +1,6 @@
 // @flow
 
-import {Core} from "./interfaces/core";
+import {Core}  from "./interfaces/core";
 import {Value} from "./value";
 
 
@@ -12,10 +12,15 @@ import {Value} from "./value";
  * @param handler is the handler function
  * @returns {Value} a Vasille.js value
  */
-export function eventify(rt: Core, ts: Core, name: string, handler: Function): Value {
+export function eventify (
+    rt      : Core,
+    ts      : Core,
+    name    : string,
+    handler : Function
+) : Value {
     let listener = handler.bind(null, rt, ts);
-    let value = new Value(listener);
-    let el = ts.el;
+    let value    = new Value(listener);
+    let el       = ts.el;
 
     if (el) {
         el.addEventListener(name, listener);

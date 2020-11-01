@@ -1,9 +1,11 @@
 // @flow
 
 import type {Callable} from "./interfaces/idefinition";
-import {Core} from "./interfaces/core";
-import {Value} from "./value";
+
+import {Core}    from "./interfaces/core";
+import {Value}   from "./value";
 import {isValue} from "./interfaces/types";
+
 
 
 /**
@@ -13,9 +15,15 @@ import {isValue} from "./interfaces/types";
  * @param value {?any} is the default value of field
  * @param func {?Callable} is the function to calc filed value
  */
-export function datify (rt: Core, ts: Core, value: ?any = null, func: ?Callable = null) : Value {
+export function datify (
+    rt    : Core,
+    ts    : Core,
+    value : ?any = null,
+    func  : ?Callable = null
+) : Value {
     if (func) {
         let v = func.func(rt, ts);
+
         if (isValue(v)) {
             return new Value(v.get());
         } else {

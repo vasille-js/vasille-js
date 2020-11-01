@@ -1,6 +1,6 @@
 // @flow
-import type {IValue} from "./interfaces/ivalue";
 import type {Destroyable} from "./interfaces/destroyable";
+import type {IValue}      from "./interfaces/ivalue";
 
 
 /**
@@ -151,7 +151,7 @@ export class Rebind implements IValue, Destroyable {
         return this;
     }
 
-    destroy() {
+    destroy () {
         for (let handler of this.#bound) {
             this.#value.off(handler);
         }

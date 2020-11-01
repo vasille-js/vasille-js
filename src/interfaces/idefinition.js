@@ -4,7 +4,7 @@
 export class Callable {
     func : Function;
 
-    constructor(func : Function) {
+    constructor (func : Function) {
         this.func = func;
     }
 }
