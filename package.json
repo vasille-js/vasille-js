@@ -2,7 +2,8 @@
   "name": "vasile.js",
   "version": "1.0.0",
   "description": "The fastest (Vanilla.js based) front-end javascript framework",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "types": "src/index.js",
   "scripts": {
     "flow": "flow",
     "build": "flow-remove-types --pretty --sourcemaps src/ -d lib/",
