@@ -1,10 +1,9 @@
 // @flow
 
-import {Callable} from "./interfaces/idefinition";
-import {IValue}   from "./interfaces/ivalue";
+import {Callable} from "./interfaces/idefinition.js";
+import {IValue}   from "./interfaces/ivalue.js";
 
-import {BaseNode} from "./node";
-import {Value}    from "./value";
+import {Value}    from "./value.js";
 
 
 
@@ -17,8 +16,8 @@ import {Value}    from "./value";
  * @return {Value} A new generated value
  */
 export function datify (
-    rt    : BaseNode,
-    ts    : BaseNode,
+    rt    : any,
+    ts    : any,
     value : ?any = null,
     func  : ?Callable = null
 ) : Value {

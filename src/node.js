@@ -1,16 +1,16 @@
 // @flow
 import type {CoreEl} from "./interfaces/core";
-import {Core}        from "./interfaces/core";
-import {Callable}    from "./interfaces/idefinition";
-import {IValue}      from "./interfaces/ivalue";
+import {Core}        from "./interfaces/core.js";
+import {Callable}    from "./interfaces/idefinition.js";
+import {IValue}      from "./interfaces/ivalue.js";
 
-import {AttributeBinding, attributify} from "./attribute";
-import {Bind1, Binding, BindN}         from "./bind";
-import {datify}                        from "./data";
-import {eventify}                      from "./event";
-import {propertify, Property}          from "./property";
-import {StyleBinding, stylify}         from "./style";
-import {Rebind, Value}                 from "./value";
+import {AttributeBinding, attributify} from "./attribute.js";
+import {Bind1, Binding, BindN}         from "./bind.js";
+import {datify}                        from "./data.js";
+import {eventify}                      from "./event.js";
+import {propertify, Property}          from "./property.js";
+import {StyleBinding, stylify}         from "./style.js";
+import {Rebind, Value}                 from "./value.js";
 
 
 export interface INode {
@@ -44,7 +44,7 @@ export class Node extends Core {
      * The root node
      * @type {BaseNode}
      */
-    $rt : BaseNode;
+    $rt : Core;
 
     /**
      * Construct the base of a node
@@ -52,13 +52,11 @@ export class Node extends Core {
      * @param el {HTMLElement | Text | Comment} The encapsulated node
      */
     constructor (
-        root: ?BaseNode,
+        root: ?Core,
         el: ?CoreEl
     ) {
-        if (el && root) {
-            super(el);
-            this.$rt = root;
-        }
+        super(el);
+        this.$rt = root || new Core(null);
     }
 
     /**
@@ -70,16 +68,18 @@ export class Node extends Core {
         reference: string,
         likeArray: boolean = false
     ) : void {
-        let ref = this.$rt.refs[reference];
+        if (this.$rt instanceof BaseNode) {
+            let ref = this.$rt.refs[reference];
 
-        if (likeArray) {
-            if (ref instanceof Array) {
-                ref.push(this);
+            if (likeArray) {
+                if (ref instanceof Array) {
+                    ref.push(this);
+                } else {
+                    this.$rt.refs[reference] = [this];
+                }
             } else {
-                this.$rt.refs[reference] = [this];
+                this.$rt.refs[reference] = this;
             }
-        } else {
-            this.$rt.refs[reference] = this;
         }
     }
 
@@ -89,14 +89,14 @@ export class Node extends Core {
     destroy () : void {
         super.destroy();
 
-        if (!this.$rt) return;
-
-        for (let i in this.$rt.refs) {
-            if (this.$rt.refs[i] === this) {
-                delete this.$rt.refs[i];
-            }
-            else if (this.$rt.refs[i] instanceof Array && this.$rt.refs[i].includes(this)) {
-                this.$rt.refs[i].splice(this.$rt.refs[i].indexOf(this), 1);
+        if (this.$rt instanceof BaseNode) {
+            for (let i in this.$rt.refs) {
+                if (this.$rt.refs[i] === this) {
+                    delete this.$rt.refs[i];
+                }
+                else if (this.$rt.refs[i] instanceof Array && this.$rt.refs[i].includes(this)) {
+                    this.$rt.refs[i].splice(this.$rt.refs[i].indexOf(this), 1);
+                }
             }
         }
     }
@@ -232,6 +232,7 @@ export class BaseNode extends Node implements INode {
                 this.$el = node;
             }
         }
+        this.slots['default'] = this;
         this.#building = true;
 
         this.createProps();
@@ -254,9 +255,11 @@ export class BaseNode extends Node implements INode {
     destroy () : void {
         super.destroy();
 
-        for (let i in this.$rt.slots) {
-            if (this.$rt.slots[i] === this) {
-                delete this.$rt.slots[i];
+        if (this.$rt instanceof BaseNode) {
+            for (let i in this.$rt.slots) {
+                if (this.$rt.slots[i] === this) {
+                    delete this.$rt.slots[i];
+                }
             }
         }
 
@@ -270,7 +273,7 @@ export class BaseNode extends Node implements INode {
      * @type {BaseNode}
      */
     get rt () : BaseNode {
-        return this.#building ? this : this.$rt;
+        return !this.#building && this.$rt instanceof BaseNode ? this.$rt : this;
     }
 
     /** To be overloaded: created event handler */
@@ -526,7 +529,9 @@ export class BaseNode extends Node implements INode {
      * @param name {String} The name of slot
      */
     slot (name : string) {
-        this.$rt.slots[name] = this;
+        if (this.$rt instanceof BaseNode) {
+            this.$rt.slots[name] = this;
+        }
     }
 
     /**

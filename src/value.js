@@ -1,5 +1,5 @@
 // @flow
-import {IValue} from "./interfaces/ivalue";
+import {IValue} from "./interfaces/ivalue.js";
 
 
 /**

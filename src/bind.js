@@ -1,9 +1,8 @@
 // @flow
-import {IBind}  from "./interfaces/ibind";
-import {IValue} from "./interfaces/ivalue";
+import {IBind}  from "./interfaces/ibind.js";
+import {IValue} from "./interfaces/ivalue.js";
 
-import {BaseNode} from "./node";
-import {Value}    from "./value";
+import {Value}    from "./value.js";
 
 
 /**
@@ -284,8 +283,8 @@ export class Binding extends IValue {
      * @param values {Array<IValue>} values array to bind
      */
     constructor(
-        rt        : BaseNode,
-        ts        : BaseNode,
+        rt        : any,
+        ts        : any,
         name      : string,
         func      : ?Function,
         ...values : Array<IValue>

@@ -1,7 +1,6 @@
 // @flow
 
-import {BaseNode} from "./node";
-import {Value}    from "./value";
+import {Value} from "./value.js";
 
 
 /**
@@ -13,8 +12,8 @@ import {Value}    from "./value";
  * @returns {Value} a Vasille.js value
  */
 export function eventify (
-    rt      : BaseNode,
-    ts      : BaseNode,
+    rt      : any,
+    ts      : any,
     name    : string,
     handler : Function
 ) : Value {

@@ -1,10 +1,9 @@
 // @flow
-import {Callable} from "./interfaces/idefinition";
-import {IValue}   from "./interfaces/ivalue";
+import {Callable} from "./interfaces/idefinition.js";
+import {IValue}   from "./interfaces/ivalue.js";
 
-import {Binding}        from "./bind";
-import {BaseNode}       from "./node";
-import {propertify}     from "./property";
+import {Binding}        from "./bind.js";
+import {propertify}     from "./property.js";
 
 
 /**
@@ -17,8 +16,8 @@ import {propertify}     from "./property";
  * @return {StyleBinding} A ready style binding
  */
 export function stylify(
-    rt    : BaseNode,
-    ts    : BaseNode,
+    rt    : any,
+    ts    : any,
     name  : string,
     value : ?string | ?IValue = null,
     func  : ?Callable = null
@@ -40,8 +39,8 @@ export class StyleBinding extends Binding {
      * @param values is the value to be synced
      */
     constructor(
-        rt        : BaseNode,
-        ts        : BaseNode,
+        rt        : any,
+        ts        : any,
         name      : string,
         func      : ?Function,
         ...values : Array<IValue>
@@ -54,7 +53,7 @@ export class StyleBinding extends Binding {
      * @returns {Function} a function to update style property
      */
     bound (name : string) : Function {
-        return function (rt : BaseNode, ts : BaseNode, v : IValue) {
+        return function (rt : any, ts : any, v : IValue) {
             window.requestAnimationFrame(function () {
                 if (ts.el) ts.el.style.setProperty(name, v.get());
             });

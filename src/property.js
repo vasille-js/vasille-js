@@ -1,9 +1,8 @@
 // @flow
-import {Callable} from "./interfaces/idefinition";
-import {IValue}   from "./interfaces/ivalue";
+import {Callable} from "./interfaces/idefinition.js";
+import {IValue}   from "./interfaces/ivalue.js";
 
-import {BaseNode, Node} from "./node";
-import {Value}          from "./value";
+import {Value}          from "./value.js";
 
 
 
@@ -53,8 +52,8 @@ export class Property {
  * @return {IValue} Given value or new generated
  */
 export function propertify (
-    rt    : BaseNode,
-    ts    : Node,
+    rt    : any,
+    ts    : any,
     value : ?any = null,
     func  : ?Callable = null
 ) : IValue {

@@ -1,5 +1,5 @@
 // @flow
-import {Destroyable} from "./destroyable";
+import {Destroyable} from "./destroyable.js";
 
 
 

@@ -1,7 +1,7 @@
 // @flow
 
-import {Destroyable} from "./destroyable";
-import {IValue}      from "./ivalue";
+import {Destroyable} from "./destroyable.js";
+import {IValue}      from "./ivalue.js";
 
 
 
@@ -36,7 +36,7 @@ export class Core extends Destroyable {
      * @see Core#text
      * @see Core#comment
      */
-    $el : CoreEl;
+    $el : ?CoreEl;
 
     /**
      * The collection of properties
@@ -70,7 +70,7 @@ export class Core extends Destroyable {
      * Builds a component core by a html element/text/comment
      * @param el {HTMLElement | Text | Comment} element to encapsulate
      */
-    constructor (el : CoreEl) {
+    constructor (el : ?CoreEl) {
         super();
         this.$el = el;
     }
