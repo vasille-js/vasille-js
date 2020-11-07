@@ -46,9 +46,8 @@ export class Bind1 extends IBind {
         link  : boolean = true
     ) {
         super();
-        let bounded = func.bind(null, value);
         let handler = function () {
-            this.#sync.set(bounded());
+            this.#sync.set(func(value.get()));
         }.bind(this);
 
         this.#value  = value;
@@ -61,7 +60,7 @@ export class Bind1 extends IBind {
         }
 
         value.on(this.#func);
-        this.#sync.set(bounded());
+        this.#sync.set(func(value.get()));
     }
 
     /**
@@ -175,9 +174,8 @@ export class BindN extends IBind {
         link   : boolean = true
     ) {
         super();
-        let bounded = func.bind(this.#sync, ...values);
         let handler = function () {
-            this.#sync.set(bounded());
+            this.#sync.set(func(values.map(v => v.get())));
         }.bind(this);
 
         this.#values = values;
@@ -189,7 +187,7 @@ export class BindN extends IBind {
             this.#func.call();
         }
 
-        this.#sync.set(bounded());
+        this.#sync.set(func(values.map(v => v.get())));
     }
 
     /**
