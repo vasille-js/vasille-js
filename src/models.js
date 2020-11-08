@@ -1,34 +1,68 @@
 // @flow
-import {IValue} from "./interfaces/ivalue";
-import {Value} from "./value";
+import { IValue } from "./interfaces/ivalue.js";
+import { Value } from "./value.js";
 
 type VassileType = IValue | ArrayModel | ObjectModel | MapModel | SetModel;
 
+/**
+ * Represent a listener for a model
+ */
 class Listener {
-    #onAdded   : Array<Function> = [];
-    #onRemoved : Array<Function> = [];
+    /**
+     * Functions to run on adding new items
+     * @type {Array<Function>}
+     */
+    #onAdded: Array<Function> = [];
 
-    emitAdded (index : number | string | null, value : VassileType) {
+    /**
+     * Functions to run on item removing
+     * @type {Array<Function>}
+     */
+    #onRemoved: Array<Function> = [];
+
+    /**
+     * Emits added event to listeners
+     * @param index {number | string | null} index of value
+     * @param value {IValue | ArrayModel | ObjectModel | MapModel | SetModel} value of added item
+     */
+    emitAdded(index: number | string | null, value: VassileType) {
         for (let handler of this.#onAdded) {
             handler(index, value);
         }
     }
 
-    emitRemoved (index : number | string | null, value : VassileType) {
+    /**
+     * Emits removed event to listeners
+     * @param index {number | string | null} index of removed value
+     * @param value {IValue | ArrayModel | ObjectModel | MapModel | SetModel} value of removed item
+     */
+    emitRemoved(index: number | string | null, value: VassileType) {
         for (let handler of this.#onRemoved) {
             handler(index, value);
         }
     }
 
-    onAdd (handler : Function) {
+    /**
+     * Adds an handler to added event
+     * @param handler {Function} function to run on event emitting
+     */
+    onAdd(handler: Function) {
         this.#onAdded.push(handler);
     }
 
-    onRemove (handler : Function) {
+    /**
+     * Adds an handler to removed event
+     * @param handler {Function} function to run on event emitting
+     */
+    onRemove(handler: Function) {
         this.#onRemoved.push(handler);
     }
 
-    offAdd (handler : Function) {
+    /**
+     * Removes an handler from added event
+     * @param handler {Function} handler to remove
+     */
+    offAdd(handler: Function) {
         let i = this.#onAdded.indexOf(handler);
 
         if (i >= 0) {
@@ -36,7 +70,11 @@ class Listener {
         }
     }
 
-    offRemove (handler : Function) {
+    /**
+     * Removes an handler form removed event
+     * @param handler {Function} handler to remove
+     */
+    offRemove(handler: Function) {
         let i = this.#onRemoved.indexOf(handler);
 
         if (i >= 0) {
@@ -45,12 +83,24 @@ class Listener {
     }
 }
 
+/**
+ * Model based on <b>Array</b> class
+ * @extends Array<IValue | ArrayModel | ObjectModel | MapModel | SetModel>
+ */
 export class ArrayModel extends Array<VassileType> {
-    listener : Listener = new Listener();
+    /**
+     * Listener of array model
+     * @type {Listener}
+     */
+    listener: Listener = new Listener();
 
     /* Constructor */
 
-    constructor (data : Array<any> = []) {
+    /**
+     * Constructs an array model from an array
+     * @param data {Array<IValue | ArrayModel | ObjectModel | MapModel | SetModel>} input data
+     */
+    constructor(data: Array<any> = []) {
         super();
 
         for (let i = 0; i < data.length; i++) {
@@ -60,7 +110,22 @@ export class ArrayModel extends Array<VassileType> {
 
     /* Array members */
 
-    fill (value : any, start : ?number, end : ?number) : this {
+    /**
+     * Gets the last value of array and null when it is empty
+     * @return {IValue | ArrayModel | ObjectModel | MapModel | SetModel | null}
+     */
+    get last(): ?VassileType {
+        return this.length ? this[this.length - 1] : null;
+    }
+
+    /**
+     * Calls Array.fill and notify about changes
+     * @param value {*} value to fill with
+     * @param start {?number} begin index
+     * @param end {?number} end index
+     * @return {ArrayModel} a pointer to this
+     */
+    fill(value: any, start: ?number, end: ?number): this {
         if (!start) start = 0;
         if (!end) end = this.length;
 
@@ -72,14 +137,23 @@ export class ArrayModel extends Array<VassileType> {
         return this;
     }
 
-    pop () : VassileType {
+    /**
+     * Calls Array.pop and notify about changes
+     * @return {IValue | ArrayModel | ObjectModel | MapModel | SetModel} removed value
+     */
+    pop(): VassileType {
         let v = super.pop();
 
         if (v) this.listener.emitRemoved(this.length, v);
         return v;
     }
 
-    push (...items : Array<any>) : number {
+    /**
+     * Calls Array.push and notify about changes
+     * @param items {...IValue | ArrayModel | ObjectModel | MapModel | SetModel} values to push
+     * @return {number} new length of array
+     */
+    push(...items: Array<any>): number {
         for (let item of items) {
             let v = vassilify(item);
 
@@ -89,20 +163,36 @@ export class ArrayModel extends Array<VassileType> {
         return this.length;
     }
 
-    shift () : VassileType {
+    /**
+     * Calls Array.shift and notify about changed
+     * @return {IValue | ArrayModel | ObjectModel | MapModel | SetModel} the shifted value
+     */
+    shift(): VassileType {
         let v = super.shift();
 
         if (v) this.listener.emitRemoved(0, v);
         return v;
     }
 
-    splice (start : number, deleteCount : ?number, ...items : ?Array<any>) : ArrayModel {
+    /**
+     * Calls Array.splice and notify about changed
+     * @param start {number} start index
+     * @param deleteCount {?number} delete count
+     * @param items {...IValue | ArrayModel | ObjectModel | MapModel | SetModel}
+     * @return {ArrayModel} a pointer to this
+     */
+    splice(
+        start: number,
+        deleteCount: ?number,
+        ...items: ?Array<any>
+    ): ArrayModel {
         start = Math.min(start, this.length);
-        items = items ? items.map(v => vassilify(v)) : [];
+        items = items ? items.map((v) => vassilify(v)) : [];
         deleteCount = deleteCount || 0;
 
         for (let i = 0; i < deleteCount; i++) {
-            if (this[start + i]) this.listener.emitRemoved(start + i, this[start + i]);
+            if (this[start + i])
+                this.listener.emitRemoved(start + i, this[start + i]);
         }
         for (let i = 0; i < items.length; i++) {
             this.listener.emitAdded(start + i, items[i]);
@@ -111,8 +201,15 @@ export class ArrayModel extends Array<VassileType> {
         return new ArrayModel(super.splice(start, deleteCount, ...items));
     }
 
-    unshift (...items : Array<any>) : number {
-        items = items.map(v => vassilify(v));
+    /* Vasile.js array interface */
+
+    /**
+     * Calls Array.unshift and notify about changed
+     * @param items {...IValue | ArrayModel | ObjectModel | MapModel | SetModel} values to insert
+     * @return {number | void} the length after prepend
+     */
+    unshift(...items: Array<any>): number {
+        items = items.map((v) => vassilify(v));
 
         for (let i = 0; i < items.length; i++) {
             this.listener.emitAdded(i, items[i]);
@@ -120,20 +217,23 @@ export class ArrayModel extends Array<VassileType> {
         return super.unshift(...items);
     }
 
-    /* Vasile.js array interface */
-
-    get last () : ?VassileType {
-        return this.length ? this[this.length - 1] : null;
-    }
-
-    append (v : any) : this {
+    /**
+     * Inserts a value to the end of array
+     * @param v {IValue | ArrayModel | ObjectModel | MapModel | SetModel} value to insert
+     * @return {ArrayModel} a pointer to this
+     */
+    append(v: any): this {
         v = vassilify(v);
         this.listener.emitAdded(this.length, v);
         super.push(v);
         return this;
     }
 
-    clear () : this {
+    /**
+     * Clears array
+     * @return {ArrayModel} a pointer to this
+     */
+    clear(): this {
         for (let v of this) {
             this.listener.emitRemoved(0, v);
         }
@@ -141,21 +241,37 @@ export class ArrayModel extends Array<VassileType> {
         return this;
     }
 
-    insert (index : number, v : any) : this {
+    /**
+     * Inserts a value to position <i>index</i>
+     * @param index {number} index to insert value
+     * @param v {IValue | ArrayModel | ObjectModel | MapModel | SetModel} value to insert
+     * @return {ArrayModel} a pointer to this
+     */
+    insert(index: number, v: any): this {
         v = vassilify(v);
         this.listener.emitAdded(index, v);
         super.splice(index, 0, v);
         return this;
     }
 
-    prepend (v : any) : this {
+    /**
+     * Inserts a value to the beggining of array
+     * @param v {IValue | ArrayModel | ObjectModel | MapModel | SetModel} value to insert
+     * @return {ArrayModel} a pointer to this
+     */
+    prepend(v: any): this {
         v = vassilify(v);
         this.listener.emitAdded(0, v);
         super.unshift(v);
         return this;
     }
 
-    removeAt (index : number) : this {
+    /**
+     * Removes a value from an index
+     * @param index {number} index of value to remove
+     * @return {ArrayModel} a pointer to this
+     */
+    removeAt(index: number): this {
         if (this[index]) {
             this.listener.emitRemoved(index, this[index]);
             super.splice(index, 1);
@@ -163,7 +279,11 @@ export class ArrayModel extends Array<VassileType> {
         return this;
     }
 
-    removeFirst () : this {
+    /**
+     * Removes the first value of array
+     * @return {ArrayModel} a pointer to this
+     */
+    removeFirst(): this {
         if (this.length) {
             this.listener.emitRemoved(0, this[0]);
             super.shift();
@@ -171,7 +291,11 @@ export class ArrayModel extends Array<VassileType> {
         return this;
     }
 
-    removeLast () : this {
+    /**
+     * Removes the ast value of array
+     * @return {ArrayModel} a pointer to this
+     */
+    removeLast(): this {
         if (this.last) {
             this.listener.emitRemoved(this.length - 1, this.last);
             super.pop();
@@ -179,26 +303,49 @@ export class ArrayModel extends Array<VassileType> {
         return this;
     }
 
-    removeOne (v : IValue) : this {
+    /**
+     * Remove the first occurrence of value
+     * @param v {IValue | ArrayModel | ObjectModel | MapModel | SetModel} value to remove
+     * @return {ArrayModel}
+     */
+    removeOne(v: IValue): this {
         this.removeAt(this.indexOf(v));
         return this;
     }
 }
 
+/**
+ * A <b>Object</b> based model
+ * @extends Object<String, IValue | ArrayModel | ObjectModel | MapModel | SetModel>
+ */
 class ObjectModel extends Object {
-    listener : Listener = new Listener();
+    /**
+     * the listener of object
+     * @type {Listener}
+     */
+    listener: Listener = new Listener();
 
-    constructor(obj : Object = {}) {
+    /**
+     * Constructs a object model from an object
+     * @param obj {Object<String, IValue | ArrayModel | ObjectModel | MapModel | SetModel>} input data
+     */
+    constructor(obj: Object = {}) {
         super();
-        let ts : { [key : string] : VassileType } = this;
+        let ts: { [key: string]: VassileType } = this;
 
         for (let i of obj) {
             ts[i] = vassilify(obj[i]);
         }
     }
 
-    set (key : string, v : any) : this {
-        let ts : { [key : string] : VassileType } = this;
+    /**
+     * Sets a object property value <b>(use for new properties only)</b>
+     * @param key {string} property name
+     * @param v {IValue | ArrayModel | ObjectModel | MapModel | SetModel} property value
+     * @return {ObjectModel} a pointer to this
+     */
+    set(key: string, v: any): this {
+        let ts: { [key: string]: VassileType } = this;
 
         if (ts[key]) {
             this.listener.emitRemoved(key, ts[key]);
@@ -209,8 +356,12 @@ class ObjectModel extends Object {
         return this;
     }
 
-    delete (key : string) {
-        let ts : { [key : string] : VassileType } = this;
+    /**
+     * Deletes a object property
+     * @param key {string} property name
+     */
+    delete(key: string) {
+        let ts: { [key: string]: VassileType } = this;
 
         if (ts[key]) {
             this.listener.emitRemoved(key, ts[key]);
@@ -219,10 +370,22 @@ class ObjectModel extends Object {
     }
 }
 
+/**
+ * A <b>Map</b> based memory
+ * @extends Map<any, IValue | ArrayModel | ObjectModel | MapModel | SetModel>
+ */
 class MapModel extends Map<any, VassileType> {
-    listener : Listener = new Listener();
+    /**
+     * listener of map
+     * @type {Listener}
+     */
+    listener: Listener = new Listener();
 
-    constructor(map : Map<any, any>) {
+    /**
+     * Constructs a map model based on a map
+     * @param map {Map<*, IValue | ArrayModel | ObjectModel | MapModel | SetModel>} input data
+     */
+    constructor(map: Map<any, any>) {
         super();
 
         for (let data of map) {
@@ -230,14 +393,22 @@ class MapModel extends Map<any, VassileType> {
         }
     }
 
-    clear () {
+    /**
+     * Calls Map.clear and notify abut changes
+     */
+    clear() {
         for (let data of this) {
             this.listener.emitRemoved(data[0], data[1]);
         }
         super.clear();
     }
 
-    delete (key: any) : boolean {
+    /**
+     * Calls Map.delete and notify abut changes
+     * @param key {*} key
+     * @return {boolean} true if removed something, otherwise false
+     */
+    delete(key: any): boolean {
         let tmp = super.get(key);
         if (tmp) {
             this.listener.emitRemoved(key, tmp);
@@ -245,7 +416,13 @@ class MapModel extends Map<any, VassileType> {
         return super.delete(key);
     }
 
-    set (key : any, value : any) : this {
+    /**
+     * Calls Map.set and notify abut changes
+     * @param key {*} key
+     * @param value {IValue | ArrayModel | ObjectModel | MapModel | SetModel} value
+     * @return {MapModel} a pointer to this
+     */
+    set(key: any, value: any): this {
         let tmp = super.get(key);
         if (tmp) {
             this.listener.emitRemoved(key, tmp);
@@ -259,10 +436,18 @@ class MapModel extends Map<any, VassileType> {
     }
 }
 
+/**
+ * A <b>Set</b> based model
+ * @extends Set<IValue | ArrayModel | ObjectModel | MapModel | SetModel>
+ */
 class SetModel extends Set<VassileType> {
-    listener : Listener = new Listener();
+    listener: Listener = new Listener();
 
-    constructor(set : Set<any>) {
+    /**
+     * Constructs a set model based on a set
+     * @param set {Set<IValue | ArrayModel | ObjectModel | MapModel | SetModel>} input data
+     */
+    constructor(set: Set<any>) {
         super();
 
         for (let item of set) {
@@ -270,7 +455,12 @@ class SetModel extends Set<VassileType> {
         }
     }
 
-    add (value: any) : this {
+    /**
+     * Calls Set.add and notify abut changes
+     * @param value {IValue | ArrayModel | ObjectModel | MapModel | SetModel} value
+     * @return {SetModel} a pointer to this
+     */
+    add(value: any): this {
         value = vassilify(value);
 
         if (!super.has(value)) {
@@ -280,14 +470,22 @@ class SetModel extends Set<VassileType> {
         return this;
     }
 
-    clear () {
+    /**
+     * Calls Set.clear and notify abut changes
+     */
+    clear() {
         for (let item of this) {
             this.listener.emitRemoved(null, item);
         }
         super.clear();
     }
 
-    delete (value: VassileType) : boolean {
+    /**
+     * Calls Set.delete and notify abut changes
+     * @param value {IValue | ArrayModel | ObjectModel | MapModel | SetModel}
+     * @return {boolean} true if a value was deleted, otherwise false
+     */
+    delete(value: VassileType): boolean {
         if (super.has(value)) {
             this.listener.emitRemoved(null, value);
         }
@@ -295,7 +493,14 @@ class SetModel extends Set<VassileType> {
     }
 }
 
-function vassilify (v : any) : IValue | ArrayModel | ObjectModel | MapModel | SetModel {
+/**
+ * Transforms a JS value to a Vasille.js value
+ * @param v {*} input value
+ * @return {IValue | ArrayModel | ObjectModel | MapModel | SetModel} transformed value
+ */
+function vassilify(
+    v: any
+): IValue | ArrayModel | ObjectModel | MapModel | SetModel {
     let ret;
 
     switch (v) {
@@ -318,7 +523,7 @@ function vassilify (v : any) : IValue | ArrayModel | ObjectModel | MapModel | Se
         case v instanceof Set:
             ret = new SetModel(v);
             break;
-            
+
         case v instanceof Object && v.constructor === Object:
             ret = new ObjectModel(v);
             break;
