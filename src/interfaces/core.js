@@ -36,7 +36,7 @@ export class Core extends Destroyable {
      * @see Core#text
      * @see Core#comment
      */
-    $el : ?CoreEl;
+    $el : CoreEl;
 
     /**
      * The collection of properties
@@ -72,7 +72,9 @@ export class Core extends Destroyable {
      */
     constructor (el : ?CoreEl) {
         super();
-        this.$el = el;
+        if (el) {
+            this.$el = el;
+        }
     }
 
     /**
@@ -80,7 +82,7 @@ export class Core extends Destroyable {
      * @type {HTMLElement | Text | Comment}
      * @see Core#$el
      */
-    get coreEl () : ?CoreEl {
+    get coreEl () : CoreEl {
         return this.$el;
     }
 

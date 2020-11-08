@@ -318,7 +318,7 @@ export class ArrayModel extends Array<VassileType> {
  * A <b>Object</b> based model
  * @extends Object<String, IValue | ArrayModel | ObjectModel | MapModel | SetModel>
  */
-class ObjectModel extends Object {
+export class ObjectModel extends Object {
     /**
      * the listener of object
      * @type {Listener}
@@ -374,7 +374,7 @@ class ObjectModel extends Object {
  * A <b>Map</b> based memory
  * @extends Map<any, IValue | ArrayModel | ObjectModel | MapModel | SetModel>
  */
-class MapModel extends Map<any, VassileType> {
+export class MapModel extends Map<any, VassileType> {
     /**
      * listener of map
      * @type {Listener}
@@ -440,7 +440,7 @@ class MapModel extends Map<any, VassileType> {
  * A <b>Set</b> based model
  * @extends Set<IValue | ArrayModel | ObjectModel | MapModel | SetModel>
  */
-class SetModel extends Set<VassileType> {
+export class SetModel extends Set<VassileType> {
     listener: Listener = new Listener();
 
     /**
@@ -498,7 +498,7 @@ class SetModel extends Set<VassileType> {
  * @param v {*} input value
  * @return {IValue | ArrayModel | ObjectModel | MapModel | SetModel} transformed value
  */
-function vassilify(
+export function vassilify(
     v: any
 ): IValue | ArrayModel | ObjectModel | MapModel | SetModel {
     let ret;
