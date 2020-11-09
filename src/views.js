@@ -1,24 +1,76 @@
 import {AppNode, BaseNode, ElementNode, ShadowNode, TextNode} from "./node.js";
 import {IValue} from "./interfaces/ivalue";
+import {Callable} from "./interfaces/idefinition";
 
 
 
 type TextNodeCB = ?(text: TextNode) => void;
 type ElementNodeCB = ?(text: ElementNode) => void;
 
+const Command = {
+    defAttr: 1,
+    defAttrs: 2,
+    bindAttr: 3,
+    defStyle: 4,
+    defStyles: 5,
+    bindStyle: 6,
+    defEvent: 7,
+    defText: 8,
+    defElement: 9,
+    defTag: 10
+}
+
 export class RepeatNode extends ShadowNode {
+    #commands : Array<{| command: number, args: Array<any> |}> = [];
+    #children : Map<any, BaseNode> = new Map();
+
     constructor(
         app: AppNode,
         rt: ?BaseNode,
         ts: ?BaseNode,
-        cName: string,
-        props: Object
+        cName: string
     ) {
         super(app, rt, ts, cName);
     }
 
-    defText(text: string | IValue, cbOrSlot: string | TextNodeCB, cb2: TextNodeCB): BaseNode {
+    defAttr(name: string, value: string | IValue | Callable): BaseNode {
+        this.#commands.push(Command.defAttr, arguments);
+    }
 
+    defAttrs(obj: { [p: string]: string | IValue }): BaseNode {
+        this.#commands.push(Command.defAttrs, arguments);
+    }
+
+    bindAttr(name: string, calculator: Function, ...values): BaseNode {
+        this.#commands.push(Command.bindAttr, arguments);
+    }
+
+    defStyle(name: string, value: string | IValue | Callable): BaseNode {
+        this.#commands.push(Command.defStyle, arguments);
+    }
+
+    defStyles(obj: { [p: string]: string | IValue }): BaseNode {
+        this.#commands.push(Command.defStyles, arguments);
+    }
+
+    bindStyle(name: string, calculator: Function, ...values): BaseNode {
+        this.#commands.push(Command.bindStyle, arguments);
+    }
+
+    defEvent(name: string, event: Function): BaseNode {
+        this.#commands.push(Command.defEvent, arguments);
+    }
+
+    defText(text: string | IValue, cbOrSlot: string | TextNodeCB, cb2: TextNodeCB): BaseNode {
+        this.#commands.push(Command.defText, arguments);
+    }
+
+    defElement(func: Function, props: Object, cbOrSlot: string | ElementNodeCB, cb2: ElementNodeCB): BaseNode {
+        this.#commands.push(Command.defElement, arguments);
+    }
+
+    defTag(tagName: string, cbOrSlot: string | ElementNodeCB, cb2: ElementNodeCB): BaseNode {
+        this.#commands.push(Command.defTag, arguments);
     }
 }
 

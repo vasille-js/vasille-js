@@ -133,14 +133,7 @@ export class TextNode extends Node {
      * @param text {String | IValue}
      */
     constructor(app: AppNode, rt: BaseNode, ts: BaseNode, text: IValue | string) {
-        let value =
-            text instanceof Value ||
-            text instanceof Rebind ||
-            text instanceof Bind1 ||
-            text instanceof BindN ||
-            text instanceof Binding
-                ? text
-                : new Value(text);
+        let value = text instanceof IValue ? text : new Value(text);
         let node = document.createTextNode(value.get());
 
         super(app, rt, node);
@@ -227,14 +220,12 @@ export class BaseNode extends Node implements INode {
      * @param rt {?BaseNode} The root node
      * @param ts {?BaseNode} The this node
      * @param node {HTMLElement | Text | Comment | null} The encapsulated node
-     * @param props {Object} Node properties values
      */
     constructor(
         app: ?AppNode,
         rt: ?BaseNode,
         ts: ?BaseNode,
-        node: ?CoreEl,
-        props: Object
+        node: ?CoreEl
     ) {
         if (rt && ts && ts.el && node) {
             ts.appendChild(node);
@@ -245,6 +236,13 @@ export class BaseNode extends Node implements INode {
                 this.$el = node;
             }
         }
+    }
+
+    /**
+     * Initialize node
+     * @param props {Object} Node properties values
+     */
+    init (props: Object) {
         this.slots["default"] = this;
         this.#building = true;
 
@@ -645,6 +643,7 @@ export class BaseNode extends Node implements INode {
     ): BaseNode {
         let node = new ElementNode(this.$app, this.rt, this, tagName, {});
 
+        node.init({});
         this.pushNode(node, cbOrSlot instanceof String ? cbOrSlot : null);
 
         if (cbOrSlot instanceof Function) {
@@ -671,6 +670,7 @@ export class BaseNode extends Node implements INode {
     ): BaseNode {
         let node = new func(this.$app, this.rt, this, props);
 
+        node.init(props);
         this.pushNode(node, cbOrSlot instanceof String ? cbOrSlot : null);
 
         if (cbOrSlot instanceof Function) {
@@ -698,17 +698,15 @@ export class ElementNode extends BaseNode {
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
      * @param tagName {String} Name of HTML tag
-     * @param props {Object} A list of properties values
      */
     constructor(
         app: AppNode,
         rt: ?BaseNode,
         ts: ?BaseNode,
-        tagName: string,
-        props: Object
+        tagName: string
     ) {
         let node = document.createElement(tagName);
-        super(app, rt, ts, node, props);
+        super(app, rt, ts, node);
         this.#node = node;
     }
 
@@ -737,17 +735,15 @@ export class ShadowNode extends BaseNode {
      * @param rt {?BaseNode} The root node
      * @param ts {?BaseNode} The this node
      * @param cName {String} The comment string & component name
-     * @param props {Object} A set of properties values
      */
     constructor(
         app: AppNode,
         rt: ?BaseNode,
         ts: ?BaseNode,
-        cName: string,
-        props: Object
+        cName: string
     ) {
         let shadow = document.createComment(app.debug ? cName : '');
-        super(app, rt, ts, shadow, props);
+        super(app, rt, ts, shadow);
         this.$shadow = shadow;
     }
 
@@ -779,10 +775,18 @@ export class AppNode extends BaseNode {
      * @param props {{debug : boolean}} Application properties
      */
     constructor(node: HTMLElement, props: { debug: boolean }) {
-        super(null, null, null, node, {});
+        super(null, null, null, node);
+
+        this.$app = this;
 
         if (props.debug instanceof Boolean) {
             this.debug = props.debug;
         }
+
+        this.init({});
+    }
+    
+    appendChild(node: CoreEl) {
+        this.el.prepend(node);
     }
 }
