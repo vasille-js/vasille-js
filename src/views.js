@@ -65,7 +65,7 @@ export class RepeatNode extends ShadowNode {
         this.#commands.push(Command.defText, arguments);
     }
 
-    defElement(func: Function, props: Object, cbOrSlot: string | ElementNodeCB, cb2: ElementNodeCB): BaseNode {
+    defElement<T>(func: T, props: Object, cbOrSlot: string | ElementNodeCB, cb2: ElementNodeCB): BaseNode {
         this.#commands.push(Command.defElement, arguments);
     }
 

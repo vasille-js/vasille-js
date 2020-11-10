@@ -68,13 +68,18 @@ export class Core extends Destroyable {
 
     /**
      * Builds a component core by a html element/text/comment
+     */
+    constructor () {
+        super();
+    }
+
+    /**
+     * Encapsulate element
      * @param el {HTMLElement | Text | Comment} element to encapsulate
      */
-    constructor (el : ?CoreEl) {
-        super();
-        if (el) {
-            this.$el = el;
-        }
+    encapsulate (el : CoreEl) : this {
+        this.$el = el;
+        return this;
     }
 
     /**
