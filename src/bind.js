@@ -14,25 +14,25 @@ export class Bind1 extends IBind {
      * The value which will trigger recalculation
      * @type {IValue}
      */
-    #value : IValue;
+    value : IValue;
 
     /**
      * The function which will calc the new bind value
      * @type {Function}
      */
-    #func : Function;
+    func : Function;
 
     /**
      * The current linking state of bind
      * @type {boolean}
      */
-    #linked : boolean;
+    linked : boolean;
 
     /**
      * The buffer to keep value between calculations
      * @type {Value}
      */
-    #sync : Value = new Value(null);
+    sync : Value = new Value(null);
 
     /**
      * Constructs a binding engine
@@ -47,20 +47,20 @@ export class Bind1 extends IBind {
     ) {
         super();
         let handler = function () {
-            this.#sync.set(func(value.get()));
+            this.sync.set(func(value.get()));
         }.bind(this);
 
-        this.#value  = value;
-        this.#func   = handler;
-        this.#linked = !link;
+        this.value  = value;
+        this.func   = handler;
+        this.linked = !link;
 
         if (link) {
             this.link();
-            this.#func.call();
+            this.func.call();
         }
 
-        value.on(this.#func);
-        this.#sync.set(func(value.get()));
+        value.on(this.func);
+        this.sync.set(func(value.get()));
     }
 
     /**
@@ -68,7 +68,7 @@ export class Bind1 extends IBind {
      * @return {*} The last calculated value
      */
     get () : any {
-        return this.#sync.get();
+        return this.sync.get();
     }
 
     /**
@@ -77,7 +77,7 @@ export class Bind1 extends IBind {
      * @return {Bind1} A pointer too this
      */
     set (value : any) : IValue {
-        this.#sync.set(value);
+        this.sync.set(value);
         return this;
     }
 
@@ -87,7 +87,7 @@ export class Bind1 extends IBind {
      * @return {Bind1} A pointer to this
      */
     on (handler : Function) : IValue {
-        this.#sync.on(handler);
+        this.sync.on(handler);
         return this;
     }
 
@@ -97,7 +97,7 @@ export class Bind1 extends IBind {
      * @return {Bind1} A pointer to this
      */
     off(handler : Function) : IValue {
-        this.#sync.off(handler);
+        this.sync.off(handler);
         return this;
     }
 
@@ -106,9 +106,9 @@ export class Bind1 extends IBind {
      * @returns {Bind1} A pointer to this
      */
     link () : Bind1 {
-        if (!this.#linked) {
-            this.#value.on(this.#func);
-            this.#linked = true;
+        if (!this.linked) {
+            this.value.on(this.func);
+            this.linked = true;
         }
         return this;
     }
@@ -118,9 +118,9 @@ export class Bind1 extends IBind {
      * @returns {Bind1} A pointer to this
      */
     unlink () : Bind1 {
-        if (this.#linked) {
-            this.#value.off(this.#func);
-            this.#linked = false;
+        if (this.linked) {
+            this.value.off(this.func);
+            this.linked = false;
         }
         return this;
     }
@@ -142,25 +142,25 @@ export class BindN extends IBind {
      * The array of value which will trigger recalculation
      * @type {Array<IValue>}
      */
-    #values : Array<IValue>;
+    values : Array<IValue>;
 
     /**
      * The function which will be executed on recalculation
      * @type {Function}
      */
-    #func : Function;
+    func : Function;
 
     /**
      * The current linking state
      * @type {boolean}
      */
-    #linked : boolean;
+    linked : boolean;
 
     /**
      * The buffer to keep the last calculated value
      * @type {Value}
      */
-    #sync : Value = new Value(null);
+    sync : Value = new Value(null);
 
     /**
      * Creates a function bounded to N value
@@ -175,19 +175,19 @@ export class BindN extends IBind {
     ) {
         super();
         let handler = function () {
-            this.#sync.set(func(values.map(v => v.get())));
+            this.sync.set(func(values.map(v => v.get())));
         }.bind(this);
 
-        this.#values = values;
-        this.#func   = handler;
-        this.#linked = false;
+        this.values = values;
+        this.func   = handler;
+        this.linked = false;
 
         if (link) {
             this.link();
-            this.#func.call();
+            this.func.call();
         }
 
-        this.#sync.set(func(values.map(v => v.get())));
+        this.sync.set(func(values.map(v => v.get())));
     }
 
     /**
@@ -195,7 +195,7 @@ export class BindN extends IBind {
      * @return {*} The last calculated value
      */
     get () : any {
-        return this.#sync.get();
+        return this.sync.get();
     }
 
     /**
@@ -204,7 +204,7 @@ export class BindN extends IBind {
      * @return {BindN} A pointer to this
      */
     set (value : any) : IValue {
-        this.#sync.set(value);
+        this.sync.set(value);
         return this;
     }
 
@@ -214,7 +214,7 @@ export class BindN extends IBind {
      * @return {BindN} A pointer to this
      */
     on (handler : Function) : IValue {
-        this.#sync.on(handler);
+        this.sync.on(handler);
         return this;
     }
 
@@ -224,7 +224,7 @@ export class BindN extends IBind {
      * @return {BindN} A pointer to this
      */
     off(handler : Function) : IValue {
-        this.#sync.off(handler);
+        this.sync.off(handler);
         return this;
     }
 
@@ -233,11 +233,11 @@ export class BindN extends IBind {
      * @returns {BindN} A pointer to this
      */
     link() : BindN {
-        if (!this.#linked) {
-            for (let value of this.#values) {
-                value.on(this.#func);
+        if (!this.linked) {
+            for (let value of this.values) {
+                value.on(this.func);
             }
-            this.#linked = true;
+            this.linked = true;
         }
         return this;
     }
@@ -247,11 +247,11 @@ export class BindN extends IBind {
      * @returns {BindN} A pointer to this
      */
     unlink() : BindN {
-        if (this.#linked) {
-            for (let value of this.#values) {
-                value.off(this.#func);
+        if (this.linked) {
+            for (let value of this.values) {
+                value.off(this.func);
             }
-            this.#linked = false;
+            this.linked = false;
         }
         return this;
     }
@@ -269,8 +269,8 @@ export class BindN extends IBind {
  * @implements IValue
  */
 export class Binding extends IValue {
-    #binding : IValue;
-    #bound   : Function;
+    binding : IValue;
+    func    : Function;
 
     /**
      * Constructs a common binding logic
@@ -289,18 +289,18 @@ export class Binding extends IValue {
     ) {
         super();
         if (!func && values.length === 1) {
-            this.#binding = values[0];
+            this.binding = values[0];
         }
         else if (func && values.length) {
-            this.#binding = values.length > 1 ? new BindN(func, values) : new Bind1(func, values[0]);
+            this.binding = values.length > 1 ? new BindN(func, values) : new Bind1(func, values[0]);
         }
         else {
             throw "There must be a value as minimum";
         }
 
-        this.#bound = this.bound(name).bind(null, rt, ts, this.#binding);
-        this.#binding.on(this.#bound);
-        this.#bound.call();
+        this.func = this.bound(name).bind(null, rt, ts, this.binding);
+        this.binding.on(this.func);
+        this.func();
     }
 
     /**
@@ -318,7 +318,7 @@ export class Binding extends IValue {
      * @return {*} The binding value
      */
     get () : any {
-        return this.#binding.get();
+        return this.binding.get();
     }
 
     /**
@@ -327,7 +327,7 @@ export class Binding extends IValue {
      * @return {Binding} A pointer to this
      */
     set (any : any) : IValue {
-        this.#binding.set(any);
+        this.binding.set(any);
         return this;
     }
 
@@ -337,7 +337,7 @@ export class Binding extends IValue {
      * @return {Binding} A pointer to this
      */
     on (func : Function) : IValue {
-        this.#binding.on(func);
+        this.binding.on(func);
         return this;
     }
 
@@ -347,7 +347,7 @@ export class Binding extends IValue {
      * @return {Binding} A pointer to this
      */
     off (func : Function) : IValue {
-        this.#binding.off(func);
+        this.binding.off(func);
         return this;
     }
 
@@ -355,6 +355,6 @@ export class Binding extends IValue {
      * Just clear bindings
      */
     destroy() {
-        this.#binding.off(this.#bound);
+        this.binding.off(this.bound);
     }
 }

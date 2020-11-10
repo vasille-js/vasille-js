@@ -20,9 +20,11 @@ const Command = {
     defTag: 10
 }
 
+type CommandList = Array<{| command: number, args: Array<any> |}>;
+
 export class RepeatNode extends ShadowNode {
-    #commands : Array<{| command: number, args: Array<any> |}> = [];
-    #children : Map<any, BaseNode> = new Map();
+    commands : CommandList = [];
+    nodes    : Map<any, ShadowNode> = new Map();
 
     constructor(
         app: AppNode,
@@ -34,43 +36,49 @@ export class RepeatNode extends ShadowNode {
     }
 
     defAttr(name: string, value: string | IValue | Callable): BaseNode {
-        this.#commands.push(Command.defAttr, arguments);
+        this.commands.push(Command.defAttr, arguments);
     }
 
     defAttrs(obj: { [p: string]: string | IValue }): BaseNode {
-        this.#commands.push(Command.defAttrs, arguments);
+        this.commands.push(Command.defAttrs, arguments);
     }
 
     bindAttr(name: string, calculator: Function, ...values): BaseNode {
-        this.#commands.push(Command.bindAttr, arguments);
+        this.commands.push(Command.bindAttr, arguments);
     }
 
     defStyle(name: string, value: string | IValue | Callable): BaseNode {
-        this.#commands.push(Command.defStyle, arguments);
+        this.commands.push(Command.defStyle, arguments);
     }
 
     defStyles(obj: { [p: string]: string | IValue }): BaseNode {
-        this.#commands.push(Command.defStyles, arguments);
+        this.commands.push(Command.defStyles, arguments);
     }
 
     bindStyle(name: string, calculator: Function, ...values): BaseNode {
-        this.#commands.push(Command.bindStyle, arguments);
+        this.commands.push(Command.bindStyle, arguments);
     }
 
     defEvent(name: string, event: Function): BaseNode {
-        this.#commands.push(Command.defEvent, arguments);
+        this.commands.push(Command.defEvent, arguments);
     }
 
     defText(text: string | IValue, cbOrSlot: string | TextNodeCB, cb2: TextNodeCB): BaseNode {
-        this.#commands.push(Command.defText, arguments);
+        this.commands.push(Command.defText, arguments);
     }
 
     defElement<T>(func: T, props: Object, cbOrSlot: string | ElementNodeCB, cb2: ElementNodeCB): BaseNode {
-        this.#commands.push(Command.defElement, arguments);
+        this.commands.push(Command.defElement, arguments);
     }
 
     defTag(tagName: string, cbOrSlot: string | ElementNodeCB, cb2: ElementNodeCB): BaseNode {
-        this.#commands.push(Command.defTag, arguments);
+        this.commands.push(Command.defTag, arguments);
+    }
+
+    createChild (id: any, item: any) {
+        let current = this.nodes.get(id);
+
+        if (current) current.destroy();
     }
 }
 

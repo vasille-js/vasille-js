@@ -75,7 +75,7 @@ export class Node extends Core {
         this.$rt  = rt;
 
         if (!(this.constructor === ElementNode || this.constructor === TextNode || this instanceof ShadowNode)) {
-            this.debugComment = document.createComment(` ${ts.constructor.name} > ${this.constructor.name} `);
+            this.debugComment = document.createComment(` ${rt.constructor.name} > ${this.constructor.name} `);
             ts.appendChild(this.debugComment);
         }
     }
@@ -130,13 +130,13 @@ export class TextNode extends Node {
      * Contains the text of node as Value
      * @type {IValue}
      */
-    #value: IValue;
+    value: IValue;
 
     /**
      * User defined handler to handle text change
      * @type {Function}
      */
-    #handler: Function;
+    handler: Function;
 
     /**
      * Constructs a text node
@@ -158,12 +158,12 @@ export class TextNode extends Node {
         let value = text instanceof IValue ? text : new Value(text);
         let node = document.createTextNode(value.get());
 
-        this.#value = value;
-        this.#handler = function (v: IValue) {
+        this.value = value;
+        this.handler = function (v: IValue) {
             node.replaceData(0, -1, v.get());
         }.bind(null, value);
 
-        value.on(this.#handler);
+        value.on(this.handler);
 
         ts.appendChild(node);
     }
@@ -173,7 +173,7 @@ export class TextNode extends Node {
      * @type {IValue}
      */
     get value(): IValue {
-        return this.#value;
+        return this.value;
     }
 
     /**
@@ -181,7 +181,7 @@ export class TextNode extends Node {
      */
     destroy(): void {
         super.destroy();
-        this.#value.off(this.#handler);
+        this.value.off(this.handler);
     }
 }
 
@@ -203,7 +203,7 @@ export class BaseNode extends Node implements INode {
      * The building active state
      * @type {boolean}
      */
-    #building: boolean;
+    building: boolean;
 
     /**
      * List of events
@@ -232,7 +232,7 @@ export class BaseNode extends Node implements INode {
      * The last inserted child (Child are not destructible)
      * @type {?Node}
      */
-    #lastChild: ?Node = null;
+    lastChild: ?Node = null;
 
     /**
      * Constructs a base node which can contain children
@@ -266,7 +266,7 @@ export class BaseNode extends Node implements INode {
      */
     init (props: Object) {
         this.slots["default"] = this;
-        this.#building = true;
+        this.building = true;
 
         this.createProps();
         this.initProps(props);
@@ -278,7 +278,7 @@ export class BaseNode extends Node implements INode {
         this.created();
         this.createDom();
 
-        this.#building = false;
+        this.building = false;
         this.mounted();
     }
 
@@ -287,7 +287,7 @@ export class BaseNode extends Node implements INode {
      * @type {BaseNode}
      */
     get rt(): BaseNode {
-        return !this.#building && this.$rt instanceof BaseNode ? this.$rt : this;
+        return !this.building && this.$rt instanceof BaseNode ? this.$rt : this;
     }
 
     /**
@@ -585,14 +585,14 @@ export class BaseNode extends Node implements INode {
      * @private
      */
     pushNodeNow(node: Node): void {
-        if (this.#lastChild) {
-            this.#lastChild.next = node;
+        if (this.lastChild) {
+            this.lastChild.next = node;
         }
-        node.prev = this.#lastChild;
+        node.prev = this.lastChild;
         node.parent = this;
 
         this.children.push(node);
-        this.#lastChild = node;
+        this.lastChild = node;
     }
 
     /**
@@ -601,7 +601,7 @@ export class BaseNode extends Node implements INode {
      * @param slotName {String} The slot name
      */
     pushNode(node: Node, slotName: ?string): void {
-        if (this.#building) {
+        if (this.building) {
             this.pushNodeNow(node);
         } else {
             let slot = slotName ? this.slots[slotName] : this.slots["default"];
@@ -725,7 +725,7 @@ export class ElementNode extends BaseNode {
      * Pointer to embed HTML node
      * @type {HTMLElement}
      */
-    #node: HTMLElement;
+    node: HTMLElement;
 
     /**
      * Constructs a element node
@@ -749,7 +749,7 @@ export class ElementNode extends BaseNode {
     ) {
         let node = document.createElement(tagName);
         this.preinitNode(app, rt, ts, node);
-        this.#node = node;
+        this.node = node;
     }
 
     /**
@@ -757,7 +757,7 @@ export class ElementNode extends BaseNode {
      * @return {HTMLElement}
      */
     get el(): HTMLElement {
-        return this.#node;
+        return this.node;
     }
 }
 
@@ -787,7 +787,7 @@ export class ShadowNode extends BaseNode {
         rt: BaseNode,
         ts: BaseNode
     ) {
-        this.$shadow = document.createComment(` ${ts.constructor.name} > ${this.constructor.name} `)
+        this.$shadow = document.createComment(` ${rt.constructor.name} > ${this.constructor.name} `)
         this.preinit(app, rt, ts);
 
         ts.appendChild(this.$shadow);

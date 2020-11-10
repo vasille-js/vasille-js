@@ -10,8 +10,8 @@ import {Value}          from "./value.js";
  * Defines a node property
  */
 export class Property {
-    #Type : Function;
-    #init : Array<any>;
+    Type : Function;
+    init : Array<any>;
 
     /**
      * Construct a property definition
@@ -22,8 +22,8 @@ export class Property {
         _type   : Function,
         ...init : Array<any>
     ) {
-        this.#Type = _type;
-        this.#init = init;
+        this.Type = _type;
+        this.init = init;
     }
 
     /**
@@ -31,7 +31,7 @@ export class Property {
      * @return {Function}
      */
     get type () : Function {
-        return this.#Type;
+        return this.Type;
     }
 
     /**
@@ -39,7 +39,7 @@ export class Property {
      * @returns {Value} a property value object
      */
     createDefaultValue () : Value {
-        return new Value(new this.#Type(...this.#init));
+        return new Value(new this.Type(...this.init));
     }
 }
 

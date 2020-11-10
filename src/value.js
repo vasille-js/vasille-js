@@ -11,13 +11,13 @@ export class Value extends IValue {
      * The encapsulated value
      * @type {*}
      */
-    #value : any;
+    value : any;
 
     /**
      * Array of handlers
      * @type {Array<Function>}
      */
-    #onchange : Array<Function>;
+    onchange : Array<Function>;
 
     /**
      * Constructs a notifiable value
@@ -25,8 +25,8 @@ export class Value extends IValue {
      */
     constructor (value : any) {
         super();
-        this.#value = value;
-        this.#onchange = [];
+        this.value = value;
+        this.onchange = [];
     }
 
     /**
@@ -34,7 +34,7 @@ export class Value extends IValue {
      * @returns {any} contained value
      */
     get () : any {
-        return this.#value;
+        return this.value;
     }
 
     /**
@@ -43,10 +43,10 @@ export class Value extends IValue {
      * @returns {Value} a pointer to this
      */
     set (value : any) : Value {
-        if (this.#value !== value) {
-            this.#value = value;
+        if (this.value !== value) {
+            this.value = value;
 
-            for (let handler of this.#onchange) {
+            for (let handler of this.onchange) {
                 handler();
             }
         }
@@ -60,7 +60,7 @@ export class Value extends IValue {
      * @returns {Value} a pointer to this
      */
     on (handler : Function) : Value {
-        this.#onchange.push(handler);
+        this.onchange.push(handler);
         return this;
     }
 
@@ -70,16 +70,16 @@ export class Value extends IValue {
      * @returns {Value} a pointer to this
      */
     off (handler : Function) : Value {
-        let index = this.#onchange.indexOf(handler);
+        let index = this.onchange.indexOf(handler);
         if (index !== -1) {
-            this.#onchange.splice(index, 1);
+            this.onchange.splice(index, 1);
         }
         return this;
     }
 
     destroy() {
         super.destroy();
-        this.#onchange.splice(0);
+        this.onchange.splice(0);
     }
 }
 
@@ -88,9 +88,9 @@ export class Value extends IValue {
  * @implements IValue
  */
 export class Rebind extends IValue {
-    #value    : IValue;
-    #onchange : Array<Function> = [];
-    #bound    : Array<Function> = [];
+    value    : IValue;
+    onchange : Array<Function> = [];
+    bound    : Array<Function> = [];
 
     /**
      * Constructs a notifiable bind to a value
@@ -98,7 +98,7 @@ export class Rebind extends IValue {
      */
     constructor (value : IValue) {
         super();
-        this.#onchange = [];
+        this.onchange = [];
         this.set(value);
     }
 
@@ -107,7 +107,7 @@ export class Rebind extends IValue {
      * @returns {any} contained value
      */
     get () : any {
-        return this.#value.get();
+        return this.value.get();
     }
 
     /**
@@ -116,22 +116,22 @@ export class Rebind extends IValue {
      * @returns {IValue} a pointer to this
      */
     set (value : IValue) : IValue {
-        if (this.#value !== value) {
-            for (let handler of this.#bound) {
-                this.#value.off(handler);
+        if (this.value !== value) {
+            for (let handler of this.bound) {
+                this.value.off(handler);
             }
 
-            this.#bound = [];
-            this.#value = value;
+            this.bound = [];
+            this.value = value;
 
-            for (let handler of this.#onchange) {
+            for (let handler of this.onchange) {
                 let bound = handler.bind(null, value);
-                this.#value.on(bound);
-                this.#bound.push(bound);
+                this.value.on(bound);
+                this.bound.push(bound);
             }
 
-            if (this.#value.get() !== value.get()) {
-                for (let handler of this.#bound) {
+            if (this.value.get() !== value.get()) {
+                for (let handler of this.bound) {
                     handler();
                 }
             }
@@ -146,10 +146,10 @@ export class Rebind extends IValue {
      * @returns {IValue} a pointer to this
      */
     on (handler : Function) : IValue {
-        let bound = handler.bind(null, this.#value);
-        this.#onchange.push(handler);
-        this.#bound.push(bound);
-        this.#value.on(bound);
+        let bound = handler.bind(null, this.value);
+        this.onchange.push(handler);
+        this.bound.push(bound);
+        this.value.on(bound);
         return this;
     }
 
@@ -159,11 +159,11 @@ export class Rebind extends IValue {
      * @returns {IValue} a pointer to this
      */
     off (handler : Function) : IValue {
-        let index = this.#onchange.indexOf(handler);
+        let index = this.onchange.indexOf(handler);
         if (index !== -1) {
-            this.#value.off(this.#bound[index]);
-            this.#onchange.splice(index, 1);
-            this.#bound.splice(index, 1);
+            this.value.off(this.bound[index]);
+            this.onchange.splice(index, 1);
+            this.bound.splice(index, 1);
         }
         return this;
     }
@@ -172,8 +172,8 @@ export class Rebind extends IValue {
      * Removes all bounded functions
      */
     destroy () {
-        for (let handler of this.#bound) {
-            this.#value.off(handler);
+        for (let handler of this.bound) {
+            this.value.off(handler);
         }
     }
 }

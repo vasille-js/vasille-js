@@ -68,7 +68,7 @@ export class AttributeBinding extends Binding {
                 });
             }
 
-            return v.get();
+            return value;
         };
     }
 }
