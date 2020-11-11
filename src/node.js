@@ -13,7 +13,7 @@ import {StyleBinding, stylify} from "./style.js";
 import {Rebind, Value} from "./value.js";
 
 export interface INode {
-    appendChild(node: CoreEl): void;
+    appendChild(node: CoreEl, before: Node): void;
 }
 
 /**
@@ -69,14 +69,15 @@ export class Node extends Core {
      * @param app {App} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
+     * @param before {Node} Node to paste this after
      */
-    preinit (app: AppNode, rt: BaseNode, ts: BaseNode) {
+    preinit (app: AppNode, rt: BaseNode, ts: BaseNode, before: Node) {
         this.$app = app;
         this.$rt  = rt;
 
         if (!(this.constructor === ElementNode || this.constructor === TextNode || this instanceof ShadowNode)) {
             this.debugComment = document.createComment(` ${rt.constructor.name} > ${this.constructor.name} `);
-            ts.appendChild(this.debugComment);
+            ts.appendChild(this.debugComment, before);
         }
     }
 
@@ -150,10 +151,11 @@ export class TextNode extends Node {
      * @param app {AppNode} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
+     * @param before {Node} node to apste after
      * @param text {String | IValue}
      */
-    preinitText(app: AppNode, rt: BaseNode, ts: BaseNode, text: IValue | string) {
-        super.preinit(app, rt, ts);
+    preinitText(app: AppNode, rt: BaseNode, ts: BaseNode, before : Node, text: IValue | string) {
+        super.preinit(app, rt, ts, before);
 
         let value = text instanceof IValue ? text : new Value(text);
         let node = document.createTextNode(value.get());
@@ -165,15 +167,7 @@ export class TextNode extends Node {
 
         value.on(this.handler);
 
-        ts.appendChild(node);
-    }
-
-    /**
-     * Gets the text of node
-     * @type {IValue}
-     */
-    get value(): IValue {
-        return this.value;
+        ts.appendChild(node, before);
     }
 
     /**
@@ -232,7 +226,7 @@ export class BaseNode extends Node implements INode {
      * The last inserted child (Child are not destructible)
      * @type {?Node}
      */
-    lastChild: ?Node = null;
+    lastChild: Node;
 
     /**
      * Constructs a base node which can contain children
@@ -246,18 +240,20 @@ export class BaseNode extends Node implements INode {
      * @param app {AppNode} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
+     * @param before {Node} node to paste after it
      * @param node {HTMLElement | Text | Comment} The encapsulated node
      */
     preinitNode(
         app: AppNode,
         rt: BaseNode,
         ts: BaseNode,
+        before: Node,
         node: CoreEl
     ) {
-        this.preinit(app, rt, ts);
+        this.preinit(app, rt, ts, before);
         this.encapsulate(node);
 
-        ts.appendChild(node);
+        ts.appendChild(node, before);
     }
 
     /**
@@ -617,14 +613,20 @@ export class BaseNode extends Node implements INode {
     /**
      * Append a child in correct parent (to be overwritten)
      * @param node {HTMLElement | Text | Comment} A node to push
+     * @param before {Node} node to paste after
      * @private
      */
-    appendChild(node: CoreEl): void {
+    appendChild(node: CoreEl, before: Node): void {
         if (!this.el) {
             throw "This node doesn't accept children";
         }
 
-        this.el.appendChild(node);
+        if (before.el && before.el.nextSibling) {
+            this.el.insertBefore(node, before.el.nextSibling);
+        }
+        else {
+            this.el.appendChild(node);
+        }
     }
 
     /**
@@ -641,7 +643,7 @@ export class BaseNode extends Node implements INode {
     ): BaseNode {
         let node = new TextNode();
 
-        node.preinitText(this.$app, this.rt, this, text);
+        node.preinitText(this.$app, this.rt, this, this.lastChild, text);
         this.pushNode(node, cbOrSlot instanceof String ? cbOrSlot : null);
 
         if (cbOrSlot instanceof Function) {
@@ -694,10 +696,10 @@ export class BaseNode extends Node implements INode {
     ): BaseNode {
 
         if (node instanceof ShadowNode) {
-            node.preinitShadow(this.$app, this.rt, this);
+            node.preinitShadow(this.$app, this.rt, this, this.lastChild);
         }
         else if (node instanceof Node) {
-            node.preinit(this.$app, this.rt, this);
+            node.preinit(this.$app, this.rt, this, this.lastChild);
         }
 
         if (node instanceof BaseNode) {
@@ -748,7 +750,7 @@ export class ElementNode extends BaseNode {
         tagName: string
     ) {
         let node = document.createElement(tagName);
-        this.preinitNode(app, rt, ts, node);
+        this.preinitNode(app, rt, ts, this.lastChild, node);
         this.node = node;
     }
 
@@ -781,16 +783,25 @@ export class ShadowNode extends BaseNode {
      * @param app {AppNode} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
+     * @param before {Node} node to paste after it
      */
     preinitShadow (
         app: AppNode,
         rt: BaseNode,
-        ts: BaseNode
+        ts: BaseNode,
+        before: Node
     ) {
         this.$shadow = document.createComment(` ${rt.constructor.name} > ${this.constructor.name} `)
-        this.preinit(app, rt, ts);
+        this.preinit(app, rt, ts, before);
+        
+        if (ts.el) {
+            this.encapsulate(ts.el);
+        }
+        else {
+            throw "A shadow node can be encapsulated in a element or shadow node only";
+        }
 
-        ts.appendChild(this.$shadow);
+        ts.appendChild(this.$shadow, before);
     }
 
     /**
@@ -823,7 +834,7 @@ export class AppNode extends BaseNode {
     constructor(node: HTMLElement, props: { debug: boolean }) {
         super();
 
-        this.preinit(this, this, this);
+        this.preinit(this, this, this, this);
         this.encapsulate(node);
 
         if (props.debug instanceof Boolean) {
@@ -833,7 +844,7 @@ export class AppNode extends BaseNode {
         this.init({});
     }
     
-    appendChild(node: CoreEl) {
+    appendChild(node: CoreEl, before: Node) {
         let el = this.el;
         if (el) el.prepend(node);
     }

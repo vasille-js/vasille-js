@@ -22,6 +22,18 @@ const Command = {
 
 type CommandList = Array<{| command: number, args: Array<any> |}>;
 
+export class RepeatNodeItem extends ShadowNode {
+    destroy() {
+        super.destroy();
+
+        for (let child of this.children) {
+            if (child.el !== this.el) {
+                this.el.removeChild(child.el);
+            }
+        }
+    }
+}
+
 export class RepeatNode extends ShadowNode {
     commands : CommandList = [];
     nodes    : Map<any, ShadowNode> = new Map();
@@ -78,7 +90,18 @@ export class RepeatNode extends ShadowNode {
     createChild (id: any, item: any) {
         let current = this.nodes.get(id);
 
-        if (current) current.destroy();
+        if (current) {
+            if (current.prev) {
+                current.prev.next = current.next;
+            }
+            if (current.next) {
+                current.next.prev = current.prev;
+            }
+            current.destroy();
+            this.nodes.delete(id);
+        }
+
+        //
     }
 }
 
