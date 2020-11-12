@@ -22,7 +22,7 @@ export function attributify (
     value : ?any = null,
     func  : ?Callable = null
 ) : AttributeBinding {
-    return new AttributeBinding(rt, ts, name, null, propertify(rt, ts, value, func));
+    return new AttributeBinding(rt, ts, name, null, propertify(value, func));
 }
 
 /**

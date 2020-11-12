@@ -55,7 +55,7 @@ export class RepeatNode extends ShadowNode {
         this.commands.push(Command.defAttrs, arguments);
     }
 
-    bindAttr(name: string, calculator: Function, ...values): BaseNode {
+    bindAttr(name: string, calculator: Function, ...values: Array<IValue>): BaseNode {
         this.commands.push(Command.bindAttr, arguments);
     }
 
@@ -67,7 +67,7 @@ export class RepeatNode extends ShadowNode {
         this.commands.push(Command.defStyles, arguments);
     }
 
-    bindStyle(name: string, calculator: Function, ...values): BaseNode {
+    bindStyle(name: string, calculator: Function, ...values: Array<IValue>): BaseNode {
         this.commands.push(Command.bindStyle, arguments);
     }
 
@@ -87,21 +87,81 @@ export class RepeatNode extends ShadowNode {
         this.commands.push(Command.defTag, arguments);
     }
 
-    createChild (id: any, item: any) {
-        let current = this.nodes.get(id);
-
-        if (current) {
-            if (current.prev) {
-                current.prev.next = current.next;
-            }
-            if (current.next) {
-                current.next.prev = current.prev;
-            }
-            current.destroy();
-            this.nodes.delete(id);
+    runCommands (node: RepeatNodeItem, item: IValue) {
+        let run = {};
+        run[Command.defAttr] = (args : Array<any>) => {
+            node.defAttr(...args);
+        }
+        run[Command.defAttrs] = (args : Array<any>) => {
+            node.defAttrs(...args);
+        }
+        run[Command.bindAttr] = (args : Array<any>) => {
+            node.bindAttr(...args, item);
+        }
+        run[Command.defStyle] = (args : Array<any>) => {
+            node.defStyle(...args);
+        }
+        run[Command.defStyles] = (args : Array<any>) => {
+            node.defStyles(...args);
+        }
+        run[Command.bindStyle] = (args : Array<any>) => {
+            node.bindStyle(...args, item);
+        }
+        run[Command.defEvent] = (args : Array<any>) => {
+            node.defEvent(...args);
+        }
+        run[Command.defText] = (args : Array<any>) => {
+            node.defText(...args);
+        }
+        run[Command.defElement] = (args : Array<any>) => {
+            node.defElement(...args);
+        }
+        run[Command.defTag] = (args : Array<any>) => {
+            node.defTag(...args);
         }
 
-        //
+        for (let command of this.commands) {
+            run[command.command](command.args);
+        }
+    }
+
+    createChild (id: any, item: IValue) {
+        let current = this.nodes.get(id);
+        let node = new RepeatNodeItem();
+
+        this.destroyChild(id);
+
+        node.$propsDefs = this.$propsDefs;
+        node.preinitShadow(this.$app, this.rt, this, current ? current.prev : null);
+        this.runCommands(node, item);
+
+        let props = {};
+
+        for (let i in this.props) {
+            if (this.props[i] instanceof Callable) {
+                props[i] = this.props[i].func(item);
+            }
+            else {
+                props[i] = this.props[i];
+            }
+        }
+
+        node.init(props);
+    }
+
+    destroyChild (id: any) {
+        let child = this.nodes.get(id);
+
+        if (child) {
+            if (child.prev) {
+                child.prev.next = child.next;
+            }
+            if (child.next) {
+                child.next.prev = child.prev;
+            }
+            child.destroy();
+            this.nodes.delete(id);
+        }
     }
 }
 

@@ -376,9 +376,9 @@ export class BaseNode extends Node implements INode {
                 let propertyValue;
 
                 if (value instanceof Callable) {
-                    propertyValue = propertify(this.rt, this, null, value);
+                    propertyValue = propertify(null, value);
                 } else {
-                    propertyValue = propertify(this.rt, this, value);
+                    propertyValue = propertify(value);
                 }
 
                 if (!this.$propsDefs[i]) {
@@ -411,19 +411,19 @@ export class BaseNode extends Node implements INode {
         funcOrAny: ?Callable | ?any = null
     ): BaseNode {
         if (nameOrSet instanceof String && funcOrAny instanceof Callable) {
-            this.$data[nameOrSet] = datify(this.rt, this, null, funcOrAny);
+            this.$data[nameOrSet] = datify(null, funcOrAny);
             return this;
         }
 
         if (nameOrSet instanceof String) {
-            this.$data[nameOrSet] = datify(this.rt, this, funcOrAny);
+            this.$data[nameOrSet] = datify(funcOrAny);
             return this;
         }
 
         if (nameOrSet instanceof Object && funcOrAny == null) {
             for (let i in nameOrSet) {
                 if (nameOrSet.hasOwnProperty(i)) {
-                    this.$data[i] = datify(this.rt, this, nameOrSet[i]);
+                    this.$data[i] = datify(nameOrSet[i]);
                 }
             }
             return this;
@@ -621,7 +621,7 @@ export class BaseNode extends Node implements INode {
             throw "This node doesn't accept children";
         }
 
-        if (before.el && before.el.nextSibling) {
+        if (before && before.el && before.el.nextSibling) {
             this.el.insertBefore(node, before.el.nextSibling);
         }
         else {

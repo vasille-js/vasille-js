@@ -22,7 +22,7 @@ export function stylify(
     value : ?string | ?IValue = null,
     func  : ?Callable = null
 ) : StyleBinding {
-    return new StyleBinding(rt, ts, name, null, propertify(rt, ts, value, func));
+    return new StyleBinding(rt, ts, name, null, propertify(value, func));
 }
 
 /**

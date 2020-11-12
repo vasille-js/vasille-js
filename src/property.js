@@ -45,20 +45,16 @@ export class Property {
 
 /**
  * Constructs a property field value
- * @param rt {BaseNode} is root component
- * @param ts {Node} is this component
  * @param value {?any} is the initial value of field
  * @param func {?Callable} is the function to calc filed value
  * @return {IValue} Given value or new generated
  */
 export function propertify (
-    rt    : any,
-    ts    : any,
     value : ?any = null,
     func  : ?Callable = null
 ) : IValue {
     if (func) {
-        let v = func.func(rt, ts);
+        let v = func.func();
 
         if (v instanceof IValue) {
             return v;
