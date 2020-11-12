@@ -5,12 +5,12 @@ import {Callable} from "./interfaces/idefinition.js";
 import {IValue} from "./interfaces/ivalue.js";
 
 import {AttributeBinding, attributify} from "./attribute.js";
-import {Bind1, Binding, BindN} from "./bind.js";
 import {datify} from "./data.js";
 import {eventify} from "./event.js";
 import {propertify, Property} from "./property.js";
 import {StyleBinding, stylify} from "./style.js";
-import {Rebind, Value} from "./value.js";
+import {Value} from "./value.js";
+import {Executor, FastExecutor} from "./executor";
 
 export interface INode {
     appendChild(node: CoreEl, before: Node): void;
@@ -826,6 +826,8 @@ export class AppNode extends BaseNode {
      */
     debug: boolean = false;
 
+    run: Executor;
+
     /**
      * Constructs a app node
      * @param node {HTMLElement} The root of application
@@ -834,6 +836,7 @@ export class AppNode extends BaseNode {
     constructor(node: HTMLElement, props: { debug: boolean }) {
         super();
 
+        this.run = new FastExecutor();
         this.preinit(this, this, this, this);
         this.encapsulate(node);
 

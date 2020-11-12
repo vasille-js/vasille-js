@@ -139,7 +139,7 @@ export class RepeatNode extends ShadowNode {
 
         for (let i in this.props) {
             if (this.props[i] instanceof Callable) {
-                props[i] = this.props[i].func(item);
+                props[i] = this.props[i].func(item.get());
             }
             else {
                 props[i] = this.props[i];
