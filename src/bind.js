@@ -1,8 +1,9 @@
 // @flow
-import {IBind}  from "./interfaces/ibind.js";
-import {IValue} from "./interfaces/ivalue.js";
+import { IBind }  from "./interfaces/ibind.js";
+import { IValue } from "./interfaces/ivalue.js";
 
-import {Value}    from "./value.js";
+import { Value } from "./value.js";
+
 
 
 /**
@@ -32,7 +33,7 @@ export class Bind1 extends IBind {
      * The buffer to keep value between calculations
      * @type {Value}
      */
-    sync : Value = new Value(null);
+    sync : Value = new Value ( null );
 
     /**
      * Constructs a binding engine
@@ -41,26 +42,26 @@ export class Bind1 extends IBind {
      * @param link {Boolean} If true links immediately
      */
     constructor (
-        func  : Function,
+        func : Function,
         value : IValue,
-        link  : boolean = true
+        link : boolean = true
     ) {
-        super();
+        super ();
         let handler = function () {
-            this.sync.set(func(value.get()));
-        }.bind(this);
+            this.sync.set ( func ( value.get () ) );
+        }.bind ( this );
 
-        this.value  = value;
-        this.func   = handler;
+        this.value = value;
+        this.func = handler;
         this.linked = !link;
 
         if (link) {
-            this.link();
-            this.func.call();
+            this.link ();
+            this.func.call ();
         }
 
-        value.on(this.func);
-        this.sync.set(func(value.get()));
+        value.on ( this.func );
+        this.sync.set ( func ( value.get () ) );
     }
 
     /**
@@ -68,7 +69,7 @@ export class Bind1 extends IBind {
      * @return {*} The last calculated value
      */
     get () : any {
-        return this.sync.get();
+        return this.sync.get ();
     }
 
     /**
@@ -76,8 +77,8 @@ export class Bind1 extends IBind {
      * @param value {*} The value to set to buffer
      * @return {Bind1} A pointer too this
      */
-    set (value : any) : IValue {
-        this.sync.set(value);
+    set ( value : any ) : IValue {
+        this.sync.set ( value );
         return this;
     }
 
@@ -86,8 +87,8 @@ export class Bind1 extends IBind {
      * @param handler {Function} The user defined handler
      * @return {Bind1} A pointer to this
      */
-    on (handler : Function) : IValue {
-        this.sync.on(handler);
+    on ( handler : Function ) : IValue {
+        this.sync.on ( handler );
         return this;
     }
 
@@ -96,8 +97,8 @@ export class Bind1 extends IBind {
      * @param handler {Function} The user installed handler
      * @return {Bind1} A pointer to this
      */
-    off(handler : Function) : IValue {
-        this.sync.off(handler);
+    off ( handler : Function ) : IValue {
+        this.sync.off ( handler );
         return this;
     }
 
@@ -107,7 +108,7 @@ export class Bind1 extends IBind {
      */
     link () : Bind1 {
         if (!this.linked) {
-            this.value.on(this.func);
+            this.value.on ( this.func );
             this.linked = true;
         }
         return this;
@@ -119,7 +120,7 @@ export class Bind1 extends IBind {
      */
     unlink () : Bind1 {
         if (this.linked) {
-            this.value.off(this.func);
+            this.value.off ( this.func );
             this.linked = false;
         }
         return this;
@@ -129,7 +130,7 @@ export class Bind1 extends IBind {
      * Provides garbage collection
      */
     destroy () : void {
-        this.unlink();
+        this.unlink ();
     }
 }
 
@@ -160,7 +161,7 @@ export class BindN extends IBind {
      * The buffer to keep the last calculated value
      * @type {Value}
      */
-    sync : Value = new Value(null);
+    sync : Value = new Value ( null );
 
     /**
      * Creates a function bounded to N value
@@ -168,26 +169,26 @@ export class BindN extends IBind {
      * @param values {Array<IValue>} Values to bound to
      * @param link {Boolean} If true links immediately
      */
-    constructor(
-        func   : Function,
+    constructor (
+        func : Function,
         values : Array<IValue>,
-        link   : boolean = true
+        link : boolean = true
     ) {
-        super();
+        super ();
         let handler = function () {
-            this.sync.set(func(values.map(v => v.get())));
-        }.bind(this);
+            this.sync.set ( func ( values.map ( v => v.get () ) ) );
+        }.bind ( this );
 
         this.values = values;
-        this.func   = handler;
+        this.func = handler;
         this.linked = false;
 
         if (link) {
-            this.link();
-            this.func.call();
+            this.link ();
+            this.func.call ();
         }
 
-        this.sync.set(func(values.map(v => v.get())));
+        this.sync.set ( func ( values.map ( v => v.get () ) ) );
     }
 
     /**
@@ -195,7 +196,7 @@ export class BindN extends IBind {
      * @return {*} The last calculated value
      */
     get () : any {
-        return this.sync.get();
+        return this.sync.get ();
     }
 
     /**
@@ -203,8 +204,8 @@ export class BindN extends IBind {
      * @param value {*} New value for last calculated value
      * @return {BindN} A pointer to this
      */
-    set (value : any) : IValue {
-        this.sync.set(value);
+    set ( value : any ) : IValue {
+        this.sync.set ( value );
         return this;
     }
 
@@ -213,8 +214,8 @@ export class BindN extends IBind {
      * @param handler {Function} User defined handler
      * @return {BindN} A pointer to this
      */
-    on (handler : Function) : IValue {
-        this.sync.on(handler);
+    on ( handler : Function ) : IValue {
+        this.sync.on ( handler );
         return this;
     }
 
@@ -223,8 +224,8 @@ export class BindN extends IBind {
      * @param handler {Function} User installed handler
      * @return {BindN} A pointer to this
      */
-    off(handler : Function) : IValue {
-        this.sync.off(handler);
+    off ( handler : Function ) : IValue {
+        this.sync.off ( handler );
         return this;
     }
 
@@ -232,10 +233,10 @@ export class BindN extends IBind {
      * Binds function to each value
      * @returns {BindN} A pointer to this
      */
-    link() : BindN {
+    link () : BindN {
         if (!this.linked) {
             for (let value of this.values) {
-                value.on(this.func);
+                value.on ( this.func );
             }
             this.linked = true;
         }
@@ -246,10 +247,10 @@ export class BindN extends IBind {
      * Unbind function from each value
      * @returns {BindN} A pointer to this
      */
-    unlink() : BindN {
+    unlink () : BindN {
         if (this.linked) {
             for (let value of this.values) {
-                value.off(this.func);
+                value.off ( this.func );
             }
             this.linked = false;
         }
@@ -259,8 +260,8 @@ export class BindN extends IBind {
     /**
      * Clear bindings on destroy
      */
-    destroy() : void {
-        this.unlink();
+    destroy () : void {
+        this.unlink ();
     }
 }
 
@@ -270,7 +271,7 @@ export class BindN extends IBind {
  */
 export class Binding extends IValue {
     binding : IValue;
-    func    : Function;
+    func : Function;
 
     /**
      * Constructs a common binding logic
@@ -280,27 +281,27 @@ export class Binding extends IValue {
      * @param func {?Function} A function to run on value change
      * @param values {Array<IValue>} values array to bind
      */
-    constructor(
-        rt        : any,
-        ts        : any,
-        name      : string,
-        func      : ?Function,
+    constructor (
+        rt : any,
+        ts : any,
+        name : string,
+        func : ?Function,
         ...values : Array<IValue>
     ) {
-        super();
+        super ();
         if (!func && values.length === 1) {
             this.binding = values[0];
         }
         else if (func && values.length) {
-            this.binding = values.length > 1 ? new BindN(func, values) : new Bind1(func, values[0]);
+            this.binding = values.length > 1 ? new BindN ( func, values ) : new Bind1 ( func, values[0] );
         }
         else {
             throw "There must be a value as minimum";
         }
 
-        this.func = this.bound(name).bind(null, rt, ts, this.binding);
-        this.binding.on(this.func);
-        this.func();
+        this.func = this.bound ( name ).bind ( null, rt, ts, this.binding );
+        this.binding.on ( this.func );
+        this.func ();
     }
 
     /**
@@ -309,7 +310,7 @@ export class Binding extends IValue {
      * @returns {Function} A function to update attribute/property value
      * @throws Always trows and must be overloaded in child class
      */
-    bound (name : string) : Function {
+    bound ( name : string ) : Function {
         throw "Must be implemented in child class";
     };
 
@@ -318,7 +319,7 @@ export class Binding extends IValue {
      * @return {*} The binding value
      */
     get () : any {
-        return this.binding.get();
+        return this.binding.get ();
     }
 
     /**
@@ -326,8 +327,8 @@ export class Binding extends IValue {
      * @param any {*} The new binding value
      * @return {Binding} A pointer to this
      */
-    set (any : any) : IValue {
-        this.binding.set(any);
+    set ( any : any ) : IValue {
+        this.binding.set ( any );
         return this;
     }
 
@@ -336,8 +337,8 @@ export class Binding extends IValue {
      * @param func {Function} User defined handler
      * @return {Binding} A pointer to this
      */
-    on (func : Function) : IValue {
-        this.binding.on(func);
+    on ( func : Function ) : IValue {
+        this.binding.on ( func );
         return this;
     }
 
@@ -346,15 +347,15 @@ export class Binding extends IValue {
      * @param func {Function} User installed handler
      * @return {Binding} A pointer to this
      */
-    off (func : Function) : IValue {
-        this.binding.off(func);
+    off ( func : Function ) : IValue {
+        this.binding.off ( func );
         return this;
     }
 
     /**
      * Just clear bindings
      */
-    destroy() {
-        this.binding.off(this.bound);
+    destroy () {
+        this.binding.off ( this.bound );
     }
 }

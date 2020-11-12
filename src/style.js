@@ -1,9 +1,9 @@
 // @flow
-import {Callable} from "./interfaces/idefinition.js";
-import {IValue}   from "./interfaces/ivalue.js";
+import { Binding }    from "./bind.js";
+import { Callable }   from "./interfaces/idefinition.js";
+import { IValue }     from "./interfaces/ivalue.js";
+import { propertify } from "./property.js";
 
-import {Binding}        from "./bind.js";
-import {propertify}     from "./property.js";
 
 
 /**
@@ -15,14 +15,14 @@ import {propertify}     from "./property.js";
  * @param func {?Callable} A getter of attribute value
  * @return {StyleBinding} A ready style binding
  */
-export function stylify(
-    rt    : any,
-    ts    : any,
-    name  : string,
+export function stylify (
+    rt : any,
+    ts : any,
+    name : string,
     value : ?string | ?IValue = null,
-    func  : ?Callable = null
+    func : ?Callable          = null
 ) : StyleBinding {
-    return new StyleBinding(rt, ts, name, null, propertify(value, func));
+    return new StyleBinding ( rt, ts, name, null, propertify ( value, func ) );
 }
 
 /**
@@ -38,27 +38,29 @@ export class StyleBinding extends Binding {
      * @param func is the function to calc style value
      * @param values is the value to be synced
      */
-    constructor(
-        rt        : any,
-        ts        : any,
-        name      : string,
-        func      : ?Function,
+    constructor (
+        rt : any,
+        ts : any,
+        name : string,
+        func : ?Function,
         ...values : Array<IValue>
     ) {
-        super(rt, ts, name, func, ...values);
+        super ( rt, ts, name, func, ...values );
     }
 
     /**
      * Generates a function to update style property value
      * @returns {Function} a function to update style property
      */
-    bound (name : string) : Function {
-        return function (rt : any, ts : any, v : IValue) {
-            let value = v.get();
+    bound ( name : string ) : Function {
+        return function ( rt : any, ts : any, v : IValue ) {
+            let value = v.get ();
 
-            window.requestAnimationFrame(function () {
-                if (ts.el) ts.el.style.setProperty(name, value);
-            });
+            window.requestAnimationFrame ( function () {
+                if (ts.el) {
+                    ts.el.style.setProperty ( name, value );
+                }
+            } );
 
             return value;
         };

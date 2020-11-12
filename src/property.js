@@ -1,8 +1,8 @@
 // @flow
-import {Callable} from "./interfaces/idefinition.js";
-import {IValue}   from "./interfaces/ivalue.js";
+import { Callable } from "./interfaces/idefinition.js";
+import { IValue }   from "./interfaces/ivalue.js";
 
-import {Value}          from "./value.js";
+import { Value } from "./value.js";
 
 
 
@@ -19,7 +19,7 @@ export class Property {
      * @param init {args} are arguments to initialize the type
      */
     constructor (
-        _type   : Function,
+        _type : Function,
         ...init : Array<any>
     ) {
         this.Type = _type;
@@ -39,7 +39,7 @@ export class Property {
      * @returns {Value} a property value object
      */
     createDefaultValue () : Value {
-        return new Value(new this.Type(...this.init));
+        return new Value ( new this.Type ( ...this.init ) );
     }
 }
 
@@ -50,22 +50,25 @@ export class Property {
  * @return {IValue} Given value or new generated
  */
 export function propertify (
-    value : ?any = null,
-    func  : ?Callable = null
+    value : ?any     = null,
+    func : ?Callable = null
 ) : IValue {
     if (func) {
-        let v = func.func();
+        let v = func.func ();
 
         if (v instanceof IValue) {
             return v;
-        } else {
-            return new Value(v);
         }
-    } else {
+        else {
+            return new Value ( v );
+        }
+    }
+    else {
         if (value instanceof IValue) {
             return value;
-        } else {
-            return new Value(value);
+        }
+        else {
+            return new Value ( value );
         }
     }
 }

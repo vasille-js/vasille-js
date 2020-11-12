@@ -1,9 +1,9 @@
 // @flow
 
-import {Callable} from "./interfaces/idefinition.js";
-import {IValue}   from "./interfaces/ivalue.js";
+import { Callable } from "./interfaces/idefinition.js";
+import { IValue }   from "./interfaces/ivalue.js";
 
-import {Value}    from "./value.js";
+import { Value } from "./value.js";
 
 
 
@@ -14,22 +14,25 @@ import {Value}    from "./value.js";
  * @return {Value} A new generated value
  */
 export function datify (
-    value : ?any = null,
-    func  : ?Callable = null
+    value : ?any     = null,
+    func : ?Callable = null
 ) : Value {
     if (func) {
-        let v = func.func();
+        let v = func.func ();
 
         if (v instanceof IValue) {
-            return new Value(v.get());
-        } else {
-            return new Value(v);
+            return new Value ( v.get () );
         }
-    } else {
+        else {
+            return new Value ( v );
+        }
+    }
+    else {
         if (value instanceof IValue) {
-            return new Value(value.get());
-        } else {
-            return new Value(value);
+            return new Value ( value.get () );
+        }
+        else {
+            return new Value ( value );
         }
     }
 }

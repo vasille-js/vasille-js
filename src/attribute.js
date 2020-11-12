@@ -1,9 +1,9 @@
 // @flow
-import {Callable} from "./interfaces/idefinition.js";
-import {IValue}   from "./interfaces/ivalue.js";
+import { Binding }    from "./bind.js";
+import { Callable }   from "./interfaces/idefinition.js";
+import { IValue }     from "./interfaces/ivalue.js";
+import { propertify } from "./property.js";
 
-import {Binding}        from "./bind.js";
-import {propertify}     from "./property.js";
 
 
 /**
@@ -16,13 +16,13 @@ import {propertify}     from "./property.js";
  * @returns {AttributeBinding} 1 to 1 bind of attribute
  */
 export function attributify (
-    rt    : any,
-    ts    : any,
-    name  : string,
-    value : ?any = null,
-    func  : ?Callable = null
+    rt : any,
+    ts : any,
+    name : string,
+    value : ?any     = null,
+    func : ?Callable = null
 ) : AttributeBinding {
-    return new AttributeBinding(rt, ts, name, null, propertify(value, func));
+    return new AttributeBinding ( rt, ts, name, null, propertify ( value, func ) );
 }
 
 /**
@@ -39,13 +39,13 @@ export class AttributeBinding extends Binding {
      * @param values {Array<IValue>} is the array of values to bind to
      */
     constructor (
-        rt        : any,
-        ts        : any,
-        name      : string,
-        func      : ?Function,
+        rt : any,
+        ts : any,
+        name : string,
+        func : ?Function,
         ...values : Array<IValue>
     ) {
-        super(rt, ts, name, func, ...values);
+        super ( rt, ts, name, func, ...values );
     }
 
     /**
@@ -53,19 +53,23 @@ export class AttributeBinding extends Binding {
      * @param name {String} The name of attribute
      * @returns {Function} a function which will update attribute value
      */
-    bound (name : string) : Function {
-        return function (rt: any, ts: any, v: IValue) {
-            let value: string = v.get();
+    bound ( name : string ) : Function {
+        return function ( rt : any, ts : any, v : IValue ) {
+            let value : string = v.get ();
 
             if (value) {
-                window.requestAnimationFrame(function () {
-                    if (ts.el) ts.el.setAttribute(name, value);
-                });
+                window.requestAnimationFrame ( function () {
+                    if (ts.el) {
+                        ts.el.setAttribute ( name, value );
+                    }
+                } );
             }
             else {
-                window.requestAnimationFrame(function () {
-                    if (ts.el) ts.el.removeAttribute(name);
-                });
+                window.requestAnimationFrame ( function () {
+                    if (ts.el) {
+                        ts.el.removeAttribute ( name );
+                    }
+                } );
             }
 
             return value;
