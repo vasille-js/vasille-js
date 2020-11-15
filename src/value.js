@@ -48,7 +48,7 @@ export class Value extends IValue {
             this.value = value;
 
             for (let handler of this.onchange) {
-                handler ();
+                handler (value);
             }
         }
 

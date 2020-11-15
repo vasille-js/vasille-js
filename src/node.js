@@ -399,9 +399,13 @@ export class BaseNode extends Node implements INode {
                 if (!this.$propsDefs[i]) {
                     throw "No such property: " + i;
                 }
-                if (!(
-                    propertyValue.get () instanceof this.$propsDefs[i].type
-                )) {
+                let v = propertyValue.get();
+                let t = this.$propsDefs[i].type;
+                if (!(v instanceof t ) &&
+                    !(typeof v === "number" && t === Number) &&
+                    !(typeof v === "string" && t === String) &&
+                    !(typeof v === "boolean" && t === Boolean)
+                ) {
                     throw "Wrong value type of property: " + i;
                 }
 
@@ -851,6 +855,13 @@ export class ShadowNode extends BaseNode {
         }
 
         ts.appendChild ( this.$shadow, before );
+    }
+
+    destroy () {
+        super.destroy ();
+        if (this.el) {
+            this.el.removeChild ( this.$shadow );
+        }
     }
 }
 

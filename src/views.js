@@ -65,6 +65,8 @@ export class RepeatNode extends ShadowNode {
         node.init ( {} );
         this.cb(node, item.get());
         node.ready();
+
+        this.nodes.set(id, node);
     };
 
     defAttr ( name : string, value : string | IValue | Callable ) : BaseNode {
