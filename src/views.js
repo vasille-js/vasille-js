@@ -62,18 +62,7 @@ export class RepeatNode extends ShadowNode {
 
         node.preinitShadow ( this.$app, this.rt, this, current ? current.prev : null );
 
-        let props = {};
-
-        for (let i in this.props) {
-            if (this.props[i] instanceof Callable) {
-                props[i] = this.props[i].func ( item.get () );
-            }
-            else {
-                props[i] = this.props[i];
-            }
-        }
-
-        node.init ( props );
+        node.init ( {} );
         this.cb(node, item.get());
         node.ready();
     };
