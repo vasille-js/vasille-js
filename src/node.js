@@ -1,15 +1,16 @@
 // @flow
-import { AttributeBinding, attributify } from "./attribute.js";
-import { datify }                        from "./data.js";
-import { eventify }                      from "./event.js";
-import { Executor, FastExecutor }        from "./executor";
-import type { CoreEl }                   from "./interfaces/core";
-import { Core }                          from "./interfaces/core.js";
-import { Callable }                      from "./interfaces/idefinition.js";
-import { IValue }                        from "./interfaces/ivalue.js";
-import { propertify, Property }          from "./property.js";
-import { StyleBinding, stylify }         from "./style.js";
-import { Value }                         from "./value.js";
+import { AttributeBinding, attributify }   from "./attribute.js";
+import { datify }                          from "./data.js";
+import { eventify }                        from "./event.js";
+import { Executor, FastExecutor }          from "./executor";
+import type { CoreEl }                     from "./interfaces/core";
+import { Core }                            from "./interfaces/core.js";
+import { Callable }                        from "./interfaces/idefinition.js";
+import { IValue }                          from "./interfaces/ivalue.js";
+import { propertify, Property }            from "./property.js";
+import { StyleBinding, stylify }           from "./style.js";
+import { Value }                           from "./value.js";
+import type { RepeatNode, RepeatNodeItem } from "./views";
 
 
 
@@ -185,8 +186,8 @@ export class TextNode extends Node {
     }
 }
 
-type TextNodeCB = ?( text : TextNode ) => void;
-type ElementNodeCB = ?( text : ElementNode ) => void;
+type TextNodeCB = ( text : TextNode, v : ?any ) => void;
+type ElementNodeCB = ( text : ElementNode, v : ?any ) => void;
 
 /**
  * Represents an Vasille.js node which can contains children
@@ -265,13 +266,22 @@ export class BaseNode extends Node implements INode {
         ts.appendChild ( node, before );
     }
 
+    startBuilding () {
+        this.slots["default"] = this;
+        this.building = true;
+    }
+
+    stopBuilding () {
+        this.building = false;
+        this.mounted ();
+    }
+
     /**
      * Initialize node
      * @param props {Object} Node properties values
      */
     init ( props : Object ) {
-        this.slots["default"] = this;
-        this.building = true;
+        this.startBuilding ();
 
         this.createProps ();
         this.initProps ( props );
@@ -283,17 +293,22 @@ export class BaseNode extends Node implements INode {
         this.created ();
         this.createDom ();
 
-        this.building = false;
-        this.mounted ();
+        this.stopBuilding ();
     }
 
     /** To be overloaded: created event handler */
     created () {
     }
 
+    /** To be overloaded: ready event handler */
+    ready () {
+    }
+
     /** To be overloaded: mounted event handler */
     mounted () {
-    }    /**
+    }
+
+    /**
      * Runs garbage collector
      */
     destroy () : void {
@@ -645,25 +660,24 @@ export class BaseNode extends Node implements INode {
     /**
      * Defines a text fragment
      * @param text {String | IValue} A text fragment string
-     * @param cbOrSlot {String | Function} Callback or slot name
-     * @param cb2 {Function} Callback if previous is slot name
+     * @param slot {?String} Slot name
+     * @param cb {?Function} Callback if previous is slot name
+     * @param v {?IValue} pointer tot current value in repeatable node
      * @return {BaseNode} A pointer to this
      */
     defText (
         text : string | IValue,
-        cbOrSlot : string | TextNodeCB,
-        cb2 : TextNodeCB
+        slot : ?string,
+        cb : ?TextNodeCB,
+        v : ?IValue
     ) : BaseNode {
         let node = new TextNode ();
 
         node.preinitText ( this.$app, this.rt, this, this.lastChild, text );
-        this.pushNode ( node, cbOrSlot instanceof String ? cbOrSlot : null );
+        this.pushNode ( node, slot instanceof String ? slot : null );
 
-        if (cbOrSlot instanceof Function) {
-            cbOrSlot ( node );
-        }
-        else if (cb2) {
-            cb2 ( node );
+        if (cb) {
+            cb ( node, v );
         }
         return this;
     }
@@ -671,27 +685,27 @@ export class BaseNode extends Node implements INode {
     /**
      * Defines a tag element
      * @param tagName {String} is the tag name
-     * @param cbOrSlot {String | Function} Callback or slot name
-     * @param cb2 {Function} Callback if previous is slot name
+     * @param slot {String | Function} Callback or slot name
+     * @param cb {Function} Callback if previous is slot name
+     * @param v {IValue} pointer to current item in model of repeatable nodes
      * @return {BaseNode} A pointer to this
      */
     defTag (
         tagName : string,
-        cbOrSlot : string | ElementNodeCB,
-        cb2 : ElementNodeCB
+        slot : ?string,
+        cb : ?ElementNodeCB,
+        v : ?any
     ) : BaseNode {
         let node = new ElementNode ();
 
         node.preinitElementNode ( this.$app, this.rt, this, tagName );
         node.init ( {} );
-        this.pushNode ( node, cbOrSlot instanceof String ? cbOrSlot : null );
+        this.pushNode ( node, slot );
 
-        if (cbOrSlot instanceof Function) {
-            cbOrSlot ( node );
+        if (cb) {
+            cb ( node, v );
         }
-        else if (cb2) {
-            cb2 ( node );
-        }
+        node.ready();
         return this;
     }
 
@@ -699,15 +713,17 @@ export class BaseNode extends Node implements INode {
      * Defines a custom element
      * @param node {*} Custom element constructor
      * @param props {Object} List of properties values
-     * @param cbOrSlot {String | Function} Callback or slot name
-     * @param cb2 {?Function} Callback if previous is slot name
+     * @param slot {?String} Slot name
+     * @param cb {?Function} Callback if previous is slot name
+     * @param v P
      * @return {BaseNode} A pointer to this
      */
     defElement<T> (
         node : T,
         props : Object,
-        cbOrSlot : string | ?( node : T ) => void,
-        cb2 : ?( node : T ) => void
+        slot : ?string,
+        cb : ?( node : T, v : ?any ) => void,
+        v : ?any
     ) : BaseNode {
 
         if (node instanceof ShadowNode) {
@@ -722,19 +738,32 @@ export class BaseNode extends Node implements INode {
         }
 
         if (node instanceof Node) {
-            this.pushNode ( node, cbOrSlot instanceof String ? cbOrSlot : null );
+            this.pushNode ( node, slot );
         }
 
-        if (cbOrSlot instanceof Function) {
-            cbOrSlot ( node );
+        if (cb) {
+            cb ( node, v );
         }
-        else if (cb2) {
-            cb2 ( node );
+
+        if (node instanceof BaseNode) {
+            node.ready ();
         }
         return this;
     }
 
-
+    defRepeater (
+        node : RepeatNode,
+        props : Object,
+        slot : ?string,
+        cb : ( node : RepeatNodeItem, v : ?any ) => void,
+        v : ?any
+    ) {
+        node.preinitShadow ( this.$app, this.rt, this, this.lastChild );
+        node.init ( props );
+        this.pushNode ( node, slot );
+        node.setCallback(cb);
+        node.ready ();
+    }
 }
 
 /**
@@ -795,6 +824,7 @@ export class ShadowNode extends BaseNode {
      * Constructs a shadow node
      */
     constructor () {
+        super();
     }
 
     /**
@@ -822,17 +852,6 @@ export class ShadowNode extends BaseNode {
 
         ts.appendChild ( this.$shadow, before );
     }
-
-    /**
-     * Gets the last child or shadow comment
-     * @return {HTMLElement | Text | Comment}
-     */
-    get coreEl () : CoreEl {
-        if (this.children.length) {
-            return this.children[this.children.length - 1].coreEl;
-        }
-        return this.$shadow;
-    }
 }
 
 /**
@@ -856,20 +875,13 @@ export class AppNode extends BaseNode {
         super ();
 
         this.run = new FastExecutor ();
-        this.preinit ( this, this, this, this );
         this.encapsulate ( node );
+        this.preinit ( this, this, this, this );
 
         if (props.debug instanceof Boolean) {
             this.debug = props.debug;
         }
 
         this.init ( {} );
-    }
-
-    appendChild ( node : CoreEl, before : Node ) {
-        let el = this.el;
-        if (el) {
-            el.prepend ( node );
-        }
     }
 }

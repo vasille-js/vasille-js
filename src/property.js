@@ -43,6 +43,20 @@ export class Property {
     }
 }
 
+function objectify (v : any) : any {
+    if (typeof v === "number") {
+        return new Number(v);
+    }
+    else if (typeof v === "string") {
+        return new String(v);
+    }
+    else if (typeof v === "boolean") {
+        return new Boolean(v);
+    }
+    
+    return v;
+}
+
 /**
  * Constructs a property field value
  * @param value {?any} is the initial value of field
@@ -60,7 +74,7 @@ export function propertify (
             return v;
         }
         else {
-            return new Value ( v );
+            return new Value ( objectify ( v ) );
         }
     }
     else {
@@ -68,7 +82,7 @@ export function propertify (
             return value;
         }
         else {
-            return new Value ( value );
+            return new Value ( objectify ( value ) );
         }
     }
 }
