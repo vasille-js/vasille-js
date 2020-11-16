@@ -17,7 +17,7 @@ export function eventify (
     ts : any,
     name : string,
     handler : Function
-) : Value {
+) : Value<any> {
     let listener = handler.bind ( null, rt, ts );
     let value = new Value ( listener );
     let el = ts.el;

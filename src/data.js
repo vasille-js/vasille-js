@@ -16,7 +16,7 @@ import { Value } from "./value.js";
 export function datify (
     value : ?any     = null,
     func : ?Callable = null
-) : Value {
+) : Value<any> {
     if (func) {
         let v = func.func ();
 

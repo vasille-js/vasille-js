@@ -43,7 +43,7 @@ export class AttributeBinding extends Binding {
         ts : any,
         name : string,
         func : ?Function,
-        ...values : Array<IValue>
+        ...values : Array<IValue<any>>
     ) {
         super ( rt, ts, name, func, ...values );
     }
@@ -54,21 +54,17 @@ export class AttributeBinding extends Binding {
      * @returns {Function} a function which will update attribute value
      */
     bound ( name : string ) : Function {
-        return function ( rt : any, ts : any, v : IValue ) {
+        return function ( rt : any, ts : any, v : IValue<any> ) {
             let value : string = v.get ();
 
             if (value) {
                 window.requestAnimationFrame ( function () {
-                    if (ts.el) {
-                        ts.el.setAttribute ( name, value );
-                    }
+                    ts.el.setAttribute ( name, value );
                 } );
             }
             else {
                 window.requestAnimationFrame ( function () {
-                    if (ts.el) {
-                        ts.el.removeAttribute ( name );
-                    }
+                    ts.el.removeAttribute ( name );
                 } );
             }
 

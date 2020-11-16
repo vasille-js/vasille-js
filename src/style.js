@@ -19,8 +19,8 @@ export function stylify (
     rt : any,
     ts : any,
     name : string,
-    value : ?string | ?IValue = null,
-    func : ?Callable          = null
+    value : ?string | ?IValue<string> = null,
+    func : ?Callable                  = null
 ) : StyleBinding {
     return new StyleBinding ( rt, ts, name, null, propertify ( value, func ) );
 }
@@ -43,7 +43,7 @@ export class StyleBinding extends Binding {
         ts : any,
         name : string,
         func : ?Function,
-        ...values : Array<IValue>
+        ...values : Array<IValue<string>>
     ) {
         super ( rt, ts, name, func, ...values );
     }
@@ -53,13 +53,11 @@ export class StyleBinding extends Binding {
      * @returns {Function} a function to update style property
      */
     bound ( name : string ) : Function {
-        return function ( rt : any, ts : any, v : IValue ) {
+        return function ( rt : any, ts : any, v : IValue<string> ) {
             let value = v.get ();
 
             window.requestAnimationFrame ( function () {
-                if (ts.el) {
-                    ts.el.style.setProperty ( name, value );
-                }
+                ts.el.style.setProperty ( name, value );
             } );
 
             return value;

@@ -7,12 +7,12 @@ import { IValue } from "./interfaces/ivalue.js";
  * Declares a notifiable value
  * @implements IValue
  */
-export class Value extends IValue {
+export class Value<T> extends IValue<T> {
     /**
      * The encapsulated value
      * @type {*}
      */
-    value : any;
+    value : T;
 
     /**
      * Array of handlers
@@ -24,7 +24,7 @@ export class Value extends IValue {
      * Constructs a notifiable value
      * @param value {any} is initial value
      */
-    constructor ( value : any ) {
+    constructor ( value : T ) {
         super ();
         this.value = value;
         this.onchange = [];
@@ -34,7 +34,7 @@ export class Value extends IValue {
      * Gets the notifiable value as js value
      * @returns {any} contained value
      */
-    get () : any {
+    get () : T {
         return this.value;
     }
 
@@ -43,7 +43,7 @@ export class Value extends IValue {
      * @param value {any} is the new value
      * @returns {Value} a pointer to this
      */
-    set ( value : any ) : Value {
+    set ( value : T ) : this {
         if (this.value !== value) {
             this.value = value;
 
@@ -60,7 +60,7 @@ export class Value extends IValue {
      * @param handler {function} is a user-defined event handler
      * @returns {Value} a pointer to this
      */
-    on ( handler : Function ) : Value {
+    on ( handler : Function ) : this {
         this.onchange.push ( handler );
         return this;
     }
@@ -70,7 +70,7 @@ export class Value extends IValue {
      * @param handler {function} is a existing user-defined handler
      * @returns {Value} a pointer to this
      */
-    off ( handler : Function ) : Value {
+    off ( handler : Function ) : this {
         let index = this.onchange.indexOf ( handler );
         if (index !== -1) {
             this.onchange.splice ( index, 1 );
@@ -88,8 +88,8 @@ export class Value extends IValue {
  * Declares a notifiable bind to a value
  * @implements IValue
  */
-export class Rebind extends IValue {
-    value : IValue;
+export class Rebind extends IValue<IValue<any>> {
+    value : IValue<any>;
     onchange : Array<Function> = [];
     bound : Array<Function> = [];
 
@@ -97,7 +97,7 @@ export class Rebind extends IValue {
      * Constructs a notifiable bind to a value
      * @param value {IValue} is initial value
      */
-    constructor ( value : IValue ) {
+    constructor ( value : IValue<any> ) {
         super ();
         this.onchange = [];
         this.set ( value );
@@ -116,7 +116,7 @@ export class Rebind extends IValue {
      * @param value {IValue} is the new value
      * @returns {IValue} a pointer to this
      */
-    set ( value : IValue ) : IValue {
+    set ( value : IValue<any> ) : this {
         if (this.value !== value) {
             for (let handler of this.bound) {
                 this.value.off ( handler );
@@ -146,7 +146,7 @@ export class Rebind extends IValue {
      * @param handler {function} is a user-defined event handler
      * @returns {IValue} a pointer to this
      */
-    on ( handler : Function ) : IValue {
+    on ( handler : Function ) : this {
         let bound = handler.bind ( null, this.value );
         this.onchange.push ( handler );
         this.bound.push ( bound );
@@ -159,7 +159,7 @@ export class Rebind extends IValue {
      * @param handler {function} is a existing user-defined handler
      * @returns {IValue} a pointer to this
      */
-    off ( handler : Function ) : IValue {
+    off ( handler : Function ) : this {
         let index = this.onchange.indexOf ( handler );
         if (index !== -1) {
             this.value.off ( this.bound[index] );

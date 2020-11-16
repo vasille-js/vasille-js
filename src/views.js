@@ -1,28 +1,11 @@
 // @flow
-import { Callable }                                             from "./interfaces/idefinition";
-import { IValue }                                               from "./interfaces/ivalue";
-import { AppNode, BaseNode, ElementNode, ShadowNode, TextNode } from "./node.js";
-import { Value }                                                from "./value";
+import { IValue }                        from "./interfaces/ivalue";
+import { ArrayModel }                    from "./models";
+import { Node }                          from "./node";
+import { AppNode, BaseNode, ShadowNode } from "./node.js";
+import { Value }                         from "./value";
 
 
-
-type TextNodeCB = ?( text : TextNode ) => void;
-type ElementNodeCB = ?( text : ElementNode ) => void;
-
-const Command = {
-    defAttr    : 1,
-    defAttrs   : 2,
-    bindAttr   : 3,
-    defStyle   : 4,
-    defStyles  : 5,
-    bindStyle  : 6,
-    defEvent   : 7,
-    defText    : 8,
-    defElement : 9,
-    defTag     : 10
-};
-
-type CommandList = Array<{| command : number, args : Array<any> |}>;
 
 export class RepeatNodeItem extends ShadowNode {
     destroy () {
@@ -37,7 +20,6 @@ export class RepeatNodeItem extends ShadowNode {
 }
 
 export class RepeatNode extends ShadowNode {
-    commands : CommandList = [];
     nodes : Map<any, ShadowNode> = new Map ();
     cb : ( node : RepeatNodeItem, v : ?any ) => void;
 
@@ -45,7 +27,7 @@ export class RepeatNode extends ShadowNode {
         super ();
     };
 
-    preinitShadow ( app : AppNode, rt : BaseNode, ts : BaseNode, before : Node ) {
+    preinitShadow ( app : AppNode, rt : BaseNode, ts : BaseNode, before : ?Node ) {
         super.preinitShadow ( app, rt, ts, before );
         this.encapsulate(ts.el);
     }
@@ -54,7 +36,7 @@ export class RepeatNode extends ShadowNode {
         this.cb = cb;
     }
 
-    createChild ( id : any, item : IValue ) {
+    createChild ( id : any, item : IValue<any> ) {
         let current = this.nodes.get ( id );
         let node = new RepeatNodeItem ();
 
@@ -67,10 +49,6 @@ export class RepeatNode extends ShadowNode {
         node.ready();
 
         this.nodes.set(id, node);
-    };
-
-    defAttr ( name : string, value : string | IValue | Callable ) : BaseNode {
-        this.commands.push ( Command.defAttr, arguments );
     };
 
     destroyChild ( id : any ) {
@@ -98,12 +76,12 @@ export class Repeater extends RepeatNode {
     }
 
     get props () : {
-        count : IValue
+        count : IValue<any>
     } {
         return this.$props;
     }
 
-    changeCount ( number ) {
+    changeCount ( number : number ) {
         if (number > this.currentCount) {
             for (let i = this.currentCount; i < number; i++) {
                 this.createChild ( i, new Value ( i ) );
@@ -143,18 +121,103 @@ export class Repeater extends RepeatNode {
     }
 }
 
-export class ArrayView extends ShadowNode {
+export class BaseView extends RepeatNode {
+    addHandler : Function;
+    removeHandler : Function;
+
+    get props () : {
+        model : IValue<any>
+    } {
+        return this.$props;
+    }
+
+    createProps () {
+        super.createProps ();
+        this.defProp ( "model", IValue, null );
+    }
+
+    createBVChild ( id : *, item : IValue<*> ) : Function {
+        let handler = ( newItem ) => {
+            super.createChild ( id, newItem );
+        };
+        item.on ( handler );
+        super.createChild ( id, item );
+
+        return handler;
+    }
+
+
+
+    ready () {
+        this.props.model.on ( this.addHandler );
+        this.props.model.on ( this.removeHandler );
+        super.ready ();
+    }
+
+    destroy () {
+        this.props.model.off ( this.addHandler );
+        this.props.model.off ( this.removeHandler );
+        super.destroy ();
+    }
+}
+
+export class ArrayView extends BaseView {
+    handlers : Array<Function> = [];
+
+    destroyAVChild ( id : *, item : IValue<any> ) {
+        item.off ( this.handlers[id] );
+        this.handlers.splice ( id, 1 );
+        super.destroyChild ( id );
+    }
+
+    get props () : {
+        model : IValue<ArrayModel<IValue<*>>>
+    } {
+        return this.$props;
+    }
+
+    createChild ( id : *, item : IValue<*> ) {
+        let handler = this.createBVChild ( id, item );
+        this.handlers.splice ( id, 0, handler );
+    }
+
+
+
+    created () {
+        super.created ();
+
+        if (!this.props.model.get()) {
+            this.props.model.set(new ArrayModel<IValue<*>>());
+        }
+    }
+
+    ready () {
+        let arr = this.props.model.get ();
+        for (let i = 0; i < arr.length; i++) {
+            this.createChild ( i, arr[i] );
+        }
+
+        super.ready ();
+    }
+
+    destroy () {
+        let arr = this.props.model.get ();
+        for (let i = 0; i < arr.length; i++) {
+            arr[i].off ( this.handlers[i] );
+        }
+
+        super.destroy ();
+    }
+}
+
+export class ObjectView extends RepeatNode {
 
 }
 
-export class ObjectView extends ShadowNode {
+export class MapView extends RepeatNode {
 
 }
 
-export class MapView extends ShadowNode {
-
-}
-
-export class SetView extends ShadowNode {
+export class SetView extends RepeatNode {
 
 }

@@ -38,7 +38,7 @@ export class Property {
      * Create a default value of property
      * @returns {Value} a property value object
      */
-    createDefaultValue () : Value {
+    createDefaultValue () : Value<any> {
         return new Value ( new this.Type ( ...this.init ) );
     }
 }
@@ -52,7 +52,7 @@ export class Property {
 export function propertify (
     value : ?any     = null,
     func : ?Callable = null
-) : IValue {
+) : IValue<any> {
     if (func) {
         let v = func.func ();
 

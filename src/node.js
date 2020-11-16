@@ -71,9 +71,9 @@ export class Node extends Core {
      * @param app {App} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
-     * @param before {Node} Node to paste this after
+     * @param before {?Node} Node to paste this after
      */
-    preinit ( app : AppNode, rt : BaseNode, ts : BaseNode, before : Node ) {
+    preinit ( app : AppNode, rt : BaseNode, ts : BaseNode, before : ?Node ) {
         this.$app = app;
         this.$rt = rt;
 
@@ -138,7 +138,7 @@ export class TextNode extends Node {
      * Contains the text of node as Value
      * @type {IValue}
      */
-    value : IValue;
+    value : IValue<string>;
 
     /**
      * User defined handler to handle text change
@@ -161,14 +161,14 @@ export class TextNode extends Node {
      * @param before {Node} node to apste after
      * @param text {String | IValue}
      */
-    preinitText ( app : AppNode, rt : BaseNode, ts : BaseNode, before : Node, text : IValue | string ) {
+    preinitText ( app : AppNode, rt : BaseNode, ts : BaseNode, before : Node, text : IValue<string> | string ) {
         super.preinit ( app, rt, ts, before );
 
         let value = text instanceof IValue ? text : new Value ( text );
         let node = document.createTextNode ( value.get () );
 
         this.value = value;
-        this.handler = function ( v : IValue ) {
+        this.handler = function ( v : IValue<string> ) {
             node.replaceData ( 0, -1, v.get () );
         }.bind ( null, value );
 
@@ -210,7 +210,7 @@ export class BaseNode extends Node implements INode {
      * List of events
      * @type {Object<String, IValue>}
      */
-    $event : { [key : string] : IValue } = {};
+    $event : { [key : string] : IValue<Function> } = {};
 
     /**
      * List of references
@@ -382,7 +382,7 @@ export class BaseNode extends Node implements INode {
      * @param props {Object<String, Callable | IValue | *>} Properties values
      * @private
      */
-    initProps ( props : { [key : string] : Callable | IValue | any } ) {
+    initProps ( props : { [key : string] : Callable | IValue<any> | any } ) {
         // add properties from object
         for (let i in props) {
             if (props.hasOwnProperty ( i )) {
@@ -459,11 +459,7 @@ export class BaseNode extends Node implements INode {
      * @param value {String | IValue | Callable} A value or a value getter
      * @return {BaseNode} A pointer to this
      */
-    defAttr ( name : string, value : string | IValue | Callable ) : BaseNode {
-        if (!this.el) {
-            throw "Just elements accepts attributes";
-        }
-
+    defAttr ( name : string, value : string | IValue<any> | Callable ) : BaseNode {
         if (value instanceof Callable) {
             this.$attrs[name] = attributify ( this.rt, this, name, null, value );
         }
@@ -478,11 +474,7 @@ export class BaseNode extends Node implements INode {
      * @param obj {Object<String, String | IValue>} A set attributes
      * @return {BaseNode} A pointer to this
      */
-    defAttrs ( obj : { [key : string] : string | IValue } ) : BaseNode {
-        if (!this.el) {
-            throw "Just elements accepts attributes";
-        }
-
+    defAttrs ( obj : { [key : string] : string | IValue<any> } ) : BaseNode {
         for (let i in obj) {
             this.$attrs[i] = attributify ( this.rt, this, i, obj[i] );
         }
@@ -499,12 +491,8 @@ export class BaseNode extends Node implements INode {
     bindAttr (
         name : string,
         calculator : Function,
-        ...values : Array<IValue>
+        ...values : Array<IValue<any>>
     ) : BaseNode {
-        if (!this.el) {
-            throw "Just elements accepts attributes";
-        }
-
         this.$attrs[name] = new AttributeBinding (
             this.rt,
             this,
@@ -521,11 +509,7 @@ export class BaseNode extends Node implements INode {
      * @param value {String | IValue | Callable} A value or a value getter
      * @return {BaseNode} A pointer to this
      */
-    defStyle ( name : string, value : string | IValue | Callable ) : BaseNode {
-        if (!this.el) {
-            throw "Just elements accepts style attributes";
-        }
-
+    defStyle ( name : string, value : string | IValue<any> | Callable ) : BaseNode {
         if (value instanceof Callable) {
             this.$style[name] = stylify ( this.rt, this, name, null, value );
         }
@@ -540,11 +524,7 @@ export class BaseNode extends Node implements INode {
      * @param obj {Object<String, String | IValue>} A set of style attributes
      * @return {BaseNode} A pointer to this
      */
-    defStyles ( obj : { [key : string] : string | IValue } ) : BaseNode {
-        if (!this.el) {
-            throw "Just elements accepts style attributes";
-        }
-
+    defStyles ( obj : { [key : string] : string | IValue<any> } ) : BaseNode {
         for (let i in obj) {
             this.$style[i] = stylify ( this.rt, this, i, obj[i] );
         }
@@ -561,12 +541,8 @@ export class BaseNode extends Node implements INode {
     bindStyle (
         name : string,
         calculator : Function,
-        ...values : Array<IValue>
+        ...values : Array<IValue<any>>
     ) : BaseNode {
-        if (!this.el) {
-            throw "Just elements accepts style attributes";
-        }
-
         this.$style[name] = new StyleBinding (
             this.rt,
             this,
@@ -642,12 +618,8 @@ export class BaseNode extends Node implements INode {
      * @param before {Node} node to paste after
      * @private
      */
-    appendChild ( node : CoreEl, before : Node ) : void {
-        if (!this.el) {
-            throw "This node doesn't accept children";
-        }
-
-        if (before && before.el && before.el.nextSibling) {
+    appendChild ( node : CoreEl, before : ?Node ) : void {
+        if (before instanceof BaseNode && before.el.nextSibling) {
             this.el.insertBefore ( node, before.el.nextSibling );
         }
         else {
@@ -670,10 +642,10 @@ export class BaseNode extends Node implements INode {
      * @return {BaseNode} A pointer to this
      */
     defText (
-        text : string | IValue,
+        text : string | IValue<any>,
         slot : ?string,
         cb : ?TextNodeCB,
-        v : ?IValue
+        v : ?IValue<any>
     ) : BaseNode {
         let node = new TextNode ();
 
@@ -842,15 +814,15 @@ export class ShadowNode extends BaseNode {
         app : AppNode,
         rt : BaseNode,
         ts : BaseNode,
-        before : Node
+        before : ?Node
     ) {
         this.$shadow = document.createComment ( ` ${ rt.constructor.name } > ${ this.constructor.name } ` );
         this.preinit ( app, rt, ts, before );
 
-        if (ts.el) {
+        try {
             this.encapsulate ( ts.el );
         }
-        else {
+        catch (e) {
             throw "A shadow node can be encapsulated in a element or shadow node only";
         }
 
@@ -859,9 +831,7 @@ export class ShadowNode extends BaseNode {
 
     destroy () {
         super.destroy ();
-        if (this.el) {
-            this.el.removeChild ( this.$shadow );
-        }
+        this.el.removeChild ( this.$shadow );
     }
 }
 

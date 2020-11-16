@@ -8,13 +8,13 @@ import { Destroyable } from "./destroyable.js";
  * @interface
  * @implements Destroyable
  */
-export class IValue extends Destroyable {
+export class IValue<T> extends Destroyable {
     /**
      * Gets the encapsulated value
      * @return {*} Must return a value
      * @throws Must be overwritten
      */
-    get() : any {
+    get() : T {
         throw "Must be overwritten";
     }
 
@@ -24,7 +24,7 @@ export class IValue extends Destroyable {
      * @return {IValue} A pointer to this
      * @throws Must be overwritten
      */
-    set(value : any) : IValue {
+    set(value : T) : this {
         throw "Must be overwritten";
     }
 
@@ -34,7 +34,7 @@ export class IValue extends Destroyable {
      * @return {IValue} a pointer to this
      * @throws Must be overwritten
      */
-    on(handler : Function) : IValue {
+    on(handler : Function) : this {
         throw "Must be overwritten";
     }
 
@@ -44,7 +44,7 @@ export class IValue extends Destroyable {
      * @return {IValue} a pointer to this
      * @throws Must be overwritten
      */
-    off(handler : Function) : IValue {
+    off(handler : Function) : this {
         throw "Must be overwritten";
     }
 }

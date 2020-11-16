@@ -15,7 +15,7 @@ export class Bind1 extends IBind {
      * The value which will trigger recalculation
      * @type {IValue}
      */
-    value : IValue;
+    value : IValue<any>;
 
     /**
      * The function which will calc the new bind value
@@ -33,7 +33,7 @@ export class Bind1 extends IBind {
      * The buffer to keep value between calculations
      * @type {Value}
      */
-    sync : Value = new Value ( null );
+    sync : Value<any> = new Value ( null );
 
     /**
      * Constructs a binding engine
@@ -43,7 +43,7 @@ export class Bind1 extends IBind {
      */
     constructor (
         func : Function,
-        value : IValue,
+        value : IValue<any>,
         link : boolean = true
     ) {
         super ();
@@ -77,7 +77,7 @@ export class Bind1 extends IBind {
      * @param value {*} The value to set to buffer
      * @return {Bind1} A pointer too this
      */
-    set ( value : any ) : IValue {
+    set ( value : any ) : this {
         this.sync.set ( value );
         return this;
     }
@@ -87,7 +87,7 @@ export class Bind1 extends IBind {
      * @param handler {Function} The user defined handler
      * @return {Bind1} A pointer to this
      */
-    on ( handler : Function ) : IValue {
+    on ( handler : Function ) : this {
         this.sync.on ( handler );
         return this;
     }
@@ -97,7 +97,7 @@ export class Bind1 extends IBind {
      * @param handler {Function} The user installed handler
      * @return {Bind1} A pointer to this
      */
-    off ( handler : Function ) : IValue {
+    off ( handler : Function ) : this {
         this.sync.off ( handler );
         return this;
     }
@@ -143,7 +143,7 @@ export class BindN extends IBind {
      * The array of value which will trigger recalculation
      * @type {Array<IValue>}
      */
-    values : Array<IValue>;
+    values : Array<IValue<any>>;
 
     /**
      * The function which will be executed on recalculation
@@ -161,7 +161,7 @@ export class BindN extends IBind {
      * The buffer to keep the last calculated value
      * @type {Value}
      */
-    sync : Value = new Value ( null );
+    sync : Value<any> = new Value ( null );
 
     /**
      * Creates a function bounded to N value
@@ -171,7 +171,7 @@ export class BindN extends IBind {
      */
     constructor (
         func : Function,
-        values : Array<IValue>,
+        values : Array<IValue<any>>,
         link : boolean = true
     ) {
         super ();
@@ -204,7 +204,7 @@ export class BindN extends IBind {
      * @param value {*} New value for last calculated value
      * @return {BindN} A pointer to this
      */
-    set ( value : any ) : IValue {
+    set ( value : any ) : this {
         this.sync.set ( value );
         return this;
     }
@@ -214,7 +214,7 @@ export class BindN extends IBind {
      * @param handler {Function} User defined handler
      * @return {BindN} A pointer to this
      */
-    on ( handler : Function ) : IValue {
+    on ( handler : Function ) : this {
         this.sync.on ( handler );
         return this;
     }
@@ -224,7 +224,7 @@ export class BindN extends IBind {
      * @param handler {Function} User installed handler
      * @return {BindN} A pointer to this
      */
-    off ( handler : Function ) : IValue {
+    off ( handler : Function ) : this {
         this.sync.off ( handler );
         return this;
     }
@@ -269,8 +269,8 @@ export class BindN extends IBind {
  * Describe a common binding logic
  * @implements IValue
  */
-export class Binding extends IValue {
-    binding : IValue;
+export class Binding extends IValue<any> {
+    binding : IValue<any>;
     func : Function;
 
     /**
@@ -286,7 +286,7 @@ export class Binding extends IValue {
         ts : any,
         name : string,
         func : ?Function,
-        ...values : Array<IValue>
+        ...values : Array<IValue<any>>
     ) {
         super ();
         if (!func && values.length === 1) {
@@ -327,7 +327,7 @@ export class Binding extends IValue {
      * @param any {*} The new binding value
      * @return {Binding} A pointer to this
      */
-    set ( any : any ) : IValue {
+    set ( any : any ) : this {
         this.binding.set ( any );
         return this;
     }
@@ -337,7 +337,7 @@ export class Binding extends IValue {
      * @param func {Function} User defined handler
      * @return {Binding} A pointer to this
      */
-    on ( func : Function ) : IValue {
+    on ( func : Function ) : this {
         this.binding.on ( func );
         return this;
     }
@@ -347,7 +347,7 @@ export class Binding extends IValue {
      * @param func {Function} User installed handler
      * @return {Binding} A pointer to this
      */
-    off ( func : Function ) : IValue {
+    off ( func : Function ) : this {
         this.binding.off ( func );
         return this;
     }

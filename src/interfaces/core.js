@@ -5,7 +5,7 @@ import {IValue}      from "./ivalue.js";
 
 
 
-export type LiveFields = { [key : string] : IValue };
+export type LiveFields = { [key : string] : IValue<any> };
 export type CoreEl = HTMLElement | Text | Comment;
 
 
@@ -93,38 +93,44 @@ export class Core extends Destroyable {
 
     /**
      * Gets the encapsulated element if it is a html element, otherwise undefined
-     * @type {?HTMLElement}
+     * @type {HTMLElement}
      * @see Core#$el
      */
-    get el () : ?HTMLElement {
+    get el () : HTMLElement {
         let el = this.coreEl;
         if (el instanceof HTMLElement) {
             return el;
         }
+
+        throw "wrong Core.el() call";
     }
 
     /**
      * Gets the encapsulated element if it is a html text node, otherwise undefined
-     * @type {?Text}
+     * @type {Text}
      * @see Core#$el
      */
-    get text () : ?Text {
+    get text () : Text {
         let el = this.coreEl;
         if (el instanceof Text) {
             return el;
         }
+
+        throw "wrong Core.text() call";
     }
 
     /**
      * Gets the encapsulated element if it is a html comment, otherwise undefined
-     * @type {?Comment}
+     * @type {Comment}
      * @see Core#$el
      */
-    get comment () : ?Comment {
+    get comment () : Comment {
         let el = this.coreEl;
         if (el instanceof Comment) {
             return el;
         }
+
+        throw "wrong Core.comment() call";
     }
 
     /**

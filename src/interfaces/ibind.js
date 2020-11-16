@@ -7,7 +7,7 @@ import { IValue } from "./ivalue.js";
  * Mark an object which can be bound
  * @interface
  */
-export class IBind extends IValue {
+export class IBind extends IValue<any> {
     /**
      * Ensure the binding to be bound
      * @return a pointer to this

@@ -46,7 +46,7 @@ export class ClassBinding extends Binding {
         ts : any,
         name : string,
         func : ?Function,
-        ...values : Array<IValue>
+        ...values : Array<IValue<any>>
     ) {
         super ( rt, ts, name, func, ...values );
     }
@@ -59,7 +59,7 @@ export class ClassBinding extends Binding {
     bound ( name : string ) : Function {
         let binding = this;
 
-        return function ( rt : BaseNode, ts : BaseNode, v : IValue ) {
+        return function ( rt : BaseNode, ts : BaseNode, v : IValue<any> ) {
             let value : string = v.get ();
             let current : ?string = binding.current;
 
