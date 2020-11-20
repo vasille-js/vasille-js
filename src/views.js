@@ -36,13 +36,13 @@ export class RepeatNode extends ShadowNode {
         this.cb = cb;
     }
 
-    createChild ( id : any, item : IValue<any> ) {
+    createChild ( id : any, item : IValue<any>, before : ?Node ) {
         let current = this.nodes.get ( id );
         let node = new RepeatNodeItem ();
 
-        this.destroyChild ( id );
+        this.destroyChild ( id, item );
 
-        node.preinitShadow ( this.$app, this.rt, this, current ? current.prev : null );
+        node.preinitShadow ( this.$app, this.rt, this, before || ( current ? current.prev : null ) );
 
         node.init ( {} );
         this.cb(node, item.get());
@@ -51,7 +51,7 @@ export class RepeatNode extends ShadowNode {
         this.nodes.set(id, node);
     };
 
-    destroyChild ( id : any ) {
+    destroyChild ( id : any, item : IValue<any> ) {
         let child = this.nodes.get ( id );
 
         if (child) {
@@ -70,6 +70,7 @@ export class RepeatNode extends ShadowNode {
 export class Repeater extends RepeatNode {
     updateHandler : Function;
     currentCount : number = 0;
+    orderNumber : Array<IValue<number>> = [];
 
     constructor () {
         super ();
@@ -84,13 +85,16 @@ export class Repeater extends RepeatNode {
     changeCount ( number : number ) {
         if (number > this.currentCount) {
             for (let i = this.currentCount; i < number; i++) {
-                this.createChild ( i, new Value ( i ) );
+                let item = new Value ( i );
+                this.createChild ( i, item );
+                this.orderNumber.push ( item );
             }
         }
         else {
             for (let i = this.currentCount - 1; i >= number; i--) {
-                this.destroyChild ( i );
+                this.destroyChild ( i, this.orderNumber[i] );
             }
+            this.orderNumber.splice(number);
         }
         this.currentCount = number;
     }
@@ -136,12 +140,12 @@ export class BaseView extends RepeatNode {
         this.defProp ( "model", IValue, null );
     }
 
-    createBVChild ( id : *, item : IValue<*> ) : Function {
+    createChild ( id : *, item : IValue<*>, before : ?Node ) : Function {
         let handler = ( newItem ) => {
             super.createChild ( id, newItem );
         };
         item.on ( handler );
-        super.createChild ( id, item );
+        super.createChild ( id, item, before );
 
         return handler;
     }
@@ -163,11 +167,24 @@ export class BaseView extends RepeatNode {
 
 export class ArrayView extends BaseView {
     handlers : Array<Function> = [];
+    ids : Array<number> = [];
 
-    destroyAVChild ( id : *, item : IValue<any> ) {
+    constructor () {
+        super ();
+
+        this.addHandler = ( id : *, item : IValue<any> ) => {
+            this.createChild(id, item);
+        }
+        this.removeHandler = ( id : *, item : IValue<any> ) => {
+            this.destroyChild(id, item);
+        }
+    }
+
+    destroyChild ( id : *, item : IValue<any> ) {
         item.off ( this.handlers[id] );
         this.handlers.splice ( id, 1 );
-        super.destroyChild ( id );
+        super.destroyChild ( this.ids[id], item );
+        this.ids.splice(id, 1);
     }
 
     get props () : {
@@ -176,9 +193,25 @@ export class ArrayView extends BaseView {
         return this.$props;
     }
 
-    createChild ( id : *, item : IValue<*> ) {
-        let handler = this.createBVChild ( id, item );
+    createProps () {
+        this.defProp("model", ArrayModel);
+    }
+
+    createChild ( id : *, item : IValue<*>, before : ?Node ) {
+        let newId;
+        if (id < 0.0) {
+            newId = id;
+        }
+        else {
+            do {
+                newId = Math.random () - 2.0;
+            }
+            while (this.ids.includes ( newId ));
+        }
+
+        let handler = super.createChild ( newId, item, before || this.nodes.get(this.ids[id - 1]) );
         this.handlers.splice ( id, 0, handler );
+        this.ids.splice( id, 0, newId );
     }
 
 

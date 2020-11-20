@@ -516,33 +516,23 @@ export class SetModel<T> extends Set<IValue<T>> {
 export function vassilify ( v : any ) : IValue<any> {
     let ret;
 
-    switch (v) {
-        case v instanceof IValue:
-            ret = v;
-            break;
-
-        case Array.isArray ( v ):
-            ret = new Value ( new ArrayModel ( v ) );
-            break;
-
-        case v instanceof Map:
-            ret = new Value ( new MapModel ( v ) );
-            break;
-
-        case v instanceof Set:
-            ret = new Value ( new SetModel ( v ) );
-            break;
-
-        case v instanceof Object && v.constructor === Object:
-            ret = new Value ( new ObjectModel ( v ) );
-            break;
-
-        case v instanceof ArrayModel:
-        case v instanceof ObjectModel:
-        case v instanceof MapModel:
-        case v instanceof SetModel:
-        default:
-            ret = new Value ( v );
+    if (v instanceof IValue) {
+        ret = v;
+    }
+    else if (Array.isArray ( v )) {
+        ret = new Value ( new ArrayModel ( v ) );
+    }
+    else if (v instanceof Map) {
+        ret = new Value ( new MapModel ( v ) );
+    }
+    else if (v instanceof Set) {
+        ret = new Value ( new SetModel ( v ) );
+    }
+    else if (v instanceof Object && v.constructor === Object) {
+        ret = new Value ( new ObjectModel ( v ) );
+    }
+    else {
+        ret = new Value ( v );
     }
 
     return ret;

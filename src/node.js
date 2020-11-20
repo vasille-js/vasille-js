@@ -1,16 +1,21 @@
 // @flow
-import { AttributeBinding, attributify }   from "./attribute.js";
-import { datify }                          from "./data.js";
-import { eventify }                        from "./event.js";
-import { Executor, FastExecutor }          from "./executor";
-import type { CoreEl }                     from "./interfaces/core";
-import { Core }                            from "./interfaces/core.js";
-import { Callable }                        from "./interfaces/idefinition.js";
-import { IValue }                          from "./interfaces/ivalue.js";
-import { propertify, Property }            from "./property.js";
-import { StyleBinding, stylify }           from "./style.js";
-import { Value }                           from "./value.js";
-import type { RepeatNode, RepeatNodeItem } from "./views";
+import { AttributeBinding, attributify }     from "./attribute.js";
+import { Bind1, Binding, BindN }             from "./bind";
+import { classify }                          from "./class";
+import { CssCompozitor, CssDebugCompozitor } from "./css";
+import { datify }                            from "./data.js";
+import { eventify }                          from "./event.js";
+import { Executor, FastExecutor }            from "./executor";
+import type { CoreEl }                       from "./interfaces/core";
+import { destroyObject }                     from "./interfaces/core";
+import { Core }                              from "./interfaces/core.js";
+import { IBind }                             from "./interfaces/ibind";
+import { Callable }                          from "./interfaces/idefinition.js";
+import { IValue }                            from "./interfaces/ivalue.js";
+import { propertify, Property }              from "./property.js";
+import { StyleBinding, stylify }             from "./style.js";
+import { Value }                             from "./value.js";
+import type { RepeatNode, RepeatNodeItem }   from "./views";
 
 
 
@@ -92,18 +97,18 @@ export class Node extends Core {
      */
     ref ( reference : string, likeArray : boolean = false ) : void {
         if (this.$rt instanceof BaseNode) {
-            let ref = this.$rt.refs[reference];
+            let ref = this.$rt.$refs[reference];
 
             if (likeArray) {
                 if (ref instanceof Array) {
                     ref.push ( this );
                 }
                 else {
-                    this.$rt.refs[reference] = [this];
+                    this.$rt.$refs[reference] = [this];
                 }
             }
             else {
-                this.$rt.refs[reference] = this;
+                this.$rt.$refs[reference] = this;
             }
         }
     }
@@ -115,15 +120,15 @@ export class Node extends Core {
         super.destroy ();
 
         if (this.$rt instanceof BaseNode) {
-            for (let i in this.$rt.refs) {
-                if (this.$rt.refs[i] === this) {
-                    delete this.$rt.refs[i];
+            for (let i in this.$rt.$refs) {
+                if (this.$rt.$refs[i] === this) {
+                    delete this.$rt.$refs[i];
                 }
                 else if (
-                    this.$rt.refs[i] instanceof Array &&
-                    this.$rt.refs[i].includes ( this )
+                    this.$rt.$refs[i] instanceof Array &&
+                    this.$rt.$refs[i].includes ( this )
                 ) {
-                    this.$rt.refs[i].splice ( this.$rt.refs[i].indexOf ( this ), 1 );
+                    this.$rt.$refs[i].splice ( this.$rt.$refs[i].indexOf ( this ), 1 );
                 }
             }
         }
@@ -186,8 +191,9 @@ export class TextNode extends Node {
     }
 }
 
-type TextNodeCB = ( text : TextNode, v : ?any ) => void;
-type ElementNodeCB = ( text : ElementNode, v : ?any ) => void;
+export type TextNodeCB = ( text : TextNode, v : ?any ) => void;
+export type ElementNodeCB = ( text : ElementNode, v : ?any ) => void;
+export type Signal = {|args : Array<Function>, handlers : Array<Function> |};
 
 /**
  * Represents an Vasille.js node which can contains children
@@ -207,22 +213,40 @@ export class BaseNode extends Node implements INode {
     building : boolean;
 
     /**
+     * Represents style bindings
+     * @type {Array<Binding>}
+     */
+    $class : Array<Binding> = [];
+
+    /**
+     * Represents a list of user-defined bindings
+     * @type {Array<IBind>}
+     */
+    $watch : Array<IBind> = [];
+
+    /**
      * List of events
      * @type {Object<String, IValue>}
      */
-    $event : { [key : string] : IValue<Function> } = {};
+    $listener : { [key : string] : IValue<Function> } = {};
+
+    /**
+     * List of user defined signals
+     * @type {Object<string, {args : Array<Function>, handlers : Array<Function>}>}
+     */
+    $signal : { [name : string]: Signal };
 
     /**
      * List of references
      * @type {Object<String, Node|Array<Node>>}
      */
-    refs : { [key : string] : Node | Array<Node> } = {};
+    $refs : { [key : string] : Node | Array<Node> } = {};
 
     /**
-     * List of slots
+     * List of $slots
      * @type {Object<String, BaseNode>}
      */
-    slots : { [key : string] : BaseNode } = {};
+    $slots : { [key : string] : BaseNode } = {};
 
     /**
      * List of defined properties
@@ -267,7 +291,7 @@ export class BaseNode extends Node implements INode {
     }
 
     startBuilding () {
-        this.slots["default"] = this;
+        this.$slots["default"] = this;
         this.building = true;
     }
 
@@ -288,7 +312,10 @@ export class BaseNode extends Node implements INode {
         this.createData ();
         this.createAttrs ();
         this.createStyle ();
-        this.createEvents ();
+        this.createSignals ();
+        this.createWatchers ();
+
+        this.$app.css.initStyle(this);
 
         this.created ();
         this.createDom ();
@@ -315,9 +342,9 @@ export class BaseNode extends Node implements INode {
         super.destroy ();
 
         if (this.$rt instanceof BaseNode) {
-            for (let i in this.$rt.slots) {
-                if (this.$rt.slots[i] === this) {
-                    delete this.$rt.slots[i];
+            for (let i in this.$rt.$slots) {
+                if (this.$rt.$slots[i] === this) {
+                    delete this.$rt.$slots[i];
                 }
             }
         }
@@ -325,6 +352,9 @@ export class BaseNode extends Node implements INode {
         for (let child of this.children) {
             child.destroy ();
         }
+
+        destroyObject(this.$class);
+        destroyObject(this.$watch);
     }
 
     /** To be overloaded: property creation milestone */
@@ -343,8 +373,12 @@ export class BaseNode extends Node implements INode {
     createStyle () {
     }
 
-    /** To be overloaded: events creation milestone */
-    createEvents () {
+    /** To be overloaded: signals creation milestone */
+    createSignals () {
+    }
+
+    /** To be overloaded: watchers creation milestone */
+    createWatchers () {
     }
 
     /** To be overloaded: DOM creation milestone */
@@ -358,7 +392,7 @@ export class BaseNode extends Node implements INode {
      * @param init {...any} Constructor arguments
      * @return {BaseNode} A pointer to this
      */
-    defProp ( name : string, _type : Function, ...init : Array<any> ) : BaseNode {
+    defProp ( name : string, _type : Function, ...init : Array<any> ) : this {
         this.$propsDefs[name] = new Property ( _type, ...init );
         return this;
     }
@@ -368,7 +402,7 @@ export class BaseNode extends Node implements INode {
      * @param props {Object<String, Function>} The collection of properties
      * @return {BaseNode} A pointer to this
      */
-    defProps ( props : { [key : string] : Function } ) : BaseNode {
+    defProps ( props : { [key : string] : Function } ) : this {
         for (let i in props) {
             if (props.hasOwnProperty ( i )) {
                 this.$propsDefs[i] = new Property ( props[i] );
@@ -430,7 +464,7 @@ export class BaseNode extends Node implements INode {
     defData (
         nameOrSet : string | { [key : string] : any },
         funcOrAny : ?Callable | ?any = null
-    ) : BaseNode {
+    ) : this {
         if (nameOrSet instanceof String && funcOrAny instanceof Callable) {
             this.$data[nameOrSet] = datify ( null, funcOrAny );
             return this;
@@ -459,7 +493,7 @@ export class BaseNode extends Node implements INode {
      * @param value {String | IValue | Callable} A value or a value getter
      * @return {BaseNode} A pointer to this
      */
-    defAttr ( name : string, value : string | IValue<any> | Callable ) : BaseNode {
+    defAttr ( name : string, value : string | IValue<any> | Callable ) : this {
         if (value instanceof Callable) {
             this.$attrs[name] = attributify ( this.rt, this, name, null, value );
         }
@@ -474,7 +508,7 @@ export class BaseNode extends Node implements INode {
      * @param obj {Object<String, String | IValue>} A set attributes
      * @return {BaseNode} A pointer to this
      */
-    defAttrs ( obj : { [key : string] : string | IValue<any> } ) : BaseNode {
+    defAttrs ( obj : { [key : string] : string | IValue<any> } ) : this {
         for (let i in obj) {
             this.$attrs[i] = attributify ( this.rt, this, i, obj[i] );
         }
@@ -492,7 +526,7 @@ export class BaseNode extends Node implements INode {
         name : string,
         calculator : Function,
         ...values : Array<IValue<any>>
-    ) : BaseNode {
+    ) : this {
         this.$attrs[name] = new AttributeBinding (
             this.rt,
             this,
@@ -503,13 +537,59 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
+    setAttr (
+        name: string,
+        value: string
+    ) : this {
+        this.$app.run.setAttribute(this.el, name, value);
+        return this;
+    }
+    
+    setAttrs (
+        data : { [key : string] : string }
+    ) : this {
+        for (let i in data) {
+            this.$app.run.setAttribute(this.el, i, data[i]);
+        }
+        return this;
+    }
+
+    addClass ( cl : string ) : this {
+        let classes = this.scopedClass(cl);
+        for (let cl of classes) {
+            this.el.classList.add(cl);
+        }
+        return this;
+    }
+
+    bindClass (
+        cl : ?string,
+        value : boolean | string | IValue<boolean | string> = false,
+        func : ?Callable                                    = null
+    ) : this {
+        this.$class.push ( classify ( this.rt, this, cl || '', value, func ) );
+        return this;
+    }
+
+    scopedClass (cl : ?string) : Array<string> {
+        return cl ? this.$app.css.scopedClass(this, cl) : [];
+    }
+
+    createCss () : { [key : string] : Object } {
+        return {};
+    }
+
+    createReposiveCss () : { [key : string] : { [key : string] : Object } } {
+        return {};
+    }
+
     /**
      * Defines a style attribute
      * @param name {String} The name of style attribute
      * @param value {String | IValue | Callable} A value or a value getter
      * @return {BaseNode} A pointer to this
      */
-    defStyle ( name : string, value : string | IValue<any> | Callable ) : BaseNode {
+    defStyle ( name : string, value : string | IValue<any> | Callable ) : this {
         if (value instanceof Callable) {
             this.$style[name] = stylify ( this.rt, this, name, null, value );
         }
@@ -524,7 +604,7 @@ export class BaseNode extends Node implements INode {
      * @param obj {Object<String, String | IValue>} A set of style attributes
      * @return {BaseNode} A pointer to this
      */
-    defStyles ( obj : { [key : string] : string | IValue<any> } ) : BaseNode {
+    defStyles ( obj : { [key : string] : string | IValue<any> } ) : this {
         for (let i in obj) {
             this.$style[i] = stylify ( this.rt, this, i, obj[i] );
         }
@@ -542,7 +622,7 @@ export class BaseNode extends Node implements INode {
         name : string,
         calculator : Function,
         ...values : Array<IValue<any>>
-    ) : BaseNode {
+    ) : this {
         this.$style[name] = new StyleBinding (
             this.rt,
             this,
@@ -553,25 +633,105 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
+    setStyle (
+        prop : string,
+        value : string
+    ) : this {
+        this.$app.run.setStyle( this.el, prop, value );
+        return this;
+    }
+
+    setStyles (
+        data : { [key : string] : string }
+    ) : this {
+        for (let i in data) {
+            this.$app.run.setStyle( this.el, i, data[i] );
+        }
+        return this;
+    }
+
+    defSignal ( name : string, ...types : Array<Function> ) {
+        this.$signal[name] = { args: types, handlers: [] };
+    }
+
+    on ( name : string, func : Function ) {
+        this.$signal[name].handlers.push(func);
+    }
+
+    emit ( name : string, ...args : Array<any> ) {
+        let compatible = args.length === this.$signal[name].args.length;
+
+        if (compatible && this.$app.debug) {
+            for (let i = 0; i < args.length; i++) {
+                let v = args[i], t = this.$signal[name].args[i];
+
+                if (!(v instanceof t ) &&
+                    !(typeof v === "number" && t === Number) &&
+                    !(typeof v === "string" && t === String) &&
+                    !(typeof v === "boolean" && t === Boolean)
+                ) {
+                    compatible = false;
+                }
+            }
+        }
+
+        if (!compatible) {
+            throw "Incompatible signals arguments";
+        }
+
+        for (let handler of this.$signal[name].handlers) {
+            try {
+                handler(...args);
+            }
+            catch (e) {
+                console.error(`Handler throw exception at ${this.constructor.name}::${name}: `, e);
+            }
+        }
+    }
+
     /**
      * Defines a element event
      * @param name {String} Event name
      * @param event {Function} Event handler as function
      * @return {BaseNode} A pointer to this
      */
-    defEvent ( name : string, event : Function ) : BaseNode {
-        this.$event[name] = eventify ( this.rt, this, name, event );
+    defListener ( name : string, event : Function ) : this {
+        this.$listener[name] = eventify ( this.rt, this, name, event );
         return this;
+    }
+
+    addListener ( name : string, handler : Function, options: EventListenerOptionsOrUseCapture ) : this {
+        this.el.addEventListener(name, handler, options);
+        return this;
+    }
+
+    removeListener ( name : string, handler : Function, options: EventListenerOptionsOrUseCapture ) : this {
+        this.el.removeEventListener(name, handler, options);
+        return this;
+    }
+
+    defWatcher ( func: Function, ...vars : Array<IValue<any>> ) {
+        if (vars.length === 0) {
+            throw "A watcher must be binded to a value at last";
+        }
+
+        if (vars.length === 1) {
+            this.$watch.push(new Bind1(func, vars[0]));
+        }
+        else {
+            this.$watch.push(new BindN(func, vars));
+        }
     }
 
     /**
      * Register current node as named slot
      * @param name {String} The name of slot
      */
-    slot ( name : string ) {
+    slot ( name : string ) : this {
         if (this.$rt instanceof BaseNode) {
-            this.$rt.slots[name] = this;
+            this.$rt.$slots[name] = this;
         }
+        return this;
     }
 
     /**
@@ -600,7 +760,7 @@ export class BaseNode extends Node implements INode {
             this.pushNodeNow ( node );
         }
         else {
-            let slot = slotName ? this.slots[slotName] : this.slots["default"];
+            let slot = slotName ? this.$slots[slotName] : this.$slots["default"];
 
             if (!slot) {
                 throw "No such slot: " + (
@@ -847,6 +1007,8 @@ export class AppNode extends BaseNode {
 
     run : Executor;
 
+    css : CssCompozitor;
+
     /**
      * Constructs a app node
      * @param node {HTMLElement} The root of application
@@ -856,6 +1018,7 @@ export class AppNode extends BaseNode {
         super ();
 
         this.run = new FastExecutor ();
+        this.css = new CssDebugCompozitor ();
         this.encapsulate ( node );
         this.preinit ( this, this, this, this );
 
