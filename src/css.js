@@ -4,7 +4,7 @@ import type { BaseNode } from "./node";
 
 
 export class CssCompozitor {
-    scopedClass ( node : BaseNode, id : string ) : Array<string> {
+    scopedClass ( c : Function, id : string ) : Array<string> {
         throw "Must be overwritten";
     }
 
@@ -14,20 +14,18 @@ export class CssCompozitor {
 }
 
 export class CssDebugCompozitor extends CssCompozitor {
-    scopedClass ( node : BaseNode, id : string ) : Array<string> {
-        return [node.rt.constructor.name + '-' + id.replace(/^vs-/, '')];
+    scopedClass ( c : Function, id : string ) : Array<string> {
+        return ['vs-' + c.name + '-' + id.replace(/^vs-/, '')];
     }
 
     $inited : { [key : string] : boolean } = {};
 
-    styleToString ( style : Object, node : BaseNode ) : string {
+    styleToString ( selector : string, rules : Object, node : BaseNode ) : string {
         let css = '\n';
 
-        for (let i in style) {
-            let selector = i.replace(/\.[^\s.:#]+/, ( found ) => {
-                return '.' + this.scopedClass(node, found.substr(1))[0];
+            selector = selector.replace(/\.(?!vs-)[^\s.:#]+/, ( found ) => {
+                return '.' + this.scopedClass(node.constructor, found.substr(1))[0];
             });
-            let rules = style[i];
 
             css += selector + ' {\n';
 
@@ -36,7 +34,6 @@ export class CssDebugCompozitor extends CssCompozitor {
             }
 
             css += '}\n';
-        }
 
         return css;
     }
@@ -47,22 +44,38 @@ export class CssDebugCompozitor extends CssCompozitor {
         if (this.$inited[nodeId]) return;
 
         let style = node.createCss();
-        let responsive = node.createReposiveCss();
         let css = "";
 
         let tag = document.createElement('style');
         tag.setAttribute('type', 'text/css');
         tag.setAttribute('data-node', nodeId);
 
-        css += this.styleToString(style, node);
+        for (let rule of style) {
+            if (rule.media) {
+                let mediaRule = "";
 
-        for (let i in responsive) {
-            css += "@media " + i + " {\n";
-            css += this.styleToString(responsive[i], node);
-            css += "}\n";
+                for (let i of ["minW", "maxW", "minH", "maxH"]) {
+                    let v = rule.media[i];
+                    if (typeof v === "number") {
+                        if (mediaRule.length) {
+                            mediaRule += " && ";
+                        }
+                        mediaRule += "(" + i.replace ( "W", "-width" )
+                                            .replace ( "H", "-height" )
+                                     + ": " + v + "px)";
+                    }
+                }
+
+                css += "@media " + mediaRule + " {\n";
+                css += this.styleToString(rule.selector, rule.data, node);
+                css += "}\n";
+            }
+            else {
+                css += this.styleToString(rule.selector, rule.data, node);
+            }
         }
 
-        if (css !== '\n') {
+        if (css !== '') {
             tag.innerHTML = css;
             if (document.head) {
                 document.head.append(tag);

@@ -22,14 +22,12 @@ export function eventify (
     let value = new Value ( listener );
     let el = ts.el;
 
-    if (el) {
-        el.addEventListener ( name, listener );
-        value.on ( function () {
-            el.removeEventListener ( name, this.listener );
-            this.listener = value.get ().bind ( null, rt, ts );
-            el.addEventListener ( name, this.listener );
-        }.bind ( { listener } ) );
-    }
+    el.addEventListener ( name, listener );
+    value.on ( function () {
+        el.removeEventListener ( name, this.listener );
+        this.listener = value.get ().bind ( null, rt, ts );
+        el.addEventListener ( name, this.listener );
+    }.bind ( { listener } ) );
 
     return value;
 }

@@ -20,41 +20,41 @@ import type { RepeatNode, RepeatNodeItem }   from "./views";
 
 
 export interface INode {
-    appendChild ( node : CoreEl, before : Node ) : void;
+    appendChild ( node : CoreEl, before : VasilleNode ) : void;
 }
 
 /**
  * Represents a Vasille.js node
  * @extends Core
  */
-export class Node extends Core {
+export class VasilleNode extends Core {
     /**
      * A link to a parent node
-     * @type {Node}
+     * @type {VasilleNode}
      */
-    parent : Node;
+    parent : BaseNode;
 
     /**
      * The next node
-     * @type {?Node}
+     * @type {?VasilleNode}
      */
-    next : ?Node;
+    next : ?VasilleNode;
 
     /**
      * The previous node
-     * @type {?Node}
+     * @type {?VasilleNode}
      */
-    prev : ?Node;
+    prev : ?VasilleNode;
 
     /**
      * The root node
      * @type {BaseNode}
      */
-    $rt : Core;
+    $rt : BaseNode;
 
     /**
      * The app node
-     * @type {Node}
+     * @type {VasilleNode}
      */
     $app : AppNode;
 
@@ -76,9 +76,9 @@ export class Node extends Core {
      * @param app {App} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
-     * @param before {?Node} Node to paste this after
+     * @param before {?VasilleNode} VasilleNode to paste this after
      */
-    preinit ( app : AppNode, rt : BaseNode, ts : BaseNode, before : ?Node ) {
+    preinit ( app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode ) {
         this.$app = app;
         this.$rt = rt;
 
@@ -138,7 +138,7 @@ export class Node extends Core {
 /**
  * Represents a text node
  */
-export class TextNode extends Node {
+export class TextNode extends VasilleNode {
     /**
      * Contains the text of node as Value
      * @type {IValue}
@@ -163,10 +163,10 @@ export class TextNode extends Node {
      * @param app {AppNode} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
-     * @param before {Node} node to apste after
+     * @param before {?VasilleNode} node to apste after
      * @param text {String | IValue}
      */
-    preinitText ( app : AppNode, rt : BaseNode, ts : BaseNode, before : Node, text : IValue<string> | string ) {
+    preinitText ( app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode, text : IValue<string> | string ) {
         super.preinit ( app, rt, ts, before );
 
         let value = text instanceof IValue ? text : new Value ( text );
@@ -178,6 +178,7 @@ export class TextNode extends Node {
         }.bind ( null, value );
 
         value.on ( this.handler );
+        this.encapsulate(node);
 
         ts.appendChild ( node, before );
     }
@@ -197,14 +198,14 @@ export type Signal = {|args : Array<Function>, handlers : Array<Function> |};
 
 /**
  * Represents an Vasille.js node which can contains children
- * @extends Node
+ * @extends VasilleNode
  */
-export class BaseNode extends Node implements INode {
+export class BaseNode extends VasilleNode implements INode {
     /**
      * The children list
-     * @type {Array<Node>}
+     * @type {Array<VasilleNode>}
      */
-    children : Array<Node> = [];
+    children : Array<VasilleNode> = [];
 
     /**
      * The building active state
@@ -234,13 +235,13 @@ export class BaseNode extends Node implements INode {
      * List of user defined signals
      * @type {Object<string, {args : Array<Function>, handlers : Array<Function>}>}
      */
-    $signal : { [name : string]: Signal };
+    $signal : { [name : string]: Signal } = {};
 
     /**
      * List of references
-     * @type {Object<String, Node|Array<Node>>}
+     * @type {Object<String, VasilleNode|Array<VasilleNode>>}
      */
-    $refs : { [key : string] : Node | Array<Node> } = {};
+    $refs : { [key : string] : VasilleNode | Array<VasilleNode> } = {};
 
     /**
      * List of $slots
@@ -274,14 +275,14 @@ export class BaseNode extends Node implements INode {
      * @param app {AppNode} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
-     * @param before {Node} node to paste after it
+     * @param before {?VasilleNode} node to paste after it
      * @param node {HTMLElement | Text | Comment} The encapsulated node
      */
     preinitNode (
         app : AppNode,
         rt : BaseNode,
         ts : BaseNode,
-        before : Node,
+        before : ?VasilleNode,
         node : CoreEl
     ) {
         this.preinit ( app, rt, ts, before );
@@ -302,7 +303,7 @@ export class BaseNode extends Node implements INode {
 
     /**
      * Initialize node
-     * @param props {Object} Node properties values
+     * @param props {Object} VasilleNode properties values
      */
     init ( props : Object ) {
         this.startBuilding ();
@@ -562,6 +563,11 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
+    addGlobalClasses ( ...cl : Array<string> ) : this {
+        this.el.classList.add(...cl);
+        return this;
+    }
+
     bindClass (
         cl : ?string,
         value : boolean | string | IValue<boolean | string> = false,
@@ -571,16 +577,39 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
+    scopeClass (c : ?Function, cl : string,) : string {
+        return "." + this.$app.css.scopedClass(c, cl)[0];
+    }
+
     scopedClass (cl : ?string) : Array<string> {
-        return cl ? this.$app.css.scopedClass(this, cl) : [];
+        return cl ? this.$app.css.scopedClass(this.constructor, cl) : [];
     }
 
-    createCss () : { [key : string] : Object } {
-        return {};
+    createCss () : Array<{| selector : string, data : Object, media : ?Object |}> {
+        return [];
     }
 
-    createReposiveCss () : { [key : string] : { [key : string] : Object } } {
-        return {};
+    rule (
+        selector : string,
+        data : { [key : string] : Object }
+    ) : {
+        selector : string,
+        data : { [key : string] : Object },
+        media : null
+    } {
+        return { selector, data, media: null };
+    }
+
+    mediaRule (
+        selector : string,
+        media : { minW : number, maxW : number, minH : number, maxH : number },
+        data : { [key : string] : Object }
+    ) : {
+        selector : string,
+        media : { minW : number, maxW : number, minH : number, maxH : number },
+        data : { [key : string] : Object }
+    } {
+        return { selector, media, data };
     }
 
     /**
@@ -700,14 +729,225 @@ export class BaseNode extends Node implements INode {
         return this;
     }
 
-    addListener ( name : string, handler : Function, options: EventListenerOptionsOrUseCapture ) : this {
+    listen ( name : string, handler : Function, options: EventListenerOptionsOrUseCapture ) : this {
         this.el.addEventListener(name, handler, options);
         return this;
     }
 
-    removeListener ( name : string, handler : Function, options: EventListenerOptionsOrUseCapture ) : this {
-        this.el.removeEventListener(name, handler, options);
-        return this;
+    listenContextMenu ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'contextmenu', handler, options);
+    }
+
+    listenMouseDown ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'mousedown', handler, options);
+    }
+
+    listenMouseEnter ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'mouseenter', handler, options);
+    }
+
+    listenMouseLeave ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'mouseleave', handler, options);
+    }
+
+    listenMouseMove ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'mousemove', handler, options);
+    }
+
+    listenMouseOut ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'mouseout', handler, options);
+    }
+
+    listenMouseOver ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'mouseover', handler, options);
+    }
+
+    listenMouseUp ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'mouseup', handler, options);
+    }
+
+    listenClick ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'click', handler, options);
+    }
+
+    listenDblClick ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'dblclick', handler, options);
+    }
+
+    listenBlur ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'blur', handler, options);
+    }
+
+    listenFocus ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'focus', handler, options);
+    }
+
+    listenFocusIn ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'focusin', handler, options);
+    }
+
+    listenFocusOut ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'focusout', handler, options);
+    }
+
+    listenKeyDown ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'keydown', handler, options);
+    }
+
+    listenKeyUp ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'keyup', handler, options);
+    }
+
+    listenKeyPress ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'keypress', handler, options);
+    }
+
+    listenTouchStart ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'touchstart', handler, options);
+    }
+
+    listenTouchMove ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'touchmove', handler, options);
+    }
+
+    listenTouchEnd ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'touchend', handler, options);
+    }
+
+    listenTouchCancel ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'touchcancel', handler, options);
+    }
+
+    listenWheel ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'wheel', handler, options);
+    }
+
+    listenAbort ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'abort', handler, options);
+    }
+
+    listenError ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'error', handler, options);
+    }
+
+    listenLoad ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'load', handler, options);
+    }
+
+    listenLoadEnd ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'loadend', handler, options);
+    }
+
+    listenLoadStart ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'loadstart', handler, options);
+    }
+
+    listenProgress ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'progress', handler, options);
+    }
+
+    listenTimeout ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'timeout', handler, options);
+    }
+
+    listenDrag ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'drag', handler, options);
+    }
+
+    listenDragEnd ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'dragend', handler, options);
+    }
+
+    listenDragEnter ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'dragenter', handler, options);
+    }
+
+    listenDragExit ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'dragexit', handler, options);
+    }
+
+    listenDragLeave ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'dragleave', handler, options);
+    }
+
+    listenDragOver ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'dragover', handler, options);
+    }
+
+    listenDragStart ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'dragstart', handler, options);
+    }
+
+    listenDrop ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'drop', handler, options);
+    }
+
+    listenPointerOver ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'pointerover', handler, options);
+    }
+
+    listenPointerEnter ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'pointerenter', handler, options);
+    }
+
+    listenPointerDown ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'pointerdown', handler, options);
+    }
+
+    listenPointerMove ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'pointermove', handler, options);
+    }
+
+    listenPointerUp ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'pointerup', handler, options);
+    }
+
+    listenPointerCancel ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'pointercancel', handler, options);
+    }
+
+    listenPointerOut ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'pointerout', handler, options);
+    }
+
+    listenPointerLeave ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'pointerleave', handler, options);
+    }
+
+    listenGotPointerCapture ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'gotpointercapture', handler, options);
+    }
+
+    listenLostPointerCapture ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'lostpointercapture', handler, options);
+    }
+
+    listenAnimationStart ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'animationstart', handler, options);
+    }
+
+    listenAnimationEnd ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'animationend', handler, options);
+    }
+
+    listenAnimationIteraton ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'animationiteration', handler, options);
+    }
+
+    listenClipboardChange ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'clipboardchange', handler, options);
+    }
+
+    listenCut ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'cut', handler, options);
+    }
+
+    listenCopy ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'copy', handler, options);
+    }
+
+    listenPaste ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
+        this.listen( 'paste', handler, options);
     }
 
     defWatcher ( func: Function, ...vars : Array<IValue<any>> ) {
@@ -736,10 +976,10 @@ export class BaseNode extends Node implements INode {
 
     /**
      * Pushes a node to children immediately
-     * @param node {Node} A node to push
+     * @param node {VasilleNode} A node to push
      * @private
      */
-    pushNodeNow ( node : Node ) : void {
+    pushNodeNow ( node : VasilleNode ) : void {
         if (this.lastChild) {
             this.lastChild.next = node;
         }
@@ -752,10 +992,10 @@ export class BaseNode extends Node implements INode {
 
     /**
      * Pushes a node with children slot checking
-     * @param node {Node} A node to push
+     * @param node {VasilleNode} A node to push
      * @param slotName {String} The slot name
      */
-    pushNode ( node : Node, slotName : ?string ) : void {
+    pushNode ( node : VasilleNode, slotName : ?string ) : void {
         if (this.building) {
             this.pushNodeNow ( node );
         }
@@ -775,12 +1015,18 @@ export class BaseNode extends Node implements INode {
     /**
      * Append a child in correct parent (to be overwritten)
      * @param node {HTMLElement | Text | Comment} A node to push
-     * @param before {Node} node to paste after
+     * @param before {VasilleNode} node to paste after
      * @private
      */
-    appendChild ( node : CoreEl, before : ?Node ) : void {
-        if (before instanceof BaseNode && before.el.nextSibling) {
-            this.el.insertBefore ( node, before.el.nextSibling );
+    appendChild ( node : CoreEl, before : ?VasilleNode ) : void {
+        if (before instanceof ShadowNode) {
+            this.el.insertBefore ( node, before.$shadow );
+        }
+        else if (before instanceof ElementNode) {
+            this.el.insertBefore ( node, before.el );
+        }
+        else if (this instanceof ShadowNode && !(this.parent instanceof AppNode)) {
+            this.parent.appendChild ( node, this.next );
         }
         else {
             this.el.appendChild ( node );
@@ -789,9 +1035,9 @@ export class BaseNode extends Node implements INode {
 
     /**
      * The last inserted child (Child are not destructible)
-     * @type {?Node}
+     * @type {?VasilleNode}
      */
-    lastChild : Node;
+    lastChild : ?VasilleNode;
 
     /**
      * Defines a text fragment
@@ -809,7 +1055,7 @@ export class BaseNode extends Node implements INode {
     ) : BaseNode {
         let node = new TextNode ();
 
-        node.preinitText ( this.$app, this.rt, this, this.lastChild, text );
+        node.preinitText ( this.$app, this.rt, this, null, text );
         this.pushNode ( node, slot instanceof String ? slot : null );
 
         if (cb) {
@@ -834,7 +1080,7 @@ export class BaseNode extends Node implements INode {
     ) : BaseNode {
         let node = new ElementNode ();
 
-        node.preinitElementNode ( this.$app, this.rt, this, tagName );
+        node.preinitElementNode ( this.$app, this.rt, this, null, tagName );
         node.init ( {} );
         this.pushNode ( node, slot );
 
@@ -863,17 +1109,17 @@ export class BaseNode extends Node implements INode {
     ) : BaseNode {
 
         if (node instanceof ShadowNode) {
-            node.preinitShadow ( this.$app, this.rt, this, this.lastChild );
+            node.preinitShadow ( this.$app, this.rt, this, null );
         }
-        else if (node instanceof Node) {
-            node.preinit ( this.$app, this.rt, this, this.lastChild );
+        else if (node instanceof VasilleNode) {
+            node.preinit ( this.$app, this.rt, this, null );
         }
 
         if (node instanceof BaseNode) {
             node.init ( props );
         }
 
-        if (node instanceof Node) {
+        if (node instanceof VasilleNode) {
             this.pushNode ( node, slot );
         }
 
@@ -894,7 +1140,7 @@ export class BaseNode extends Node implements INode {
         cb : ( node : RepeatNodeItem, v : ?any ) => void,
         v : ?any
     ) {
-        node.preinitShadow ( this.$app, this.rt, this, this.lastChild );
+        node.preinitShadow ( this.$app, this.rt, this, null );
         node.init ( props );
         this.pushNode ( node, slot );
         node.setCallback(cb);
@@ -924,16 +1170,18 @@ export class ElementNode extends BaseNode {
      * @param app {AppNode} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
+     * @param before {VasilleNode} Node to insert before it
      * @param tagName {String} Name of HTML tag
      */
     preinitElementNode (
         app : AppNode,
         rt : BaseNode,
         ts : BaseNode,
+        before : ?VasilleNode,
         tagName : string
     ) {
         let node = document.createElement ( tagName );
-        this.preinitNode ( app, rt, ts, this.lastChild, node );
+        this.preinitNode ( app, rt, ts, before || this.lastChild, node );
         this.node = node;
     }
 
@@ -968,13 +1216,13 @@ export class ShadowNode extends BaseNode {
      * @param app {AppNode} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
-     * @param before {Node} node to paste after it
+     * @param before {VasilleNode} node to paste after it
      */
     preinitShadow (
         app : AppNode,
         rt : BaseNode,
         ts : BaseNode,
-        before : ?Node
+        before : ?VasilleNode
     ) {
         this.$shadow = document.createComment ( ` ${ rt.constructor.name } > ${ this.constructor.name } ` );
         this.preinit ( app, rt, ts, before );

@@ -1,13 +1,20 @@
 // @flow
 import { IValue }                        from "./interfaces/ivalue";
 import { ArrayModel }                    from "./models";
-import { Node }                          from "./node";
+import { VasilleNode }                   from "./node";
 import { AppNode, BaseNode, ShadowNode } from "./node.js";
 import { Value }                         from "./value";
 
 
 
 export class RepeatNodeItem extends ShadowNode {
+    $id : any;
+
+    constructor (id : any) {
+        super ();
+        this.$id = id;
+    }
+
     destroy () {
         super.destroy ();
 
@@ -27,7 +34,7 @@ export class RepeatNode extends ShadowNode {
         super ();
     };
 
-    preinitShadow ( app : AppNode, rt : BaseNode, ts : BaseNode, before : ?Node ) {
+    preinitShadow ( app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode ) {
         super.preinitShadow ( app, rt, ts, before );
         this.encapsulate(ts.el);
     }
@@ -36,13 +43,32 @@ export class RepeatNode extends ShadowNode {
         this.cb = cb;
     }
 
-    createChild ( id : any, item : IValue<any>, before : ?Node ) {
+    createChild ( id : any, item : IValue<any>, before : ?VasilleNode ) {
         let current = this.nodes.get ( id );
-        let node = new RepeatNodeItem ();
+        let node = new RepeatNodeItem ( id );
 
         this.destroyChild ( id, item );
 
-        node.preinitShadow ( this.$app, this.rt, this, before || ( current ? current.prev : null ) );
+        node.parent = this;
+        if (current) {
+            node.next = current.next;
+            node.prev = current.prev;
+            if (node.next) {
+                node.next.prev = node;
+            }
+            if (node.prev) {
+                node.prev.next = node;
+            }
+        }
+        else {
+            if (this.lastChild) {
+                this.lastChild.next = node;
+            }
+            node.prev = this.lastChild;
+        }
+        this.lastChild = node;
+
+        node.preinitShadow ( this.$app, this.rt, this, before || ( current ? current.next : null ) );
 
         node.init ( {} );
         this.cb(node, item.get());
@@ -53,6 +79,10 @@ export class RepeatNode extends ShadowNode {
 
     destroyChild ( id : any, item : IValue<any> ) {
         let child = this.nodes.get ( id );
+
+        if (this.lastChild && this.lastChild === child) {
+            this.lastChild = this.lastChild.prev;
+        }
 
         if (child) {
             if (child.prev) {
@@ -140,9 +170,11 @@ export class BaseView extends RepeatNode {
         this.defProp ( "model", IValue, null );
     }
 
-    createChild ( id : *, item : IValue<*>, before : ?Node ) : Function {
-        let handler = ( newItem ) => {
-            super.createChild ( id, newItem );
+    createChild ( id : *, item : IValue<*>, before : ?VasilleNode ) : Function {
+        console.log(id, before ? before.$id : '');
+
+        let handler = () => {
+            this.createChild ( id, item );
         };
         item.on ( handler );
         super.createChild ( id, item, before );
@@ -153,21 +185,21 @@ export class BaseView extends RepeatNode {
 
 
     ready () {
-        this.props.model.on ( this.addHandler );
-        this.props.model.on ( this.removeHandler );
+        this.props.model.get().listener.onAdd ( this.addHandler );
+        this.props.model.get().listener.onRemove ( this.removeHandler );
         super.ready ();
     }
 
     destroy () {
-        this.props.model.off ( this.addHandler );
-        this.props.model.off ( this.removeHandler );
+        this.props.model.get().listener.offAdd ( this.addHandler );
+        this.props.model.get().listener.offRemove ( this.removeHandler );
         super.destroy ();
     }
 }
 
 export class ArrayView extends BaseView {
     handlers : Array<Function> = [];
-    ids : Array<number> = [];
+    ids : Array<string> = [];
 
     constructor () {
         super ();
@@ -181,10 +213,15 @@ export class ArrayView extends BaseView {
     }
 
     destroyChild ( id : *, item : IValue<any> ) {
-        item.off ( this.handlers[id] );
-        this.handlers.splice ( id, 1 );
-        super.destroyChild ( this.ids[id], item );
-        this.ids.splice(id, 1);
+        if (this.nodes.has(id)) {
+            let index = this.ids.indexOf(id);
+            
+            item.off ( this.handlers[index] );
+            this.handlers.splice ( index, 1 );
+            super.destroyChild ( id, item );
+            this.ids.splice ( index, 1 );
+            super.destroyChild(id, item);
+        }
     }
 
     get props () : {
@@ -197,19 +234,21 @@ export class ArrayView extends BaseView {
         this.defProp("model", ArrayModel);
     }
 
-    createChild ( id : *, item : IValue<*>, before : ?Node ) {
+    createChild ( id : *, item : IValue<*>, before : ?VasilleNode ) {
         let newId;
-        if (id < 0.0) {
+
+        if (typeof id === "string") {
             newId = id;
+            id = this.ids.indexOf(id);
         }
         else {
             do {
-                newId = Math.random () - 2.0;
+                newId = Math.random ().toString(16).substr(2);
             }
             while (this.ids.includes ( newId ));
         }
 
-        let handler = super.createChild ( newId, item, before || this.nodes.get(this.ids[id - 1]) );
+        let handler = super.createChild ( newId, item, before || this.nodes.get(this.ids[id + 1]) );
         this.handlers.splice ( id, 0, handler );
         this.ids.splice( id, 0, newId );
     }
