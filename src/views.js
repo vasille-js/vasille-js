@@ -60,13 +60,21 @@ export class RepeatNode extends ShadowNode {
                 node.prev.next = node;
             }
         }
+        else if (before) {
+            node.next = before;
+            node.prev = before.prev;
+            before.prev = node;
+            if (node.prev) {
+                node.prev.next = node;
+            }
+        }
         else {
             if (this.lastChild) {
                 this.lastChild.next = node;
             }
             node.prev = this.lastChild;
+            this.lastChild = node;
         }
-        this.lastChild = node;
 
         node.preinitShadow ( this.$app, this.rt, this, before || ( current ? current.next : null ) );
 
@@ -171,8 +179,6 @@ export class BaseView extends RepeatNode {
     }
 
     createChild ( id : *, item : IValue<*>, before : ?VasilleNode ) : Function {
-        console.log(id, before ? before.$id : '');
-
         let handler = () => {
             this.createChild ( id, item );
         };
@@ -213,15 +219,14 @@ export class ArrayView extends BaseView {
     }
 
     destroyChild ( id : *, item : IValue<any> ) {
-        if (this.nodes.has(id)) {
-            let index = this.ids.indexOf(id);
-            
-            item.off ( this.handlers[index] );
-            this.handlers.splice ( index, 1 );
-            super.destroyChild ( id, item );
-            this.ids.splice ( index, 1 );
-            super.destroyChild(id, item);
-        }
+        let index = typeof id === "string" ? this.ids.indexOf(id) : id;
+
+        if (index === -1) return;
+
+        item.off ( this.handlers[index] );
+        this.handlers.splice ( index, 1 );
+        super.destroyChild(this.ids[index], item);
+        this.ids.splice ( index, 1 );
     }
 
     get props () : {
@@ -235,20 +240,22 @@ export class ArrayView extends BaseView {
     }
 
     createChild ( id : *, item : IValue<*>, before : ?VasilleNode ) {
-        let newId;
+        let newId, indexStep;
 
         if (typeof id === "string") {
+            indexStep = 1;
             newId = id;
             id = this.ids.indexOf(id);
         }
         else {
+            indexStep = 0;
             do {
                 newId = Math.random ().toString(16).substr(2);
             }
             while (this.ids.includes ( newId ));
         }
 
-        let handler = super.createChild ( newId, item, before || this.nodes.get(this.ids[id + 1]) );
+        let handler = super.createChild ( newId, item, before || this.nodes.get(this.ids[id + indexStep]) );
         this.handlers.splice ( id, 0, handler );
         this.ids.splice( id, 0, newId );
     }

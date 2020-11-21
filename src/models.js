@@ -196,11 +196,12 @@ export class ArrayModel<T> extends Array<IValue<T>> {
     ) : ArrayModel<T> {
         start = Math.min ( start, this.length );
         items = items ? items.map ( ( v ) => vassilify ( v ) ) : [];
-        deleteCount = deleteCount || 0;
+        deleteCount = deleteCount || this.length - start;
 
         for (let i = 0; i < deleteCount; i++) {
-            if (this[start + i]) {
-                this.listener.emitRemoved ( start + i, this[start + i] );
+            let index = start + deleteCount - i - 1;
+            if (this[index]) {
+                this.listener.emitRemoved ( index, this[index] );
             }
         }
         for (let i = 0; i < items.length; i++) {

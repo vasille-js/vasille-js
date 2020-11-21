@@ -21,10 +21,12 @@ export class CssDebugCompozitor extends CssCompozitor {
     $inited : { [key : string] : boolean } = {};
 
     styleToString ( selector : string, rules : Object, node : BaseNode ) : string {
-        let css = '\n';
+        let css = '';
 
-            selector = selector.replace(/\.(?!vs-)[^\s.:#]+/, ( found ) => {
-                return '.' + this.scopedClass(node.constructor, found.substr(1))[0];
+            selector = selector.replace(/(\w*)\.((?!vs-)[^\s.:#]+)/, ( found, name, cl ) => {
+                return name
+                       ? '.' + this.scopedClass({name}, cl)[0]
+                       : '.' + this.scopedClass(node.constructor, cl)[0];
             });
 
             css += selector + ' {\n';
@@ -44,7 +46,7 @@ export class CssDebugCompozitor extends CssCompozitor {
         if (this.$inited[nodeId]) return;
 
         let style = node.createCss();
-        let css = "";
+        let css = "\n";
 
         let tag = document.createElement('style');
         tag.setAttribute('type', 'text/css');
@@ -75,7 +77,7 @@ export class CssDebugCompozitor extends CssCompozitor {
             }
         }
 
-        if (css !== '') {
+        if (css !== '\n') {
             tag.innerHTML = css;
             if (document.head) {
                 document.head.append(tag);

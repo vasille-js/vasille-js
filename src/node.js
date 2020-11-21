@@ -316,10 +316,10 @@ export class BaseNode extends VasilleNode implements INode {
         this.createSignals ();
         this.createWatchers ();
 
-        this.$app.css.initStyle(this);
-
         this.created ();
         this.createDom ();
+
+        this.$app.css.initStyle(this);
 
         this.stopBuilding ();
     }
@@ -585,30 +585,30 @@ export class BaseNode extends VasilleNode implements INode {
         return cl ? this.$app.css.scopedClass(this.constructor, cl) : [];
     }
 
-    createCss () : Array<{| selector : string, data : Object, media : ?Object |}> {
+    createCss () : Array<{| selector : string, data : Object, media : Object |}> {
         return [];
     }
 
     rule (
         selector : string,
         data : { [key : string] : Object }
-    ) : {
+    ) : {|
         selector : string,
         data : { [key : string] : Object },
-        media : null
-    } {
-        return { selector, data, media: null };
+        media ?: Object
+    |} {
+        return { selector, data };
     }
 
     mediaRule (
         selector : string,
-        media : { minW : number, maxW : number, minH : number, maxH : number },
+        media : { minW ?: number, maxW ?: number, minH ?: number, maxH ?: number },
         data : { [key : string] : Object }
-    ) : {
+    ) : {|
         selector : string,
-        media : { minW : number, maxW : number, minH : number, maxH : number },
+        media : ?{ minW ?: number, maxW ?: number, minH ?: number, maxH ?: number },
         data : { [key : string] : Object }
-    } {
+    |} {
         return { selector, media, data };
     }
 
