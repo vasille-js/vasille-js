@@ -343,7 +343,7 @@ export class ObjectModel<T> extends Object {
         super ();
         let ts : { [key : string] : IValue<T> } = this;
 
-        for (let i of obj) {
+        for (let i in obj) {
             ts[i] = vassilify ( obj[i] );
         }
     }
@@ -401,7 +401,7 @@ export class MapModel<K, T> extends Map<K, IValue<T>> {
      * Constructs a map model based on a map
      * @param map {Map<*, IValue>} input data
      */
-    constructor ( map : Map<K, any> ) {
+    constructor ( map : Map<K, any> = new Map ) {
         super ();
 
         for (let data of map) {
@@ -463,7 +463,7 @@ export class SetModel<T> extends Set<IValue<T>> {
      * Constructs a set model based on a set
      * @param set {Set<IValue>} input data
      */
-    constructor ( set : Set<any> ) {
+    constructor ( set : Set<any> = new Set ) {
         super ();
 
         for (let item of set) {
