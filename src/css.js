@@ -60,12 +60,18 @@ export class CssDebugCompozitor extends CssCompozitor {
                     let v = rule.media[i];
                     if (typeof v === "number") {
                         if (mediaRule.length) {
-                            mediaRule += " && ";
+                            mediaRule += " and ";
                         }
                         mediaRule += "(" + i.replace ( "W", "-width" )
                                             .replace ( "H", "-height" )
                                      + ": " + v + "px)";
                     }
+                }
+                if (rule.media.rule) {
+                    if (mediaRule.length) {
+                        mediaRule += " and ";
+                    }
+                    mediaRule += rule.media.rule;
                 }
 
                 css += "@media " + mediaRule + " {\n";

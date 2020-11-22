@@ -602,11 +602,17 @@ export class BaseNode extends VasilleNode implements INode {
 
     mediaRule (
         selector : string,
-        media : { minW ?: number, maxW ?: number, minH ?: number, maxH ?: number },
+        media : {
+            minW ?: number,
+            maxW ?: number,
+            minH ?: number,
+            maxH ?: number,
+            rule ?: string
+        },
         data : { [key : string] : Object }
     ) : {|
         selector : string,
-        media : ?{ minW ?: number, maxW ?: number, minH ?: number, maxH ?: number },
+        media : ?Object,
         data : { [key : string] : Object }
     |} {
         return { selector, media, data };
