@@ -1,0 +1,37 @@
+@startuml
+title Vasille.js core architecture
+
+Destroyable <|-- Core
+Destroyable <|-- IValue
+
+IValue <|-- Binding
+IValue <|-- Value
+IValue <|-- Rebind
+IValue <|-- IBind
+Binding <|-- AttributeBinding
+Binding <|-- StyleBinding
+Binding <|-- ClassBinding
+IBind <|-- Bind1
+IBind <|-- BindN
+
+Core <|-- VasilleNode
+VasilleNode <|-- TextNode
+VasilleNode <|-- BaseNode
+
+BaseNode <|-- AppNode
+BaseNode <|-- ElementNode
+BaseNode <|-- ShadowNode
+
+ShadowNode <|-- SwitchNode
+ShadowNode <|-- RepeateNode
+ShadowNode <|-- RepeateNodeItem
+
+RepeateNode <|-- Repeater
+RepeateNode <|-- BaseView
+
+BaseView <|-- ArrayView
+BaseView <|-- ObjectView
+BaseView <|-- MapView
+BaseView <|-- SetView
+
+@enduml
