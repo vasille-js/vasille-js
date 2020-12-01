@@ -54,8 +54,7 @@ export class AttributeBinding extends Binding {
      * @returns {Function} a function which will update attribute value
      */
     bound ( name : string ) : Function {
-        return function ( rt : any, ts : any, v : IValue<any> ) {
-            let value : string = v.get ();
+        return function ( rt : any, ts : any, value : string ) {
 
             if (value) {
                 window.requestAnimationFrame ( function () {

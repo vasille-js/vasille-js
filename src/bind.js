@@ -175,9 +175,9 @@ export class BindN extends IBind {
         link : boolean = true
     ) {
         super ();
-        let handler = function () {
-            this.sync.set ( func ( values.map ( v => v.get () ) ) );
-        }.bind ( this );
+        let handler = () => {
+            this.sync.set ( func ( ... values.map ( v => v.get () ) ) );
+        };
 
         this.values = values;
         this.func = handler;
@@ -188,7 +188,7 @@ export class BindN extends IBind {
             this.func.call ();
         }
 
-        this.sync.set ( func ( values.map ( v => v.get () ) ) );
+        this.sync.set ( func ( ... values.map ( v => v.get () ) ) );
     }
 
     /**
@@ -289,19 +289,25 @@ export class Binding extends IValue<any> {
         ...values : Array<IValue<any>>
     ) {
         super ();
+
+        let f = this.bound ( name ).bind ( null, rt, ts );
+
         if (!func && values.length === 1) {
             this.binding = values[0];
+            this.func = f;
         }
         else if (func && values.length) {
             this.binding = values.length > 1 ? new BindN ( func, values ) : new Bind1 ( func, values[0] );
+            this.func = (value : *) => {
+                this.binding.set(f(value));
+            }
         }
         else {
             throw "There must be a value as minimum";
         }
 
-        this.func = this.bound ( name ).bind ( null, rt, ts, this.binding );
         this.binding.on ( this.func );
-        this.func ();
+        f(this.binding.get());
     }
 
     /**

@@ -31,7 +31,7 @@ export function classify (
  * @extends Binding
  */
 export class ClassBinding extends Binding {
-    current : ?string = null;
+    current : ? string | boolean = null;
 
     /**
      * Constructs a HTML class binding description
@@ -73,15 +73,14 @@ export class ClassBinding extends Binding {
             }
         }
 
-        return function ( rt : BaseNode, ts : BaseNode, v : IValue<any> ) {
-            let value : string = v.get ();
-            let current : ?string = binding.current;
+        return function ( rt : BaseNode, ts : BaseNode, value : string | boolean ) {
+            let current : ? string | boolean = binding.current;
 
             if (value !== current) {
-                if (current instanceof String && current !== "") {
-                    removeClass(rt, ts, value);
+                if (typeof current === "string" && current !== "") {
+                    removeClass(rt, ts, current);
                 }
-                if (value instanceof Boolean) {
+                if (typeof value == "boolean") {
                     if (value) {
                         addClass ( rt, ts, name );
                     }
@@ -89,7 +88,7 @@ export class ClassBinding extends Binding {
                         removeClass ( rt, ts, name );
                     }
                 }
-                else if (value instanceof String && value !== "") {
+                else if (typeof value === "string" && value !== "") {
                     addClass(rt, ts, value);
                 }
 

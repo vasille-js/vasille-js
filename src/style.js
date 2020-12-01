@@ -53,8 +53,7 @@ export class StyleBinding extends Binding {
      * @returns {Function} a function to update style property
      */
     bound ( name : string ) : Function {
-        return function ( rt : any, ts : any, v : IValue<string> ) {
-            let value = v.get ();
+        return function ( rt : any, ts : any, value : string ) {
 
             window.requestAnimationFrame ( function () {
                 ts.el.style.setProperty ( name, value );

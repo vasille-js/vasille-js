@@ -12,10 +12,11 @@ import { Core }                              from "./interfaces/core.js";
 import { IBind }                             from "./interfaces/ibind";
 import { Callable }                          from "./interfaces/idefinition.js";
 import { IValue }                            from "./interfaces/ivalue.js";
+import { vassilify }                         from "./models";
 import { propertify, Property }              from "./property.js";
 import { StyleBinding, stylify }             from "./style.js";
 import { Value }                             from "./value.js";
-import type { RepeatNode, RepeatNodeItem }   from "./views";
+import type { RepeatNode }   from "./views";
 
 
 
@@ -624,7 +625,7 @@ export class BaseNode extends VasilleNode implements INode {
      * @param value {String | IValue | Callable} A value or a value getter
      * @return {BaseNode} A pointer to this
      */
-    defStyle ( name : string, value : string | IValue<any> | Callable ) : this {
+    defStyle ( name : string, value : string | IValue<string> | Callable ) : this {
         if (value instanceof Callable) {
             this.$style[name] = stylify ( this.rt, this, name, null, value );
         }
@@ -731,12 +732,12 @@ export class BaseNode extends VasilleNode implements INode {
      * @return {BaseNode} A pointer to this
      */
     defListener ( name : string, event : Function ) : this {
-        this.$listener[name] = eventify ( this.rt, this, name, event );
+        this.$listener[name] = eventify ( this, name, event );
         return this;
     }
 
     listen ( name : string, handler : Function, options: EventListenerOptionsOrUseCapture ) : this {
-        this.el.addEventListener(name, handler, options);
+        this.el.addEventListener(name, handler.bind(null, this), options);
         return this;
     }
 
@@ -973,11 +974,15 @@ export class BaseNode extends VasilleNode implements INode {
      * Register current node as named slot
      * @param name {String} The name of slot
      */
-    slot ( name : string ) : this {
+    makeSlot ( name : string ) : this {
         if (this.$rt instanceof BaseNode) {
             this.$rt.$slots[name] = this;
         }
         return this;
+    }
+
+    slot ( name : string ) : BaseNode {
+        return this.$slots[name];
     }
 
     /**
@@ -985,7 +990,7 @@ export class BaseNode extends VasilleNode implements INode {
      * @param node {VasilleNode} A node to push
      * @private
      */
-    pushNodeNow ( node : VasilleNode ) : void {
+    pushNode ( node : VasilleNode ) : void {
         if (this.lastChild) {
             this.lastChild.next = node;
         }
@@ -994,28 +999,6 @@ export class BaseNode extends VasilleNode implements INode {
 
         this.children.push ( node );
         this.lastChild = node;
-    }
-
-    /**
-     * Pushes a node with children slot checking
-     * @param node {VasilleNode} A node to push
-     * @param slotName {String} The slot name
-     */
-    pushNode ( node : VasilleNode, slotName : ?string ) : void {
-        if (this.building) {
-            this.pushNodeNow ( node );
-        }
-        else {
-            let slot = slotName ? this.$slots[slotName] : this.$slots["default"];
-
-            if (!slot) {
-                throw "No such slot: " + (
-                    slotName || "default"
-                );
-            }
-
-            slot.pushNodeNow ( node );
-        }
     }
 
     /**
@@ -1048,21 +1031,19 @@ export class BaseNode extends VasilleNode implements INode {
     /**
      * Defines a text fragment
      * @param text {String | IValue} A text fragment string
-     * @param slot {?String} Slot name
      * @param cb {?Function} Callback if previous is slot name
      * @param v {?IValue} pointer tot current value in repeatable node
      * @return {BaseNode} A pointer to this
      */
     defText (
         text : string | IValue<any>,
-        slot : ?string,
         cb : ?TextNodeCB,
         v : ?IValue<any>
     ) : BaseNode {
         let node = new TextNode ();
 
         node.preinitText ( this.$app, this.rt, this, null, text );
-        this.pushNode ( node, slot instanceof String ? slot : null );
+        this.pushNode ( node );
 
         if (cb) {
             cb ( node, v );
@@ -1073,14 +1054,12 @@ export class BaseNode extends VasilleNode implements INode {
     /**
      * Defines a tag element
      * @param tagName {String} is the tag name
-     * @param slot {String | Function} Callback or slot name
      * @param cb {Function} Callback if previous is slot name
      * @param v {IValue} pointer to current item in model of repeatable nodes
      * @return {BaseNode} A pointer to this
      */
     defTag (
         tagName : string,
-        slot : ?string,
         cb : ?ElementNodeCB,
         v : ?any
     ) : BaseNode {
@@ -1088,7 +1067,7 @@ export class BaseNode extends VasilleNode implements INode {
 
         node.preinitElementNode ( this.$app, this.rt, this, null, tagName );
         node.init ( {} );
-        this.pushNode ( node, slot );
+        this.pushNode ( node );
 
         if (cb) {
             cb ( node, v );
@@ -1101,7 +1080,6 @@ export class BaseNode extends VasilleNode implements INode {
      * Defines a custom element
      * @param node {*} Custom element constructor
      * @param props {Object} List of properties values
-     * @param slot {?String} Slot name
      * @param cb {?Function} Callback if previous is slot name
      * @param v P
      * @return {BaseNode} A pointer to this
@@ -1109,7 +1087,6 @@ export class BaseNode extends VasilleNode implements INode {
     defElement<T> (
         node : T,
         props : Object,
-        slot : ?string,
         cb : ?( node : T, v : ?any ) => void,
         v : ?any
     ) : BaseNode {
@@ -1126,7 +1103,7 @@ export class BaseNode extends VasilleNode implements INode {
         }
 
         if (node instanceof VasilleNode) {
-            this.pushNode ( node, slot );
+            this.pushNode ( node );
         }
 
         if (cb) {
@@ -1142,15 +1119,42 @@ export class BaseNode extends VasilleNode implements INode {
     defRepeater (
         node : RepeatNode,
         props : Object,
-        slot : ?string,
         cb : ( node : RepeatNodeItem, v : ?any ) => void,
         v : ?any
-    ) {
+    ) : this {
         node.preinitShadow ( this.$app, this.rt, this, null );
         node.init ( props );
-        this.pushNode ( node, slot );
+        this.pushNode ( node );
         node.setCallback(cb);
         node.ready ();
+
+        return this;
+    }
+
+    defIf (
+        cond : any,
+        cb : CaseCallBack
+    ) {
+        this.defSwitch({ cond, cb });
+    }
+    
+    defIfElse (
+        ifCond : any,
+        ifCb : CaseCallBack,
+        elseCb : CaseCallBack
+    ) {
+        this.defSwitch ({ cond : ifCond, cb : ifCb } , { cond : true, cb : elseCb } );
+    }
+
+    defSwitch (
+        ...cases : Array<CaseArg>
+    ) {
+        let node = new SwitchedNode();
+
+        node.preinitShadow( this.$app, this.rt, this, null );
+        node.init({});
+        this.pushNode( node );
+        node.setCases(cases);
     }
 }
 
@@ -1246,6 +1250,108 @@ export class ShadowNode extends BaseNode {
     destroy () {
         super.destroy ();
         this.el.removeChild ( this.$shadow );
+    }
+}
+
+type CallBack = ( node : RepeatNodeItem, v : ?any ) => void;
+type CaseCallBack = ( node : RepeatNodeItem, v : ?number ) => void;
+type Case = { cond: IValue<boolean>, cb : CaseCallBack };
+type CaseArg = { cond: IValue<boolean> | boolean, cb : CaseCallBack };
+
+export class RepeatNodeItem extends ShadowNode {
+    $id : any;
+
+    constructor (id : any) {
+        super ();
+        this.$id = id;
+    }
+
+    destroy () {
+        super.destroy ();
+
+        for (let child of this.children) {
+            if (child.el !== this.el) {
+                this.el.removeChild ( child.el );
+            }
+        }
+    }
+}
+
+class SwitchedNode extends ShadowNode {
+
+    index: number = -1;
+    node : ShadowNode;
+    cases : Array<Case>;
+    sync: Function;
+
+    constructor () {
+        super ();
+
+        this.sync = () => {
+            let i = 0;
+
+            for (; i < this.cases.length; i++) {
+                if (this.cases[i].cond.get()) {
+                    break;
+                }
+            }
+
+            if (this.node) {
+                this.node.destroy();
+            }
+
+            if (i !== this.cases.length) {
+                if (this.index !== i) {
+                    this.createChild(i, this.cases[i].cb);
+                    this.index = i;
+                }
+            }
+            else {
+                this.index = -1;
+            }
+        }
+    };
+
+    preinitShadow ( app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode ) {
+        super.preinitShadow ( app, rt, ts, before );
+        this.encapsulate(ts.el);
+    }
+
+    setCases (cases : Array<CaseArg>) {
+        this.cases = [];
+
+        for (let case_ of cases) {
+            this.cases.push({ cond: vassilify(case_.cond), cb: case_.cb });
+        }
+    }
+
+    createChild ( id : any, cb : CallBack ) {
+        let node = new RepeatNodeItem ( id );
+
+        node.preinitShadow ( this.$app, this.rt, this );
+
+        node.init ( {} );
+        cb(node, id);
+        node.ready();
+
+        this.node = node;
+    };
+
+    ready () {
+        super.ready ();
+
+        for (let c of this.cases) {
+            c.cond.on(this.sync);
+        }
+    }
+
+    destroy () {
+        for (let c of this.cases) {
+            c.cond.off(this.sync);
+        }
+
+        this.node.destroy();
+        super.destroy ();
     }
 }
 

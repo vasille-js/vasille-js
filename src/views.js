@@ -2,29 +2,10 @@
 import { IValue }                                      from "./interfaces/ivalue";
 import { ArrayModel, MapModel, ObjectModel, SetModel } from "./models";
 import { VasilleNode }                                 from "./node";
-import { AppNode, BaseNode, ShadowNode } from "./node.js";
+import { AppNode, BaseNode, ShadowNode, RepeatNodeItem } from "./node.js";
 import { Value }                         from "./value";
 
 
-
-export class RepeatNodeItem extends ShadowNode {
-    $id : any;
-
-    constructor (id : any) {
-        super ();
-        this.$id = id;
-    }
-
-    destroy () {
-        super.destroy ();
-
-        for (let child of this.children) {
-            if (child.el !== this.el) {
-                this.el.removeChild ( child.el );
-            }
-        }
-    }
-}
 
 export class RepeatNode extends ShadowNode {
     nodes : Map<any, ShadowNode> = new Map ();
