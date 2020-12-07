@@ -583,7 +583,7 @@ export class BaseNode extends VasilleNode implements INode {
     }
 
     scopedClass (cl : ?string) : Array<string> {
-        return cl ? this.$app.css.scopedClass(this.constructor, cl) : [];
+        return cl ? this.$app.css.scopedClass(this.rt.constructor, cl) : [];
     }
 
     createCss () : Array<{| selector : string, data : Object, media : Object |}> {
@@ -1155,6 +1155,7 @@ export class BaseNode extends VasilleNode implements INode {
         node.init({});
         this.pushNode( node );
         node.setCases(cases);
+        node.ready();
     }
 }
 
@@ -1296,17 +1297,18 @@ class SwitchedNode extends ShadowNode {
                 }
             }
 
-            if (this.node) {
-                this.node.destroy();
-            }
+            if (i === this.index) return;
 
             if (i !== this.cases.length) {
-                if (this.index !== i) {
-                    this.createChild(i, this.cases[i].cb);
-                    this.index = i;
-                }
+                this.index = i;
+                if (this.node) this.node.destroy();
+                this.createChild(i, this.cases[i].cb);
             }
             else {
+                if (this.node) {
+                    this.node.destroy();
+                    this.node = null;
+                }
                 this.index = -1;
             }
         }
@@ -1328,6 +1330,7 @@ class SwitchedNode extends ShadowNode {
     createChild ( id : any, cb : CallBack ) {
         let node = new RepeatNodeItem ( id );
 
+        node.parent = this;
         node.preinitShadow ( this.$app, this.rt, this );
 
         node.init ( {} );
@@ -1343,6 +1346,8 @@ class SwitchedNode extends ShadowNode {
         for (let c of this.cases) {
             c.cond.on(this.sync);
         }
+
+        this.sync();
     }
 
     destroy () {

@@ -23,7 +23,7 @@ export class CssDebugCompozitor extends CssCompozitor {
     styleToString ( selector : string, rules : Object, node : BaseNode ) : string {
         let css = '';
 
-            selector = selector.replace(/(\w*)\.((?!vs-)[^\s.:#]+)/, ( found, name, cl ) => {
+            selector = selector.replace(/(\b[A-Z]\w*)?\.((?!vs-)[^\s.:#]+)/, ( found, name, cl ) => {
                 return name
                        ? '.' + this.scopedClass({name}, cl)[0]
                        : '.' + this.scopedClass(node.constructor, cl)[0];
@@ -32,7 +32,7 @@ export class CssDebugCompozitor extends CssCompozitor {
             css += selector + ' {\n';
 
             for (let i in rules) {
-                css += '  ' + i + ': ' + rules[i] + '\n';
+                css += '  ' + i + ': ' + rules[i] + ';\n';
             }
 
             css += '}\n';
