@@ -60,8 +60,10 @@ export class RepeatNode extends ShadowNode {
         node.preinitShadow ( this.$app, this.rt, this, before || ( current ? current.next : null ) );
 
         node.init ( {} );
-        this.cb(node, item.get());
-        node.ready();
+        this.$app.run.callCallback(() => {
+            this.cb(node, item.get());
+            node.ready();
+        });
 
         this.nodes.set(id, node);
     };
@@ -264,7 +266,9 @@ export class ArrayView extends BaseView {
     ready () {
         let arr = this.props.model.get ();
         for (let i = 0; i < arr.length; i++) {
-            this.createChild ( i, arr[i] );
+            this.$app.run.callCallback(() => {
+                this.createChild ( i, arr[i] );
+            });
         }
 
         super.ready ();
@@ -320,7 +324,9 @@ export class ObjectView extends BaseView {
         
         for (let i in obj) {
             if (obj.get(i) instanceof IValue) {
-                this.createChild(i, obj.get(i));
+                this.$app.run.callCallback(() => {
+                    this.createChild(i, obj.get(i));
+                });
             }
         }
 
@@ -377,7 +383,9 @@ export class MapView extends BaseView {
         let map = this.props.model.get();
 
         for (let it of map) {
-            this.createChild(it[0], it[1]);
+            this.$app.run.callCallback(() => {
+                this.createChild(it[0], it[1]);
+            });
         }
 
         super.ready ();
@@ -433,7 +441,9 @@ export class SetView extends BaseView {
         let set = this.props.model.get();
 
         for (let it of set) {
-            this.createChild(it, it);
+            this.$app.run.callCallback(() => {
+                this.createChild(it, it);
+            });
         }
 
         super.ready ();

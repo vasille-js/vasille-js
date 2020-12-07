@@ -4,9 +4,9 @@ import { Bind1, Binding, BindN }             from "./bind";
 import { classify }                          from "./class";
 import { CssCompozitor, CssDebugCompozitor } from "./css";
 import { datify }                            from "./data.js";
-import { eventify }                          from "./event.js";
-import { Executor, FastExecutor }            from "./executor";
-import type { CoreEl }                       from "./interfaces/core";
+import { eventify }                                                    from "./event.js";
+import { DelayExecutor, Executor, InstantExecutor } from "./executor";
+import type { CoreEl }                                                 from "./interfaces/core";
 import { destroyObject }                     from "./interfaces/core";
 import { Core }                              from "./interfaces/core.js";
 import { IBind }                             from "./interfaces/ibind";
@@ -19,10 +19,6 @@ import { Value }                             from "./value.js";
 import type { RepeatNode }   from "./views";
 
 
-
-export interface INode {
-    appendChild ( node : CoreEl, before : VasilleNode ) : void;
-}
 
 /**
  * Represents a Vasille.js node
@@ -193,15 +189,13 @@ export class TextNode extends VasilleNode {
     }
 }
 
-export type TextNodeCB = ( text : TextNode, v : ?any ) => void;
-export type ElementNodeCB = ( text : ElementNode, v : ?any ) => void;
 export type Signal = {|args : Array<Function>, handlers : Array<Function> |};
 
 /**
  * Represents an Vasille.js node which can contains children
  * @extends VasilleNode
  */
-export class BaseNode extends VasilleNode implements INode {
+export class BaseNode extends VasilleNode {
     /**
      * The children list
      * @type {Array<VasilleNode>}
@@ -1009,16 +1003,16 @@ export class BaseNode extends VasilleNode implements INode {
      */
     appendChild ( node : CoreEl, before : ?VasilleNode ) : void {
         if (before instanceof ShadowNode) {
-            this.el.insertBefore ( node, before.$shadow );
+            this.$app.run.insertBefore(this.el, node, before.$shadow);
         }
         else if (before instanceof ElementNode) {
-            this.el.insertBefore ( node, before.el );
+            this.$app.run.insertBefore(this.el, node, before.el);
         }
         else if (this instanceof ShadowNode && !(this.parent instanceof AppNode)) {
             this.parent.appendChild ( node, this.next );
         }
         else {
-            this.el.appendChild ( node );
+            this.$app.run.appendChild( this.el, node );
         }
     }
 
@@ -1037,7 +1031,7 @@ export class BaseNode extends VasilleNode implements INode {
      */
     defText (
         text : string | IValue<any>,
-        cb : ?TextNodeCB,
+        cb : ?( text : TextNode, v : ?any ) => void,
         v : ?IValue<any>
     ) : BaseNode {
         let node = new TextNode ();
@@ -1046,7 +1040,7 @@ export class BaseNode extends VasilleNode implements INode {
         this.pushNode ( node );
 
         if (cb) {
-            cb ( node, v );
+            this.$app.run.callCallback(() => { cb(node, v) });
         }
         return this;
     }
@@ -1060,7 +1054,7 @@ export class BaseNode extends VasilleNode implements INode {
      */
     defTag (
         tagName : string,
-        cb : ?ElementNodeCB,
+        cb : ?( node : ElementNode, v : ?any ) => void,
         v : ?any
     ) : BaseNode {
         let node = new ElementNode ();
@@ -1069,10 +1063,12 @@ export class BaseNode extends VasilleNode implements INode {
         node.init ( {} );
         this.pushNode ( node );
 
-        if (cb) {
-            cb ( node, v );
-        }
-        node.ready();
+        this.$app.run.callCallback(() => {
+            if (cb) {
+                cb ( node, v );
+            }
+            node.ready();
+        });
         return this;
     }
 
@@ -1106,13 +1102,16 @@ export class BaseNode extends VasilleNode implements INode {
             this.pushNode ( node );
         }
 
-        if (cb) {
-            cb ( node, v );
-        }
+        this.$app.run.callCallback(() => {
+            if (cb) {
+                cb ( node, v );
+            }
 
-        if (node instanceof BaseNode) {
-            node.ready ();
-        }
+            if (node instanceof BaseNode) {
+                node.ready ();
+            }
+        });
+
         return this;
     }
 
@@ -1126,7 +1125,7 @@ export class BaseNode extends VasilleNode implements INode {
         node.init ( props );
         this.pushNode ( node );
         node.setCallback(cb);
-        node.ready ();
+        this.$app.run.callCallback(() => { node.ready(); });
 
         return this;
     }
@@ -1134,28 +1133,30 @@ export class BaseNode extends VasilleNode implements INode {
     defIf (
         cond : any,
         cb : CaseCallBack
-    ) {
-        this.defSwitch({ cond, cb });
+    ) : this {
+        return this.defSwitch({ cond, cb });
     }
     
     defIfElse (
         ifCond : any,
         ifCb : CaseCallBack,
         elseCb : CaseCallBack
-    ) {
-        this.defSwitch ({ cond : ifCond, cb : ifCb } , { cond : true, cb : elseCb } );
+    ) : this {
+        return this.defSwitch ({ cond : ifCond, cb : ifCb } , { cond : true, cb : elseCb } );
     }
 
     defSwitch (
         ...cases : Array<CaseArg>
-    ) {
+    ) : this {
         let node = new SwitchedNode();
 
         node.preinitShadow( this.$app, this.rt, this, null );
         node.init({});
         this.pushNode( node );
         node.setCases(cases);
-        node.ready();
+        this.$app.run.callCallback(() => { node.ready(); });
+
+        return this;
     }
 }
 
@@ -1300,15 +1301,12 @@ class SwitchedNode extends ShadowNode {
             if (i === this.index) return;
 
             if (i !== this.cases.length) {
+                if (this.index !== -1) this.node.destroy();
                 this.index = i;
-                if (this.node) this.node.destroy();
                 this.createChild(i, this.cases[i].cb);
             }
             else {
-                if (this.node) {
-                    this.node.destroy();
-                    this.node = null;
-                }
+                this.node.destroy();
                 this.index = -1;
             }
         }
@@ -1382,7 +1380,7 @@ export class AppNode extends BaseNode {
     constructor ( node : HTMLElement, props : { debug : boolean } ) {
         super ();
 
-        this.run = new FastExecutor ();
+        this.run = new InstantExecutor ();
         this.css = new CssDebugCompozitor ();
         this.encapsulate ( node );
         this.preinit ( this, this, this, this );

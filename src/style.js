@@ -54,11 +54,7 @@ export class StyleBinding extends Binding {
      */
     bound ( name : string ) : Function {
         return function ( rt : any, ts : any, value : string ) {
-
-            window.requestAnimationFrame ( function () {
-                ts.el.style.setProperty ( name, value );
-            } );
-
+            rt.$app.run.setStyle(ts.el, name, value);
             return value;
         };
     }

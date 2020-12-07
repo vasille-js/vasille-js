@@ -57,14 +57,10 @@ export class AttributeBinding extends Binding {
         return function ( rt : any, ts : any, value : string ) {
 
             if (value) {
-                window.requestAnimationFrame ( function () {
-                    ts.el.setAttribute ( name, value );
-                } );
+                rt.$app.run.setAttribute(ts.el, name, value);
             }
             else {
-                window.requestAnimationFrame ( function () {
-                    ts.el.removeAttribute ( name );
-                } );
+                rt.$app.run.removeAttribute(ts.el, name);
             }
 
             return value;
