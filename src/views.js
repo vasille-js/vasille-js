@@ -17,7 +17,9 @@ export class RepeatNode extends ShadowNode {
 
     setCallback (cb : (node : RepeatNodeItem, v : ?any) => void) {
         this.cb = cb;
-    }    preinitShadow (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
+    }
+
+    preinitShadow (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
         super.preinitShadow(app, rt, ts, before);
         this.encapsulate(ts.el);
     }
@@ -75,10 +77,6 @@ export class RepeatNode extends ShadowNode {
     destroyChild (id : any, item : IValue<any>) {
         let child = this.nodes.get(id);
 
-        if (this.lastChild && this.lastChild === child) {
-            this.lastChild = this.lastChild.prev;
-        }
-
         if (child) {
             if (child.prev) {
                 child.prev.next = child.next;
@@ -88,18 +86,9 @@ export class RepeatNode extends ShadowNode {
             }
             child.destroy();
             this.nodes.delete(id);
+            this.children.splice(this.children.indexOf(child), 1);
         }
     };
-
-
-
-    destroy () {
-        for (let it of this.nodes) {
-            it[1].destroy();
-        }
-
-        super.destroy();
-    }
 }
 
 export class Repeater extends RepeatNode {

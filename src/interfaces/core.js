@@ -17,7 +17,7 @@ export function destroyObject (obj : Object) {
     for (let i in obj) {
         if (obj.hasOwnProperty(i)) {
             let prop = obj[i];
-            if (prop instanceof Destroyable) {
+            if (prop instanceof Destroyable && !(prop instanceof Core)) {
                 prop.destroy();
             }
         }

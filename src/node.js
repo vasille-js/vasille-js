@@ -343,13 +343,15 @@ export class BaseNode extends VasilleNode {
     created () {
     }
 
+    /** To be overloaded: mounted event handler */
+    mounted () {
+    }
+
     /** To be overloaded: ready event handler */
     ready () {
     }
 
-    /** To be overloaded: mounted event handler */
-    mounted () {
-    }    /**
+    /**
      * Runs garbage collector
      */
     destroy () : void {
