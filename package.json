@@ -25,6 +25,7 @@
   ],
   "author": "Vasile Lixcode <lixcode@vivaldi.net> (https://t.me/lixcode)",
   "license": "MIT",
+  "dependencies": {},
   "devDependencies": {
     "flow-bin": "^0.134.0",
     "flow-remove-types": "^2.134.0",
