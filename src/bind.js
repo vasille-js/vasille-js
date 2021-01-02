@@ -129,7 +129,7 @@ export class Bind1 extends IBind {
     /**
      * Provides garbage collection
      */
-    destroy () : void {
+    $destroy () : void {
         this.unlink();
     }
 }
@@ -260,7 +260,7 @@ export class BindN extends IBind {
     /**
      * Clear bindings on destroy
      */
-    destroy () : void {
+    $destroy () : void {
         this.unlink();
     }
 }
@@ -361,7 +361,7 @@ export class Binding extends IValue<any> {
     /**
      * Just clear bindings
      */
-    destroy () {
+    $destroy () {
         this.binding.off(this.bound);
     }
 }

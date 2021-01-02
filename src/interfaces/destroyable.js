@@ -8,6 +8,6 @@ export class Destroyable {
     /**
      * Garbage collector method
      */
-    destroy () : void {
+    $destroy () : void {
     }
 }

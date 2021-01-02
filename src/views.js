@@ -19,9 +19,9 @@ export class RepeatNode extends ShadowNode {
         this.cb = cb;
     }
 
-    preinitShadow (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
-        super.preinitShadow(app, rt, ts, before);
-        this.encapsulate(ts.el);
+    $$preinitShadow (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
+        super.$$preinitShadow(app, rt, ts, before);
+        this.$$encapsulate(ts.$el);
     }
 
     createChild (id : any, item : IValue<any>, before : ?VasilleNode) {
@@ -30,45 +30,45 @@ export class RepeatNode extends ShadowNode {
 
         this.destroyChild(id, item);
 
-        node.parent = this;
+        node.$parent = this;
         if (current) {
-            node.next = current.next;
-            node.prev = current.prev;
-            if (node.next) {
-                node.next.prev = node;
+            node.$next = current.next;
+            node.$prev = current.$prev;
+            if (node.$next) {
+                node.$next.$prev = node;
             }
-            if (node.prev) {
-                node.prev.next = node;
+            if (node.$prev) {
+                node.$prev.$next = node;
             }
-            this.children.splice(this.children.indexOf(current), 1, node);
+            this.$children.splice(this.$children.indexOf(current), 1, node);
         }
         else if (before) {
-            node.next = before;
-            node.prev = before.prev;
-            before.prev = node;
-            if (node.prev) {
-                node.prev.next = node;
+            node.$next = before;
+            node.$prev = before.$prev;
+            before.$prev = node;
+            if (node.$prev) {
+                node.$prev.$next = node;
             }
-            this.children.splice(this.children.indexOf(before) - 1, 0, node);
+            this.$children.splice(this.$children.indexOf(before) - 1, 0, node);
         }
         else {
-            let lastChild = this.children[this.children.length - 1];
+            let lastChild = this.$children[this.$children.length - 1];
                           
             if (lastChild) {
-                lastChild.next = node;
+                lastChild.$next = node;
             }
-            node.prev = lastChild;
-            this.children.push(node);
+            node.$prev = lastChild;
+            this.$children.push(node);
         }
 
-        node.preinitShadow(this.$app, this.rt, this, before || (
+        node.$$preinitShadow(this.$app, this.$rt, this, before || (
             current ? current.next : null
         ));
 
-        node.init({});
-        this.$app.run.callCallback(() => {
+        node.$init({});
+        this.$app.$run.callCallback(() => {
             this.cb(node, item.get());
-            node.ready();
+            node.$ready();
         });
 
         this.nodes.set(id, node);
@@ -78,15 +78,15 @@ export class RepeatNode extends ShadowNode {
         let child = this.nodes.get(id);
 
         if (child) {
-            if (child.prev) {
-                child.prev.next = child.next;
+            if (child.$prev) {
+                child.$prev.$next = child.next;
             }
             if (child.next) {
-                child.next.prev = child.prev;
+                child.next.$prev = child.$prev;
             }
             child.destroy();
             this.nodes.delete(id);
-            this.children.splice(this.children.indexOf(child), 1);
+            this.$children.splice(this.$children.indexOf(child), 1);
         }
     };
 }
@@ -123,8 +123,8 @@ export class Repeater extends RepeatNode {
 
 
 
-    created () {
-        super.created();
+    $created () {
+        super.$created();
 
         this.updateHandler = (value : number) => {
             this.changeCount(value);
@@ -132,12 +132,12 @@ export class Repeater extends RepeatNode {
         this.count.on(this.updateHandler);
     }
 
-    ready () {
+    $ready () {
         this.changeCount(this.count.get());
     }
 
-    destroy () {
-        super.destroy();
+    $destroy () {
+        super.$destroy();
         this.count.off(this.updateHandler);
     }
 }
@@ -173,16 +173,16 @@ export class BaseView extends RepeatNode {
 
 
 
-    ready () {
+    $ready () {
         this.model.get().listener.onAdd(this.addHandler);
         this.model.get().listener.onRemove(this.removeHandler);
-        super.ready();
+        super.$ready();
     }
 
-    destroy () {
+    $destroy () {
         this.model.get().listener.offAdd(this.addHandler);
         this.model.get().listener.offRemove(this.removeHandler);
-        super.destroy();
+        super.$destroy();
     }
 }
 
@@ -234,24 +234,24 @@ export class ArrayView extends BaseView {
 
 
 
-    ready () {
+    $ready () {
         let arr = this.model.get();
         for (let i = 0; i < arr.length; i++) {
-            this.$app.run.callCallback(() => {
+            this.$app.$run.callCallback(() => {
                 this.createChild(i, arr[i]);
             });
         }
 
-        super.ready();
+        super.$ready();
     }
 
-    destroy () {
+    $destroy () {
         let arr = this.model.get();
         for (let i = 0; i < arr.length; i++) {
             arr[i].off(this.handlers[i]);
         }
 
-        super.destroy();
+        super.$destroy();
     }
 }
 
@@ -277,21 +277,21 @@ export class ObjectView extends BaseView {
 
 
 
-    ready () {
+    $ready () {
         let obj = this.model.get();
 
         for (let i in obj) {
             if (obj.hasOwnProperty(i) && obj.get(i) instanceof IValue) {
-                this.$app.run.callCallback(() => {
+                this.$app.$run.callCallback(() => {
                     this.createChild(i, obj.get(i));
                 });
             }
         }
 
-        super.ready();
+        super.$ready();
     }
 
-    destroy () {
+    $destroy () {
         let obj = this.model.get();
 
         for (let i in obj) {
@@ -300,7 +300,7 @@ export class ObjectView extends BaseView {
             }
         }
 
-        super.destroy();
+        super.$destroy();
     }
 }
 
@@ -326,26 +326,26 @@ export class MapView extends BaseView {
 
 
 
-    ready () {
+    $ready () {
         let map = this.model.get();
 
         for (let it of map) {
-            this.$app.run.callCallback(() => {
+            this.$app.$run.callCallback(() => {
                 this.createChild(it[0], it[1]);
             });
         }
 
-        super.ready();
+        super.$ready();
     }
 
-    destroy () {
+    $destroy () {
         let map = this.model.get();
 
         for (let it of map) {
             it[1].off(this.handlers.get(it[0]));
         }
 
-        super.destroy();
+        super.$destroy();
     }
 }
 
@@ -371,25 +371,25 @@ export class SetView extends BaseView {
 
 
 
-    ready () {
+    $ready () {
         let set = this.model.get();
 
         for (let it of set) {
-            this.$app.run.callCallback(() => {
+            this.$app.$run.callCallback(() => {
                 this.createChild(it, it);
             });
         }
 
-        super.ready();
+        super.$ready();
     }
 
-    destroy () {
+    $destroy () {
         let set = this.model.get();
 
         for (let it of set) {
             it.off(this.handlers.get(it));
         }
 
-        super.destroy();
+        super.$destroy();
     }
 }

@@ -13,12 +13,12 @@ export type CoreEl = HTMLElement | Text | Comment;
  * Destroy all destroyable object fields
  * @param obj {Object<any, any>} Object to be iterated
  */
-export function destroyObject (obj : Object) {
+export function $destroyObject (obj : Object) {
     for (let i in obj) {
         if (obj.hasOwnProperty(i)) {
             let prop = obj[i];
             if (prop instanceof Destroyable && !(prop instanceof Core)) {
-                prop.destroy();
+                prop.$destroy();
             }
         }
     }
@@ -32,26 +32,26 @@ export class Core extends Destroyable {
     /**
      * The encapsulated element
      * @type {HTMLElement | Text | Comment}
-     * @see Core#coreEl
-     * @see Core#el
-     * @see Core#text
-     * @see Core#comment
+     * @see Core#$coreEl
+     * @see Core#$el
+     * @see Core#$text
+     * @see Core#$comment
      */
-    $el : CoreEl;
+    $$el : CoreEl;
 
     /**
      * The collection of attributes
      * @type {Object<String, IValue>}
      * @see Core#attrs
      */
-    $attrs : LiveFields = {};
+    $$attrs : LiveFields = {};
 
     /**
      * The collection of style attributes
      * @type {Object<String, IValue>}
-     * @see Core#style
+     * @see Core#$style
      */
-    $style : LiveFields = {};
+    $$style : LiveFields = {};
 
     /**
      * Builds a component core by a html element/text/comment
@@ -63,60 +63,61 @@ export class Core extends Destroyable {
     /**
      * Gets the encapsulated element anyway
      * @type {HTMLElement | Text | Comment}
-     * @see Core#$el
+     * @see Core#$$el
      */
-    get coreEl () : CoreEl {
-        return this.$el;
+    get $coreEl () : CoreEl {
+        return this.$$el;
     }
 
     /**
      * Gets the encapsulated element if it is a html element, otherwise undefined
      * @type {HTMLElement}
-     * @see Core#$el
+     * @see Core#$$el
      */
-    get el () : HTMLElement {
-        let el = this.coreEl;
+    get $el () : HTMLElement {
+        let el = this.$coreEl;
         if (el instanceof HTMLElement) {
             return el;
         }
 
-        throw "wrong Core.el() call";
+        throw "wrong Core.$el() call";
     }
 
     /**
      * Gets the encapsulated element if it is a html text node, otherwise undefined
      * @type {Text}
-     * @see Core#$el
+     * @see Core#$$el
      */
-    get text () : Text {
-        let el = this.coreEl;
+    get $text () : Text {
+        let el = this.$coreEl;
         if (el instanceof Text) {
             return el;
         }
 
-        throw "wrong Core.text() call";
+        throw "wrong Core.$text() call";
     }
 
     /**
      * Gets the encapsulated element if it is a html comment, otherwise undefined
      * @type {Comment}
-     * @see Core#$el
+     * @see Core#$$el
      */
-    get comment () : Comment {
-        let el = this.coreEl;
+    get $comment () : Comment {
+        let el = this.$coreEl;
         if (el instanceof Comment) {
             return el;
         }
 
-        throw "wrong Core.comment() call";
+        throw "wrong Core.$comment() call";
     }
 
     /**
      * Encapsulate element
      * @param el {HTMLElement | Text | Comment} element to encapsulate
+     * @private
      */
-    encapsulate (el : CoreEl) : this {
-        this.$el = el;
+    $$encapsulate (el : CoreEl) : this {
+        this.$$el = el;
         return this;
     }
 
@@ -125,8 +126,8 @@ export class Core extends Destroyable {
      * @param field {string} attribute name
      * @return {IValue}
      */
-    attr (field : string) : IValue<string> {
-        let v = this.$attrs[field];
+    $attr (field : string) : IValue<string> {
+        let v = this.$$attrs[field];
 
         if (v instanceof IValue) {
             return v;
@@ -138,10 +139,10 @@ export class Core extends Destroyable {
     /**
      * Gets the component life style attribute
      * @type {Object<String, IValue>}
-     * @see Core#$style
+     * @see Core#$$style
      */
-    style (field : string) : IValue<string> {
-        let v = this.$style[field];
+    $style (field : string) : IValue<string> {
+        let v = this.$$style[field];
 
         if (v instanceof IValue) {
             return v;
@@ -153,9 +154,9 @@ export class Core extends Destroyable {
     /**
      * Unlinks all bindings
      */
-    destroy () {
-        destroyObject(this);
-        destroyObject(this.$attrs);
-        destroyObject(this.$style);
+    $destroy () {
+        $destroyObject(this);
+        $destroyObject(this.$$attrs);
+        $destroyObject(this.$$style);
     }
 }

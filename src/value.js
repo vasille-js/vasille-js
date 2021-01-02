@@ -75,8 +75,8 @@ export class Value<T> extends IValue<T> {
         return this;
     }
 
-    destroy () {
-        super.destroy();
+    $destroy () {
+        super.$destroy();
         this.onchange.clear();
     }
 }
@@ -169,7 +169,7 @@ export class Rebind extends IValue<IValue<any>> {
     /**
      * Removes all bounded functions
      */
-    destroy () {
+    $destroy () {
         for (let handler of this.bound) {
             this.value.off(handler);
         }

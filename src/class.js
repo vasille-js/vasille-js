@@ -60,11 +60,11 @@ export class ClassBinding extends Binding {
         let binding = this;
 
         function addClass (rt : BaseNode, ts : BaseNode, cl : string) {
-            rt.$app.run.addClass(ts.el, cl);
+            rt.$app.$run.addClass(ts.$el, cl);
         }
 
         function removeClass (rt : BaseNode, ts : BaseNode, cl : string) {
-            rt.$app.run.removeClass(ts.el, cl);
+            rt.$app.$run.removeClass(ts.$el, cl);
         }
 
         return function (rt : BaseNode, ts : BaseNode, value : string | boolean) {
