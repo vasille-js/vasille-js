@@ -1,6 +1,6 @@
 {
   "name": "vasille-js",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The fastest (Vanilla.js based) front-end javascript framework",
   "main": "lib/index.js",
   "types": "src/index.js",
@@ -17,7 +17,12 @@
     "type": "git",
     "url": "https://gitlab.com/vasille.js/vasille.js.git"
   },
-  "keywords": ["javascript", "framework", "frontend", "fast"],
+  "keywords": [
+    "javascript",
+    "framework",
+    "frontend",
+    "fast"
+  ],
   "author": "Vasile Lixcode <lixcode@vivaldi.net> (https://t.me/lixcode)",
   "license": "MIT",
   "devDependencies": {
