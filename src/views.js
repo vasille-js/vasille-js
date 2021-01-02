@@ -1,9 +1,9 @@
 // @flow
-import { IValue }                                        from "./interfaces/ivalue";
-import { ArrayModel, MapModel, ObjectModel, SetModel }   from "./models";
-import { VasilleNode }                                   from "./node";
+import { IValue }                                        from "./interfaces/ivalue.js";
+import { ArrayModel, MapModel, ObjectModel, SetModel }   from "./models.js";
+import { VasilleNode }                                   from "./node.js";
 import { AppNode, BaseNode, RepeatNodeItem, ShadowNode } from "./node.js";
-import { Value }                                         from "./value";
+import { Value }                                         from "./value.js";
 
 
 

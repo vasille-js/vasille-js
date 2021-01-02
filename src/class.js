@@ -2,7 +2,7 @@
 import { Binding }       from "./bind.js";
 import { Callable }      from "./interfaces/idefinition.js";
 import { IValue }        from "./interfaces/ivalue.js";
-import type { BaseNode } from "./node";
+import type { BaseNode } from "./node.js";
 import { propertify }    from "./property.js";
 
 

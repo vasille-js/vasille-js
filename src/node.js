@@ -1,19 +1,19 @@
 // @flow
 import { AttributeBinding, attributify } from "./attribute.js";
-import { Bind1, Binding, BindN }         from "./bind";
-import { classify }                      from "./class";
+import { Bind1, Binding, BindN }         from "./bind.js";
+import { classify }                      from "./class.js";
 import { eventify }                      from "./event.js";
-import { Executor, InstantExecutor }     from "./executor";
-import type { CoreEl }                   from "./interfaces/core";
-import { $destroyObject }                from "./interfaces/core";
+import { Executor, InstantExecutor }     from "./executor.js";
+import type { CoreEl }                   from "./interfaces/core.js";
+import { $destroyObject }                from "./interfaces/core.js";
 import { Core }                          from "./interfaces/core.js";
-import { IBind }                         from "./interfaces/ibind";
+import { IBind }                         from "./interfaces/ibind.js";
 import { Callable }                      from "./interfaces/idefinition.js";
 import { IValue }                        from "./interfaces/ivalue.js";
-import { vassilify }                     from "./models";
+import { vassilify }                     from "./models.js";
 import { StyleBinding, stylify }         from "./style.js";
 import { Value }                         from "./value.js";
-import type { RepeatNode }               from "./views";
+import type { RepeatNode }               from "./views.js";
 
 
 
