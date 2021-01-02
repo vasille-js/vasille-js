@@ -939,6 +939,11 @@ export class BaseNode extends VasilleNode {
         text : string | IValue<any>,
         cb : ?(text : TextNode) => void
     ) : BaseNode {
+        if (this.$slots["default"] !== this && !this.building) {
+            this.$slots["default"].defText(text, cb);
+            return this;
+        }
+
         let node = new TextNode();
 
         node.preinitText(this.$app, this.rt, this, null, text);
@@ -962,6 +967,10 @@ export class BaseNode extends VasilleNode {
         tagName : string,
         cb : ?(node : ElementNode, v : ?any) => void
     ) : BaseNode {
+        if (this.$slots["default"] !== this && !this.building) {
+            this.$slots["default"].defTag(tagName, cb);
+            return this;
+        }
         let node = new ElementNode();
 
         node.parent = this;
@@ -990,6 +999,11 @@ export class BaseNode extends VasilleNode {
         props : Object,
         cb : ?(node : T, v : ?any) => void
     ) : BaseNode {
+        if (this.$slots["default"] !== this && !this.building) {
+            this.$slots["default"].defElement(node, props, cb);
+            return this;
+        }
+
         if (node instanceof VasilleNode) {
             node.parent = this;
         }
@@ -1027,6 +1041,11 @@ export class BaseNode extends VasilleNode {
         props : Object,
         cb : (node : RepeatNodeItem, v : ?any) => void
     ) : this {
+        if (this.$slots["default"] !== this && !this.building) {
+            this.$slots["default"].defRepeater(node, props, cb);
+            return this;
+        }
+
         node.parent = this;
         node.preinitShadow(this.$app, this.rt, this, null);
         node.init(props);
@@ -1057,6 +1076,11 @@ export class BaseNode extends VasilleNode {
     defSwitch (
         ...cases : Array<CaseArg>
     ) : this {
+        if (this.$slots["default"] !== this && !this.building) {
+            this.$slots["default"].defSwitch(...cases);
+            return this;
+        }
+
         let node = new SwitchedNode();
 
         node.parent = this;
