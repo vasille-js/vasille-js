@@ -1,5 +1,5 @@
 {
-  "name": "vasile.js",
+  "name": "vasille-js",
   "version": "1.0.0",
   "description": "The fastest (Vanilla.js based) front-end javascript framework",
   "main": "lib/index.js",
@@ -8,7 +8,8 @@
     "flow": "flow",
     "prebuild": "rm -r lib",
     "build": "flow-remove-types --pretty --sourcemaps src/ -d lib/",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "flow-remove-types --pretty --sourcemaps src/ -d lib/",
+    "test": "echo \"Error: no test specified\"",
     "predoc": "npm run build",
     "doc": "jsdoc -a all lib/** DOCHOME.md"
   },
