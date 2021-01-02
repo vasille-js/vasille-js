@@ -25,9 +25,9 @@ class Listener {
      * @param index {number | string | null} index of value
      * @param value {IValue} value of added item
      */
-    emitAdded ( index : number | string | any, value : IValue<any> ) {
+    emitAdded (index : number | string | any, value : IValue<any>) {
         for (let handler of this.onAdded) {
-            handler ( index, value );
+            handler(index, value);
         }
     }
 
@@ -36,9 +36,9 @@ class Listener {
      * @param index {number | string | null} index of removed value
      * @param value {IValue} value of removed item
      */
-    emitRemoved ( index : number | string | any, value : IValue<any> ) {
+    emitRemoved (index : number | string | any, value : IValue<any>) {
         for (let handler of this.onRemoved) {
-            handler ( index, value );
+            handler(index, value);
         }
     }
 
@@ -46,27 +46,27 @@ class Listener {
      * Adds an handler to added event
      * @param handler {Function} function to run on event emitting
      */
-    onAdd ( handler : Function ) {
-        this.onAdded.push ( handler );
+    onAdd (handler : Function) {
+        this.onAdded.push(handler);
     }
 
     /**
      * Adds an handler to removed event
      * @param handler {Function} function to run on event emitting
      */
-    onRemove ( handler : Function ) {
-        this.onRemoved.push ( handler );
+    onRemove (handler : Function) {
+        this.onRemoved.push(handler);
     }
 
     /**
      * Removes an handler from added event
      * @param handler {Function} handler to remove
      */
-    offAdd ( handler : Function ) {
-        let i = this.onAdded.indexOf ( handler );
+    offAdd (handler : Function) {
+        let i = this.onAdded.indexOf(handler);
 
         if (i >= 0) {
-            this.onAdded.splice ( i, 1 );
+            this.onAdded.splice(i, 1);
         }
     }
 
@@ -74,11 +74,11 @@ class Listener {
      * Removes an handler form removed event
      * @param handler {Function} handler to remove
      */
-    offRemove ( handler : Function ) {
-        let i = this.onRemoved.indexOf ( handler );
+    offRemove (handler : Function) {
+        let i = this.onRemoved.indexOf(handler);
 
         if (i >= 0) {
-            this.onRemoved.splice ( i, 1 );
+            this.onRemoved.splice(i, 1);
         }
     }
 }
@@ -92,7 +92,7 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      * Listener of array model
      * @type {Listener}
      */
-    listener : Listener = new Listener ();
+    listener : Listener = new Listener();
 
     /* Constructor */
 
@@ -100,11 +100,11 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      * Constructs an array model from an array
      * @param data {Array<IValue>} input data
      */
-    constructor ( data : Array<any> = [] ) {
-        super ();
+    constructor (data : Array<any> = []) {
+        super();
 
         for (let i = 0; i < data.length; i++) {
-            super.push ( vassilify ( data[i] ) );
+            super.push(vassilify(data[i]));
         }
     }
 
@@ -125,7 +125,7 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      * @param end {?number} end index
      * @return {ArrayModel} a pointer to this
      */
-    fill ( value : any, start : ?number, end : ?number ) : this {
+    fill (value : any, start : ?number, end : ?number) : this {
         if (!start) {
             start = 0;
         }
@@ -135,7 +135,7 @@ export class ArrayModel<T> extends Array<IValue<T>> {
 
         for (let i = start; i < end; i++) {
             if (this[i] instanceof IValue) {
-                this[i].set ( value );
+                this[i].set(value);
             }
         }
         return this;
@@ -146,10 +146,10 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      * @return {IValue} removed value
      */
     pop () : IValue<T> {
-        let v = super.pop ();
+        let v = super.pop();
 
         if (v) {
-            this.listener.emitRemoved ( this.length, v );
+            this.listener.emitRemoved(this.length, v);
         }
         return v;
     }
@@ -159,12 +159,12 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      * @param items {...IValue} values to push
      * @return {number} new length of array
      */
-    push ( ...items : Array<any> ) : number {
+    push (...items : Array<any>) : number {
         for (let item of items) {
-            let v = vassilify ( item );
+            let v = vassilify(item);
 
-            this.listener.emitAdded ( this.length, v );
-            super.push ( v );
+            this.listener.emitAdded(this.length, v);
+            super.push(v);
         }
         return this.length;
     }
@@ -174,10 +174,10 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      * @return {IValue} the shifted value
      */
     shift () : IValue<T> {
-        let v = super.shift ();
+        let v = super.shift();
 
         if (v) {
-            this.listener.emitRemoved ( 0, v );
+            this.listener.emitRemoved(0, v);
         }
         return v;
     }
@@ -194,21 +194,21 @@ export class ArrayModel<T> extends Array<IValue<T>> {
         deleteCount : ?number,
         ...items : ?Array<any>
     ) : ArrayModel<T> {
-        start = Math.min ( start, this.length );
-        items = items ? items.map ( ( v ) => vassilify ( v ) ) : [];
+        start = Math.min(start, this.length);
+        items = items ? items.map((v) => vassilify(v)) : [];
         deleteCount = deleteCount || this.length - start;
 
         for (let i = 0; i < deleteCount; i++) {
             let index = start + deleteCount - i - 1;
             if (this[index]) {
-                this.listener.emitRemoved ( index, this[index] );
+                this.listener.emitRemoved(index, this[index]);
             }
         }
         for (let i = 0; i < items.length; i++) {
-            this.listener.emitAdded ( start + i, items[i] );
+            this.listener.emitAdded(start + i, items[i]);
         }
 
-        return new ArrayModel ( super.splice ( start, deleteCount, ...items ) );
+        return new ArrayModel(super.splice(start, deleteCount, ...items));
     }
 
     /* Vasile.js array interface */
@@ -218,13 +218,13 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      * @param items {...IValue} values to insert
      * @return {number | void} the length after prepend
      */
-    unshift ( ...items : Array<any> ) : number {
-        items = items.map ( ( v ) => vassilify ( v ) );
+    unshift (...items : Array<any>) : number {
+        items = items.map((v) => vassilify(v));
 
         for (let i = 0; i < items.length; i++) {
-            this.listener.emitAdded ( i, items[i] );
+            this.listener.emitAdded(i, items[i]);
         }
-        return super.unshift ( ...items );
+        return super.unshift(...items);
     }
 
     /**
@@ -232,10 +232,10 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      * @param v {IValue} value to insert
      * @return {ArrayModel} a pointer to this
      */
-    append ( v : any ) : this {
-        v = vassilify ( v );
-        this.listener.emitAdded ( this.length, v );
-        super.push ( v );
+    append (v : any) : this {
+        v = vassilify(v);
+        this.listener.emitAdded(this.length, v);
+        super.push(v);
         return this;
     }
 
@@ -245,9 +245,9 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      */
     clear () : this {
         for (let v of this) {
-            this.listener.emitRemoved ( 0, v );
+            this.listener.emitRemoved(0, v);
         }
-        super.splice ( 0 );
+        super.splice(0);
         return this;
     }
 
@@ -257,10 +257,10 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      * @param v {IValue} value to insert
      * @return {ArrayModel} a pointer to this
      */
-    insert ( index : number, v : any ) : this {
-        v = vassilify ( v );
-        this.listener.emitAdded ( index, v );
-        super.splice ( index, 0, v );
+    insert (index : number, v : any) : this {
+        v = vassilify(v);
+        this.listener.emitAdded(index, v);
+        super.splice(index, 0, v);
         return this;
     }
 
@@ -269,10 +269,10 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      * @param v {IValue} value to insert
      * @return {ArrayModel} a pointer to this
      */
-    prepend ( v : any ) : this {
-        v = vassilify ( v );
-        this.listener.emitAdded ( 0, v );
-        super.unshift ( v );
+    prepend (v : any) : this {
+        v = vassilify(v);
+        this.listener.emitAdded(0, v);
+        super.unshift(v);
         return this;
     }
 
@@ -281,10 +281,10 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      * @param index {number} index of value to remove
      * @return {ArrayModel} a pointer to this
      */
-    removeAt ( index : number ) : this {
+    removeAt (index : number) : this {
         if (this[index]) {
-            this.listener.emitRemoved ( index, this[index] );
-            super.splice ( index, 1 );
+            this.listener.emitRemoved(index, this[index]);
+            super.splice(index, 1);
         }
         return this;
     }
@@ -295,8 +295,8 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      */
     removeFirst () : this {
         if (this.length) {
-            this.listener.emitRemoved ( 0, this[0] );
-            super.shift ();
+            this.listener.emitRemoved(0, this[0]);
+            super.shift();
         }
         return this;
     }
@@ -307,8 +307,8 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      */
     removeLast () : this {
         if (this.last) {
-            this.listener.emitRemoved ( this.length - 1, this.last );
-            super.pop ();
+            this.listener.emitRemoved(this.length - 1, this.last);
+            super.pop();
         }
         return this;
     }
@@ -318,8 +318,8 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      * @param v {IValue} value to remove
      * @return {ArrayModel}
      */
-    removeOne ( v : IValue<T> ) : this {
-        this.removeAt ( this.indexOf ( v ) );
+    removeOne (v : IValue<T>) : this {
+        this.removeAt(this.indexOf(v));
         return this;
     }
 }
@@ -333,22 +333,22 @@ export class ObjectModel<T> extends Object {
      * the listener of object
      * @type {Listener}
      */
-    listener : Listener = new Listener ();
+    listener : Listener = new Listener();
 
     /**
      * Constructs a object model from an object
      * @param obj {Object<String, IValue>} input data
      */
-    constructor ( obj : Object = {} ) {
-        super ();
+    constructor (obj : Object = {}) {
+        super();
         let ts : { [key : string] : IValue<T> } = this;
 
         for (let i in obj) {
-            ts[i] = vassilify ( obj[i] );
+            ts[i] = vassilify(obj[i]);
         }
     }
 
-    get ( key : string ) : IValue<T> {
+    get (key : string) : IValue<T> {
         let ts : { [key : string] : IValue<T> } = this;
 
         return ts[key];
@@ -360,14 +360,14 @@ export class ObjectModel<T> extends Object {
      * @param v {IValue} property value
      * @return {ObjectModel} a pointer to this
      */
-    set ( key : string, v : any ) : this {
+    set (key : string, v : any) : this {
         let ts : { [key : string] : IValue<T> } = this;
 
         if (ts[key]) {
-            this.listener.emitRemoved ( key, ts[key] );
+            this.listener.emitRemoved(key, ts[key]);
         }
-        ts[key] = vassilify ( v );
-        this.listener.emitAdded ( key, ts[key] );
+        ts[key] = vassilify(v);
+        this.listener.emitAdded(key, ts[key]);
 
         return this;
     }
@@ -376,11 +376,11 @@ export class ObjectModel<T> extends Object {
      * Deletes a object property
      * @param key {string} property name
      */
-    delete ( key : string ) {
+    delete (key : string) {
         let ts : { [key : string] : IValue<T> } = this;
 
         if (ts[key]) {
-            this.listener.emitRemoved ( key, ts[key] );
+            this.listener.emitRemoved(key, ts[key]);
             delete ts[key];
         }
     }
@@ -395,17 +395,17 @@ export class MapModel<K, T> extends Map<K, IValue<T>> {
      * listener of map
      * @type {Listener}
      */
-    listener : Listener = new Listener ();
+    listener : Listener = new Listener();
 
     /**
      * Constructs a map model based on a map
      * @param map {Map<*, IValue>} input data
      */
-    constructor ( map : Map<K, any> = new Map ) {
-        super ();
+    constructor (map : Map<K, any> = new Map) {
+        super();
 
         for (let data of map) {
-            super.set ( data[0], vassilify ( data[1] ) );
+            super.set(data[0], vassilify(data[1]));
         }
     }
 
@@ -414,9 +414,9 @@ export class MapModel<K, T> extends Map<K, IValue<T>> {
      */
     clear () {
         for (let data of this) {
-            this.listener.emitRemoved ( data[0], data[1] );
+            this.listener.emitRemoved(data[0], data[1]);
         }
-        super.clear ();
+        super.clear();
     }
 
     /**
@@ -424,12 +424,12 @@ export class MapModel<K, T> extends Map<K, IValue<T>> {
      * @param key {*} key
      * @return {boolean} true if removed something, otherwise false
      */
-    delete ( key : any ) : boolean {
-        let tmp = super.get ( key );
+    delete (key : any) : boolean {
+        let tmp = super.get(key);
         if (tmp) {
-            this.listener.emitRemoved ( key, tmp );
+            this.listener.emitRemoved(key, tmp);
         }
-        return super.delete ( key );
+        return super.delete(key);
     }
 
     /**
@@ -438,15 +438,15 @@ export class MapModel<K, T> extends Map<K, IValue<T>> {
      * @param value {IValue} value
      * @return {MapModel} a pointer to this
      */
-    set ( key : any, value : any ) : this {
-        let tmp = super.get ( key );
+    set (key : any, value : any) : this {
+        let tmp = super.get(key);
         if (tmp) {
-            this.listener.emitRemoved ( key, tmp );
+            this.listener.emitRemoved(key, tmp);
         }
 
-        let v = vassilify ( value );
-        super.set ( key, v );
-        this.listener.emitAdded ( key, v );
+        let v = vassilify(value);
+        super.set(key, v);
+        this.listener.emitAdded(key, v);
 
         return this;
     }
@@ -457,17 +457,17 @@ export class MapModel<K, T> extends Map<K, IValue<T>> {
  * @extends Set<IValue>
  */
 export class SetModel<T> extends Set<IValue<T>> {
-    listener : Listener = new Listener ();
+    listener : Listener = new Listener();
 
     /**
      * Constructs a set model based on a set
      * @param set {Set<IValue>} input data
      */
-    constructor ( set : Set<any> = new Set ) {
-        super ();
+    constructor (set : Set<any> = new Set) {
+        super();
 
         for (let item of set) {
-            super.add ( vassilify ( item ) );
+            super.add(vassilify(item));
         }
     }
 
@@ -476,12 +476,12 @@ export class SetModel<T> extends Set<IValue<T>> {
      * @param value {IValue} value
      * @return {SetModel} a pointer to this
      */
-    add ( value : any ) : this {
-        value = vassilify ( value );
+    add (value : any) : this {
+        value = vassilify(value);
 
-        if (!super.has ( value )) {
-            this.listener.emitAdded ( null, value );
-            super.add ( value );
+        if (!super.has(value)) {
+            this.listener.emitAdded(null, value);
+            super.add(value);
         }
         return this;
     }
@@ -491,9 +491,9 @@ export class SetModel<T> extends Set<IValue<T>> {
      */
     clear () {
         for (let item of this) {
-            this.listener.emitRemoved ( null, item );
+            this.listener.emitRemoved(null, item);
         }
-        super.clear ();
+        super.clear();
     }
 
     /**
@@ -501,11 +501,11 @@ export class SetModel<T> extends Set<IValue<T>> {
      * @param value {IValue}
      * @return {boolean} true if a value was deleted, otherwise false
      */
-    delete ( value : IValue<T> ) : boolean {
-        if (super.has ( value )) {
-            this.listener.emitRemoved ( null, value );
+    delete (value : IValue<T>) : boolean {
+        if (super.has(value)) {
+            this.listener.emitRemoved(null, value);
         }
-        return super.delete ( value );
+        return super.delete(value);
     }
 }
 
@@ -514,26 +514,26 @@ export class SetModel<T> extends Set<IValue<T>> {
  * @param v {*} input value
  * @return {IValue} transformed value
  */
-export function vassilify ( v : any ) : IValue<any> {
+export function vassilify (v : any) : IValue<any> {
     let ret;
 
     if (v instanceof IValue) {
         ret = v;
     }
-    else if (Array.isArray ( v )) {
-        ret = new Value ( new ArrayModel ( v ) );
+    else if (Array.isArray(v)) {
+        ret = new Value(new ArrayModel(v));
     }
     else if (v instanceof Map) {
-        ret = new Value ( new MapModel ( v ) );
+        ret = new Value(new MapModel(v));
     }
     else if (v instanceof Set) {
-        ret = new Value ( new SetModel ( v ) );
+        ret = new Value(new SetModel(v));
     }
     else if (v instanceof Object && v.constructor === Object) {
-        ret = new Value ( new ObjectModel ( v ) );
+        ret = new Value(new ObjectModel(v));
     }
     else {
-        ret = new Value ( v );
+        ret = new Value(v);
     }
 
     return ret;

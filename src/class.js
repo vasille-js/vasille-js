@@ -23,7 +23,7 @@ export function classify (
     value : ?any     = null,
     func : ?Callable = null
 ) : ClassBinding {
-    return new ClassBinding ( rt, ts, name, null, propertify ( value, func ) );
+    return new ClassBinding(rt, ts, name, null, propertify(value, func));
 }
 
 /**
@@ -48,7 +48,7 @@ export class ClassBinding extends Binding {
         func : ?Function,
         ...values : Array<IValue<any>>
     ) {
-        super ( rt, ts, name, func, ...values );
+        super(rt, ts, name, func, ...values);
     }
 
     /**
@@ -56,24 +56,24 @@ export class ClassBinding extends Binding {
      * @param name {String} The name of attribute
      * @returns {Function} a function which will update attribute value
      */
-    bound ( name : string ) : Function {
+    bound (name : string) : Function {
         let binding = this;
 
-        function addClass ( rt : BaseNode, ts : BaseNode, unscoped : string ) {
+        function addClass (rt : BaseNode, ts : BaseNode, unscoped : string) {
             let classes = rt.scopedClass(unscoped);
             for (let cl of classes) {
-                rt.$app.run.addClass ( ts.el, cl );
+                rt.$app.run.addClass(ts.el, cl);
             }
         }
 
-        function removeClass ( rt : BaseNode, ts : BaseNode, unscoped : string ) {
+        function removeClass (rt : BaseNode, ts : BaseNode, unscoped : string) {
             let classes = rt.scopedClass(unscoped);
             for (let cl of classes) {
-                rt.$app.run.removeClass ( ts.el, cl );
+                rt.$app.run.removeClass(ts.el, cl);
             }
         }
 
-        return function ( rt : BaseNode, ts : BaseNode, value : string | boolean ) {
+        return function (rt : BaseNode, ts : BaseNode, value : string | boolean) {
             let current : ? string | boolean = binding.current;
 
             if (value !== current) {
@@ -82,10 +82,10 @@ export class ClassBinding extends Binding {
                 }
                 if (typeof value == "boolean") {
                     if (value) {
-                        addClass ( rt, ts, name );
+                        addClass(rt, ts, name);
                     }
                     else {
-                        removeClass ( rt, ts, name );
+                        removeClass(rt, ts, name);
                     }
                 }
                 else if (typeof value === "string" && value !== "") {

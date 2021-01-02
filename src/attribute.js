@@ -22,7 +22,7 @@ export function attributify (
     value : ?any     = null,
     func : ?Callable = null
 ) : AttributeBinding {
-    return new AttributeBinding ( rt, ts, name, null, propertify ( value, func ) );
+    return new AttributeBinding(rt, ts, name, null, propertify(value, func));
 }
 
 /**
@@ -45,7 +45,7 @@ export class AttributeBinding extends Binding {
         func : ?Function,
         ...values : Array<IValue<any>>
     ) {
-        super ( rt, ts, name, func, ...values );
+        super(rt, ts, name, func, ...values);
     }
 
     /**
@@ -53,8 +53,8 @@ export class AttributeBinding extends Binding {
      * @param name {String} The name of attribute
      * @returns {Function} a function which will update attribute value
      */
-    bound ( name : string ) : Function {
-        return function ( rt : any, ts : any, value : string ) {
+    bound (name : string) : Function {
+        return function (rt : any, ts : any, value : string) {
 
             if (value) {
                 rt.$app.run.setAttribute(ts.el, name, value);

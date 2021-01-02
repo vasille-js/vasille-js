@@ -1,7 +1,7 @@
 // @flow
 
-import {Destroyable} from "./destroyable.js";
-import {IValue}      from "./ivalue.js";
+import { Destroyable } from "./destroyable.js";
+import { IValue }      from "./ivalue.js";
 
 
 
@@ -23,6 +23,7 @@ export function destroyObject (obj : Object) {
         }
     }
 }
+
 /**
  * Represents an Vasille.js component core
  * @implements Destroyable
@@ -57,15 +58,6 @@ export class Core extends Destroyable {
      */
     constructor () {
         super();
-    }
-
-    /**
-     * Encapsulate element
-     * @param el {HTMLElement | Text | Comment} element to encapsulate
-     */
-    encapsulate (el : CoreEl) : this {
-        this.$el = el;
-        return this;
     }
 
     /**
@@ -117,6 +109,15 @@ export class Core extends Destroyable {
         }
 
         throw "wrong Core.comment() call";
+    }
+
+    /**
+     * Encapsulate element
+     * @param el {HTMLElement | Text | Comment} element to encapsulate
+     */
+    encapsulate (el : CoreEl) : this {
+        this.$el = el;
+        return this;
     }
 
     /**

@@ -10,7 +10,7 @@ export class Callable {
      * Encapsulates a function with signature ```(rt : BaseNode, ts : BaseNode) : void```
      * @param func {Function} function to encapsulate
      */
-    constructor ( func : Function ) {
+    constructor (func : Function) {
         this.func = func;
     }
 }

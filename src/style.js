@@ -22,7 +22,7 @@ export function stylify (
     value : ?string | ?IValue<string> = null,
     func : ?Callable                  = null
 ) : StyleBinding {
-    return new StyleBinding ( rt, ts, name, null, propertify ( value, func ) );
+    return new StyleBinding(rt, ts, name, null, propertify(value, func));
 }
 
 /**
@@ -45,15 +45,15 @@ export class StyleBinding extends Binding {
         func : ?Function,
         ...values : Array<IValue<string>>
     ) {
-        super ( rt, ts, name, func, ...values );
+        super(rt, ts, name, func, ...values);
     }
 
     /**
      * Generates a function to update style property value
      * @returns {Function} a function to update style property
      */
-    bound ( name : string ) : Function {
-        return function ( rt : any, ts : any, value : string ) {
+    bound (name : string) : Function {
+        return function (rt : any, ts : any, value : string) {
             rt.$app.run.setStyle(ts.el, name, value);
             return value;
         };

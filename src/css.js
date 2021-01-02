@@ -4,53 +4,57 @@ import type { BaseNode } from "./node";
 
 
 export class CssCompozitor {
-    scopedClass ( c : Function, id : string ) : Array<string> {
+    scopedClass (c : Function, id : string) : Array<string> {
         throw "Must be overwritten";
     }
 
-    initStyle ( node : BaseNode ) {
+    initStyle (node : BaseNode) {
         throw "Must be overwritten";
     }
 }
 
 export class CssDebugCompozitor extends CssCompozitor {
-    scopedClass ( c : Function, id : string ) : Array<string> {
-        return ['vs-' + c.name + '-' + id.replace(/^vs-/, '')];
-    }
-
     $inited : { [key : string] : boolean } = {};
 
-    styleToString ( selector : string, rules : Object, node : BaseNode ) : string {
-        let css = '';
+    scopedClass (c : Function, id : string) : Array<string> {
+        return ["vs-" + c.name + "-" + id.replace(/^vs-/, "")];
+    }
 
-            selector = selector.replace(/(\b[A-Z]\w*)?\.((?!vs-)[^\s.:#]+)/, ( found, name, cl ) => {
-                return name
-                       ? '.' + this.scopedClass({name}, cl)[0]
-                       : '.' + this.scopedClass(node.constructor, cl)[0];
-            });
+    styleToString (selector : string, rules : Object, node : BaseNode) : string {
+        let css = "";
 
-            css += selector + ' {\n';
+        selector = selector.replace(/(\b[A-Z]\w*)?\.((?!vs-)[^\s.:#]+)/, (found, name, cl) => {
+            return name
+                   ? "." + this.scopedClass({ name }, cl)[0]
+                   : "." + this.scopedClass(node.constructor, cl)[0];
+        });
 
-            for (let i in rules) {
-                css += '  ' + i + ': ' + rules[i] + ';\n';
-            }
+        css += selector + " {\n";
 
-            css += '}\n';
+        for (let i in rules) {
+            css += "  " + i + ": " + rules[i] + ";\n";
+        }
+
+        css += "}\n";
 
         return css;
     }
 
-    initStyle ( node : BaseNode ) {
+
+
+    initStyle (node : BaseNode) {
         let nodeId = node.rt.constructor.name;
 
-        if (this.$inited[nodeId]) return;
+        if (this.$inited[nodeId]) {
+            return;
+        }
 
         let style = node.createCss();
         let css = "\n";
 
-        let tag = document.createElement('style');
-        tag.setAttribute('type', 'text/css');
-        tag.setAttribute('data-node', nodeId);
+        let tag = document.createElement("style");
+        tag.setAttribute("type", "text/css");
+        tag.setAttribute("data-node", nodeId);
 
         for (let rule of style) {
             if (rule.media) {
@@ -62,8 +66,8 @@ export class CssDebugCompozitor extends CssCompozitor {
                         if (mediaRule.length) {
                             mediaRule += " and ";
                         }
-                        mediaRule += "(" + i.replace ( "W", "-width" )
-                                            .replace ( "H", "-height" )
+                        mediaRule += "(" + i.replace("W", "-width")
+                                            .replace("H", "-height")
                                      + ": " + v + "px)";
                     }
                 }
@@ -83,7 +87,7 @@ export class CssDebugCompozitor extends CssCompozitor {
             }
         }
 
-        if (css !== '\n') {
+        if (css !== "\n") {
             tag.innerHTML = css;
             if (document.head) {
                 document.head.append(tag);

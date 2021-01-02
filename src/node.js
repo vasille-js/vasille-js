@@ -3,9 +3,9 @@ import { AttributeBinding, attributify }     from "./attribute.js";
 import { Bind1, Binding, BindN }             from "./bind";
 import { classify }                          from "./class";
 import { CssCompozitor, CssDebugCompozitor } from "./css";
-import { eventify }                                                    from "./event.js";
-import { Executor, InstantExecutor } from "./executor";
-import type { CoreEl }                                                 from "./interfaces/core";
+import { eventify }                          from "./event.js";
+import { Executor, InstantExecutor }         from "./executor";
+import type { CoreEl }                       from "./interfaces/core";
 import { destroyObject }                     from "./interfaces/core";
 import { Core }                              from "./interfaces/core.js";
 import { IBind }                             from "./interfaces/ibind";
@@ -14,7 +14,7 @@ import { IValue }                            from "./interfaces/ivalue.js";
 import { vassilify }                         from "./models";
 import { StyleBinding, stylify }             from "./style.js";
 import { Value }                             from "./value.js";
-import type { RepeatNode }   from "./views";
+import type { RepeatNode }                   from "./views";
 
 
 
@@ -63,7 +63,7 @@ export class VasilleNode extends Core {
      * Construct the base of a node
      */
     constructor () {
-        super ();
+        super();
     }
 
     /**
@@ -73,7 +73,7 @@ export class VasilleNode extends Core {
      * @param ts {BaseNode} The this node
      * @param before {?VasilleNode} VasilleNode to paste this after
      */
-    preinit ( app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode ) {
+    preinit (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
         this.$app = app;
         this.$rt = rt;
     }
@@ -83,13 +83,13 @@ export class VasilleNode extends Core {
      * @param reference {String} The reference name
      * @param likeArray {Boolean} Store reference to array
      */
-    ref ( reference : string, likeArray : boolean = false ) : void {
+    ref (reference : string, likeArray : boolean = false) : void {
         if (this.$rt instanceof BaseNode) {
             let ref = this.$rt.$refs[reference];
 
             if (likeArray) {
                 if (ref instanceof Array) {
-                    ref.push ( this );
+                    ref.push(this);
                 }
                 else {
                     this.$rt.$refs[reference] = [this];
@@ -105,7 +105,7 @@ export class VasilleNode extends Core {
      * Runs garbage collector
      */
     destroy () : void {
-        super.destroy ();
+        super.destroy();
 
         if (this.$rt instanceof BaseNode) {
             for (let i in this.$rt.$refs) {
@@ -114,9 +114,9 @@ export class VasilleNode extends Core {
                 }
                 else if (
                     this.$rt.$refs[i] instanceof Array &&
-                    this.$rt.$refs[i].includes ( this )
+                    this.$rt.$refs[i].includes(this)
                 ) {
-                    this.$rt.$refs[i].splice ( this.$rt.$refs[i].indexOf ( this ), 1 );
+                    this.$rt.$refs[i].splice(this.$rt.$refs[i].indexOf(this), 1);
                 }
             }
         }
@@ -143,7 +143,7 @@ export class TextNode extends VasilleNode {
      * Constructs a text node
      */
     constructor () {
-        super ();
+        super();
     }
 
     /**
@@ -154,33 +154,33 @@ export class TextNode extends VasilleNode {
      * @param before {?VasilleNode} node to apste after
      * @param text {String | IValue}
      */
-    preinitText ( app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode, text : IValue<string> | string ) {
-        super.preinit ( app, rt, ts, before );
+    preinitText (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode, text : IValue<string> | string) {
+        super.preinit(app, rt, ts, before);
 
-        let value = text instanceof IValue ? text : new Value ( text );
-        let node = document.createTextNode ( value.get () );
+        let value = text instanceof IValue ? text : new Value(text);
+        let node = document.createTextNode(value.get());
 
         this.value = value;
-        this.handler = function ( v : IValue<string> ) {
-            node.replaceData ( 0, -1, v.get () );
-        }.bind ( null, value );
+        this.handler = function (v : IValue<string>) {
+            node.replaceData(0, -1, v.get());
+        }.bind(null, value);
 
-        value.on ( this.handler );
+        value.on(this.handler);
         this.encapsulate(node);
 
-        ts.appendChild ( node, before );
+        ts.appendChild(node, before);
     }
 
     /**
      * Runs garbage collector
      */
     destroy () : void {
-        super.destroy ();
-        this.value.off ( this.handler );
+        super.destroy();
+        this.value.off(this.handler);
     }
 }
 
-export type Signal = {|args : Array<Function>, handlers : Array<Function> |};
+export type Signal = {| args : Array<Function>, handlers : Array<Function> |};
 
 /**
  * Represents an Vasille.js node which can contains children
@@ -221,7 +221,7 @@ export class BaseNode extends VasilleNode {
      * List of user defined signals
      * @type {Object<string, {args : Array<Function>, handlers : Array<Function>}>}
      */
-    $signal : { [name : string]: Signal } = {};
+    $signal : { [name : string] : Signal } = {};
 
     /**
      * List of references
@@ -239,7 +239,7 @@ export class BaseNode extends VasilleNode {
      * Constructs a base node which can contain children
      */
     constructor () {
-        super ();
+        super();
     }
 
     /**
@@ -265,10 +265,10 @@ export class BaseNode extends VasilleNode {
         before : ?VasilleNode,
         node : CoreEl
     ) {
-        this.preinit ( app, rt, ts, before );
-        this.encapsulate ( node );
+        this.preinit(app, rt, ts, before);
+        this.encapsulate(node);
 
-        ts.appendChild ( node, before );
+        ts.appendChild(node, before);
     }
 
     startBuilding () {
@@ -278,28 +278,28 @@ export class BaseNode extends VasilleNode {
 
     stopBuilding () {
         this.building = false;
-        this.mounted ();
+        this.mounted();
     }
 
     /**
      * Initialize node
      * @param props {Object} VasilleNode properties values
      */
-    init ( props : Object ) {
-        this.startBuilding ();
+    init (props : Object) {
+        this.startBuilding();
 
-        this.initProps ( props );
-        this.createAttrs ();
-        this.createStyle ();
-        this.createSignals ();
-        this.createWatchers ();
+        this.initProps(props);
+        this.createAttrs();
+        this.createStyle();
+        this.createSignals();
+        this.createWatchers();
 
-        this.created ();
-        this.createDom ();
+        this.created();
+        this.createDom();
 
         this.$app.css.initStyle(this);
 
-        this.stopBuilding ();
+        this.stopBuilding();
     }
 
     /**
@@ -327,10 +327,10 @@ export class BaseNode extends VasilleNode {
      * @param props {Object<String, Callable | IValue | *>} Properties values
      * @private
      */
-    initProps ( props : { [key : string] : Callable | IValue<any> | any } ) {
+    initProps (props : { [key : string] : Callable | IValue<any> | any }) {
         // add properties from object
         for (let i in props) {
-            if (props.hasOwnProperty ( i )) {
+            if (props.hasOwnProperty(i)) {
                 let value = props[i];
 
                 if (value instanceof Callable) {
@@ -341,6 +341,7 @@ export class BaseNode extends VasilleNode {
             }
         }
     }
+
     /** To be overloaded: created event handler */
     created () {
     }
@@ -351,13 +352,11 @@ export class BaseNode extends VasilleNode {
 
     /** To be overloaded: mounted event handler */
     mounted () {
-    }
-
-    /**
+    }    /**
      * Runs garbage collector
      */
     destroy () : void {
-        super.destroy ();
+        super.destroy();
 
         if (this.$rt instanceof BaseNode) {
             for (let i in this.$rt.$slots) {
@@ -368,7 +367,7 @@ export class BaseNode extends VasilleNode {
         }
 
         for (let child of this.children) {
-            child.destroy ();
+            child.destroy();
         }
 
         destroyObject(this.$class);
@@ -401,12 +400,12 @@ export class BaseNode extends VasilleNode {
      * @param value {String | IValue | Callable} A value or a value getter
      * @return {BaseNode} A pointer to this
      */
-    defAttr ( name : string, value : string | IValue<any> | Callable ) : this {
+    defAttr (name : string, value : string | IValue<any> | Callable) : this {
         if (value instanceof Callable) {
-            this.$attrs[name] = attributify ( this.rt, this, name, null, value );
+            this.$attrs[name] = attributify(this.rt, this, name, null, value);
         }
         else {
-            this.$attrs[name] = attributify ( this.rt, this, name, value );
+            this.$attrs[name] = attributify(this.rt, this, name, value);
         }
         return this;
     }
@@ -416,9 +415,9 @@ export class BaseNode extends VasilleNode {
      * @param obj {Object<String, String | IValue>} A set attributes
      * @return {BaseNode} A pointer to this
      */
-    defAttrs ( obj : { [key : string] : string | IValue<any> } ) : this {
+    defAttrs (obj : { [key : string] : string | IValue<any> }) : this {
         for (let i in obj) {
-            this.$attrs[i] = attributify ( this.rt, this, i, obj[i] );
+            this.$attrs[i] = attributify(this.rt, this, i, obj[i]);
         }
         return this;
     }
@@ -435,7 +434,7 @@ export class BaseNode extends VasilleNode {
         calculator : Function,
         ...values : Array<IValue<any>>
     ) : this {
-        this.$attrs[name] = new AttributeBinding (
+        this.$attrs[name] = new AttributeBinding(
             this.rt,
             this,
             name,
@@ -446,13 +445,13 @@ export class BaseNode extends VasilleNode {
     }
 
     setAttr (
-        name: string,
-        value: string
+        name : string,
+        value : string
     ) : this {
         this.$app.run.setAttribute(this.el, name, value);
         return this;
     }
-    
+
     setAttrs (
         data : { [key : string] : string }
     ) : this {
@@ -462,7 +461,7 @@ export class BaseNode extends VasilleNode {
         return this;
     }
 
-    addClass ( cl : string ) : this {
+    addClass (cl : string) : this {
         let classes = this.scopedClass(cl);
         for (let cl of classes) {
             this.el.classList.add(cl);
@@ -470,7 +469,7 @@ export class BaseNode extends VasilleNode {
         return this;
     }
 
-    addGlobalClasses ( ...cl : Array<string> ) : this {
+    addGlobalClasses (...cl : Array<string>) : this {
         this.el.classList.add(...cl);
         return this;
     }
@@ -480,11 +479,11 @@ export class BaseNode extends VasilleNode {
         value : boolean | string | IValue<boolean | string> = false,
         func : ?Callable                                    = null
     ) : this {
-        this.$class.push ( classify ( this.rt, this, cl || '', value, func ) );
+        this.$class.push(classify(this.rt, this, cl || "", value, func));
         return this;
     }
 
-    scopeClass (c : ?Function, cl : string,) : string {
+    scopeClass (c : ?Function, cl : string) : string {
         return "." + this.$app.css.scopedClass(c, cl)[0];
     }
 
@@ -502,7 +501,7 @@ export class BaseNode extends VasilleNode {
     ) : {|
         selector : string,
         data : { [key : string] : Object },
-        media ?: Object
+        media? : Object
     |} {
         return { selector, data };
     }
@@ -510,11 +509,11 @@ export class BaseNode extends VasilleNode {
     mediaRule (
         selector : string,
         media : {
-            minW ?: number,
-            maxW ?: number,
-            minH ?: number,
-            maxH ?: number,
-            rule ?: string
+            minW? : number,
+            maxW? : number,
+            minH? : number,
+            maxH? : number,
+            rule? : string
         },
         data : { [key : string] : Object }
     ) : {|
@@ -531,12 +530,12 @@ export class BaseNode extends VasilleNode {
      * @param value {String | IValue | Callable} A value or a value getter
      * @return {BaseNode} A pointer to this
      */
-    defStyle ( name : string, value : string | IValue<string> | Callable ) : this {
+    defStyle (name : string, value : string | IValue<string> | Callable) : this {
         if (value instanceof Callable) {
-            this.$style[name] = stylify ( this.rt, this, name, null, value );
+            this.$style[name] = stylify(this.rt, this, name, null, value);
         }
         else {
-            this.$style[name] = stylify ( this.rt, this, name, value );
+            this.$style[name] = stylify(this.rt, this, name, value);
         }
         return this;
     }
@@ -546,9 +545,9 @@ export class BaseNode extends VasilleNode {
      * @param obj {Object<String, String | IValue>} A set of style attributes
      * @return {BaseNode} A pointer to this
      */
-    defStyles ( obj : { [key : string] : string | IValue<any> } ) : this {
+    defStyles (obj : { [key : string] : string | IValue<any> }) : this {
         for (let i in obj) {
-            this.$style[i] = stylify ( this.rt, this, i, obj[i] );
+            this.$style[i] = stylify(this.rt, this, i, obj[i]);
         }
         return this;
     }
@@ -565,7 +564,7 @@ export class BaseNode extends VasilleNode {
         calculator : Function,
         ...values : Array<IValue<any>>
     ) : this {
-        this.$style[name] = new StyleBinding (
+        this.$style[name] = new StyleBinding(
             this.rt,
             this,
             name,
@@ -579,7 +578,7 @@ export class BaseNode extends VasilleNode {
         prop : string,
         value : string
     ) : this {
-        this.$app.run.setStyle( this.el, prop, value );
+        this.$app.run.setStyle(this.el, prop, value);
         return this;
     }
 
@@ -587,26 +586,26 @@ export class BaseNode extends VasilleNode {
         data : { [key : string] : string }
     ) : this {
         for (let i in data) {
-            this.$app.run.setStyle( this.el, i, data[i] );
+            this.$app.run.setStyle(this.el, i, data[i]);
         }
         return this;
     }
 
-    defSignal ( name : string, ...types : Array<Function> ) {
-        this.$signal[name] = { args: types, handlers: [] };
+    defSignal (name : string, ...types : Array<Function>) {
+        this.$signal[name] = { args : types, handlers : [] };
     }
 
-    on ( name : string, func : Function ) {
+    on (name : string, func : Function) {
         let signal = this.$signal[name];
-        
+
         if (!signal) {
             throw "No such signal: " + name;
         }
-        
+
         this.$signal[name].handlers.push(func);
     }
 
-    emit ( name : string, ...args : Array<any> ) {
+    emit (name : string, ...args : Array<any>) {
         let compatible = args.length === this.$signal[name].args.length;
 
         if (compatible && this.$app.debug) {
@@ -643,233 +642,233 @@ export class BaseNode extends VasilleNode {
      * @param event {Function} Event handler as function
      * @return {BaseNode} A pointer to this
      */
-    defListener ( name : string, event : Function ) : this {
-        this.$listener[name] = eventify ( this, name, event );
+    defListener (name : string, event : Function) : this {
+        this.$listener[name] = eventify(this, name, event);
         return this;
     }
 
-    listen ( name : string, handler : Function, options: ?EventListenerOptionsOrUseCapture ) : this {
+    listen (name : string, handler : Function, options : ?EventListenerOptionsOrUseCapture) : this {
         this.el.addEventListener(name, handler, options || {});
         return this;
     }
 
-    listenContextMenu ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'contextmenu', handler, options);
+    listenContextMenu (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("contextmenu", handler, options);
     }
 
-    listenMouseDown ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'mousedown', handler, options);
+    listenMouseDown (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("mousedown", handler, options);
     }
 
-    listenMouseEnter ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'mouseenter', handler, options);
+    listenMouseEnter (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("mouseenter", handler, options);
     }
 
-    listenMouseLeave ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'mouseleave', handler, options);
+    listenMouseLeave (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("mouseleave", handler, options);
     }
 
-    listenMouseMove ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'mousemove', handler, options);
+    listenMouseMove (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("mousemove", handler, options);
     }
 
-    listenMouseOut ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'mouseout', handler, options);
+    listenMouseOut (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("mouseout", handler, options);
     }
 
-    listenMouseOver ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'mouseover', handler, options);
+    listenMouseOver (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("mouseover", handler, options);
     }
 
-    listenMouseUp ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'mouseup', handler, options);
+    listenMouseUp (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("mouseup", handler, options);
     }
 
-    listenClick ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'click', handler, options);
+    listenClick (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("click", handler, options);
     }
 
-    listenDblClick ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'dblclick', handler, options);
+    listenDblClick (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("dblclick", handler, options);
     }
 
-    listenBlur ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'blur', handler, options);
+    listenBlur (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("blur", handler, options);
     }
 
-    listenFocus ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'focus', handler, options);
+    listenFocus (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("focus", handler, options);
     }
 
-    listenFocusIn ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'focusin', handler, options);
+    listenFocusIn (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("focusin", handler, options);
     }
 
-    listenFocusOut ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'focusout', handler, options);
+    listenFocusOut (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("focusout", handler, options);
     }
 
-    listenKeyDown ( handler : Function, options: EventListenerOptionsOrUseCapture ) {
-        this.listen( 'keydown', handler, options);
+    listenKeyDown (handler : Function, options : EventListenerOptionsOrUseCapture) {
+        this.listen("keydown", handler, options);
     }
 
-    listenKeyUp ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'keyup', handler, options);
+    listenKeyUp (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("keyup", handler, options);
     }
 
-    listenKeyPress ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'keypress', handler, options);
+    listenKeyPress (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("keypress", handler, options);
     }
 
-    listenTouchStart ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'touchstart', handler, options);
+    listenTouchStart (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("touchstart", handler, options);
     }
 
-    listenTouchMove ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'touchmove', handler, options);
+    listenTouchMove (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("touchmove", handler, options);
     }
 
-    listenTouchEnd ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'touchend', handler, options);
+    listenTouchEnd (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("touchend", handler, options);
     }
 
-    listenTouchCancel ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'touchcancel', handler, options);
+    listenTouchCancel (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("touchcancel", handler, options);
     }
 
-    listenWheel ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'wheel', handler, options);
+    listenWheel (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("wheel", handler, options);
     }
 
-    listenAbort ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'abort', handler, options);
+    listenAbort (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("abort", handler, options);
     }
 
-    listenError ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'error', handler, options);
+    listenError (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("error", handler, options);
     }
 
-    listenLoad ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'load', handler, options);
+    listenLoad (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("load", handler, options);
     }
 
-    listenLoadEnd ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'loadend', handler, options);
+    listenLoadEnd (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("loadend", handler, options);
     }
 
-    listenLoadStart ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'loadstart', handler, options);
+    listenLoadStart (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("loadstart", handler, options);
     }
 
-    listenProgress ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'progress', handler, options);
+    listenProgress (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("progress", handler, options);
     }
 
-    listenTimeout ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'timeout', handler, options);
+    listenTimeout (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("timeout", handler, options);
     }
 
-    listenDrag ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'drag', handler, options);
+    listenDrag (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("drag", handler, options);
     }
 
-    listenDragEnd ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'dragend', handler, options);
+    listenDragEnd (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("dragend", handler, options);
     }
 
-    listenDragEnter ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'dragenter', handler, options);
+    listenDragEnter (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("dragenter", handler, options);
     }
 
-    listenDragExit ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'dragexit', handler, options);
+    listenDragExit (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("dragexit", handler, options);
     }
 
-    listenDragLeave ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'dragleave', handler, options);
+    listenDragLeave (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("dragleave", handler, options);
     }
 
-    listenDragOver ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'dragover', handler, options);
+    listenDragOver (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("dragover", handler, options);
     }
 
-    listenDragStart ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'dragstart', handler, options);
+    listenDragStart (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("dragstart", handler, options);
     }
 
-    listenDrop ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'drop', handler, options);
+    listenDrop (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("drop", handler, options);
     }
 
-    listenPointerOver ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'pointerover', handler, options);
+    listenPointerOver (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("pointerover", handler, options);
     }
 
-    listenPointerEnter ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'pointerenter', handler, options);
+    listenPointerEnter (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("pointerenter", handler, options);
     }
 
-    listenPointerDown ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'pointerdown', handler, options);
+    listenPointerDown (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("pointerdown", handler, options);
     }
 
-    listenPointerMove ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'pointermove', handler, options);
+    listenPointerMove (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("pointermove", handler, options);
     }
 
-    listenPointerUp ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'pointerup', handler, options);
+    listenPointerUp (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("pointerup", handler, options);
     }
 
-    listenPointerCancel ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'pointercancel', handler, options);
+    listenPointerCancel (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("pointercancel", handler, options);
     }
 
-    listenPointerOut ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'pointerout', handler, options);
+    listenPointerOut (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("pointerout", handler, options);
     }
 
-    listenPointerLeave ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'pointerleave', handler, options);
+    listenPointerLeave (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("pointerleave", handler, options);
     }
 
-    listenGotPointerCapture ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'gotpointercapture', handler, options);
+    listenGotPointerCapture (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("gotpointercapture", handler, options);
     }
 
-    listenLostPointerCapture ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'lostpointercapture', handler, options);
+    listenLostPointerCapture (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("lostpointercapture", handler, options);
     }
 
-    listenAnimationStart ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'animationstart', handler, options);
+    listenAnimationStart (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("animationstart", handler, options);
     }
 
-    listenAnimationEnd ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'animationend', handler, options);
+    listenAnimationEnd (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("animationend", handler, options);
     }
 
-    listenAnimationIteraton ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'animationiteration', handler, options);
+    listenAnimationIteraton (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("animationiteration", handler, options);
     }
 
-    listenClipboardChange ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'clipboardchange', handler, options);
+    listenClipboardChange (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("clipboardchange", handler, options);
     }
 
-    listenCut ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'cut', handler, options);
+    listenCut (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("cut", handler, options);
     }
 
-    listenCopy ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'copy', handler, options);
+    listenCopy (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("copy", handler, options);
     }
 
-    listenPaste ( handler : Function, options: ?EventListenerOptionsOrUseCapture ) {
-        this.listen( 'paste', handler, options);
+    listenPaste (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+        this.listen("paste", handler, options);
     }
 
-    defWatcher ( func: Function, ...vars : Array<IValue<any>> ) {
+    defWatcher (func : Function, ...vars : Array<IValue<any>>) {
         if (vars.length === 0) {
             throw "A watcher must be binded to a value at last";
         }
@@ -886,14 +885,14 @@ export class BaseNode extends VasilleNode {
      * Register current node as named slot
      * @param name {String} The name of slot
      */
-    makeSlot ( name : string ) : this {
+    makeSlot (name : string) : this {
         if (this.$rt instanceof BaseNode) {
             this.$rt.$slots[name] = this;
         }
         return this;
     }
 
-    slot ( name : string ) : BaseNode {
+    slot (name : string) : BaseNode {
         let node = this.$slots[name];
 
         if (node instanceof BaseNode) {
@@ -908,22 +907,27 @@ export class BaseNode extends VasilleNode {
      * @param node {VasilleNode} A node to push
      * @private
      */
-    pushNode ( node : VasilleNode ) : void {
-        if (this.lastChild) {
-            this.lastChild.next = node;
+    pushNode (node : VasilleNode) : void {
+        let lastChild = null;
+
+        if (this.children.length) {
+            lastChild = this.children[this.children.length - 1];
         }
-        node.prev = this.lastChild;
+
+        if (lastChild) {
+            lastChild.next = node;
+        }
+        node.prev = lastChild;
         node.parent = this;
 
-        this.children.push ( node );
-        this.lastChild = node;
+        this.children.push(node);
     }
 
     findFirstChild (node : ShadowNode) : ?CoreEl {
         for (let child of node.children) {
             if (child instanceof ShadowNode) {
                 let first = this.findFirstChild(child);
-                
+
                 if (first) {
                     return first;
                 }
@@ -940,7 +944,7 @@ export class BaseNode extends VasilleNode {
      * @param before {VasilleNode} node to paste after
      * @private
      */
-    appendChild ( node : CoreEl, before : ?VasilleNode ) : void {
+    appendChild (node : CoreEl, before : ?VasilleNode) : void {
         // If we are inserting before a element node
         if (before instanceof ElementNode) {
             this.$app.run.insertBefore(this.el, node, before.el);
@@ -952,14 +956,14 @@ export class BaseNode extends VasilleNode {
             (this instanceof ShadowNode && !(this.parent instanceof AppNode)) ||
             (this instanceof ElementNode && !this.el)
         ) {
-            this.parent.appendChild ( node, this.next );
+            this.parent.appendChild(node, this.next);
             return;
         }
 
         // If we are inserting before a shadow node
         if (before instanceof ShadowNode) {
             let beforeNode = this.findFirstChild(before);
-            
+
             if (beforeNode) {
                 this.$app.run.insertBefore(this.el, node, beforeNode);
                 return;
@@ -967,14 +971,8 @@ export class BaseNode extends VasilleNode {
         }
 
         // If we hove no variants
-        this.$app.run.appendChild( this.el, node );
+        this.$app.run.appendChild(this.el, node);
     }
-
-    /**
-     * The last inserted child (Child are not destructible)
-     * @type {?VasilleNode}
-     */
-    lastChild : ?VasilleNode;
 
     /**
      * Defines a text fragment
@@ -984,15 +982,17 @@ export class BaseNode extends VasilleNode {
      */
     defText (
         text : string | IValue<any>,
-        cb : ?( text : TextNode ) => void
+        cb : ?(text : TextNode) => void
     ) : BaseNode {
-        let node = new TextNode ();
+        let node = new TextNode();
 
-        node.preinitText ( this.$app, this.rt, this, null, text );
-        this.pushNode ( node );
+        node.preinitText(this.$app, this.rt, this, null, text);
+        this.pushNode(node);
 
         if (cb) {
-            this.$app.run.callCallback(() => { cb(node) });
+            this.$app.run.callCallback(() => {
+                cb(node);
+            });
         }
         return this;
     }
@@ -1005,18 +1005,18 @@ export class BaseNode extends VasilleNode {
      */
     defTag (
         tagName : string,
-        cb : ?( node : ElementNode, v : ?any ) => void
+        cb : ?(node : ElementNode, v : ?any) => void
     ) : BaseNode {
-        let node = new ElementNode ();
+        let node = new ElementNode();
 
         node.parent = this;
-        node.preinitElementNode ( this.$app, this.rt, this, null, tagName );
-        node.init ( {} );
-        this.pushNode ( node );
+        node.preinitElementNode(this.$app, this.rt, this, null, tagName);
+        node.init({});
+        this.pushNode(node);
 
         this.$app.run.callCallback(() => {
             if (cb) {
-                cb ( node );
+                cb(node);
             }
             node.ready();
         });
@@ -1033,34 +1033,34 @@ export class BaseNode extends VasilleNode {
     defElement<T> (
         node : T,
         props : Object,
-        cb : ?( node : T, v : ?any ) => void
+        cb : ?(node : T, v : ?any) => void
     ) : BaseNode {
         if (node instanceof VasilleNode) {
             node.parent = this;
         }
 
         if (node instanceof ShadowNode) {
-            node.preinitShadow ( this.$app, this.rt, this, null );
+            node.preinitShadow(this.$app, this.rt, this, null);
         }
         else if (node instanceof VasilleNode) {
-            node.preinit ( this.$app, this.rt, this, null );
+            node.preinit(this.$app, this.rt, this, null);
         }
 
         if (node instanceof BaseNode) {
-            node.init ( props );
+            node.init(props);
         }
 
         if (node instanceof VasilleNode) {
-            this.pushNode ( node );
+            this.pushNode(node);
         }
 
         this.$app.run.callCallback(() => {
             if (cb) {
-                cb ( node );
+                cb(node);
             }
 
             if (node instanceof BaseNode) {
-                node.ready ();
+                node.ready();
             }
         });
 
@@ -1070,14 +1070,16 @@ export class BaseNode extends VasilleNode {
     defRepeater (
         node : RepeatNode,
         props : Object,
-        cb : ( node : RepeatNodeItem, v : ?any ) => void
+        cb : (node : RepeatNodeItem, v : ?any) => void
     ) : this {
         node.parent = this;
-        node.preinitShadow ( this.$app, this.rt, this, null );
-        node.init ( props );
-        this.pushNode ( node );
+        node.preinitShadow(this.$app, this.rt, this, null);
+        node.init(props);
+        this.pushNode(node);
         node.setCallback(cb);
-        this.$app.run.callCallback(() => { node.ready(); });
+        this.$app.run.callCallback(() => {
+            node.ready();
+        });
 
         return this;
     }
@@ -1088,13 +1090,13 @@ export class BaseNode extends VasilleNode {
     ) : this {
         return this.defSwitch({ cond, cb });
     }
-    
+
     defIfElse (
         ifCond : any,
         ifCb : CaseCallBack,
         elseCb : CaseCallBack
     ) : this {
-        return this.defSwitch ({ cond : ifCond, cb : ifCb } , { cond : true, cb : elseCb } );
+        return this.defSwitch({ cond : ifCond, cb : ifCb }, { cond : true, cb : elseCb });
     }
 
     defSwitch (
@@ -1103,14 +1105,18 @@ export class BaseNode extends VasilleNode {
         let node = new SwitchedNode();
 
         node.parent = this;
-        node.preinitShadow( this.$app, this.rt, this, null );
+        node.preinitShadow(this.$app, this.rt, this, null);
         node.init({});
-        this.pushNode( node );
+        this.pushNode(node);
         node.setCases(cases);
-        this.$app.run.callCallback(() => { node.ready(); });
+        this.$app.run.callCallback(() => {
+            node.ready();
+        });
 
         return this;
     }
+
+
 }
 
 /**
@@ -1121,7 +1127,7 @@ export class ElementNode extends BaseNode {
      * Constructs a element node
      */
     constructor () {
-        super ();
+        super();
     }
 
     /**
@@ -1139,8 +1145,8 @@ export class ElementNode extends BaseNode {
         before : ?VasilleNode,
         tagName : string
     ) {
-        let node = document.createElement ( tagName );
-        this.preinitNode ( app, rt, ts.parent || ts, before || this.lastChild, node );
+        let node = document.createElement(tagName);
+        this.preinitNode(app, rt, ts.parent || ts, before, node);
     }
 }
 
@@ -1168,10 +1174,10 @@ export class ShadowNode extends BaseNode {
         ts : BaseNode,
         before : ?VasilleNode
     ) {
-        this.preinit ( app, rt, ts, before );
+        this.preinit(app, rt, ts, before);
 
         try {
-            this.encapsulate ( ts.el );
+            this.encapsulate(ts.el);
         }
         catch (e) {
             throw "A shadow node can be encapsulated in a element or shadow node only";
@@ -1179,29 +1185,29 @@ export class ShadowNode extends BaseNode {
     }
 
     destroy () {
-        super.destroy ();
+        super.destroy();
     }
 }
 
-type CallBack = ( node : RepeatNodeItem, v : ?any ) => void;
-type CaseCallBack = ( node : RepeatNodeItem, v : ?number ) => void;
-type Case = { cond: IValue<boolean>, cb : CaseCallBack };
-type CaseArg = { cond: IValue<boolean> | boolean, cb : CaseCallBack };
+type CallBack = (node : RepeatNodeItem, v : ?any) => void;
+type CaseCallBack = (node : RepeatNodeItem, v : ?number) => void;
+type Case = { cond : IValue<boolean>, cb : CaseCallBack };
+type CaseArg = { cond : IValue<boolean> | boolean, cb : CaseCallBack };
 
 export class RepeatNodeItem extends ShadowNode {
     $id : any;
 
     constructor (id : any) {
-        super ();
+        super();
         this.$id = id;
     }
 
     destroy () {
-        super.destroy ();
+        super.destroy();
 
         for (let child of this.children) {
             if (child.el !== this.el) {
-                this.el.removeChild ( child.el );
+                this.el.removeChild(child.el);
             }
         }
     }
@@ -1209,13 +1215,13 @@ export class RepeatNodeItem extends ShadowNode {
 
 class SwitchedNode extends ShadowNode {
 
-    index: number = -1;
+    index : number = -1;
     node : ShadowNode;
     cases : Array<Case>;
-    sync: Function;
+    sync : Function;
 
     constructor () {
-        super ();
+        super();
 
         this.sync = () => {
             let i = 0;
@@ -1226,10 +1232,14 @@ class SwitchedNode extends ShadowNode {
                 }
             }
 
-            if (i === this.index) return;
+            if (i === this.index) {
+                return;
+            }
 
             if (i !== this.cases.length) {
-                if (this.index !== -1) this.node.destroy();
+                if (this.index !== -1) {
+                    this.node.destroy();
+                }
                 this.index = i;
                 this.createChild(i, this.cases[i].cb);
             }
@@ -1237,37 +1247,39 @@ class SwitchedNode extends ShadowNode {
                 this.node.destroy();
                 this.index = -1;
             }
-        }
+        };
     };
-
-    preinitShadow ( app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode ) {
-        super.preinitShadow ( app, rt, ts, before );
-        this.encapsulate(ts.el);
-    }
 
     setCases (cases : Array<CaseArg>) {
         this.cases = [];
 
         for (let case_ of cases) {
-            this.cases.push({ cond: vassilify(case_.cond), cb: case_.cb });
+            this.cases.push({ cond : vassilify(case_.cond), cb : case_.cb });
         }
     }
 
-    createChild ( id : any, cb : CallBack ) {
-        let node = new RepeatNodeItem ( id );
+    preinitShadow (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
+        super.preinitShadow(app, rt, ts, before);
+        this.encapsulate(ts.el);
+    }
+
+    createChild (id : any, cb : CallBack) {
+        let node = new RepeatNodeItem(id);
 
         node.parent = this;
-        node.preinitShadow ( this.$app, this.rt, this );
+        node.preinitShadow(this.$app, this.rt, this);
 
-        node.init ( {} );
+        node.init({});
         cb(node, id);
         node.ready();
 
         this.node = node;
     };
 
+
+
     ready () {
-        super.ready ();
+        super.ready();
 
         for (let c of this.cases) {
             c.cond.on(this.sync);
@@ -1282,7 +1294,7 @@ class SwitchedNode extends ShadowNode {
         }
 
         this.node.destroy();
-        super.destroy ();
+        super.destroy();
     }
 }
 
@@ -1305,13 +1317,13 @@ export class AppNode extends BaseNode {
      * @param node {HTMLElement} The root of application
      * @param props {{debug : boolean}} Application properties
      */
-    constructor ( node : HTMLElement, props : { debug : boolean } ) {
-        super ();
+    constructor (node : HTMLElement, props : { debug : boolean }) {
+        super();
 
-        this.run = new InstantExecutor ();
-        this.css = new CssDebugCompozitor ();
-        this.encapsulate ( node );
-        this.preinit ( this, this, this, this );
+        this.run = new InstantExecutor();
+        this.css = new CssDebugCompozitor();
+        this.encapsulate(node);
+        this.preinit(this, this, this, this);
 
         if (props.debug instanceof Boolean) {
             this.debug = props.debug;

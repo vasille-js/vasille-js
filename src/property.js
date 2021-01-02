@@ -17,13 +17,13 @@ export function propertify (
     func : ?Callable = null
 ) : IValue<any> {
     if (func) {
-        let v = func.func ();
+        let v = func.func();
 
         if (v instanceof IValue) {
             return v;
         }
         else {
-            return new Value ( v );
+            return new Value(v);
         }
     }
     else {
@@ -31,7 +31,7 @@ export function propertify (
             return value;
         }
         else {
-            return new Value ( value );
+            return new Value(value);
         }
     }
 }

@@ -16,16 +16,16 @@ export function eventify (
     name : string,
     handler : Function
 ) : Value<Function> {
-    let listener = handler.bind ( null, ts );
-    let value = new Value( listener );
+    let listener = handler.bind(null, ts);
+    let value = new Value(listener);
     let el = ts.el;
 
-    el.addEventListener ( name, listener );
-    value.on ( function () {
-        el.removeEventListener ( name, this.listener );
-        this.listener = value.get ().bind ( null, ts );
-        el.addEventListener ( name, this.listener );
-    }.bind ( { listener } ) );
+    el.addEventListener(name, listener);
+    value.on(function () {
+        el.removeEventListener(name, this.listener);
+        this.listener = value.get().bind(null, ts);
+        el.addEventListener(name, this.listener);
+    }.bind({ listener }));
 
     return value;
 }

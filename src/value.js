@@ -24,8 +24,8 @@ export class Value<T> extends IValue<T> {
      * Constructs a notifiable value
      * @param value {any} is initial value
      */
-    constructor ( value : T ) {
-        super ();
+    constructor (value : T) {
+        super();
         this.value = value;
         this.onchange = new Set<Function>();
     }
@@ -43,12 +43,12 @@ export class Value<T> extends IValue<T> {
      * @param value {any} is the new value
      * @returns {Value} a pointer to this
      */
-    set ( value : T ) : this {
+    set (value : T) : this {
         if (this.value !== value) {
             this.value = value;
 
             for (let handler of this.onchange) {
-                handler (value);
+                handler(value);
             }
         }
 
@@ -60,8 +60,8 @@ export class Value<T> extends IValue<T> {
      * @param handler {function} is a user-defined event handler
      * @returns {Value} a pointer to this
      */
-    on ( handler : Function ) : this {
-        this.onchange.add( handler );
+    on (handler : Function) : this {
+        this.onchange.add(handler);
         return this;
     }
 
@@ -70,13 +70,13 @@ export class Value<T> extends IValue<T> {
      * @param handler {function} is a existing user-defined handler
      * @returns {Value} a pointer to this
      */
-    off ( handler : Function ) : this {
+    off (handler : Function) : this {
         this.onchange.delete(handler);
         return this;
     }
 
     destroy () {
-        super.destroy ();
+        super.destroy();
         this.onchange.clear();
     }
 }
@@ -94,10 +94,10 @@ export class Rebind extends IValue<IValue<any>> {
      * Constructs a notifiable bind to a value
      * @param value {IValue} is initial value
      */
-    constructor ( value : IValue<any> ) {
-        super ();
+    constructor (value : IValue<any>) {
+        super();
         this.onchange = [];
-        this.set ( value );
+        this.set(value);
     }
 
     /**
@@ -105,7 +105,7 @@ export class Rebind extends IValue<IValue<any>> {
      * @returns {any} contained value
      */
     get () : any {
-        return this.value.get ();
+        return this.value.get();
     }
 
     /**
@@ -113,24 +113,24 @@ export class Rebind extends IValue<IValue<any>> {
      * @param value {IValue} is the new value
      * @returns {IValue} a pointer to this
      */
-    set ( value : IValue<any> ) : this {
+    set (value : IValue<any>) : this {
         if (this.value !== value) {
             for (let handler of this.bound) {
-                this.value.off ( handler );
+                this.value.off(handler);
             }
 
             this.bound = [];
             this.value = value;
 
             for (let handler of this.onchange) {
-                let bound = handler.bind ( null, value );
-                this.value.on ( bound );
-                this.bound.push ( bound );
+                let bound = handler.bind(null, value);
+                this.value.on(bound);
+                this.bound.push(bound);
             }
 
-            if (this.value.get () !== value.get ()) {
+            if (this.value.get() !== value.get()) {
                 for (let handler of this.bound) {
-                    handler ();
+                    handler();
                 }
             }
         }
@@ -143,11 +143,11 @@ export class Rebind extends IValue<IValue<any>> {
      * @param handler {function} is a user-defined event handler
      * @returns {IValue} a pointer to this
      */
-    on ( handler : Function ) : this {
-        let bound = handler.bind ( null, this.value );
-        this.onchange.push ( handler );
-        this.bound.push ( bound );
-        this.value.on ( bound );
+    on (handler : Function) : this {
+        let bound = handler.bind(null, this.value);
+        this.onchange.push(handler);
+        this.bound.push(bound);
+        this.value.on(bound);
         return this;
     }
 
@@ -156,12 +156,12 @@ export class Rebind extends IValue<IValue<any>> {
      * @param handler {function} is a existing user-defined handler
      * @returns {IValue} a pointer to this
      */
-    off ( handler : Function ) : this {
-        let index = this.onchange.indexOf ( handler );
+    off (handler : Function) : this {
+        let index = this.onchange.indexOf(handler);
         if (index !== -1) {
-            this.value.off ( this.bound[index] );
-            this.onchange.splice ( index, 1 );
-            this.bound.splice ( index, 1 );
+            this.value.off(this.bound[index]);
+            this.onchange.splice(index, 1);
+            this.bound.splice(index, 1);
         }
         return this;
     }
@@ -171,7 +171,7 @@ export class Rebind extends IValue<IValue<any>> {
      */
     destroy () {
         for (let handler of this.bound) {
-            this.value.off ( handler );
+            this.value.off(handler);
         }
     }
 }
