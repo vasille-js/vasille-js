@@ -59,18 +59,12 @@ export class ClassBinding extends Binding {
     bound (name : string) : Function {
         let binding = this;
 
-        function addClass (rt : BaseNode, ts : BaseNode, unscoped : string) {
-            let classes = rt.scopedClass(unscoped);
-            for (let cl of classes) {
-                rt.$app.run.addClass(ts.el, cl);
-            }
+        function addClass (rt : BaseNode, ts : BaseNode, cl : string) {
+            rt.$app.run.addClass(ts.el, cl);
         }
 
-        function removeClass (rt : BaseNode, ts : BaseNode, unscoped : string) {
-            let classes = rt.scopedClass(unscoped);
-            for (let cl of classes) {
-                rt.$app.run.removeClass(ts.el, cl);
-            }
+        function removeClass (rt : BaseNode, ts : BaseNode, cl : string) {
+            rt.$app.run.removeClass(ts.el, cl);
         }
 
         return function (rt : BaseNode, ts : BaseNode, value : string | boolean) {

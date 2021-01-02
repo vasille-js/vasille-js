@@ -38,6 +38,7 @@ export class RepeatNode extends ShadowNode {
             if (node.prev) {
                 node.prev.next = node;
             }
+            this.children.splice(this.children.indexOf(current), 1, node);
         }
         else if (before) {
             node.next = before;
@@ -46,13 +47,16 @@ export class RepeatNode extends ShadowNode {
             if (node.prev) {
                 node.prev.next = node;
             }
+            this.children.splice(this.children.indexOf(before) - 1, 0, node);
         }
         else {
-            if (this.lastChild) {
-                this.lastChild.next = node;
+            let lastChild = this.children[this.children.length - 1];
+                          
+            if (lastChild) {
+                lastChild.next = node;
             }
-            node.prev = this.lastChild;
-            this.lastChild = node;
+            node.prev = lastChild;
+            this.children.push(node);
         }
 
         node.preinitShadow(this.$app, this.rt, this, before || (

@@ -2,7 +2,6 @@
 import { AttributeBinding, attributify }     from "./attribute.js";
 import { Bind1, Binding, BindN }             from "./bind";
 import { classify }                          from "./class";
-import { CssCompozitor, CssDebugCompozitor } from "./css";
 import { eventify }                          from "./event.js";
 import { Executor, InstantExecutor }         from "./executor";
 import type { CoreEl }                       from "./interfaces/core";
@@ -297,8 +296,6 @@ export class BaseNode extends VasilleNode {
         this.created();
         this.createDom();
 
-        this.$app.css.initStyle(this);
-
         this.stopBuilding();
     }
 
@@ -462,14 +459,11 @@ export class BaseNode extends VasilleNode {
     }
 
     addClass (cl : string) : this {
-        let classes = this.scopedClass(cl);
-        for (let cl of classes) {
-            this.el.classList.add(cl);
-        }
+        this.el.classList.add(cl);
         return this;
     }
 
-    addGlobalClasses (...cl : Array<string>) : this {
+    addClasses (...cl : Array<string>) : this {
         this.el.classList.add(...cl);
         return this;
     }
@@ -481,47 +475,6 @@ export class BaseNode extends VasilleNode {
     ) : this {
         this.$class.push(classify(this.rt, this, cl || "", value, func));
         return this;
-    }
-
-    scopeClass (c : ?Function, cl : string) : string {
-        return "." + this.$app.css.scopedClass(c, cl)[0];
-    }
-
-    scopedClass (cl : ?string) : Array<string> {
-        return cl ? this.$app.css.scopedClass(this.rt.constructor, cl) : [];
-    }
-
-    createCss () : Array<{| selector : string, data : Object, media : Object |}> {
-        return [];
-    }
-
-    rule (
-        selector : string,
-        data : { [key : string] : Object }
-    ) : {|
-        selector : string,
-        data : { [key : string] : Object },
-        media? : Object
-    |} {
-        return { selector, data };
-    }
-
-    mediaRule (
-        selector : string,
-        media : {
-            minW? : number,
-            maxW? : number,
-            minH? : number,
-            maxH? : number,
-            rule? : string
-        },
-        data : { [key : string] : Object }
-    ) : {|
-        selector : string,
-        media : ?Object,
-        data : { [key : string] : Object }
-    |} {
-        return { selector, media, data };
     }
 
     /**
@@ -1310,8 +1263,6 @@ export class AppNode extends BaseNode {
 
     run : Executor;
 
-    css : CssCompozitor;
-
     /**
      * Constructs a app node
      * @param node {HTMLElement} The root of application
@@ -1321,7 +1272,6 @@ export class AppNode extends BaseNode {
         super();
 
         this.run = new InstantExecutor();
-        this.css = new CssDebugCompozitor();
         this.encapsulate(node);
         this.preinit(this, this, this, this);
 
