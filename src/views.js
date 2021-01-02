@@ -101,14 +101,12 @@ export class Repeater extends RepeatNode {
     currentCount : number = 0;
     orderNumber : Array<IValue<number>> = [];
 
+    // props
+    count : IValue<number>;
+
     constructor () {
         super ();
-    }
-
-    get props () : {
-        count : IValue<any>
-    } {
-        return this.$props;
+        this.count = new Value(0);
     }
 
     changeCount ( number : number ) {
@@ -128,11 +126,6 @@ export class Repeater extends RepeatNode {
         this.currentCount = number;
     }
 
-    createProps () {
-        super.createProps ();
-        this.defProp ( "count", Number, 0 );
-    }
-
 
 
     created () {
@@ -141,16 +134,16 @@ export class Repeater extends RepeatNode {
         this.updateHandler = ( value : number ) => {
             this.changeCount ( value );
         };
-        this.props.count.on ( this.updateHandler );
+        this.count.on ( this.updateHandler );
     }
 
     ready () {
-        this.changeCount ( this.props.count.get () );
+        this.changeCount ( this.count.get () );
     }
 
     destroy () {
         super.destroy ();
-        this.props.count.off ( this.updateHandler );
+        this.count.off ( this.updateHandler );
     }
 }
 
@@ -158,8 +151,12 @@ export class BaseView extends RepeatNode {
     addHandler : Function;
     removeHandler : Function;
 
+    // props
+    model : IValue<any>;
+
     constructor () {
         super ();
+        this.model = new Value();
 
         this.addHandler = ( id : *, item : IValue<any> ) => {
             this.createChild(id, item);
@@ -167,17 +164,6 @@ export class BaseView extends RepeatNode {
         this.removeHandler = ( id : *, item : IValue<any> ) => {
             this.destroyChild(id, item);
         }
-    }
-
-    get props () : {
-        model : IValue<any>
-    } {
-        return this.$props;
-    }
-
-    createProps () {
-        super.createProps ();
-        this.defProp ( "model", IValue, null );
     }
 
     createChild ( id : *, item : IValue<*>, before : ?VasilleNode ) : Function {
@@ -193,14 +179,14 @@ export class BaseView extends RepeatNode {
 
 
     ready () {
-        this.props.model.get().listener.onAdd ( this.addHandler );
-        this.props.model.get().listener.onRemove ( this.removeHandler );
+        this.model.get().listener.onAdd ( this.addHandler );
+        this.model.get().listener.onRemove ( this.removeHandler );
         super.ready ();
     }
 
     destroy () {
-        this.props.model.get().listener.offAdd ( this.addHandler );
-        this.props.model.get().listener.offRemove ( this.removeHandler );
+        this.model.get().listener.offAdd ( this.addHandler );
+        this.model.get().listener.offRemove ( this.removeHandler );
         super.destroy ();
     }
 }
@@ -209,14 +195,10 @@ export class ArrayView extends BaseView {
     handlers : Array<Function> = [];
     ids : Array<string> = [];
 
-    get props () : {
-        model : IValue<ArrayModel<IValue<*>>>
-    } {
-        return this.$props;
-    }
+    constructor () {
+        super();
 
-    createProps () {
-        this.defProp("model", ArrayModel);
+        this.model.set(new ArrayModel());
     }
 
 
@@ -255,16 +237,8 @@ export class ArrayView extends BaseView {
 
 
 
-    created () {
-        super.created ();
-
-        if (!this.props.model.get()) {
-            this.props.model.set(new ArrayModel<IValue<*>>());
-        }
-    }
-
     ready () {
-        let arr = this.props.model.get ();
+        let arr = this.model.get ();
         for (let i = 0; i < arr.length; i++) {
             this.$app.run.callCallback(() => {
                 this.createChild ( i, arr[i] );
@@ -275,7 +249,7 @@ export class ArrayView extends BaseView {
     }
 
     destroy () {
-        let arr = this.props.model.get ();
+        let arr = this.model.get ();
         for (let i = 0; i < arr.length; i++) {
             arr[i].off ( this.handlers[i] );
         }
@@ -287,14 +261,9 @@ export class ArrayView extends BaseView {
 export class ObjectView extends BaseView {
     handlers : { [key: string] : Function } = {};
 
-    get props () : {
-        model : IValue<ObjectModel<IValue<*>>>
-    } {
-        return this.$props;
-    }
-
-    createProps () {
-        this.defProp("model", ObjectModel);
+    constructor () {
+        super();
+        this.model.set(new ObjectModel);
     }
 
 
@@ -311,19 +280,11 @@ export class ObjectView extends BaseView {
 
 
 
-    created () {
-        super.created ();
-
-        if (!this.props.model.get()) {
-            this.props.model.set(new ObjectModel<IValue<*>>());
-        }
-    }
-
     ready () {
-        let obj = this.props.model.get();
+        let obj = this.model.get();
         
         for (let i in obj) {
-            if (obj.get(i) instanceof IValue) {
+            if (obj.hasOwnProperty(i) && obj.get(i) instanceof IValue) {
                 this.$app.run.callCallback(() => {
                     this.createChild(i, obj.get(i));
                 });
@@ -334,10 +295,12 @@ export class ObjectView extends BaseView {
     }
 
     destroy () {
-        let obj = this.props.model.get();
+        let obj = this.model.get();
 
         for (let i in obj) {
-            obj.get(i).off(this.handlers[i]);
+            if (obj.hasOwnProperty(i)) {
+                obj.get(i).off(this.handlers[i]);
+            }
         }
 
         super.destroy ();
@@ -347,14 +310,9 @@ export class ObjectView extends BaseView {
 export class MapView extends BaseView {
     handlers : Map<*, Function> = new Map();
 
-    get props () : {
-        model : IValue<MapModel<*, IValue<*>>>
-    } {
-        return this.$props;
-    }
-
-    createProps () {
-        this.defProp("model", MapModel);
+    constructor () {
+        super();
+        this.model.set(new MapModel);
     }
 
 
@@ -371,16 +329,8 @@ export class MapView extends BaseView {
 
 
 
-    created () {
-        super.created ();
-
-        if (!this.props.model.get()) {
-            this.props.model.set(new MapModel<*, IValue<*>>());
-        }
-    }
-
     ready () {
-        let map = this.props.model.get();
+        let map = this.model.get();
 
         for (let it of map) {
             this.$app.run.callCallback(() => {
@@ -392,7 +342,7 @@ export class MapView extends BaseView {
     }
 
     destroy () {
-        let map = this.props.model.get();
+        let map = this.model.get();
 
         for (let it of map) {
             it[1].off(this.handlers.get(it[0]));
@@ -405,14 +355,9 @@ export class MapView extends BaseView {
 export class SetView extends BaseView {
     handlers : Map<IValue<*>, Function> = new Map();
 
-    get props () : {
-        model : IValue<Set<IValue<*>>>
-    } {
-        return this.$props;
-    }
-
-    createProps () {
-        this.defProp("model", SetModel);
+    constructor () {
+        super();
+        this.model.set(new SetModel);
     }
 
 
@@ -429,16 +374,8 @@ export class SetView extends BaseView {
 
 
 
-    created () {
-        super.created ();
-
-        if (!this.props.model.get()) {
-            this.props.model.set(new SetModel<IValue<*>>());
-        }
-    }
-
     ready () {
-        let set = this.props.model.get();
+        let set = this.model.get();
 
         for (let it of set) {
             this.$app.run.callCallback(() => {
@@ -450,7 +387,7 @@ export class SetView extends BaseView {
     }
 
     destroy () {
-        let set = this.props.model.get();
+        let set = this.model.get();
 
         for (let it of set) {
             it.off(this.handlers.get(it));

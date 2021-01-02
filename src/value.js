@@ -16,9 +16,9 @@ export class Value<T> extends IValue<T> {
 
     /**
      * Array of handlers
-     * @type {Array<Function>}
+     * @type {Set<Function>}
      */
-    onchange : Array<Function>;
+    onchange : Set<Function>;
 
     /**
      * Constructs a notifiable value
@@ -27,7 +27,7 @@ export class Value<T> extends IValue<T> {
     constructor ( value : T ) {
         super ();
         this.value = value;
-        this.onchange = [];
+        this.onchange = new Set<Function>();
     }
 
     /**
@@ -61,7 +61,7 @@ export class Value<T> extends IValue<T> {
      * @returns {Value} a pointer to this
      */
     on ( handler : Function ) : this {
-        this.onchange.push ( handler );
+        this.onchange.add( handler );
         return this;
     }
 
@@ -71,16 +71,13 @@ export class Value<T> extends IValue<T> {
      * @returns {Value} a pointer to this
      */
     off ( handler : Function ) : this {
-        let index = this.onchange.indexOf ( handler );
-        if (index !== -1) {
-            this.onchange.splice ( index, 1 );
-        }
+        this.onchange.delete(handler);
         return this;
     }
 
     destroy () {
         super.destroy ();
-        this.onchange.splice ( 0 );
+        this.onchange.clear();
     }
 }
 

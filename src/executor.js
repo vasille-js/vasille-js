@@ -74,7 +74,7 @@ export class InstantExecutor extends Executor {
     }
 }
 
-export class ImmediateExecutor extends Executor {
+export class TimeoutExecutor extends Executor {
     addClass ( el : HTMLElement, cl : string ) {
         if (el) {
             setTimeout(() => {
@@ -165,5 +165,15 @@ export class NextFrameExecutor extends Executor {
 
     callCallback ( cb : Function ) {
         requestAnimationFrame(cb);
+    }
+}
+
+export class HybridExecutor extends InstantExecutor {
+    setStyle ( el : HTMLElement, prop : string, value : string ) {
+        requestAnimationFrame(() => el.style.setProperty(prop, value));
+    }
+
+    callCallback ( cb : Function ) {
+        setTimeout(cb, 0);
     }
 }

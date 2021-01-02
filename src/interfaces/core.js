@@ -39,20 +39,6 @@ export class Core extends Destroyable {
     $el : CoreEl;
 
     /**
-     * The collection of properties
-     * @type {Object<String, IValue>}
-     * @see Core#props
-     */
-    $props : LiveFields = {};
-
-    /**
-     * The collection of data
-     * @type {Object<String, IValue>}
-     * @see Core#data
-     */
-    $data  : LiveFields = {};
-
-    /**
      * The collection of attributes
      * @type {Object<String, IValue>}
      * @see Core#attrs
@@ -134,47 +120,40 @@ export class Core extends Destroyable {
     }
 
     /**
-     * Gets the component properties
-     * @type {Object<String, IValue>}
-     * @see Core#$props
+     * Gets the component life attribute value
+     * @param field {string} attribute name
+     * @return {IValue}
      */
-    get props () : LiveFields {
-        return this.$props;
+    attr (field : string) : IValue<string> {
+        let v = this.$attrs[field];
+
+        if (v instanceof IValue) {
+            return v;
+        }
+
+        throw "No such attribute";
     }
 
     /**
-     * Gets the component data
-     * @type {Object<String, IValue>}
-     * @see Core#$data
-     */
-    get data () : LiveFields {
-        return this.$data;
-    }
-
-    /**
-     * Gets the component life attributes
-     * @type {Object<String, IValue>}
-     * @see Core#$attrs
-     */
-    get attrs () : LiveFields {
-        return this.$attrs;
-    }
-
-    /**
-     * Gets the component life style attributes
+     * Gets the component life style attribute
      * @type {Object<String, IValue>}
      * @see Core#$style
      */
-    get style () : LiveFields {
-        return this.$style;
+    style (field : string) : IValue<string> {
+        let v = this.$style[field];
+
+        if (v instanceof IValue) {
+            return v;
+        }
+
+        throw "No such style attribute";
     }
 
     /**
      * Unlinks all bindings
      */
     destroy () {
-        destroyObject(this.$props);
-        destroyObject(this.$data);
+        destroyObject(this);
         destroyObject(this.$attrs);
         destroyObject(this.$style);
     }
