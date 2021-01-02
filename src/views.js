@@ -32,7 +32,7 @@ export class RepeatNode extends ShadowNode {
 
         node.$parent = this;
         if (current) {
-            node.$next = current.next;
+            node.$next = current.$next;
             node.$prev = current.$prev;
             if (node.$next) {
                 node.$next.$prev = node;
@@ -62,7 +62,7 @@ export class RepeatNode extends ShadowNode {
         }
 
         node.$$preinitShadow(this.$app, this.$rt, this, before || (
-            current ? current.next : null
+            current ? current.$next : null
         ));
 
         node.$init({});
@@ -79,12 +79,12 @@ export class RepeatNode extends ShadowNode {
 
         if (child) {
             if (child.$prev) {
-                child.$prev.$next = child.next;
+                child.$prev.$next = child.$next;
             }
-            if (child.next) {
-                child.next.$prev = child.$prev;
+            if (child.$next) {
+                child.$next.$prev = child.$prev;
             }
-            child.destroy();
+            child.$destroy();
             this.nodes.delete(id);
             this.$children.splice(this.$children.indexOf(child), 1);
         }

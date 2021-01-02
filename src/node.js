@@ -843,7 +843,7 @@ export class BaseNode extends VasilleNode {
         }
 
         if (lastChild) {
-            lastChild.next = node;
+            lastChild.$next = node;
         }
         node.$prev = lastChild;
         node.$parent = this;
@@ -913,7 +913,7 @@ export class BaseNode extends VasilleNode {
         cb : ?(text : TextNode) => void
     ) : BaseNode {
         if (this.$slots["default"] !== this && !this.$$building) {
-            this.$slots["default"].defText(text, cb);
+            this.$slots["default"].$defText(text, cb);
             return this;
         }
 
@@ -941,7 +941,7 @@ export class BaseNode extends VasilleNode {
         cb : ?(node : ElementNode, v : ?any) => void
     ) : BaseNode {
         if (this.$slots["default"] !== this && !this.$$building) {
-            this.$slots["default"].defTag(tagName, cb);
+            this.$slots["default"].$defTag(tagName, cb);
             return this;
         }
         let node = new ElementNode();
@@ -973,7 +973,7 @@ export class BaseNode extends VasilleNode {
         cb : ?(node : T, v : ?any) => void
     ) : BaseNode {
         if (this.$slots["default"] !== this && !this.$$building) {
-            this.$slots["default"].defElement(node, props, cb);
+            this.$slots["default"].$defElement(node, props, cb);
             return this;
         }
 
@@ -1015,7 +1015,7 @@ export class BaseNode extends VasilleNode {
         cb : (node : RepeatNodeItem, v : ?any) => void
     ) : this {
         if (this.$slots["default"] !== this && !this.$$building) {
-            this.$slots["default"].defRepeater(node, props, cb);
+            this.$slots["default"].$defRepeater(node, props, cb);
             return this;
         }
 
@@ -1035,7 +1035,7 @@ export class BaseNode extends VasilleNode {
         cond : any,
         cb : CaseCallBack
     ) : this {
-        return this.defSwitch({ cond, cb });
+        return this.$defSwitch({ cond, cb });
     }
 
     $defIfElse (
@@ -1043,14 +1043,14 @@ export class BaseNode extends VasilleNode {
         ifCb : CaseCallBack,
         elseCb : CaseCallBack
     ) : this {
-        return this.defSwitch({ cond : ifCond, cb : ifCb }, { cond : true, cb : elseCb });
+        return this.$defSwitch({ cond : ifCond, cb : ifCb }, { cond : true, cb : elseCb });
     }
 
     $defSwitch (
         ...cases : Array<CaseArg>
     ) : this {
         if (this.$slots["default"] !== this && !this.$$building) {
-            this.$slots["default"].defSwitch(...cases);
+            this.$slots["default"].$defSwitch(...cases);
             return this;
         }
 
