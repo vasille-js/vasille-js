@@ -13,8 +13,12 @@
     "predoc": "npm run build",
     "doc": "jsdoc -a all lib/** DOCHOME.md"
   },
-  "keywords": [],
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/vasille.js/vasille.js.git"
+  },
+  "keywords": ["javascript", "framework", "frontend", "fast"],
+  "author": "Vasile Lixcode <lixcode@vivaldi.net> (https://t.me/lixcode)",
   "license": "MIT",
   "devDependencies": {
     "flow-bin": "^0.134.0",
