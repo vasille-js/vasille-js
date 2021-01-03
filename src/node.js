@@ -7,6 +7,7 @@ import { Executor, InstantExecutor }     from "./executor.js";
 import type { CoreEl }                   from "./interfaces/core.js";
 import { $destroyObject }                from "./interfaces/core.js";
 import { Core }                          from "./interfaces/core.js";
+import { Destroyable }                   from "./interfaces/destroyable";
 import { IBind }                         from "./interfaces/ibind.js";
 import { Callable }                      from "./interfaces/idefinition.js";
 import { IValue }                        from "./interfaces/ivalue.js";
@@ -17,11 +18,45 @@ import type { RepeatNode }               from "./views.js";
 
 
 
+export class VasilleNodePrivate extends Core {
+    /**
+     * The root node
+     * @type {BaseNode}
+     */
+    rt : BaseNode;
+
+    /**
+     * The app node
+     * @type {VasilleNode}
+     */
+    app : AppNode;
+
+    /**
+     * Pre-initializes the base of a node
+     * @param app {App} the app node
+     * @param rt {BaseNode} The root node
+     * @param ts {BaseNode} The this node
+     * @param before {?VasilleNode} VasilleNode to paste this after
+     */
+    preinit (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
+        this.app = app;
+        this.rt = rt;
+    }
+
+}
+
 /**
  * Represents a Vasille.js node
  * @extends Core
  */
-export class VasilleNode extends Core {
+export class VasilleNode extends Destroyable {
+
+    /**
+     * Private data of Vasille.js node
+     * @type {VasilleNodePrivate}
+     */
+    $ : VasilleNodePrivate = new VasilleNodePrivate;
+
     /**
      * A link to a parent node
      * @type {VasilleNode}
@@ -41,48 +76,24 @@ export class VasilleNode extends Core {
     $prev : ?VasilleNode;
 
     /**
-     * The root node
-     * @type {BaseNode}
-     */
-    $$rt : BaseNode;
-
-    /**
-     * The app node
-     * @type {VasilleNode}
-     */
-    $app : AppNode;
-
-    /**
-     * Pre-initializes the base of a node
-     * @param app {App} the app node
-     * @param rt {BaseNode} The root node
-     * @param ts {BaseNode} The this node
-     * @param before {?VasilleNode} VasilleNode to paste this after
-     */
-    $$preinit (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
-        this.$app = app;
-        this.$$rt = rt;
-    }
-
-    /**
      * Creates a reference to this element
      * @param reference {String} The reference name
      * @param likeArray {Boolean} Store reference to array
      */
-    $ref (reference : string, likeArray : boolean = false) : void {
-        if (this.$$rt instanceof BaseNode) {
-            let ref = this.$$rt.$refs[reference];
+    $makeRef (reference : string, likeArray : boolean = false) : void {
+        if (this.$.rt instanceof BaseNode) {
+            let ref = this.$.rt.$refs[reference];
 
             if (likeArray) {
                 if (ref instanceof Array) {
                     ref.push(this);
                 }
                 else {
-                    this.$$rt.$refs[reference] = [this];
+                    this.$.rt.$refs[reference] = [this];
                 }
             }
             else {
-                this.$$rt.$refs[reference] = this;
+                this.$.rt.$refs[reference] = this;
             }
         }
     }
@@ -93,16 +104,16 @@ export class VasilleNode extends Core {
     $destroy () : void {
         super.$destroy();
 
-        if (this.$$rt instanceof BaseNode) {
-            for (let i in this.$$rt.$refs) {
-                if (this.$$rt.$refs[i] === this) {
-                    delete this.$$rt.$refs[i];
+        if (this.$.rt instanceof BaseNode) {
+            for (let i in this.$.rt.$refs) {
+                if (this.$.rt.$refs[i] === this) {
+                    delete this.$.rt.$refs[i];
                 }
                 else if (
-                    this.$$rt.$refs[i] instanceof Array &&
-                    this.$$rt.$refs[i].includes(this)
+                    this.$.rt.$refs[i] instanceof Array &&
+                    this.$.rt.$refs[i].includes(this)
                 ) {
-                    this.$$rt.$refs[i].splice(this.$$rt.$refs[i].indexOf(this), 1);
+                    this.$.rt.$refs[i].splice(this.$.rt.$refs[i].indexOf(this), 1);
                 }
             }
         }
@@ -219,7 +230,7 @@ export class BaseNode extends VasilleNode {
      * @type {BaseNode}
      */
     get $rt () : BaseNode {
-        return !this.$$building && this.$$rt instanceof BaseNode ? this.$$rt : this;
+        return !this.$$building && this.$.rt instanceof BaseNode ? this.$.rt : this;
     }
 
     /**
@@ -330,10 +341,10 @@ export class BaseNode extends VasilleNode {
     $destroy () : void {
         super.$destroy();
 
-        if (this.$$rt instanceof BaseNode) {
-            for (let i in this.$$rt.$slots) {
-                if (this.$$rt.$slots[i] === this) {
-                    delete this.$$rt.$slots[i];
+        if (this.$.rt instanceof BaseNode) {
+            for (let i in this.$.rt.$slots) {
+                if (this.$.rt.$slots[i] === this) {
+                    delete this.$.rt.$slots[i];
                 }
             }
         }
@@ -814,8 +825,8 @@ export class BaseNode extends VasilleNode {
      * @param name {String} The name of slot
      */
     $makeSlot (name : string) : this {
-        if (this.$$rt instanceof BaseNode) {
-            this.$$rt.$slots[name] = this;
+        if (this.$.rt instanceof BaseNode) {
+            this.$.rt.$slots[name] = this;
         }
         return this;
     }
