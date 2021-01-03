@@ -1,179 +1,161 @@
 // @flow
+/**
+ * Represents an executor unit interface
+ */
 export class Executor {
-    constructor () {
-    }
 
+    /**
+     * Adds a CSS class
+     * @param el {HTMLElement} HTML element
+     * @param cl {string}
+     */
     addClass (el : HTMLElement, cl : string) {
         throw "Must be overwritten";
     }
 
+    /**
+     * Removes a CSS class
+     * @param el {HTMLElement} HTML element
+     * @param cl {string}
+     */
     removeClass (el : HTMLElement, cl : string) {
         throw "Must be overwritten";
     }
 
+    /**
+     * Sets a tag attribute
+     * @param el {HTMLElement} HTML element
+     * @param name {string}
+     * @param value {string}
+     */
     setAttribute (el : HTMLElement, name : string, value : string) {
         throw "Must be overwritten";
     }
 
+    /**
+     * Removes a tag attribute
+     * @param el {HTMLElement} HTML element
+     * @param name {string}
+     */
     removeAttribute (el : HTMLElement, name : string) {
         throw "Must be overwritten";
     }
 
+    /**
+     * Sets a style attribute
+     * @param el {HTMLElement} HTML element
+     * @param prop {string}
+     * @param value {string}
+     */
     setStyle (el : HTMLElement, prop : string, value : string) {
         throw "Must be overwritten";
     }
 
+    /**
+     * Inserts a child
+     * @param el {HTMLElement} HTML element
+     * @param child {HTMLElement | Text | Comment} Child to insert
+     * @param before {HTMLElement | Text | Comment} Child used as position locator
+     */
     insertBefore (el : HTMLElement, child : HTMLElement | Text | Comment, before : HTMLElement | Text | Comment) {
         throw "Must be overwritten";
     }
 
+    /**
+     * Appends a child
+     * @param el {HTMLElement} HTML element
+     * @param child {HTMLElement | Text | Comment} Child to append
+     */
     appendChild (el : HTMLElement, child : HTMLElement | Text | Comment) {
         throw "Must be overwritten";
     }
 
+    /**
+     * Calls a call-back function
+     * @param cb {Function} call-back function
+     */
     callCallback (cb : Function) {
         throw "Must be overwritten";
     }
 }
 
 export class InstantExecutor extends Executor {
+
+    /**
+     * Adds a CSS class
+     * @param el {HTMLElement} HTML element
+     * @param cl {string}
+     */
     addClass (el : HTMLElement, cl : string) {
         if (el) {
             el.classList.add(cl);
         }
     }
 
+    /**
+     * Removes a CSS class
+     * @param el {HTMLElement} HTML element
+     * @param cl {string}
+     */
     removeClass (el : HTMLElement, cl : string) {
         if (el) {
             el.classList.remove(cl);
         }
     }
 
+    /**
+     * Sets a tag attribute
+     * @param el {HTMLElement} HTML element
+     * @param name {string}
+     * @param value {string}
+     */
     setAttribute (el : HTMLElement, name : string, value : string) {
         el.setAttribute(name, value);
     }
 
+    /**
+     * Removes a tag attribute
+     * @param el {HTMLElement} HTML element
+     * @param name {string}
+     */
     removeAttribute (el : HTMLElement, name : string) {
         el.removeAttribute(name);
     }
 
+    /**
+     * Sets a style attribute
+     * @param el {HTMLElement} HTML element
+     * @param prop {string}
+     * @param value {string}
+     */
     setStyle (el : HTMLElement, prop : string, value : string) {
         el.style.setProperty(prop, value);
     }
 
+    /**
+     * Inserts a child
+     * @param el {HTMLElement} HTML element
+     * @param child {HTMLElement | Text | Comment} Child to insert
+     * @param before {HTMLElement | Text | Comment} Child used as position locator
+     */
     insertBefore (el : HTMLElement, child : HTMLElement | Text | Comment, before : HTMLElement | Text | Comment) {
         el.insertBefore(child, before);
     }
 
+    /**
+     * Appends a child
+     * @param el {HTMLElement} HTML element
+     * @param child {HTMLElement | Text | Comment} Child to append
+     */
     appendChild (el : HTMLElement, child : HTMLElement | Text | Comment) {
         el.appendChild(child);
     }
 
+    /**
+     * Calls a call-back function
+     * @param cb {Function} call-back function
+     */
     callCallback (cb : Function) {
         cb();
-    }
-}
-
-export class TimeoutExecutor extends Executor {
-    addClass (el : HTMLElement, cl : string) {
-        if (el) {
-            setTimeout(() => {
-                el.classList.add(cl);
-            }, 0);
-        }
-    }
-
-    removeClass (el : HTMLElement, cl : string) {
-        if (el) {
-            setTimeout(() => {
-                el.classList.remove(cl);
-            }, 0);
-        }
-    }
-
-    setAttribute (el : HTMLElement, name : string, value : string) {
-        setTimeout(() => {
-            el.setAttribute(name, value);
-        }, 0);
-    }
-
-    removeAttribute (el : HTMLElement, name : string) {
-        setTimeout(() => {
-            el.removeAttribute(name);
-        }, 0);
-    }
-
-    setStyle (el : HTMLElement, prop : string, value : string) {
-        setTimeout(() => {
-            el.style.setProperty(prop, value);
-        }, 0);
-    }
-
-    insertBefore (el : HTMLElement, child : HTMLElement | Text | Comment, before : HTMLElement | Text | Comment) {
-        setTimeout(() => {
-            el.insertBefore(child, before);
-        }, 0);
-    }
-
-    appendChild (el : HTMLElement, child : HTMLElement | Text | Comment) {
-        setTimeout(() => {
-            el.appendChild(child);
-        }, 0);
-    }
-
-    callCallback (cb : Function) {
-        setTimeout(cb, 0);
-    }
-}
-
-export class NextFrameExecutor extends Executor {
-    addClass (el : HTMLElement, cl : string) {
-        if (el) {
-            requestAnimationFrame(() => el.classList.add(cl));
-        }
-    }
-
-    removeClass (el : HTMLElement, cl : string) {
-        if (el) {
-            requestAnimationFrame(() => el.classList.remove(cl));
-        }
-    }
-
-    setAttribute (el : HTMLElement, name : string, value : string) {
-        requestAnimationFrame(() => el.setAttribute(name, value));
-    }
-
-    removeAttribute (el : HTMLElement, name : string) {
-        requestAnimationFrame(() => el.removeAttribute(name));
-    }
-
-    setStyle (el : HTMLElement, prop : string, value : string) {
-        requestAnimationFrame(() => el.style.setProperty(prop, value));
-    }
-
-    insertBefore (el : HTMLElement, child : HTMLElement | Text | Comment, before : HTMLElement | Text | Comment) {
-        requestAnimationFrame(() => {
-            el.insertBefore(child, before);
-        });
-    }
-
-    appendChild (el : HTMLElement, child : HTMLElement | Text | Comment) {
-        requestAnimationFrame(() => {
-            el.appendChild(child);
-        });
-    }
-
-    callCallback (cb : Function) {
-        requestAnimationFrame(cb);
-    }
-}
-
-export class HybridExecutor extends InstantExecutor {
-    setStyle (el : HTMLElement, prop : string, value : string) {
-        requestAnimationFrame(() => el.style.setProperty(prop, value));
-    }
-
-    callCallback (cb : Function) {
-        setTimeout(cb, 0);
     }
 }

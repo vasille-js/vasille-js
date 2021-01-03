@@ -1,7 +1,8 @@
 // @flow
 
-import { Destroyable } from "./destroyable.js";
-import { IValue }      from "./ivalue.js";
+import type { AppNode, BaseNode } from "../node";
+import { Destroyable }            from "./destroyable.js";
+import { IValue }                 from "./ivalue.js";
 
 
 
@@ -17,7 +18,7 @@ export function $destroyObject (obj : Object) {
     for (let i in obj) {
         if (obj.hasOwnProperty(i)) {
             let prop = obj[i];
-            if (prop instanceof Destroyable && !(prop instanceof Core)) {
+            if (prop instanceof Destroyable && !(prop instanceof VasilleNode)) {
                 prop.$destroy();
             }
         }
@@ -25,90 +26,118 @@ export function $destroyObject (obj : Object) {
 }
 
 /**
- * Represents an Vasille.js component core
+ * Represents a Vasille.js node
  * @implements Destroyable
  */
-export class Core extends Destroyable {
+export class VasilleNodePrivate extends Destroyable {
     /**
      * The encapsulated element
      * @type {HTMLElement | Text | Comment}
-     * @see Core#$coreEl
-     * @see Core#$el
-     * @see Core#$text
-     * @see Core#$comment
+     * @see VasilleNode#CoreEl
+     * @see VasilleNode#el
+     * @see VasilleNode#text
+     * @see VasilleNode#comment
      */
-    $$el : CoreEl;
+    $el : CoreEl;
 
     /**
      * The collection of attributes
      * @type {Object<String, IValue>}
-     * @see Core#attrs
+     * @see VasilleNode#attr
      */
-    $$attrs : LiveFields = {};
+    $attrs : LiveFields = {};
 
     /**
      * The collection of style attributes
      * @type {Object<String, IValue>}
-     * @see Core#$style
+     * @see VasilleNode#style
      */
-    $$style : LiveFields = {};
+    $style : LiveFields = {};
+    /**
+     * The root node
+     * @type {BaseNode}
+     */
+    root : BaseNode;
 
     /**
-     * Builds a component core by a html element/text/comment
+     * The this node
+     * @type {BaseNode}
      */
-    constructor () {
-        super();
-    }
+    ts : BaseNode;
+
+    /**
+     * The app node
+     * @type {VasilleNode}
+     */
+    app : AppNode;
+
+    /**
+     * A link to a parent node
+     * @type {VasilleNode}
+     */
+    parent : BaseNode;
+
+    /**
+     * The next node
+     * @type {?VasilleNode}
+     */
+    next : ?VasilleNode;
+
+    /**
+     * The previous node
+     * @type {?VasilleNode}
+     */
+    prev : ?VasilleNode;
 
     /**
      * Gets the encapsulated element anyway
      * @type {HTMLElement | Text | Comment}
-     * @see Core#$$el
+     * @see VasilleNode#$el
      */
-    get $coreEl () : CoreEl {
-        return this.$$el;
+    get coreEl () : CoreEl {
+        return this.$el;
     }
 
     /**
      * Gets the encapsulated element if it is a html element, otherwise undefined
      * @type {HTMLElement}
-     * @see Core#$$el
+     * @see VasilleNode#$el
      */
-    get $el () : HTMLElement {
-        let el = this.$coreEl;
+    get el () : HTMLElement {
+        let el = this.coreEl;
         if (el instanceof HTMLElement) {
             return el;
         }
 
-        throw "wrong Core.$el() call";
+        throw "wrong VasilleNode.$el() call";
     }
 
     /**
      * Gets the encapsulated element if it is a html text node, otherwise undefined
      * @type {Text}
-     * @see Core#$$el
+     * @see VasilleNode#$el
      */
-    get $text () : Text {
-        let el = this.$coreEl;
+    get text () : Text {
+        let el = this.coreEl;
         if (el instanceof Text) {
             return el;
         }
 
-        throw "wrong Core.$text() call";
+        throw "wrong VasilleNode.$text() call";
     }
 
     /**
      * Gets the encapsulated element if it is a html comment, otherwise undefined
      * @type {Comment}
-     * @see Core#$$el
+     * @see VasilleNode#$el
      */
-    get $comment () : Comment {
-        let el = this.$coreEl;
+    get comment () : Comment {
+        let el = this.coreEl;
         if (el instanceof Comment) {
             return el;
         }
 
-        throw "wrong Core.$comment() call";
+        throw "wrong VasilleNode.$comment() call";
     }
 
     /**
@@ -116,18 +145,30 @@ export class Core extends Destroyable {
      * @param el {HTMLElement | Text | Comment} element to encapsulate
      * @private
      */
-    $$encapsulate (el : CoreEl) : this {
-        this.$$el = el;
+    encapsulate (el : CoreEl) : this {
+        this.$el = el;
         return this;
     }
 
+    /**
+     * Pre-initializes the base of a node
+     * @param app {App} the app node
+     * @param rt {BaseNode} The root node
+     * @param ts {BaseNode} The this node
+     * @param before {?VasilleNode} VasilleNode to paste this after
+     */
+    preinit (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
+        this.app = app;
+        this.root = rt;
+        this.ts = ts;
+    }
     /**
      * Gets the component life attribute value
      * @param field {string} attribute name
      * @return {IValue}
      */
-    $attr (field : string) : IValue<string> {
-        let v = this.$$attrs[field];
+    attr (field : string) : IValue<string> {
+        let v = this.$attrs[field];
 
         if (v instanceof IValue) {
             return v;
@@ -139,10 +180,10 @@ export class Core extends Destroyable {
     /**
      * Gets the component life style attribute
      * @type {Object<String, IValue>}
-     * @see Core#$$style
+     * @see VasilleNode#$style
      */
-    $style (field : string) : IValue<string> {
-        let v = this.$$style[field];
+    style (field : string) : IValue<string> {
+        let v = this.$style[field];
 
         if (v instanceof IValue) {
             return v;
@@ -155,8 +196,16 @@ export class Core extends Destroyable {
      * Unlinks all bindings
      */
     $destroy () {
-        $destroyObject(this);
-        $destroyObject(this.$$attrs);
-        $destroyObject(this.$$style);
+        $destroyObject(this.$attrs);
+        $destroyObject(this.$style);
+    }
+}
+
+/**
+ * This class is symbolic
+ */
+export class VasilleNode extends Destroyable {
+    get $ () : VasilleNodePrivate {
+        throw "Must be overloaded";
     }
 }
