@@ -3,6 +3,7 @@ models/
 docs/
 doc/
 out/
+.idea/
 /**.md
 .flowconfig
 tsconfig.json

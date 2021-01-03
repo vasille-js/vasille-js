@@ -9,7 +9,7 @@
     "prebuild": "rm -r lib",
     "build": "flow-remove-types --pretty --sourcemaps src/ -d lib/",
     "prepare": "flow-remove-types --pretty --sourcemaps src/ -d lib/",
-    "prepublishOnly": "tsc --build tsconfig.json",
+    "prepack": "tsc --build tsconfig.json",
     "test": "echo \"Error: no test specified\"",
     "predoc": "npm run build",
     "doc": "jsdoc -a all lib/** DOCHOME.md",
