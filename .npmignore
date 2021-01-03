@@ -1,0 +1,8 @@
+src/
+models/
+docs/
+doc/
+out/
+/**.md
+.flowconfig
+tsconfig.json
