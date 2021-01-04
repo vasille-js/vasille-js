@@ -33,7 +33,7 @@ export class VasilleNodePrivate extends Destroyable {
     /**
      * The encapsulated element
      * @type {HTMLElement | Text | Comment}
-     * @see VasilleNode#CoreEl
+     * @see VasilleNode#coreEl
      * @see VasilleNode#el
      * @see VasilleNode#text
      * @see VasilleNode#comment
