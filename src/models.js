@@ -135,7 +135,7 @@ export class ArrayModel<T> extends Array<IValue<T>> {
 
         for (let i = start; i < end; i++) {
             if (this[i] instanceof IValue) {
-                this[i].set(value);
+                this[i].$ = value;
             }
         }
         return this;

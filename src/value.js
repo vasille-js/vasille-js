@@ -34,7 +34,7 @@ export class Value<T> extends IValue<T> {
      * Gets the notifiable value as js value
      * @returns {any} contained value
      */
-    get () : T {
+    get $ () : T {
         return this.value;
     }
 
@@ -43,7 +43,7 @@ export class Value<T> extends IValue<T> {
      * @param value {any} is the new value
      * @returns {Value} a pointer to this
      */
-    set (value : T) : this {
+    set $ (value : T) : this {
         if (this.value !== value) {
             this.value = value;
 
@@ -97,15 +97,15 @@ export class Rebind extends IValue<IValue<any>> {
     constructor (value : IValue<any>) {
         super();
         this.onchange = [];
-        this.set(value);
+        this.$ = value;
     }
 
     /**
      * Gets the notifiable value as js value
      * @returns {any} contained value
      */
-    get () : any {
-        return this.value.get();
+    get $ () : any {
+        return this.value.$;
     }
 
     /**
@@ -113,7 +113,7 @@ export class Rebind extends IValue<IValue<any>> {
      * @param value {IValue} is the new value
      * @returns {IValue} a pointer to this
      */
-    set (value : IValue<any>) : this {
+    set $ (value : IValue<any>) : this {
         if (this.value !== value) {
             for (let handler of this.bound) {
                 this.value.off(handler);
@@ -128,7 +128,7 @@ export class Rebind extends IValue<IValue<any>> {
                 this.bound.push(bound);
             }
 
-            if (this.value.get() !== value.get()) {
+            if (this.value.$ !== value.$) {
                 for (let handler of this.bound) {
                     handler();
                 }

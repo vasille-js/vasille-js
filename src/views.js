@@ -92,7 +92,7 @@ export class RepeatNode extends ShadowNode {
 
         node.$init({});
         this.$.app.$run.callCallback(() => {
-            this.cb(node, item.get());
+            this.cb(node, item.$);
             node.$ready();
         });
 
@@ -189,7 +189,7 @@ export class Repeater extends RepeatNode {
      * Handles ready event
      */
     $ready () {
-        this.changeCount(this.count.get());
+        this.changeCount(this.count.$);
     }
 
     /**
@@ -262,8 +262,8 @@ export class BaseView extends RepeatNode {
      * Handle ready event
      */
     $ready () {
-        this.model.get().listener.onAdd(this.addHandler);
-        this.model.get().listener.onRemove(this.removeHandler);
+        this.model.$.listener.onAdd(this.addHandler);
+        this.model.$.listener.onRemove(this.removeHandler);
         super.$ready();
     }
 
@@ -271,8 +271,8 @@ export class BaseView extends RepeatNode {
      * Handles destroy event
      */
     $destroy () {
-        this.model.get().listener.offAdd(this.addHandler);
-        this.model.get().listener.offRemove(this.removeHandler);
+        this.model.$.listener.offAdd(this.addHandler);
+        this.model.$.listener.offRemove(this.removeHandler);
         super.$destroy();
     }
 }
@@ -299,7 +299,7 @@ export class ArrayView extends BaseView {
     constructor () {
         super();
 
-        this.model.set(new ArrayModel());
+        this.model.$ = new ArrayModel();
     }
 
 
@@ -337,7 +337,7 @@ export class ArrayView extends BaseView {
      * Handle ready event
      */
     $ready () {
-        let arr = this.model.get();
+        let arr = this.model.$;
         for (let i = 0; i < arr.length; i++) {
             this.$.app.$run.callCallback(() => {
                 this.createChild(i, arr[i]);
@@ -351,7 +351,6 @@ export class ArrayView extends BaseView {
      * Handle destroy event
      */
     $destroy () {
-        let arr = this.model.get();
         for (let it of this.handlers) {
             it[0].off(it[1]);
         }
@@ -375,7 +374,7 @@ export class ObjectView extends BaseView {
      */
     constructor () {
         super();
-        this.model.set(new ObjectModel);
+        this.model.$ = new ObjectModel;
     }
 
 
@@ -402,7 +401,7 @@ export class ObjectView extends BaseView {
      * Handler ready event
      */
     $ready () {
-        let obj = this.model.get();
+        let obj = this.model.$;
 
         for (let i in obj) {
             if (obj.hasOwnProperty(i) && obj.get(i) instanceof IValue) {
@@ -419,7 +418,7 @@ export class ObjectView extends BaseView {
      * Handler destroy event
      */
     $destroy () {
-        let obj = this.model.get();
+        let obj = this.model.$;
 
         for (let i in obj) {
             if (obj.hasOwnProperty(i)) {
@@ -446,7 +445,7 @@ export class MapView extends BaseView {
      */
     constructor () {
         super();
-        this.model.set(new MapModel);
+        this.model.$ = new MapModel;
     }
 
 
@@ -473,7 +472,7 @@ export class MapView extends BaseView {
      * Handler ready event
      */
     $ready () {
-        let map = this.model.get();
+        let map = this.model.$;
 
         for (let it of map) {
             this.$.app.$run.callCallback(() => {
@@ -488,7 +487,7 @@ export class MapView extends BaseView {
      * Handler destroy event
      */
     $destroy () {
-        let map = this.model.get();
+        let map = this.model.$;
 
         for (let it of map) {
             it[1].off(this.handlers.get(it[0]));
@@ -513,7 +512,7 @@ export class SetView extends BaseView {
      */
     constructor () {
         super();
-        this.model.set(new SetModel);
+        this.model.$ = new SetModel;
     }
 
 
@@ -540,7 +539,7 @@ export class SetView extends BaseView {
      * Handler ready event
      */
     $ready () {
-        let set = this.model.get();
+        let set = this.model.$;
 
         for (let it of set) {
             this.$.app.$run.callCallback(() => {
@@ -555,7 +554,7 @@ export class SetView extends BaseView {
      * Handler destroy event
      */
     $destroy () {
-        let set = this.model.get();
+        let set = this.model.$;
 
         for (let it of set) {
             it.off(this.handlers.get(it));

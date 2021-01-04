@@ -14,7 +14,7 @@ export class IValue<T> extends Destroyable {
      * @return {*} Must return a value
      * @throws Must be overwritten
      */
-    get () : T {
+    get $ () : T {
         throw "Must be overwritten";
     }
 
@@ -24,7 +24,7 @@ export class IValue<T> extends Destroyable {
      * @return {IValue} A pointer to this
      * @throws Must be overwritten
      */
-    set (value : T) : this {
+    set $ (value : T) : this {
         throw "Must be overwritten";
     }
 

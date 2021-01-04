@@ -1,5 +1,5 @@
-import { Bind1, BindN }                                           from "./bind.js";
-import { Destroyable }                                            from "./interfaces/destroyable.js";
+import { bind, Bind1, BindN } from "./bind.js";
+import { Destroyable }        from "./interfaces/destroyable.js";
 import { IBind }                                                  from "./interfaces/ibind.js";
 import { IValue }                                                 from "./interfaces/ivalue.js";
 import { ArrayModel, MapModel, ObjectModel, SetModel, vassilify } from "./models.js";
@@ -10,7 +10,7 @@ import { ArrayView, MapView, ObjectView, SetView }                from "./views.
 
 
 export {
-    Bind1, BindN,
+    Bind1, BindN, bind,
     Destroyable,
     IBind, IValue,
     ArrayModel, MapModel, ObjectModel, SetModel, vassilify,

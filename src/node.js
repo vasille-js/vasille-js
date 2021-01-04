@@ -50,11 +50,11 @@ export class TextNodePrivate extends VasilleNodePrivate {
         super.preinit(app, rt, ts, before);
 
         let value = text instanceof IValue ? text : new Value(text);
-        let node = document.createTextNode(value.get());
+        let node = document.createTextNode(value.$);
 
         this.value = value;
         this.handler = function (v : IValue<string>) {
-            node.replaceData(0, -1, v.get());
+            node.replaceData(0, -1, v.$);
         }.bind(null, value);
 
         value.on(this.handler);
@@ -999,18 +999,11 @@ export class BaseNode extends VasilleNode {
      * @private
      */
     $$appendChild (node : CoreEl, before : ?VasilleNode) : void {
+        before = before || this.$.next;
+
         // If we are inserting before a element node
         if (before instanceof ElementNode) {
             this.$.app.$run.insertBefore(this.$.el, node, before.$.el);
-            return;
-        }
-
-        // If we are inserting in a shadow node or uninitiated element node
-        if (
-            (this instanceof ShadowNode && !(this.$.parent instanceof AppNode)) ||
-            (this instanceof ElementNode && !this.$.el)
-        ) {
-            this.$.parent.$$appendChild(node, this.$.next);
             return;
         }
 
@@ -1022,6 +1015,15 @@ export class BaseNode extends VasilleNode {
                 this.$.app.$run.insertBefore(this.$.el, node, beforeNode);
                 return;
             }
+        }
+
+        // If we are inserting in a shadow node or uninitiated element node
+        if (
+            (this instanceof ShadowNode && !(this.$.parent instanceof AppNode)) ||
+            (this instanceof ElementNode && !this.$.el)
+        ) {
+            this.$.parent.$$appendChild(node, this.$.next);
+            return;
         }
 
         // If we have no more variants
@@ -1247,7 +1249,7 @@ export class ElementNode extends BaseNode {
         tagName : string
     ) {
         this.node = document.createElement(tagName);
-        this.$$preinitNode(app, rt, ts.$.parent || ts, before, this.node);
+        this.$$preinitNode(app, rt, ts, before, this.node);
     }
 }
 
@@ -1358,7 +1360,7 @@ class SwitchedNode extends ShadowNode {
             let i = 0;
 
             for (; i < this.cases.length; i++) {
-                if (this.cases[i].cond.get()) {
+                if (this.cases[i].cond.$) {
                     break;
                 }
             }
@@ -1375,7 +1377,9 @@ class SwitchedNode extends ShadowNode {
                 this.createChild(i, this.cases[i].cb);
             }
             else {
-                this.node.$destroy();
+                if (this.node) {
+                    this.node.$destroy();
+                }
                 this.index = -1;
             }
         };

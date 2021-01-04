@@ -23,7 +23,7 @@ export function eventify (
     el.addEventListener(name, listener);
     value.on(function () {
         el.removeEventListener(name, this.listener);
-        this.listener = value.get().bind(null, ts);
+        this.listener = value.$.bind(null, ts);
         el.addEventListener(name, this.listener);
     }.bind({ listener }));
 

@@ -6,6 +6,18 @@ import { Value } from "./value.js";
 
 
 
+export function bind (f : Function, ...args : Array<IValue<any>>) {
+    if (args.length === 0) {
+        return new Value(f());
+    }
+    else if (args.length === 1) {
+        return new Bind1(f, args[0]);
+    }
+    else {
+        return new BindN(f, args);
+    }
+}
+
 /**
  * A binding engine core
  * @implements IBind
@@ -48,7 +60,7 @@ export class Bind1 extends IBind {
     ) {
         super();
         let handler = function () {
-            this.sync.set(func(value.get()));
+            this.sync.$ = func(value.$);
         }.bind(this);
 
         this.value = value;
@@ -61,15 +73,15 @@ export class Bind1 extends IBind {
         }
 
         value.on(this.func);
-        this.sync.set(func(value.get()));
+        this.sync.$ = func(value.$);
     }
 
     /**
      * Gets the last calculated value of bind
      * @return {*} The last calculated value
      */
-    get () : any {
-        return this.sync.get();
+    get $ () : any {
+        return this.sync.$;
     }
 
     /**
@@ -77,8 +89,8 @@ export class Bind1 extends IBind {
      * @param value {*} The value to set to buffer
      * @return {Bind1} A pointer too this
      */
-    set (value : any) : this {
-        this.sync.set(value);
+    set $ (value : any) : this {
+        this.sync.$ = value;
         return this;
     }
 
@@ -176,7 +188,7 @@ export class BindN extends IBind {
     ) {
         super();
         let handler = () => {
-            this.sync.set(func(...values.map(v => v.get())));
+            this.sync.$ = func(...values.map(v => v.$));
         };
 
         this.values = values;
@@ -188,15 +200,15 @@ export class BindN extends IBind {
             this.func.call();
         }
 
-        this.sync.set(func(...values.map(v => v.get())));
+        this.sync.$ = func(...values.map(v => v.$));
     }
 
     /**
      * Gets the last calculated value
      * @return {*} The last calculated value
      */
-    get () : any {
-        return this.sync.get();
+    get $ () : any {
+        return this.sync.$;
     }
 
     /**
@@ -204,8 +216,8 @@ export class BindN extends IBind {
      * @param value {*} New value for last calculated value
      * @return {BindN} A pointer to this
      */
-    set (value : any) : this {
-        this.sync.set(value);
+    set $ (value : any) : this {
+        this.sync.$ = value;
         return this;
     }
 
@@ -299,7 +311,7 @@ export class Binding extends IValue<any> {
         else if (func && values.length) {
             this.binding = values.length > 1 ? new BindN(func, values) : new Bind1(func, values[0]);
             this.func = (value : *) => {
-                this.binding.set(f(value));
+                this.binding.$ = f(value);
             };
         }
         else {
@@ -307,7 +319,7 @@ export class Binding extends IValue<any> {
         }
 
         this.binding.on(this.func);
-        f(this.binding.get());
+        f(this.binding.$);
     }
 
     /**
@@ -324,8 +336,8 @@ export class Binding extends IValue<any> {
      * Gets the binding value
      * @return {*} The binding value
      */
-    get () : any {
-        return this.binding.get();
+    get $ () : any {
+        return this.binding.$;
     }
 
     /**
@@ -333,8 +345,8 @@ export class Binding extends IValue<any> {
      * @param any {*} The new binding value
      * @return {Binding} A pointer to this
      */
-    set (any : any) : this {
-        this.binding.set(any);
+    set $ (any : any) : this {
+        this.binding.$ = any;
         return this;
     }
 
