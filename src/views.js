@@ -1,34 +1,38 @@
 // @flow
 import { VasilleNode }                                   from "./interfaces/core";
 import { IValue }                                        from "./interfaces/ivalue.js";
-import { ArrayModel, MapModel, ObjectModel, SetModel }   from "./models.js";
-import { AppNode, BaseNode, RepeatNodeItem, ShadowNode } from "./node.js";
-import { Value }                                         from "./value.js";
+import { ArrayModel, MapModel, ObjectModel, SetModel }                       from "./models.js";
+import { AppNode, BaseNode, RepeatNodeItem, ExtensionNode, BaseNodePrivate } from "./node.js";
+import { Reference }                                                         from "./value.js";
 
 
 
-/**
- * Repeat node repeats its children
- */
-export class RepeatNode extends ShadowNode {
+class RepeatNodePrivate extends BaseNodePrivate {
     /**
      * Children node hash
-     * @type {Map<*, ShadowNode>}
+     * @type {Map<*, ExtensionNode>}
      */
-    nodes : Map<any, ShadowNode> = new Map();
+    nodes : Map<any, ExtensionNode> = new Map();
 
     /**
      * Call-back function to create a children pack
      * @type {function(RepeatNodeItem, ?*) : void}
      */
     cb : (node : RepeatNodeItem, v : ?any) => void;
+}
+
+/**
+ * Repeat node repeats its children
+ */
+export class RepeatNode extends ExtensionNode {
+    $ : any = new RepeatNodePrivate();
 
     /**
      * Sets call-back function
      * @param cb {function(RepeatNodeItem, ?*) : void}
      */
     setCallback (cb : (node : RepeatNodeItem, v : ?any) => void) {
-        this.cb = cb;
+        this.$.cb = cb;
     }
 
     /**
@@ -50,29 +54,30 @@ export class RepeatNode extends ShadowNode {
      * @param before {VasilleNode} Node to insert before it
      */
     createChild (id : any, item : IValue<any>, before : ?VasilleNode) {
-        let current = this.nodes.get(id);
+        let current = this.$.nodes.get(id);
         let node = new RepeatNodeItem(id);
+        let $ = node.$;
 
         this.destroyChild(id, item);
 
-        node.$.parent = this;
+        $.parent = this;
         if (current) {
-            node.$.next = current.$.next;
-            node.$.prev = current.$.prev;
-            if (node.$.next) {
-                node.$.next.$.prev = node;
+            $.next = current.$.next;
+            $.prev = current.$.prev;
+            if ($.next) {
+                $.next.$.prev = node;
             }
-            if (node.$.prev) {
-                node.$.prev.$.next = node;
+            if ($.prev) {
+                $.prev.$.next = node;
             }
             this.$children.splice(this.$children.indexOf(current), 1, node);
         }
         else if (before) {
-            node.$.next = before;
-            node.$.prev = before.$.prev;
+            $.next = before;
+            $.prev = before.$.prev;
             before.$.prev = node;
-            if (node.$.prev) {
-                node.$.prev.$.next = node;
+            if ($.prev) {
+                $.prev.$.next = node;
             }
             this.$children.splice(this.$children.indexOf(before) - 1, 0, node);
         }
@@ -82,7 +87,7 @@ export class RepeatNode extends ShadowNode {
             if (lastChild) {
                 lastChild.$.next = node;
             }
-            node.$.prev = lastChild;
+            $.prev = lastChild;
             this.$children.push(node);
         }
 
@@ -92,11 +97,11 @@ export class RepeatNode extends ShadowNode {
 
         node.$init({});
         this.$.app.$run.callCallback(() => {
-            this.cb(node, item.$);
+            this.$.cb(node, item.$);
             node.$ready();
         });
 
-        this.nodes.set(id, node);
+        this.$.nodes.set(id, node);
     };
 
     /**
@@ -105,26 +110,25 @@ export class RepeatNode extends ShadowNode {
      * @param item {IValue<*>} value of children pack
      */
     destroyChild (id : any, item : IValue<any>) {
-        let child = this.nodes.get(id);
+        let child = this.$.nodes.get(id);
 
         if (child) {
-            if (child.$.prev) {
-                child.$.prev.$.next = child.$.next;
+            let $ = child.$;
+
+            if ($.prev) {
+                $.prev.$.next = $.next;
             }
-            if (child.$.next) {
-                child.$.next.$.prev = child.$.prev;
+            if ($.next) {
+                $.next.$.prev = $.prev;
             }
             child.$destroy();
-            this.nodes.delete(id);
+            this.$.nodes.delete(id);
             this.$children.splice(this.$children.indexOf(child), 1);
         }
     };
 }
 
-/**
- * The simplest repeat node interpretation, repeat children pack a several times
- */
-export class Repeater extends RepeatNode {
+class RepeaterPrivate extends RepeatNodePrivate {
     /**
      * Handler to catch count updates
      * @type {Function}
@@ -148,27 +152,37 @@ export class Repeater extends RepeatNode {
      * The count of children
      * @type {IValue<number>}
      */
-    count : IValue<number> = new Value(0);
+    count : IValue<number> = new Reference(0);
+
+}
+
+/**
+ * The simplest repeat node interpretation, repeat children pack a several times
+ */
+export class Repeater extends RepeatNode {
+    $ : any = new RepeaterPrivate();
 
     /**
      * Changes the children count
      * @param number {number} The new children count
      */
     changeCount (number : number) {
-        if (number > this.currentCount) {
-            for (let i = this.currentCount; i < number; i++) {
-                let item = new Value(i);
+        let $ = this.$;
+
+        if (number > $.currentCount) {
+            for (let i = $.currentCount; i < number; i++) {
+                let item = new Reference(i);
                 this.createChild(i, item);
-                this.orderNumber.push(item);
+                $.orderNumber.push(item);
             }
         }
         else {
-            for (let i = this.currentCount - 1; i >= number; i--) {
-                this.destroyChild(i, this.orderNumber[i]);
+            for (let i = $.currentCount - 1; i >= number; i--) {
+                this.destroyChild(i, $.orderNumber[i]);
             }
-            this.orderNumber.splice(number);
+            $.orderNumber.splice(number);
         }
-        this.currentCount = number;
+        $.currentCount = number;
     }
 
 
@@ -177,19 +191,21 @@ export class Repeater extends RepeatNode {
      * Handles created event
      */
     $created () {
+        let $ = this.$;
+
         super.$created();
 
-        this.updateHandler = (value : number) => {
+        $.updateHandler = (value : number) => {
             this.changeCount(value);
         };
-        this.count.on(this.updateHandler);
+        $.count.on($.updateHandler);
     }
 
     /**
      * Handles ready event
      */
     $ready () {
-        this.changeCount(this.count.$);
+        this.changeCount(this.$.count.$);
     }
 
     /**
@@ -197,14 +213,11 @@ export class Repeater extends RepeatNode {
      */
     $destroy () {
         super.$destroy();
-        this.count.off(this.updateHandler);
+        this.$.count.off(this.$.updateHandler);
     }
 }
 
-/**
- * Base class of default views
- */
-export class BaseView extends RepeatNode {
+class BaseViewPrivate extends RepeatNodePrivate {
     /**
      * Handler to catch values addition
      * @type {Function}
@@ -223,18 +236,27 @@ export class BaseView extends RepeatNode {
      * @type {IValue<*>}
      */
     model : IValue<any>;
+}
+
+/**
+ * Base class of default views
+ */
+export class BaseView extends RepeatNode {
+    $ : any = new BaseViewPrivate;
 
     /**
      * Sets up model and handlers
      */
     constructor () {
         super();
-        this.model = new Value();
+        let $ = this.$;
 
-        this.addHandler = (id : *, item : IValue<any>) => {
+        $.model = new Reference();
+
+        $.addHandler = (id : *, item : IValue<any>) => {
             this.createChild(id, item);
         };
-        this.removeHandler = (id : *, item : IValue<any>) => {
+        $.removeHandler = (id : *, item : IValue<any>) => {
             this.destroyChild(id, item);
         };
     }
@@ -242,7 +264,7 @@ export class BaseView extends RepeatNode {
     /**
      * Creates a child when user adds new values
      * @param id {*} id of children pack
-     * @param item {IValue<*>} Value of children pack
+     * @param item {IValue<*>} Reference of children pack
      * @param before {VasilleNode} Node to paste before it
      * @return {handler} handler must be saved and unliked on value remove
      */
@@ -262,8 +284,10 @@ export class BaseView extends RepeatNode {
      * Handle ready event
      */
     $ready () {
-        this.model.$.listener.onAdd(this.addHandler);
-        this.model.$.listener.onRemove(this.removeHandler);
+        let $ = this.$;
+
+        $.model.$.listener.onAdd($.addHandler);
+        $.model.$.listener.onRemove($.removeHandler);
         super.$ready();
     }
 
@@ -271,16 +295,15 @@ export class BaseView extends RepeatNode {
      * Handles destroy event
      */
     $destroy () {
-        this.model.$.listener.offAdd(this.addHandler);
-        this.model.$.listener.offRemove(this.removeHandler);
+        let $ = this.$;
+
+        $.model.$.listener.offAdd($.addHandler);
+        $.model.$.listener.offRemove($.removeHandler);
         super.$destroy();
     }
 }
 
-/**
- * Represents a view of a array model
- */
-export class ArrayView extends BaseView {
+class ArrayViewPrivate extends BaseViewPrivate {
     /**
      * Contains handlers of each child
      * @type {Map<IValue<*>, Function>}
@@ -292,6 +315,13 @@ export class ArrayView extends BaseView {
      * @type {Array<string>}
      */
     buffer : Array<IValue<*>> = [];
+}
+
+/**
+ * Represents a view of a array model
+ */
+export class ArrayView extends BaseView {
+    $ : any = new ArrayViewPrivate;
 
     /**
      * Sets up model with a default value
@@ -299,7 +329,7 @@ export class ArrayView extends BaseView {
     constructor () {
         super();
 
-        this.model.$ = new ArrayModel();
+        this.$.model.$ = new ArrayModel();
     }
 
 
@@ -308,27 +338,29 @@ export class ArrayView extends BaseView {
      * Overrides child created and generate random id for children
      */
     createChild (id : *, item : IValue<*>, before : ?VasilleNode) {
-        let next = typeof id === "number" ? this.nodes.get(this.buffer[id]) : null;
-
+        let $ = this.$;
+        let next = typeof id === "number" ? $.nodes.get($.buffer[id]) : null;
         let handler = super.createChild(item, item, before || next);
-        this.handlers.set(item, handler);
-        this.buffer.splice(id, 0, item);
+
+        $.handlers.set(item, handler);
+        $.buffer.splice(id, 0, item);
     }
 
     /**
      * Removes a children pack
      */
     destroyChild (id : *, item : IValue<any>) {
-        let index = typeof id === "number" ? id : this.buffer.indexOf(item);
+        let $ = this.$;
+        let index = typeof id === "number" ? id : $.buffer.indexOf(item);
 
         if (index === -1) {
             return;
         }
 
-        item.off(this.handlers.get(item));
-        this.handlers.delete(item);
+        item.off($.handlers.get(item));
+        $.handlers.delete(item);
         super.destroyChild(item, item);
-        this.buffer.splice(index, 1);
+        $.buffer.splice(index, 1);
     }
 
 
@@ -337,9 +369,11 @@ export class ArrayView extends BaseView {
      * Handle ready event
      */
     $ready () {
-        let arr = this.model.$;
+        let $ = this.$;
+        let arr = $.model.$;
+
         for (let i = 0; i < arr.length; i++) {
-            this.$.app.$run.callCallback(() => {
+            $.app.$run.callCallback(() => {
                 this.createChild(i, arr[i]);
             });
         }
@@ -351,7 +385,7 @@ export class ArrayView extends BaseView {
      * Handle destroy event
      */
     $destroy () {
-        for (let it of this.handlers) {
+        for (let it of this.$.handlers) {
             it[0].off(it[1]);
         }
 
@@ -359,22 +393,26 @@ export class ArrayView extends BaseView {
     }
 }
 
-/**
- * Create a children pack for each object field
- */
-export class ObjectView extends BaseView {
+class ObjectViewPrivate extends BaseViewPrivate {
     /**
      * Handler of property changes
      * @type {Object<string, function>}
      */
     handlers : { [key : string] : Function } = {};
+}
+
+/**
+ * Create a children pack for each object field
+ */
+export class ObjectView extends BaseView {
+    $ : any = new ObjectViewPrivate;
 
     /**
      * Sets up model
      */
     constructor () {
         super();
-        this.model.$ = new ObjectModel;
+        this.$.model.$ = new ObjectModel;
     }
 
 
@@ -383,15 +421,15 @@ export class ObjectView extends BaseView {
      * Saves the child handler
      */
     createChild (id : string, item : IValue<*>, before : ?VasilleNode) {
-        this.handlers[id] = super.createChild(id, item, before);
+        this.$.handlers[id] = super.createChild(id, item, before);
     }
 
     /**
      * Disconnects the child handler
      */
     destroyChild (id : string, item : IValue<*>) {
-        item.off(this.handlers[id]);
-        delete this.handlers[id];
+        item.off(this.$.handlers[id]);
+        delete this.$.handlers[id];
         super.destroyChild(id, item);
     }
 
@@ -401,11 +439,12 @@ export class ObjectView extends BaseView {
      * Handler ready event
      */
     $ready () {
-        let obj = this.model.$;
+        let $ = this.$;
+        let obj = $.model.$;
 
         for (let i in obj) {
             if (obj.hasOwnProperty(i) && obj.get(i) instanceof IValue) {
-                this.$.app.$run.callCallback(() => {
+                $.app.$run.callCallback(() => {
                     this.createChild(i, obj.get(i));
                 });
             }
@@ -418,11 +457,12 @@ export class ObjectView extends BaseView {
      * Handler destroy event
      */
     $destroy () {
-        let obj = this.model.$;
+        let $ = this.$;
+        let obj = $.model.$;
 
         for (let i in obj) {
             if (obj.hasOwnProperty(i)) {
-                obj.get(i).off(this.handlers[i]);
+                obj.get(i).off($.handlers[i]);
             }
         }
 
@@ -430,22 +470,26 @@ export class ObjectView extends BaseView {
     }
 }
 
-/**
- * Create a children pack for each map value
- */
-export class MapView extends BaseView {
+class MapViewPrivate extends BaseViewPrivate {
     /**
      * Contains update handler for each value
      * @type {Map<*, Function>}
      */
     handlers : Map<*, Function> = new Map();
+}
+
+/**
+ * Create a children pack for each map value
+ */
+export class MapView extends BaseView {
+    $ : any = new MapViewPrivate;
 
     /**
      * Sets up model
      */
     constructor () {
         super();
-        this.model.$ = new MapModel;
+        this.$.model.$ = new MapModel;
     }
 
 
@@ -454,15 +498,15 @@ export class MapView extends BaseView {
      * Saves the child handler
      */
     createChild (id : *, item : IValue<*>, before : ?VasilleNode) {
-        this.handlers.set(id, super.createChild(id, item, before));
+        this.$.handlers.set(id, super.createChild(id, item, before));
     }
 
     /**
      * Disconnects the child handler
      */
     destroyChild (id : *, item : IValue<*>) {
-        item.off(this.handlers.get(id));
-        this.handlers.delete(id);
+        item.off(this.$.handlers.get(id));
+        this.$.handlers.delete(id);
         super.destroyChild(id, item);
     }
 
@@ -472,10 +516,11 @@ export class MapView extends BaseView {
      * Handler ready event
      */
     $ready () {
-        let map = this.model.$;
+        let $ = this.$;
+        let map = $.model.$;
 
         for (let it of map) {
-            this.$.app.$run.callCallback(() => {
+            $.app.$run.callCallback(() => {
                 this.createChild(it[0], it[1]);
             });
         }
@@ -487,32 +532,37 @@ export class MapView extends BaseView {
      * Handler destroy event
      */
     $destroy () {
-        let map = this.model.$;
+        let $ = this.$;
+        let map = $.model.$;
 
         for (let it of map) {
-            it[1].off(this.handlers.get(it[0]));
+            it[1].off($.handlers.get(it[0]));
         }
 
         super.$destroy();
     }
 }
 
-/**
- * Create a children pack for each set value
- */
-export class SetView extends BaseView {
+class SetViewPrivate extends BaseViewPrivate {
     /**
      * Contains update handler for each value
      * @type {Map<IValue<*>, Function>}
      */
     handlers : Map<IValue<*>, Function> = new Map();
+}
+
+/**
+ * Create a children pack for each set value
+ */
+export class SetView extends BaseView {
+    $ : any = new SetViewPrivate;
 
     /**
      * Sets up model
      */
     constructor () {
         super();
-        this.model.$ = new SetModel;
+        this.$.model.$ = new SetModel;
     }
 
 
@@ -521,15 +571,15 @@ export class SetView extends BaseView {
      * Saves the child handler
      */
     createChild (id : *, item : IValue<*>, before : ?VasilleNode) {
-        this.handlers.set(item, super.createChild(id, item, before));
+        this.$.handlers.set(item, super.createChild(id, item, before));
     }
 
     /**
      * Disconnects the child handler
      */
     destroyChild (id : *, item : IValue<*>) {
-        item.off(this.handlers.get(item));
-        this.handlers.delete(item);
+        item.off(this.$.handlers.get(item));
+        this.$.handlers.delete(item);
         super.destroyChild(id, item);
     }
 
@@ -539,7 +589,7 @@ export class SetView extends BaseView {
      * Handler ready event
      */
     $ready () {
-        let set = this.model.$;
+        let set = this.$.model.$;
 
         for (let it of set) {
             this.$.app.$run.callCallback(() => {
@@ -554,10 +604,10 @@ export class SetView extends BaseView {
      * Handler destroy event
      */
     $destroy () {
-        let set = this.model.$;
+        let set = this.$.model.$;
 
         for (let it of set) {
-            it.off(this.handlers.get(it));
+            it.off(this.$.handlers.get(it));
         }
 
         super.$destroy();

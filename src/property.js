@@ -2,7 +2,7 @@
 import { Callable } from "./interfaces/idefinition.js";
 import { IValue }   from "./interfaces/ivalue.js";
 
-import { Value } from "./value.js";
+import { Reference } from "./value.js";
 
 
 
@@ -23,7 +23,7 @@ export function propertify (
             return v;
         }
         else {
-            return new Value(v);
+            return new Reference(v);
         }
     }
     else {
@@ -31,7 +31,7 @@ export function propertify (
             return value;
         }
         else {
-            return new Value(value);
+            return new Reference(value);
         }
     }
 }

@@ -1,6 +1,6 @@
 // @flow
-import { IValue } from "./interfaces/ivalue.js";
-import { Value }  from "./value.js";
+import { IValue }    from "./interfaces/ivalue.js";
+import { Reference } from "./value.js";
 
 
 
@@ -521,19 +521,19 @@ export function vassilify (v : any) : IValue<any> {
         ret = v;
     }
     else if (Array.isArray(v)) {
-        ret = new Value(new ArrayModel(v));
+        ret = new Reference(new ArrayModel(v));
     }
     else if (v instanceof Map) {
-        ret = new Value(new MapModel(v));
+        ret = new Reference(new MapModel(v));
     }
     else if (v instanceof Set) {
-        ret = new Value(new SetModel(v));
+        ret = new Reference(new SetModel(v));
     }
     else if (v instanceof Object && v.constructor === Object) {
-        ret = new Value(new ObjectModel(v));
+        ret = new Reference(new ObjectModel(v));
     }
     else {
-        ret = new Value(v);
+        ret = new Reference(v);
     }
 
     return ret;

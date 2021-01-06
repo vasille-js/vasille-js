@@ -1,18 +1,18 @@
 // @flow
-import { AttributeBinding, attributify }                   from "./attribute.js";
-import { Bind1, Binding, BindN }                           from "./bind.js";
-import { classify }                                        from "./class.js";
-import { eventify }                                        from "./event.js";
+import { AttributeBinding, attributify } from "./attribute.js";
+import { Binding, Expression }    from "./bind.js";
+import { classify }                      from "./class.js";
 import { Executor, InstantExecutor }                       from "./executor.js";
 import type { CoreEl }                                     from "./interfaces/core.js";
-import { $destroyObject, VasilleNode, VasilleNodePrivate } from "./interfaces/core.js";
-import { IBind }                                           from "./interfaces/ibind.js";
-import { Callable }                                        from "./interfaces/idefinition.js";
-import { IValue }                                          from "./interfaces/ivalue.js";
+import { $destroyObject, VasilleNode, VasilleNodePrivate }             from "./interfaces/core.js";
+import { internalError, notFound, typeError, userError, wrongBinding } from "./interfaces/errors";
+import { IBind }                                                       from "./interfaces/ibind.js";
+import { Callable, checkType, isSubclassOf } from "./interfaces/idefinition.js";
+import { IValue }                            from "./interfaces/ivalue.js";
 import { vassilify }                                       from "./models.js";
-import { StyleBinding, stylify }                           from "./style.js";
-import { Value }                                           from "./value.js";
-import type { RepeatNode }                                 from "./views.js";
+import { StyleBinding, stylify } from "./style.js";
+import { Pointer, Reference }    from "./value.js";
+import type { RepeatNode }       from "./views.js";
 
 
 
@@ -21,7 +21,7 @@ import type { RepeatNode }                                 from "./views.js";
  */
 export class TextNodePrivate extends VasilleNodePrivate {
     /**
-     * Contains the text of node as Value
+     * Contains the text of node as Reference
      * @type {IValue}
      */
     value : IValue<string>;
@@ -49,7 +49,7 @@ export class TextNodePrivate extends VasilleNodePrivate {
     ) {
         super.preinit(app, rt, ts, before);
 
-        let value = text instanceof IValue ? text : new Value(text);
+        let value = text instanceof IValue ? text : new Reference(text);
         let node = document.createTextNode(value.$);
 
         this.value = value;
@@ -68,7 +68,7 @@ export class TextNodePrivate extends VasilleNodePrivate {
  * Represents a text node
  */
 export class TextNode extends VasilleNode {
-    $$ : TextNodePrivate = new TextNodePrivate();
+    $ : any = new TextNodePrivate();
 
     /**
      * Pointer to text node
@@ -78,10 +78,6 @@ export class TextNode extends VasilleNode {
 
     constructor () {
         super();
-    }
-
-    get $ () : TextNodePrivate {
-        return this.$$;
     }
 
     /**
@@ -121,39 +117,33 @@ export class BaseNodePrivate extends VasilleNodePrivate {
 
     /**
      * Represents style bindings
-     * @type {Array<Binding>}
+     * @type {Set<Binding>}
      */
-    class : Array<Binding> = [];
+    class : Set<Binding> = new Set;
 
     /**
      * Represents a list of user-defined bindings
-     * @type {Array<IBind>}
+     * @type {Set<IValue>}
      */
-    watch : Array<IBind> = [];
-
-    /**
-     * List of events
-     * @type {Object<String, IValue>}
-     */
-    listener : { [key : string] : IValue<Function> } = {};
+    watch : Set<IValue<*>> = new Set;
 
     /**
      * List of user defined signals
-     * @type {Object<string, {args : Array<Function>, handlers : Array<Function>}>}
+     * @type {Map<string, {args : Array<Function>, handlers : Array<Function>}>}
      */
-    signal : { [name : string] : Signal } = {};
+    signal : Map<string, Signal> = new Map;
 
     /**
      * List of references
-     * @type {Object<String, BaseNode|Set<BaseNode>>}
+     * @type {Map<String, BaseNode|Set<BaseNode>>}
      */
-    refs : { [key : string] : BaseNode | Set<BaseNode> } = {};
+    refs : Map<string, BaseNode | Set<BaseNode>> = new Map;
 
     /**
      * List of $slots
-     * @type {Object<String, BaseNode>}
+     * @type {Map<String, BaseNode>}
      */
-    slots : { [key : string] : BaseNode } = {};
+    slots : Map<string, BaseNode> = new Map;
 
     /**
      * Get the current root (this on building, rt on filling)
@@ -169,7 +159,7 @@ export class BaseNodePrivate extends VasilleNodePrivate {
  * @extends VasilleNode
  */
 export class BaseNode extends VasilleNode {
-    $$ : BaseNodePrivate = new BaseNodePrivate();
+    $ : any = new BaseNodePrivate();
 
     /**
      * The children list
@@ -177,8 +167,8 @@ export class BaseNode extends VasilleNode {
      */
     $children : Array<VasilleNode> = [];
 
-    get $ () : BaseNodePrivate {
-        return this.$$;
+    constructor () {
+        super();
     }
 
     /**
@@ -203,7 +193,7 @@ export class BaseNode extends VasilleNode {
     }
 
     $$startBuilding () {
-        this.$.slots["default"] = this;
+        this.$.slots.set("default", this);
         this.$.building = true;
     }
 
@@ -238,16 +228,24 @@ export class BaseNode extends VasilleNode {
      * @param value {*} value to assign
      */
     $$unsafeAssign (ts : Object, prop : string, value : any) {
-        if (ts[prop] instanceof IValue) {
-            if (value instanceof IValue) {
-                ts[prop] = value;
-            }
-            else {
-                ts[prop].set(value);
-            }
+        let field = ts[prop];
+
+        if (!field || !(field instanceof IValue)) {
+            throw notFound("no such property: " + prop);
+        }
+        if (!field.type) {
+            throw userError(`field ${prop} is private`, "private-field");
+        }
+
+        if (field instanceof Pointer && field.value instanceof Reference && value instanceof IValue) {
+            field.$ = value;
+        }
+
+        if (value instanceof IValue) {
+            ts[prop] = value;
         }
         else {
-            throw "No such property: " + prop;
+            ts[prop].set(value);
         }
     }
 
@@ -287,14 +285,15 @@ export class BaseNode extends VasilleNode {
      * Runs garbage collector
      */
     $destroy () : void {
+        let $ = this.$;
         super.$destroy();
 
-        if (this.$.root instanceof BaseNode) {
-            for (let i in this.$.root.$.refs) {
-                let ref = this.$.root.$.refs[i];
+        if ($.root instanceof BaseNode) {
+            for (let it of $.root.$.refs) {
+                let ref = it[1];
 
                 if (ref === this) {
-                    delete this.$.root.$.refs[i];
+                    $.root.$.refs.delete(it[0]);
                 }
                 else if (ref instanceof Set && ref.has(this)) {
                     ref.delete(this);
@@ -328,6 +327,39 @@ export class BaseNode extends VasilleNode {
 
     /** To be overloaded: DOM creation milestone */
     $createDom () {
+    }
+
+    $private (value : any) : IValue<any> {
+        let ret = vassilify(value);
+        this.$.watch.add(ret);
+        return ret;
+    }
+
+    $public (type : Function, value : any = null) : Reference<any> {
+        if (!checkType(value, type) || value instanceof IValue) {
+            throw typeError("wrong initial public field value");
+        }
+
+        let ret = vassilify(value);
+        if (ret instanceof Reference) {
+            ret.type = type;
+            this.$.watch.add(ret);
+            return ret;
+        }
+        else {
+            throw internalError("Something goes wrong :(");
+        }
+    }
+
+    $pointer (type : Function) : Pointer {
+        let ref = new Reference();
+        let pointer = new Pointer(ref);
+
+        ref.type = type;
+        this.$.watch.add(ref);
+        this.$.watch.add(pointer);
+
+        return pointer;
     }
 
     /**
@@ -392,7 +424,7 @@ export class BaseNode extends VasilleNode {
     /**
      * Sets a attribute value
      * @param name {string} Name of attribute
-     * @param value {string} Value of attribute
+     * @param value {string} Reference of attribute
      * @return {BaseNode} A pointer to this
      */
     $setAttr (
@@ -446,10 +478,10 @@ export class BaseNode extends VasilleNode {
      */
     $bindClass (
         cl : ?string,
-        value : boolean | string | IValue<boolean | string> = false,
-        func : ?Callable                                    = null
+        value : string | IValue<boolean | string> | null = null,
+        func : ?Callable = null
     ) : this {
-        this.$.class.push(classify(this.$.rt, this, cl || "", value, func));
+        this.$.class.add(classify(this.$.rt, this, cl || "", value, func));
         return this;
     }
 
@@ -546,7 +578,7 @@ export class BaseNode extends VasilleNode {
      * @param types {...Function} Arguments types
      */
     $defSignal (name : string, ...types : Array<Function>) {
-        this.$.signal[name] = { args : types, handlers : [] };
+        this.$.signal.set("name", { args : types, handlers : [] });
     }
 
     /**
@@ -555,13 +587,13 @@ export class BaseNode extends VasilleNode {
      * @param func {Function} Handler
      */
     $on (name : string, func : Function) {
-        let signal = this.$.signal[name];
+        let signal = this.$.signal.get(name);
 
         if (!signal) {
-            throw "No such signal: " + name;
+            throw notFound("no such signal: " + name);
         }
 
-        this.$.signal[name].handlers.push(func);
+        signal.handlers.push(func);
     }
 
     /**
@@ -570,60 +602,34 @@ export class BaseNode extends VasilleNode {
      * @param args {...*} Signal arguments
      */
     $emit (name : string, ...args : Array<any>) {
-        let compatible = args.length === this.$.signal[name].args.length;
+        let signal = this.$.signal.get(name);
+
+        if (!signal) {
+            throw notFound("no such signal: " + name);
+        }
+
+        let compatible = args.length === signal.args.length;
 
         if (compatible && this.$.app.$debug) {
             for (let i = 0; i < args.length; i++) {
-                let v = args[i], t = this.$.signal[name].args[i];
-
-                if (!(v instanceof t ) &&
-                    !(typeof v === "number" && t === Number) &&
-                    !(typeof v === "string" && t === String) &&
-                    !(typeof v === "boolean" && t === Boolean)
-                ) {
+                if (!checkType(args[i], signal.args[i])) {
                     compatible = false;
                 }
             }
         }
 
         if (!compatible) {
-            throw "Incompatible signals arguments";
+            throw typeError("incompatible signals arguments");
         }
 
-        for (let handler of this.$.signal[name].handlers) {
+        for (let handler of signal.handlers) {
             try {
                 handler(...args);
             }
             catch (e) {
-                console.error(`Handler throw exception at ${this.constructor.name}::${name}: `, e);
+                console.error(`Vasille.js: Handler throw exception at ${this.constructor.name}::${name}: `, e);
             }
         }
-    }
-
-    /**
-     * Gets a element listener ny name
-     * @param name {string} Listener name
-     * @return {IValue}
-     */
-    $listener (name : string) : IValue<Function> {
-        let listener = this.$.listener[name];
-
-        if (listener instanceof IValue) {
-            return listener;
-        }
-
-        throw "No such listener: " + name;
-    }
-
-    /**
-     * Defines a element event
-     * @param name {String} Event name
-     * @param event {Function} Event handler as function
-     * @return {BaseNode} A pointer to this
-     */
-    $defListener (name : string, event : Function) : this {
-        this.$.listener[name] = eventify(this, name, event);
-        return this;
     }
 
     /**
@@ -861,15 +867,24 @@ export class BaseNode extends VasilleNode {
      */
     $defWatcher (func : Function, ...vars : Array<IValue<any>>) {
         if (vars.length === 0) {
-            throw "A watcher must be binded to a value at last";
+            throw wrongBinding("a watcher must be bound to a value at last");
         }
 
-        if (vars.length === 1) {
-            this.$.watch.push(new Bind1(func, vars[0]));
+        this.$.watch.add(new Expression(func, vars));
+    }
+
+    $bind (f : Function, ...args : Array<IValue<any>>) : IBind {
+        let res : IBind;
+
+        if (args.length === 0) {
+            throw wrongBinding("no values to bind");
         }
         else {
-            this.$.watch.push(new BindN(func, vars));
+            res = new Expression(f, args);
         }
+
+        this.$.watch.add(res);
+        return res;
     }
 
     /**
@@ -878,19 +893,22 @@ export class BaseNode extends VasilleNode {
      * @param group {Boolean} Store reference to group
      */
     $makeRef (reference : string, group : boolean = false) : void {
-        if (this.$.root instanceof BaseNode) {
-            let ref = this.$.root.$.refs[reference];
+        let $ = this.$;
+
+        if ($.root instanceof BaseNode) {
+            let refs = $.root.$.refs;
+            let ref = refs.get(reference);
 
             if (group) {
                 if (ref instanceof Set) {
                     ref.add(this);
                 }
                 else {
-                    this.$.root.$.refs[reference] = new Set().add(this);
+                    refs.set(reference, new Set().add(this));
                 }
             }
             else {
-                this.$.root.$.refs[reference] = this;
+                refs.set(reference, this);
             }
         }
     }
@@ -901,13 +919,13 @@ export class BaseNode extends VasilleNode {
      * @return {BaseNode}
      */
     $ref (name : string) : BaseNode {
-        let ref = this.$.refs[name];
+        let ref = this.$.refs.get(name);
 
         if (ref instanceof BaseNode) {
             return ref;
         }
 
-        throw "No such ref: " + name;
+        throw notFound("no such ref: " + name);
     }
 
     /**
@@ -916,13 +934,13 @@ export class BaseNode extends VasilleNode {
      * @return {Set<BaseNode>}
      */
     $refs (name : string) : Set<BaseNode> {
-        let ref = this.$.refs[name];
+        let ref = this.$.refs.get(name);
 
         if (ref instanceof Set) {
             return ref;
         }
 
-        throw "No such ref: " + name;
+        throw notFound("no such ref: " + name);
     }
 
     /**
@@ -931,7 +949,7 @@ export class BaseNode extends VasilleNode {
      */
     $makeSlot (name : string) : this {
         if (this.$.rt instanceof BaseNode) {
-            this.$.rt.$.slots[name] = this;
+            this.$.rt.$.slots.set(name, this);
         }
         return this;
     }
@@ -942,13 +960,13 @@ export class BaseNode extends VasilleNode {
      * @return {BaseNode}
      */
     $slot (name : string) : BaseNode {
-        let node = this.$.slots[name];
+        let node = this.$.slots.get(name);
 
         if (node instanceof BaseNode) {
             return node;
         }
 
-        throw "No such slot: " + name;
+        throw notFound("no such slot: " + name);
     }
 
     /**
@@ -974,19 +992,19 @@ export class BaseNode extends VasilleNode {
 
     /**
      * Find first core node in shadow element if so exists
-     * @param node {ShadowNode} Node to iterate
+     * @param node {ExtensionNode} Node to iterate
      * @return {?CoreEl}
      */
-    $$findFirstChild (node : ShadowNode) : ?CoreEl {
+    $$findFirstChild (node : ExtensionNode) : ?CoreEl {
         for (let child of node.$children) {
-            if (child instanceof ShadowNode) {
+            if (child instanceof ExtensionNode) {
                 let first = this.$$findFirstChild(child);
 
                 if (first) {
                     return first;
                 }
             }
-            else if (child instanceof ElementNode || child instanceof TextNode) {
+            else if (child instanceof TagNode || child instanceof TextNode) {
                 return child.$.$el;
             }
         }
@@ -999,35 +1017,36 @@ export class BaseNode extends VasilleNode {
      * @private
      */
     $$appendChild (node : CoreEl, before : ?VasilleNode) : void {
-        before = before || this.$.next;
+        let $ = this.$;
+        before = before || $.next;
 
         // If we are inserting before a element node
-        if (before instanceof ElementNode) {
-            this.$.app.$run.insertBefore(this.$.el, node, before.$.el);
+        if (before instanceof TagNode) {
+            $.app.$run.insertBefore($.el, node, before.$.el);
             return;
         }
 
         // If we are inserting before a shadow node
-        if (before instanceof ShadowNode) {
+        if (before instanceof ExtensionNode) {
             let beforeNode = this.$$findFirstChild(before);
 
             if (beforeNode) {
-                this.$.app.$run.insertBefore(this.$.el, node, beforeNode);
+                $.app.$run.insertBefore($.el, node, beforeNode);
                 return;
             }
         }
 
         // If we are inserting in a shadow node or uninitiated element node
         if (
-            (this instanceof ShadowNode && !(this.$.parent instanceof AppNode)) ||
-            (this instanceof ElementNode && !this.$.el)
+            (this instanceof ExtensionNode && !($.parent instanceof AppNode)) ||
+            (this instanceof TagNode && !$.el)
         ) {
-            this.$.parent.$$appendChild(node, this.$.next);
+            $.parent.$$appendChild(node, $.next);
             return;
         }
 
         // If we have no more variants
-        this.$.app.$run.appendChild(this.$.el, node);
+        $.app.$run.appendChild($.el, node);
     }
 
     /**
@@ -1040,18 +1059,21 @@ export class BaseNode extends VasilleNode {
         text : string | IValue<any>,
         cb : ?(text : TextNode) => void
     ) : BaseNode {
-        if (this.$.slots["default"] !== this && !this.$.building) {
-            this.$.slots["default"].$defText(text, cb);
+        let $ = this.$;
+        let default_ = $.slots.get("default");
+
+        if (default_ && default_ !== this && !$.building) {
+            default_.$defText(text, cb);
             return this;
         }
 
         let node = new TextNode();
 
-        node.$$preinitText(this.$.app, this.$.rt, this, null, text);
+        node.$$preinitText($.app, $.rt, this, null, text);
         this.$$pushNode(node);
 
         if (cb) {
-            this.$.app.$run.callCallback(() => {
+            $.app.$run.callCallback(() => {
                 cb(node);
             });
         }
@@ -1066,20 +1088,23 @@ export class BaseNode extends VasilleNode {
      */
     $defTag (
         tagName : string,
-        cb : ?(node : ElementNode, v : ?any) => void
+        cb : ?(node : TagNode, v : ?any) => void
     ) : BaseNode {
-        if (this.$.slots["default"] !== this && !this.$.building) {
-            this.$.slots["default"].$defTag(tagName, cb);
+        let $ = this.$;
+        let default_ = $.slots.get("default");
+
+        if (default_ && default_ !== this && !$.building) {
+            default_.$defTag(tagName, cb);
             return this;
         }
-        let node = new ElementNode();
+        let node = new TagNode();
 
         node.$.parent = this;
-        node.$$preinitElementNode(this.$.app, this.$.rt, this, null, tagName);
+        node.$$preinitElementNode($.app, $.rt, this, null, tagName);
         node.$init({});
         this.$$pushNode(node);
 
-        this.$.app.$run.callCallback(() => {
+        $.app.$run.callCallback(() => {
             if (cb) {
                 cb(node);
             }
@@ -1100,8 +1125,11 @@ export class BaseNode extends VasilleNode {
         props : Object,
         cb : ?(node : T, v : ?any) => void
     ) : BaseNode {
-        if (this.$.slots["default"] !== this && !this.$.building) {
-            this.$.slots["default"].$defElement(node, props, cb);
+        let $ = this.$;
+        let default_ = $.slots.get("default");
+
+        if (default_ && default_ !== this && !$.building) {
+            default_.$defElement(node, props, cb);
             return this;
         }
 
@@ -1109,11 +1137,11 @@ export class BaseNode extends VasilleNode {
             node.$.parent = this;
         }
 
-        if (node instanceof ShadowNode) {
-            node.$$preinitShadow(this.$.app, this.$.rt, this, null);
+        if (node instanceof ExtensionNode) {
+            node.$$preinitShadow($.app, $.rt, this, null);
         }
-        else if (node instanceof ElementNode || node instanceof TextNode) {
-            node.$.preinit(this.$.app, this.$.rt, this, null);
+        else if (node instanceof TagNode || node instanceof TextNode) {
+            node.$.preinit($.app, $.rt, this, null);
         }
 
         if (node instanceof BaseNode) {
@@ -1124,7 +1152,7 @@ export class BaseNode extends VasilleNode {
             this.$$pushNode(node);
         }
 
-        this.$.app.$run.callCallback(() => {
+        $.app.$run.callCallback(() => {
             if (cb) {
                 cb(node);
             }
@@ -1149,17 +1177,20 @@ export class BaseNode extends VasilleNode {
         props : Object,
         cb : (node : RepeatNodeItem, v : ?any) => void
     ) : this {
-        if (this.$.slots["default"] !== this && !this.$.building) {
-            this.$.slots["default"].$defRepeater(node, props, cb);
+        let $ = this.$;
+        let default_ = $.slots.get("default");
+
+        if (default_ && default_ !== this && !$.building) {
+            default_.$defRepeater(node, props, cb);
             return this;
         }
 
         node.$.parent = this;
-        node.$$preinitShadow(this.$.app, this.$.rt, this, null);
+        node.$$preinitShadow($.app, this.$.rt, this, null);
         node.$init(props);
         this.$$pushNode(node);
         node.setCallback(cb);
-        this.$.app.$run.callCallback(() => {
+        $.app.$run.callCallback(() => {
             node.$ready();
         });
 
@@ -1202,19 +1233,22 @@ export class BaseNode extends VasilleNode {
     $defSwitch (
         ...cases : Array<CaseArg>
     ) : this {
-        if (this.$.slots["default"] !== this && !this.$.building) {
-            this.$.slots["default"].$defSwitch(...cases);
+        let $ = this.$;
+        let default_ = $.slots.get("default");
+
+        if (default_ && default_ !== this && !$.building) {
+            default_.$defSwitch(...cases);
             return this;
         }
 
         let node = new SwitchedNode();
 
         node.$.parent = this;
-        node.$$preinitShadow(this.$.app, this.$.rt, this, null);
+        node.$$preinitShadow($.app, this.$.rt, this, null);
         node.$init({});
         this.$$pushNode(node);
         node.setCases(cases);
-        this.$.app.$run.callCallback(() => {
+        $.app.$run.callCallback(() => {
             node.$ready();
         });
 
@@ -1225,10 +1259,10 @@ export class BaseNode extends VasilleNode {
 /**
  * Represents an Vasille.js HTML element node
  */
-export class ElementNode extends BaseNode {
+export class TagNode extends BaseNode {
 
     /**
-     * HTML node created by this ElementNode
+     * HTML node created by this TagNode
      * @type {HTMLElement}
      */
     node : HTMLElement;
@@ -1256,7 +1290,7 @@ export class ElementNode extends BaseNode {
 /**
  * Represents a Vasille.js shadow node
  */
-export class ShadowNode extends BaseNode {
+export class ExtensionNode extends BaseNode {
     /**
      * Pre-initialize a shadow node
      * @param app {AppNode} the app node
@@ -1276,15 +1310,26 @@ export class ShadowNode extends BaseNode {
             this.$.encapsulate(ts.$.el);
         }
         catch (e) {
-            throw "A shadow node can be encapsulated in a element or shadow node only";
+            throw internalError("A shadow node can be encapsulated in a tag or extension node only")
         }
     }
+}
 
-    /**
-     * Garbage collection
-     */
-    $destroy () {
-        super.$destroy();
+export class UserNode extends ExtensionNode {
+    $mounted () {
+        super.$mounted();
+
+        if (this.$children.length !== 1) {
+            throw userError("UserNode must have a child only", "dom-error");
+        }
+        let child = this.$children[0];
+
+        if (child instanceof TagNode || child instanceof UserNode) {
+            this.$.encapsulate(child.$.el);
+        }
+        else {
+            throw userError("UserNode child must be TagNode or UserNode", "dom-error");
+        }
     }
 }
 
@@ -1296,7 +1341,7 @@ type CaseArg = { cond : IValue<boolean> | boolean, cb : CaseCallBack };
 /**
  * Defines a abstract node, which represents a dynamical part of application
  */
-export class RepeatNodeItem extends ShadowNode {
+export class RepeatNodeItem extends ExtensionNode {
     $id : any;
 
     constructor (id : any) {
@@ -1311,7 +1356,7 @@ export class RepeatNodeItem extends ShadowNode {
         super.$destroy();
 
         for (let child of this.$children) {
-            if (child instanceof ElementNode) {
+            if (child instanceof TagNode) {
                 this.$.el.removeChild(child.$.el);
             }
             else {
@@ -1321,11 +1366,7 @@ export class RepeatNodeItem extends ShadowNode {
     }
 }
 
-/**
- * Defines a node witch can switch its children conditionally
- */
-class SwitchedNode extends ShadowNode {
-
+class SwitchedNodePrivate extends BaseNodePrivate {
     /**
      * Index of current true condition
      * @type {number}
@@ -1334,9 +1375,9 @@ class SwitchedNode extends ShadowNode {
 
     /**
      * The unique child which can be absent
-     * @type {ShadowNode}
+     * @type {ExtensionNode}
      */
-    node : ShadowNode;
+    node : ExtensionNode;
 
     /**
      * Array of possible casses
@@ -1350,37 +1391,47 @@ class SwitchedNode extends ShadowNode {
      */
     sync : Function;
 
+}
+
+/**
+ * Defines a node witch can switch its children conditionally
+ */
+class SwitchedNode extends ExtensionNode {
+
+    $ = new SwitchedNodePrivate();
+
     /**
      * Constructs a switch node and define a sync function
      */
     constructor () {
         super();
 
-        this.sync = () => {
+        this.$.sync = () => {
+            let $ = this.$;
             let i = 0;
 
-            for (; i < this.cases.length; i++) {
-                if (this.cases[i].cond.$) {
+            for (; i < $.cases.length; i++) {
+                if ($.cases[i].cond.$) {
                     break;
                 }
             }
 
-            if (i === this.index) {
+            if (i === $.index) {
                 return;
             }
 
-            if (i !== this.cases.length) {
-                if (this.index !== -1) {
-                    this.node.$destroy();
+            if (i !== $.cases.length) {
+                if ($.index !== -1) {
+                    $.node.$destroy();
                 }
-                this.index = i;
-                this.createChild(i, this.cases[i].cb);
+                $.index = i;
+                this.createChild(i, $.cases[i].cb);
             }
             else {
-                if (this.node) {
-                    this.node.$destroy();
+                if ($.node) {
+                    $.node.$destroy();
                 }
-                this.index = -1;
+                $.index = -1;
             }
         };
     };
@@ -1390,10 +1441,11 @@ class SwitchedNode extends ShadowNode {
      * @param cases {{ cond : *, cb : Function }}
      */
     setCases (cases : Array<CaseArg>) {
-        this.cases = [];
+        let $ = this.$;
+        $.cases = [];
 
         for (let case_ of cases) {
-            this.cases.push({ cond : vassilify(case_.cond), cb : case_.cb });
+            $.cases.push({ cond : vassilify(case_.cond), cb : case_.cb });
         }
     }
 
@@ -1424,31 +1476,37 @@ class SwitchedNode extends ShadowNode {
         cb(node, id);
         node.$ready();
 
-        this.node = node;
+        this.$.node = node;
     };
 
     /**
      * Run then the node is ready
      */
     $ready () {
+        let $ = this.$;
+
         super.$ready();
 
-        for (let c of this.cases) {
-            c.cond.on(this.sync);
+        for (let c of $.cases) {
+            c.cond.on($.sync);
         }
 
-        this.sync();
+        $.sync();
     }
 
     /**
      * Unbind and clear dynamical nodes
      */
     $destroy () {
-        for (let c of this.cases) {
-            c.cond.off(this.sync);
+        let $ = this.$;
+
+        for (let c of $.cases) {
+            c.cond.off($.sync);
         }
 
-        this.node.$destroy();
+        if ($.node) {
+            $.node.$destroy();
+        }
         super.$destroy();
     }
 }

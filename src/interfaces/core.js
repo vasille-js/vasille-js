@@ -1,8 +1,9 @@
 // @flow
 
-import type { AppNode, BaseNode } from "../node";
-import { Destroyable }            from "./destroyable.js";
-import { IValue }                 from "./ivalue.js";
+import type { AppNode, BaseNode }                  from "../node";
+import { Destroyable }                             from "./destroyable.js";
+import { internalError, notFound, notOverwritten } from "./errors";
+import { IValue }                                  from "./ivalue.js";
 
 
 
@@ -109,7 +110,7 @@ export class VasilleNodePrivate extends Destroyable {
             return el;
         }
 
-        throw "wrong VasilleNode.$el() call";
+        throw internalError("wrong VasilleNode.$el() call");
     }
 
     /**
@@ -123,7 +124,7 @@ export class VasilleNodePrivate extends Destroyable {
             return el;
         }
 
-        throw "wrong VasilleNode.$text() call";
+        throw internalError("wrong VasilleNode.$text() call");
     }
 
     /**
@@ -137,7 +138,7 @@ export class VasilleNodePrivate extends Destroyable {
             return el;
         }
 
-        throw "wrong VasilleNode.$comment() call";
+        throw internalError("wrong VasilleNode.$comment() call");
     }
 
     /**
@@ -162,6 +163,7 @@ export class VasilleNodePrivate extends Destroyable {
         this.root = rt;
         this.ts = ts;
     }
+
     /**
      * Gets the component life attribute value
      * @param field {string} attribute name
@@ -174,7 +176,7 @@ export class VasilleNodePrivate extends Destroyable {
             return v;
         }
 
-        throw "No such attribute";
+        throw notFound("no such attribute: " + field);
     }
 
     /**
@@ -189,7 +191,7 @@ export class VasilleNodePrivate extends Destroyable {
             return v;
         }
 
-        throw "No such style attribute";
+        throw notFound("no such style attribute: " + field);
     }
 
     /**
@@ -205,7 +207,5 @@ export class VasilleNodePrivate extends Destroyable {
  * This class is symbolic
  */
 export class VasilleNode extends Destroyable {
-    get $ () : VasilleNodePrivate {
-        throw "Must be overloaded";
-    }
+    $ : any = new VasilleNodePrivate;
 }

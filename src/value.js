@@ -1,5 +1,7 @@
 // @flow
-import { IValue } from "./interfaces/ivalue.js";
+import { typeError }               from "./interfaces/errors";
+import { checkType, isSubclassOf } from "./interfaces/idefinition";
+import { IValue }                  from "./interfaces/ivalue.js";
 
 
 
@@ -7,7 +9,7 @@ import { IValue } from "./interfaces/ivalue.js";
  * Declares a notifiable value
  * @implements IValue
  */
-export class Value<T> extends IValue<T> {
+export class Reference<T> extends IValue<T> {
     /**
      * The encapsulated value
      * @type {*}
@@ -41,10 +43,14 @@ export class Value<T> extends IValue<T> {
     /**
      * Sets the value and notify listeners
      * @param value {any} is the new value
-     * @returns {Value} a pointer to this
+     * @returns {Reference} a pointer to this
      */
     set $ (value : T) : this {
         if (this.value !== value) {
+            if (this.type && !checkType(value, this.type)) {
+                throw typeError("Unable to set reference value");
+            }
+
             this.value = value;
 
             for (let handler of this.onchange) {
@@ -58,7 +64,7 @@ export class Value<T> extends IValue<T> {
     /**
      * Adds a new handler for value change
      * @param handler {function} is a user-defined event handler
-     * @returns {Value} a pointer to this
+     * @returns {Reference} a pointer to this
      */
     on (handler : Function) : this {
         this.onchange.add(handler);
@@ -68,7 +74,7 @@ export class Value<T> extends IValue<T> {
     /**
      * Removes a new handler for value change
      * @param handler {function} is a existing user-defined handler
-     * @returns {Value} a pointer to this
+     * @returns {Reference} a pointer to this
      */
     off (handler : Function) : this {
         this.onchange.delete(handler);
@@ -85,10 +91,9 @@ export class Value<T> extends IValue<T> {
  * Declares a notifiable bind to a value
  * @implements IValue
  */
-export class Rebind extends IValue<IValue<any>> {
+export class Pointer extends IValue<IValue<any>> {
     value : IValue<any>;
-    onchange : Array<Function> = [];
-    bound : Array<Function> = [];
+    onchange : Set<Function>;
 
     /**
      * Constructs a notifiable bind to a value
@@ -96,7 +101,7 @@ export class Rebind extends IValue<IValue<any>> {
      */
     constructor (value : IValue<any>) {
         super();
-        this.onchange = [];
+        this.onchange = new Set<Function>();
         this.$ = value;
     }
 
@@ -115,22 +120,30 @@ export class Rebind extends IValue<IValue<any>> {
      */
     set $ (value : IValue<any>) : this {
         if (this.value !== value) {
-            for (let handler of this.bound) {
+            if (this.type) {
+                if (this.type !== value.type) {
+                    if (value.type === null && checkType(value.$, this.type)) {
+                        value.type = this.type;
+                    }
+                    else if (!isSubclassOf(this.type, value.type)) {
+                        throw typeError("reference type incompatible with pointer type");
+                    }
+                }
+            }
+
+            for (let handler of this.onchange) {
                 this.value.off(handler);
             }
 
-            this.bound = [];
             this.value = value;
 
             for (let handler of this.onchange) {
-                let bound = handler.bind(null, value);
-                this.value.on(bound);
-                this.bound.push(bound);
+                this.value.on(handler);
             }
 
             if (this.value.$ !== value.$) {
-                for (let handler of this.bound) {
-                    handler();
+                for (let handler of this.onchange) {
+                    handler(this.value.$);
                 }
             }
         }
@@ -144,10 +157,8 @@ export class Rebind extends IValue<IValue<any>> {
      * @returns {IValue} a pointer to this
      */
     on (handler : Function) : this {
-        let bound = handler.bind(null, this.value);
-        this.onchange.push(handler);
-        this.bound.push(bound);
-        this.value.on(bound);
+        this.onchange.add(handler);
+        this.value.on(handler);
         return this;
     }
 
@@ -157,11 +168,9 @@ export class Rebind extends IValue<IValue<any>> {
      * @returns {IValue} a pointer to this
      */
     off (handler : Function) : this {
-        let index = this.onchange.indexOf(handler);
-        if (index !== -1) {
-            this.value.off(this.bound[index]);
-            this.onchange.splice(index, 1);
-            this.bound.splice(index, 1);
+        if (this.onchange.has(handler)) {
+            this.value.off(handler);
+            this.onchange.delete(handler);
         }
         return this;
     }
@@ -170,7 +179,7 @@ export class Rebind extends IValue<IValue<any>> {
      * Removes all bounded functions
      */
     $destroy () {
-        for (let handler of this.bound) {
+        for (let handler of this.onchange) {
             this.value.off(handler);
         }
     }

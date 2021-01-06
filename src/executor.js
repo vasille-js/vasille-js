@@ -1,4 +1,8 @@
 // @flow
+import { notOverwritten } from "./interfaces/errors";
+
+
+
 /**
  * Represents an executor unit interface
  */
@@ -10,7 +14,7 @@ export class Executor {
      * @param cl {string}
      */
     addClass (el : HTMLElement, cl : string) {
-        throw "Must be overwritten";
+        throw notOverwritten();
     }
 
     /**
@@ -19,7 +23,7 @@ export class Executor {
      * @param cl {string}
      */
     removeClass (el : HTMLElement, cl : string) {
-        throw "Must be overwritten";
+        throw notOverwritten();
     }
 
     /**
@@ -29,7 +33,7 @@ export class Executor {
      * @param value {string}
      */
     setAttribute (el : HTMLElement, name : string, value : string) {
-        throw "Must be overwritten";
+        throw notOverwritten();
     }
 
     /**
@@ -38,7 +42,7 @@ export class Executor {
      * @param name {string}
      */
     removeAttribute (el : HTMLElement, name : string) {
-        throw "Must be overwritten";
+        throw notOverwritten();
     }
 
     /**
@@ -48,7 +52,7 @@ export class Executor {
      * @param value {string}
      */
     setStyle (el : HTMLElement, prop : string, value : string) {
-        throw "Must be overwritten";
+        throw notOverwritten();
     }
 
     /**
@@ -58,7 +62,7 @@ export class Executor {
      * @param before {HTMLElement | Text | Comment} Child used as position locator
      */
     insertBefore (el : HTMLElement, child : HTMLElement | Text | Comment, before : HTMLElement | Text | Comment) {
-        throw "Must be overwritten";
+        throw notOverwritten();
     }
 
     /**
@@ -67,7 +71,7 @@ export class Executor {
      * @param child {HTMLElement | Text | Comment} Child to append
      */
     appendChild (el : HTMLElement, child : HTMLElement | Text | Comment) {
-        throw "Must be overwritten";
+        throw notOverwritten();
     }
 
     /**
@@ -75,7 +79,7 @@ export class Executor {
      * @param cb {Function} call-back function
      */
     callCallback (cb : Function) {
-        throw "Must be overwritten";
+        throw notOverwritten();
     }
 }
 

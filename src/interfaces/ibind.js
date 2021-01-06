@@ -1,5 +1,6 @@
 // @flow
-import { IValue } from "./ivalue.js";
+import { notOverwritten } from "./errors";
+import { IValue }         from "./ivalue.js";
 
 
 
@@ -14,7 +15,7 @@ export class IBind extends IValue<any> {
      * @throws must be overwritten
      */
     link () : IBind {
-        throw "Must be overwritten";
+        throw notOverwritten();
     }
 
     /**
@@ -23,6 +24,6 @@ export class IBind extends IValue<any> {
      * @throws must be overwritten
      */
     unlink () : IBind {
-        throw "Must be overwritten";
+        throw notOverwritten();
     }
 }

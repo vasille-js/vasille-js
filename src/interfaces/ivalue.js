@@ -1,5 +1,6 @@
 // @flow
-import { Destroyable } from "./destroyable.js";
+import { Destroyable }    from "./destroyable.js";
+import { notOverwritten } from "./errors";
 
 
 
@@ -9,23 +10,30 @@ import { Destroyable } from "./destroyable.js";
  * @implements Destroyable
  */
 export class IValue<T> extends Destroyable {
+
+    /**
+     * Used for strong type checking
+     * @type {?Function}
+     */
+    type : ?Function = null;
+
     /**
      * Gets the encapsulated value
      * @return {*} Must return a value
      * @throws Must be overwritten
      */
     get $ () : T {
-        throw "Must be overwritten";
+        throw notOverwritten();
     }
 
     /**
      * Sets the encapsulated value
-     * @param value {*} Value to encapsulate
+     * @param value {*} Reference to encapsulate
      * @return {IValue} A pointer to this
      * @throws Must be overwritten
      */
     set $ (value : T) : this {
-        throw "Must be overwritten";
+        throw notOverwritten();
     }
 
     /**
@@ -35,7 +43,7 @@ export class IValue<T> extends Destroyable {
      * @throws Must be overwritten
      */
     on (handler : Function) : this {
-        throw "Must be overwritten";
+        throw notOverwritten();
     }
 
     /**
@@ -45,6 +53,6 @@ export class IValue<T> extends Destroyable {
      * @throws Must be overwritten
      */
     off (handler : Function) : this {
-        throw "Must be overwritten";
+        throw notOverwritten();
     }
 }

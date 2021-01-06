@@ -57,7 +57,6 @@ export class ClassBinding extends Binding {
      * @returns {Function} a function which will update attribute value
      */
     bound (name : string) : Function {
-        let binding = this;
 
         function addClass (rt : BaseNode, ts : BaseNode, cl : string) {
             rt.$.app.$run.addClass(ts.$.el, cl);
@@ -67,8 +66,8 @@ export class ClassBinding extends Binding {
             rt.$.app.$run.removeClass(ts.$.el, cl);
         }
 
-        return function (rt : BaseNode, ts : BaseNode, value : string | boolean) {
-            let current : ? string | boolean = binding.current;
+        return (rt : BaseNode, ts : BaseNode, value : string | boolean) => {
+            let current : ? string | boolean = this.current;
 
             if (value !== current) {
                 if (typeof current === "string" && current !== "") {
@@ -86,7 +85,7 @@ export class ClassBinding extends Binding {
                     addClass(rt, ts, value);
                 }
 
-                binding.current = value;
+                this.current = value;
             }
 
             return value;
