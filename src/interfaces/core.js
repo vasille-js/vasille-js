@@ -1,9 +1,8 @@
 // @flow
-
-import type { AppNode, BaseNode }                  from "../node";
-import { Destroyable }                             from "./destroyable.js";
-import { internalError, notFound, notOverwritten } from "./errors";
-import { IValue }                                  from "./ivalue.js";
+import type { AppNode, BaseNode }  from "../node";
+import { Destroyable }             from "./destroyable.js";
+import { internalError, notFound } from "./errors";
+import { IValue }                  from "./ivalue.js";
 
 
 
@@ -89,6 +88,10 @@ export class VasilleNodePrivate extends Destroyable {
      * @type {?VasilleNode}
      */
     prev : ?VasilleNode;
+
+    constructor () {
+        super();
+    }
 
     /**
      * Gets the encapsulated element anyway
@@ -207,5 +210,10 @@ export class VasilleNodePrivate extends Destroyable {
  * This class is symbolic
  */
 export class VasilleNode extends Destroyable {
-    $ : any = new VasilleNodePrivate;
+    $ : any;
+
+    constructor ($ : ?VasilleNodePrivate) {
+        super();
+        this.$ = $ || new VasilleNodePrivate;
+    }
 }

@@ -1,10 +1,9 @@
 // @flow
 import { notOverwritten, typeError, wrongBinding } from "./interfaces/errors";
 import { IBind }                                   from "./interfaces/ibind.js";
-import { checkType }    from "./interfaces/idefinition";
-import { IValue }       from "./interfaces/ivalue.js";
-
-import { Reference } from "./value.js";
+import { checkType }                               from "./interfaces/idefinition";
+import { IValue }                                  from "./interfaces/ivalue.js";
+import { Reference }                               from "./value.js";
 
 
 

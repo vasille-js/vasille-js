@@ -1,13 +1,13 @@
 // @flow
-import { VasilleNode }                                   from "./interfaces/core";
-import { IValue }                                        from "./interfaces/ivalue.js";
+import { VasilleNode }                                                       from "./interfaces/core";
+import { IValue }                                                            from "./interfaces/ivalue.js";
 import { ArrayModel, MapModel, ObjectModel, SetModel }                       from "./models.js";
-import { AppNode, BaseNode, RepeatNodeItem, ExtensionNode, BaseNodePrivate } from "./node.js";
+import { AppNode, BaseNode, BaseNodePrivate, ExtensionNode, RepeatNodeItem } from "./node.js";
 import { Reference }                                                         from "./value.js";
 
 
 
-class RepeatNodePrivate extends BaseNodePrivate {
+export class RepeatNodePrivate extends BaseNodePrivate {
     /**
      * Children node hash
      * @type {Map<*, ExtensionNode>}
@@ -25,14 +25,17 @@ class RepeatNodePrivate extends BaseNodePrivate {
  * Repeat node repeats its children
  */
 export class RepeatNode extends ExtensionNode {
-    $ : any = new RepeatNodePrivate();
+
+    constructor ($ : ?RepeatNodePrivate) {
+        super($ || new RepeatNodePrivate);
+    }
 
     /**
      * Sets call-back function
      * @param cb {function(RepeatNodeItem, ?*) : void}
      */
     setCallback (cb : (node : RepeatNodeItem, v : ?any) => void) {
-        this.$.cb = cb;
+        (this.$ : RepeatNodePrivate).cb = cb;
     }
 
     /**
@@ -43,8 +46,10 @@ export class RepeatNode extends ExtensionNode {
      * @param before {VasilleNode} Node to paste content before it
      */
     $$preinitShadow (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
+        let $ : RepeatNodePrivate = this.$;
+
         super.$$preinitShadow(app, rt, ts, before);
-        this.$.encapsulate(ts.$.el);
+        $.encapsulate($.el);
     }
 
     /**
@@ -56,7 +61,7 @@ export class RepeatNode extends ExtensionNode {
     createChild (id : any, item : IValue<any>, before : ?VasilleNode) {
         let current = this.$.nodes.get(id);
         let node = new RepeatNodeItem(id);
-        let $ = node.$;
+        let $ : RepeatNodePrivate = node.$;
 
         this.destroyChild(id, item);
 
@@ -113,7 +118,7 @@ export class RepeatNode extends ExtensionNode {
         let child = this.$.nodes.get(id);
 
         if (child) {
-            let $ = child.$;
+            let $ : BaseNodePrivate = child.$;
 
             if ($.prev) {
                 $.prev.$.next = $.next;
@@ -128,7 +133,7 @@ export class RepeatNode extends ExtensionNode {
     };
 }
 
-class RepeaterPrivate extends RepeatNodePrivate {
+export class RepeaterPrivate extends RepeatNodePrivate {
     /**
      * Handler to catch count updates
      * @type {Function}
@@ -146,6 +151,12 @@ class RepeaterPrivate extends RepeatNodePrivate {
      * @type {Array<IValue<number>>}
      */
     orderNumber : Array<IValue<number>> = [];
+}
+
+/**
+ * The simplest repeat $node interpretation, repeat children pack a several times
+ */
+export class Repeater extends RepeatNode {
 
     // props
     /**
@@ -154,20 +165,16 @@ class RepeaterPrivate extends RepeatNodePrivate {
      */
     count : IValue<number> = new Reference(0);
 
-}
-
-/**
- * The simplest repeat node interpretation, repeat children pack a several times
- */
-export class Repeater extends RepeatNode {
-    $ : any = new RepeaterPrivate();
+    constructor ($ : ?RepeaterPrivate) {
+        super($ || new RepeaterPrivate);
+    }
 
     /**
      * Changes the children count
      * @param number {number} The new children count
      */
     changeCount (number : number) {
-        let $ = this.$;
+        let $ : RepeaterPrivate = this.$;
 
         if (number > $.currentCount) {
             for (let i = $.currentCount; i < number; i++) {
@@ -191,33 +198,35 @@ export class Repeater extends RepeatNode {
      * Handles created event
      */
     $created () {
-        let $ = this.$;
+        let $ : RepeaterPrivate = this.$;
 
         super.$created();
 
         $.updateHandler = (value : number) => {
             this.changeCount(value);
         };
-        $.count.on($.updateHandler);
+        this.count.on($.updateHandler);
     }
 
     /**
      * Handles ready event
      */
     $ready () {
-        this.changeCount(this.$.count.$);
+        this.changeCount(this.count.$);
     }
 
     /**
      * Handles destroy event
      */
     $destroy () {
+        let $ : RepeaterPrivate = this.$;
+
         super.$destroy();
-        this.$.count.off(this.$.updateHandler);
+        this.count.off($.updateHandler);
     }
 }
 
-class BaseViewPrivate extends RepeatNodePrivate {
+export class BaseViewPrivate extends RepeatNodePrivate {
     /**
      * Handler to catch values addition
      * @type {Function}
@@ -229,6 +238,12 @@ class BaseViewPrivate extends RepeatNodePrivate {
      * @type {Function}
      */
     removeHandler : Function;
+}
+
+/**
+ * Base class of default views
+ */
+export class BaseView extends RepeatNode {
 
     // props
     /**
@@ -236,23 +251,14 @@ class BaseViewPrivate extends RepeatNodePrivate {
      * @type {IValue<*>}
      */
     model : IValue<any>;
-}
-
-/**
- * Base class of default views
- */
-export class BaseView extends RepeatNode {
-    $ : any = new BaseViewPrivate;
 
     /**
      * Sets up model and handlers
      */
-    constructor () {
-        super();
-        let $ = this.$;
+    constructor ($1 : ?BaseViewPrivate) {
+        super($1 || new BaseViewPrivate);
 
-        $.model = new Reference();
-
+        let $ : BaseViewPrivate = this.$;
         $.addHandler = (id : *, item : IValue<any>) => {
             this.createChild(id, item);
         };
@@ -284,10 +290,10 @@ export class BaseView extends RepeatNode {
      * Handle ready event
      */
     $ready () {
-        let $ = this.$;
+        let $ : BaseViewPrivate = this.$;
 
-        $.model.$.listener.onAdd($.addHandler);
-        $.model.$.listener.onRemove($.removeHandler);
+        this.model.$.listener.onAdd($.addHandler);
+        this.model.$.listener.onRemove($.removeHandler);
         super.$ready();
     }
 
@@ -295,15 +301,15 @@ export class BaseView extends RepeatNode {
      * Handles destroy event
      */
     $destroy () {
-        let $ = this.$;
+        let $ : BaseViewPrivate = this.$;
 
-        $.model.$.listener.offAdd($.addHandler);
-        $.model.$.listener.offRemove($.removeHandler);
+        this.model.$.listener.offAdd($.addHandler);
+        this.model.$.listener.offRemove($.removeHandler);
         super.$destroy();
     }
 }
 
-class ArrayViewPrivate extends BaseViewPrivate {
+export class ArrayViewPrivate extends BaseViewPrivate {
     /**
      * Contains handlers of each child
      * @type {Map<IValue<*>, Function>}
@@ -321,15 +327,16 @@ class ArrayViewPrivate extends BaseViewPrivate {
  * Represents a view of a array model
  */
 export class ArrayView extends BaseView {
-    $ : any = new ArrayViewPrivate;
+
+    model : IValue<ArrayModel<*>>;
 
     /**
      * Sets up model with a default value
      */
-    constructor () {
-        super();
+    constructor ($ : ?ArrayViewPrivate) {
+        super($ || new ArrayViewPrivate);
 
-        this.$.model.$ = new ArrayModel();
+        this.model = this.$public(ArrayModel);
     }
 
 
@@ -338,7 +345,7 @@ export class ArrayView extends BaseView {
      * Overrides child created and generate random id for children
      */
     createChild (id : *, item : IValue<*>, before : ?VasilleNode) {
-        let $ = this.$;
+        let $ : ArrayViewPrivate = this.$;
         let next = typeof id === "number" ? $.nodes.get($.buffer[id]) : null;
         let handler = super.createChild(item, item, before || next);
 
@@ -350,7 +357,7 @@ export class ArrayView extends BaseView {
      * Removes a children pack
      */
     destroyChild (id : *, item : IValue<any>) {
-        let $ = this.$;
+        let $ : ArrayViewPrivate = this.$;
         let index = typeof id === "number" ? id : $.buffer.indexOf(item);
 
         if (index === -1) {
@@ -369,8 +376,8 @@ export class ArrayView extends BaseView {
      * Handle ready event
      */
     $ready () {
-        let $ = this.$;
-        let arr = $.model.$;
+        let $ : ArrayViewPrivate = this.$;
+        let arr : ArrayModel<*> = this.model.$;
 
         for (let i = 0; i < arr.length; i++) {
             $.app.$run.callCallback(() => {
@@ -385,7 +392,7 @@ export class ArrayView extends BaseView {
      * Handle destroy event
      */
     $destroy () {
-        for (let it of this.$.handlers) {
+        for (let it of (this.$ : ArrayViewPrivate).handlers) {
             it[0].off(it[1]);
         }
 
@@ -405,14 +412,12 @@ class ObjectViewPrivate extends BaseViewPrivate {
  * Create a children pack for each object field
  */
 export class ObjectView extends BaseView {
-    $ : any = new ObjectViewPrivate;
-
     /**
      * Sets up model
      */
-    constructor () {
-        super();
-        this.$.model.$ = new ObjectModel;
+    constructor ($ : ?ObjectViewPrivate) {
+        super($ || new ObjectViewPrivate);
+        this.model = this.$public(ObjectModel);
     }
 
 
@@ -421,15 +426,17 @@ export class ObjectView extends BaseView {
      * Saves the child handler
      */
     createChild (id : string, item : IValue<*>, before : ?VasilleNode) {
-        this.$.handlers[id] = super.createChild(id, item, before);
+        (this.$ : ObjectViewPrivate).handlers[id] = super.createChild(id, item, before);
     }
 
     /**
      * Disconnects the child handler
      */
     destroyChild (id : string, item : IValue<*>) {
-        item.off(this.$.handlers[id]);
-        delete this.$.handlers[id];
+        let $ : ObjectViewPrivate = this.$;
+
+        item.off($.handlers[id]);
+        delete $.handlers[id];
         super.destroyChild(id, item);
     }
 
@@ -439,8 +446,8 @@ export class ObjectView extends BaseView {
      * Handler ready event
      */
     $ready () {
-        let $ = this.$;
-        let obj = $.model.$;
+        let $ : ObjectViewPrivate = this.$;
+        let obj : ObjectModel<*> = this.model.$;
 
         for (let i in obj) {
             if (obj.hasOwnProperty(i) && obj.get(i) instanceof IValue) {
@@ -457,8 +464,8 @@ export class ObjectView extends BaseView {
      * Handler destroy event
      */
     $destroy () {
-        let $ = this.$;
-        let obj = $.model.$;
+        let $ : ObjectViewPrivate = this.$;
+        let obj : ObjectModel<*> = this.model.$;
 
         for (let i in obj) {
             if (obj.hasOwnProperty(i)) {
@@ -482,14 +489,13 @@ class MapViewPrivate extends BaseViewPrivate {
  * Create a children pack for each map value
  */
 export class MapView extends BaseView {
-    $ : any = new MapViewPrivate;
 
     /**
      * Sets up model
      */
-    constructor () {
-        super();
-        this.$.model.$ = new MapModel;
+    constructor ($ : ?MapViewPrivate) {
+        super($ || new MapViewPrivate);
+        this.model = this.$public(MapModel);
     }
 
 
@@ -498,15 +504,17 @@ export class MapView extends BaseView {
      * Saves the child handler
      */
     createChild (id : *, item : IValue<*>, before : ?VasilleNode) {
-        this.$.handlers.set(id, super.createChild(id, item, before));
+        (this.$ : MapViewPrivate).handlers.set(id, super.createChild(id, item, before));
     }
 
     /**
      * Disconnects the child handler
      */
     destroyChild (id : *, item : IValue<*>) {
-        item.off(this.$.handlers.get(id));
-        this.$.handlers.delete(id);
+        let $ : MapViewPrivate = this.$;
+
+        item.off($.handlers.get(id));
+        $.handlers.delete(id);
         super.destroyChild(id, item);
     }
 
@@ -516,8 +524,8 @@ export class MapView extends BaseView {
      * Handler ready event
      */
     $ready () {
-        let $ = this.$;
-        let map = $.model.$;
+        let $ : MapViewPrivate = this.$;
+        let map : MapModel<*, *> = this.model.$;
 
         for (let it of map) {
             $.app.$run.callCallback(() => {
@@ -532,8 +540,8 @@ export class MapView extends BaseView {
      * Handler destroy event
      */
     $destroy () {
-        let $ = this.$;
-        let map = $.model.$;
+        let $ : MapViewPrivate = this.$;
+        let map : MapModel<*, *> = this.model.$;
 
         for (let it of map) {
             it[1].off($.handlers.get(it[0]));
@@ -555,14 +563,13 @@ class SetViewPrivate extends BaseViewPrivate {
  * Create a children pack for each set value
  */
 export class SetView extends BaseView {
-    $ : any = new SetViewPrivate;
 
     /**
      * Sets up model
      */
-    constructor () {
-        super();
-        this.$.model.$ = new SetModel;
+    constructor ($ : ?SetViewPrivate) {
+        super($ || new SetViewPrivate);
+        this.model = this.$public(SetModel);
     }
 
 
@@ -571,15 +578,17 @@ export class SetView extends BaseView {
      * Saves the child handler
      */
     createChild (id : *, item : IValue<*>, before : ?VasilleNode) {
-        this.$.handlers.set(item, super.createChild(id, item, before));
+        (this.$ : SetViewPrivate).handlers.set(item, super.createChild(id, item, before));
     }
 
     /**
      * Disconnects the child handler
      */
     destroyChild (id : *, item : IValue<*>) {
-        item.off(this.$.handlers.get(item));
-        this.$.handlers.delete(item);
+        let $ : SetViewPrivate = this.$;
+
+        item.off($.handlers.get(item));
+        $.handlers.delete(item);
         super.destroyChild(id, item);
     }
 
@@ -589,10 +598,11 @@ export class SetView extends BaseView {
      * Handler ready event
      */
     $ready () {
-        let set = this.$.model.$;
+        let $ : SetViewPrivate = this.$;
+        let set : SetModel<*> = this.model.$;
 
         for (let it of set) {
-            this.$.app.$run.callCallback(() => {
+            $.app.$run.callCallback(() => {
                 this.createChild(it, it);
             });
         }
@@ -604,10 +614,11 @@ export class SetView extends BaseView {
      * Handler destroy event
      */
     $destroy () {
-        let set = this.$.model.$;
+        let $ : SetViewPrivate = this.$;
+        let set : SetModel<*> = this.model.$;
 
         for (let it of set) {
-            it.off(this.$.handlers.get(it));
+            it.off($.handlers.get(it));
         }
 
         super.$destroy();

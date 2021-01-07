@@ -1,7 +1,6 @@
 // @flow
-import { Callable } from "./interfaces/idefinition.js";
-import { IValue }   from "./interfaces/ivalue.js";
-
+import { Callable }  from "./interfaces/idefinition.js";
+import { IValue }    from "./interfaces/ivalue.js";
 import { Reference } from "./value.js";
 
 

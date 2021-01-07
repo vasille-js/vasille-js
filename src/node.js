@@ -1,18 +1,18 @@
 // @flow
-import { AttributeBinding, attributify } from "./attribute.js";
-import { Binding, Expression }    from "./bind.js";
-import { classify }                      from "./class.js";
-import { Executor, InstantExecutor }                       from "./executor.js";
-import type { CoreEl }                                     from "./interfaces/core.js";
+import { AttributeBinding, attributify }                               from "./attribute.js";
+import { Binding, Expression }                                         from "./bind.js";
+import { classify }                                                    from "./class.js";
+import { Executor, InstantExecutor }                                   from "./executor.js";
+import type { CoreEl }                                                 from "./interfaces/core.js";
 import { $destroyObject, VasilleNode, VasilleNodePrivate }             from "./interfaces/core.js";
 import { internalError, notFound, typeError, userError, wrongBinding } from "./interfaces/errors";
 import { IBind }                                                       from "./interfaces/ibind.js";
-import { Callable, checkType, isSubclassOf } from "./interfaces/idefinition.js";
-import { IValue }                            from "./interfaces/ivalue.js";
-import { vassilify }                                       from "./models.js";
-import { StyleBinding, stylify } from "./style.js";
-import { Pointer, Reference }    from "./value.js";
-import type { RepeatNode }       from "./views.js";
+import { Callable, checkType }                                         from "./interfaces/idefinition.js";
+import { IValue }                                                      from "./interfaces/ivalue.js";
+import { vassilify }                                                   from "./models.js";
+import { StyleBinding, stylify }                                       from "./style.js";
+import { Pointer, Reference }                                          from "./value.js";
+import type { RepeatNode }                                             from "./views.js";
 
 
 
@@ -108,7 +108,6 @@ export type Signal = {| args : Array<Function>, handlers : Array<Function> |};
  * The private part of a base node
  */
 export class BaseNodePrivate extends VasilleNodePrivate {
-
     /**
      * The building active state
      * @type {boolean}
@@ -159,16 +158,14 @@ export class BaseNodePrivate extends VasilleNodePrivate {
  * @extends VasilleNode
  */
 export class BaseNode extends VasilleNode {
-    $ : any = new BaseNodePrivate();
-
     /**
      * The children list
      * @type {Array<VasilleNode>}
      */
     $children : Array<VasilleNode> = [];
 
-    constructor () {
-        super();
+    constructor ($ : ?BaseNodePrivate) {
+        super($ || new BaseNodePrivate);
     }
 
     /**
@@ -578,7 +575,7 @@ export class BaseNode extends VasilleNode {
      * @param types {...Function} Arguments types
      */
     $defSignal (name : string, ...types : Array<Function>) {
-        this.$.signal.set("name", { args : types, handlers : [] });
+        this.$.signal.set(name, { args : types, handlers : [] });
     }
 
     /**
@@ -1122,7 +1119,7 @@ export class BaseNode extends VasilleNode {
      */
     $defElement<T> (
         node : T,
-        props : Object,
+        props : ($ : T) => void,
         cb : ?(node : T, v : ?any) => void
     ) : BaseNode {
         let $ = this.$;
@@ -1144,9 +1141,7 @@ export class BaseNode extends VasilleNode {
             node.$.preinit($.app, $.rt, this, null);
         }
 
-        if (node instanceof BaseNode) {
-            node.$init(props);
-        }
+        this.$$callPropsCallback(node, props);
 
         if (node instanceof VasilleNode) {
             this.$$pushNode(node);
@@ -1165,29 +1160,53 @@ export class BaseNode extends VasilleNode {
         return this;
     }
 
+    $$callPropsCallback<T> (node : T, props : ($ : T) => void) {
+        if (node instanceof BaseNode) {
+            let obj = {};
+
+            for (let i in node) {
+                if (node.hasOwnProperty(i)) {
+                    Object.defineProperty(obj, i, {
+                        configurable : false,
+                        enumerable   : false,
+                        set (value) {
+                            node.$$unsafeAssign(node, i, value);
+                        }
+                    });
+                }
+            }
+
+            //$FlowFixMe[incompatible-call]
+            props(obj);
+        }
+    }
+
     /**
      * Defines a repeater node
-     * @param node {RepeatNode} A repeat node object
+     * @param nodeT {RepeatNode} A repeat node object
      * @param props {Object} Send data to repeat node
      * @param cb {Function} Call-back to create child nodes
      * @return {BaseNode}
      */
-    $defRepeater (
-        node : RepeatNode,
-        props : Object,
+    $defRepeater<T> (
+        nodeT : T,
+        props : ($ : T) => void,
         cb : (node : RepeatNodeItem, v : ?any) => void
     ) : this {
         let $ = this.$;
         let default_ = $.slots.get("default");
 
         if (default_ && default_ !== this && !$.building) {
-            default_.$defRepeater(node, props, cb);
+            default_.$defRepeater(nodeT, props, cb);
             return this;
         }
 
+        //$FlowFixMe[incompatible-type]
+        let node : RepeatNode = nodeT;
+
         node.$.parent = this;
         node.$$preinitShadow($.app, this.$.rt, this, null);
-        node.$init(props);
+        this.$$callPropsCallback(nodeT, props);
         this.$$pushNode(node);
         node.setCallback(cb);
         $.app.$run.callCallback(() => {
@@ -1265,7 +1284,7 @@ export class TagNode extends BaseNode {
      * HTML node created by this TagNode
      * @type {HTMLElement}
      */
-    node : HTMLElement;
+    $node : HTMLElement;
 
     /**
      * Constructs a element node
@@ -1282,8 +1301,8 @@ export class TagNode extends BaseNode {
         before : ?VasilleNode,
         tagName : string
     ) {
-        this.node = document.createElement(tagName);
-        this.$$preinitNode(app, rt, ts, before, this.node);
+        this.$node = document.createElement(tagName);
+        this.$$preinitNode(app, rt, ts, before, this.$node);
     }
 }
 
@@ -1310,7 +1329,7 @@ export class ExtensionNode extends BaseNode {
             this.$.encapsulate(ts.$.el);
         }
         catch (e) {
-            throw internalError("A shadow node can be encapsulated in a tag or extension node only")
+            throw internalError("A extension node can be encapsulated in a tag or extension node only");
         }
     }
 }
@@ -1366,7 +1385,7 @@ export class RepeatNodeItem extends ExtensionNode {
     }
 }
 
-class SwitchedNodePrivate extends BaseNodePrivate {
+export class SwitchedNodePrivate extends BaseNodePrivate {
     /**
      * Index of current true condition
      * @type {number}
