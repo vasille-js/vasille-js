@@ -100,7 +100,7 @@ export class RepeatNode extends ExtensionNode {
             current ? current.$.next : null
         ));
 
-        node.$init({});
+        node.$init();
         this.$.app.$run.callCallback(() => {
             this.$.cb(node, item.$);
             node.$ready();

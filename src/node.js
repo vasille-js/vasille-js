@@ -203,10 +203,9 @@ export class BaseNode extends VasilleNode {
      * Initialize node
      * @param props {Object} VasilleNode properties values
      */
-    $init (props : Object) {
+    $init () {
         this.$$startBuilding();
 
-        this.$$initProps(props);
         this.$createAttrs();
         this.$createStyle();
         this.$createSignals();
@@ -243,26 +242,6 @@ export class BaseNode extends VasilleNode {
         }
         else {
             ts[prop].set(value);
-        }
-    }
-
-    /**
-     * Initializes the node properties
-     * @param props {Object<String, Callable | IValue | *>} Properties values
-     * @private
-     */
-    $$initProps (props : { [key : string] : Callable | IValue<any> | any }) {
-        // add properties from object
-        for (let i in props) {
-            if (props.hasOwnProperty(i)) {
-                let value = props[i];
-
-                if (value instanceof Callable) {
-                    value = value.func();
-                }
-
-                this.$$unsafeAssign(this, i, value);
-            }
         }
     }
 
@@ -1098,7 +1077,7 @@ export class BaseNode extends VasilleNode {
 
         node.$.parent = this;
         node.$$preinitElementNode($.app, $.rt, this, null, tagName);
-        node.$init({});
+        node.$init();
         this.$$pushNode(node);
 
         $.app.$run.callCallback(() => {
@@ -1178,6 +1157,7 @@ export class BaseNode extends VasilleNode {
 
             //$FlowFixMe[incompatible-call]
             props(obj);
+            node.$init();
         }
     }
 
@@ -1264,7 +1244,7 @@ export class BaseNode extends VasilleNode {
 
         node.$.parent = this;
         node.$$preinitShadow($.app, this.$.rt, this, null);
-        node.$init({});
+        node.$init();
         this.$$pushNode(node);
         node.setCases(cases);
         $.app.$run.callCallback(() => {
@@ -1439,17 +1419,16 @@ class SwitchedNode extends ExtensionNode {
                 return;
             }
 
+            if ($.node) {
+                $.node.$destroy();
+                this.$children.splice(this.$children.indexOf($.node), 1);
+            }
+
             if (i !== $.cases.length) {
-                if ($.index !== -1) {
-                    $.node.$destroy();
-                }
                 $.index = i;
                 this.createChild(i, $.cases[i].cb);
             }
             else {
-                if ($.node) {
-                    $.node.$destroy();
-                }
                 $.index = -1;
             }
         };
@@ -1491,11 +1470,12 @@ class SwitchedNode extends ExtensionNode {
         node.$.parent = this;
         node.$$preinitShadow(this.$.app, this.$.rt, this);
 
-        node.$init({});
+        node.$init();
         cb(node, id);
         node.$ready();
 
         this.$.node = node;
+        this.$children.push(node);
     };
 
     /**
