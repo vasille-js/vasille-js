@@ -1,33 +1,30 @@
 @startuml
 title Vasille.js core architecture
 
-Destroyable <|-- Core
 Destroyable <|-- IValue
+Destroyable <|--- VasilleNode
 
-IValue <|-- Binding
-IValue <|-- Value
-IValue <|-- Rebind
-IValue <|-- IBind
+IValue <|-- Reference
+IValue <|-- Pointer
+IValue <|--- Binding
+IValue <|-- Expression
 Binding <|-- AttributeBinding
 Binding <|-- StyleBinding
 Binding <|-- ClassBinding
-IBind <|-- Bind1
-IBind <|-- BindN
 
-Core <|-- VasilleNode
-VasilleNode <|-- TextNode
 VasilleNode <|-- BaseNode
+VasilleNode <|-- TextNode
 
+BaseNode <|-- ExtensionNode
 BaseNode <|-- AppNode
-BaseNode <|-- ElementNode
-BaseNode <|-- ShadowNode
+BaseNode <|-- TagNode
 
-ShadowNode <|-- SwitchNode
-ShadowNode <|-- RepeateNode
-ShadowNode <|-- RepeateNodeItem
+ExtensionNode <|-- SwitchNode
+ExtensionNode <|-- RepeatNode
+ExtensionNode <|-- RepeatNodeItem
 
-RepeateNode <|-- Repeater
-RepeateNode <|-- BaseView
+RepeatNode <|-- BaseView
+RepeatNode <|-- Repeater
 
 BaseView <|-- ArrayView
 BaseView <|-- ObjectView
