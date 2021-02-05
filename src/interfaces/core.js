@@ -21,6 +21,7 @@ export function $destroyObject (obj : Object) {
             if (prop instanceof Destroyable && !(prop instanceof VasilleNode)) {
                 prop.$destroy();
             }
+            delete obj[i];
         }
     }
 }
@@ -203,6 +204,15 @@ export class VasilleNodePrivate extends Destroyable {
     $destroy () {
         $destroyObject(this.$attrs);
         $destroyObject(this.$style);
+        this.$el = null;
+        this.$attrs = null;
+        this.$style = null;
+        this.root = null;
+        this.ts = null;
+        this.app = null;
+        this.parent = null;
+        this.next = null;
+        this.prev = null;
     }
 }
 

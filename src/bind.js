@@ -67,8 +67,9 @@ export class Expression extends IBind {
         if (link) {
             this.link();
         }
-
-        handler();
+        else {
+            handler();
+        }
     }
 
     /**
@@ -118,6 +119,7 @@ export class Expression extends IBind {
             for (let value of this.values) {
                 value.on(this.func);
             }
+            this.func();
             this.linked = true;
         }
         return this;

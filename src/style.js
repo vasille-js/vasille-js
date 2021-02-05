@@ -54,7 +54,9 @@ export class StyleBinding extends Binding {
      */
     bound (name : string) : Function {
         return function (rt : any, ts : any, value : string) {
-            rt.$.app.$run.setStyle(ts.$.el, name, value);
+            if (rt.$) {
+                rt.$.app.$run.setStyle(ts.$.el, name, value);
+            }
             return value;
         };
     }

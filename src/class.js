@@ -73,7 +73,7 @@ export class ClassBinding extends Binding {
                 if (typeof current === "string" && current !== "") {
                     removeClass(rt, ts, current);
                 }
-                if (typeof value == "boolean") {
+                if (typeof value === "boolean") {
                     if (value) {
                         addClass(rt, ts, name);
                     }

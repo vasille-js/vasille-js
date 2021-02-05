@@ -12,13 +12,13 @@ class Listener {
      * Functions to run on adding new items
      * @type {Array<Function>}
      */
-    onAdded : Array<Function> = [];
+    onAdded : Set<Function> = new Set;
 
     /**
      * Functions to run on item removing
      * @type {Array<Function>}
      */
-    onRemoved : Array<Function> = [];
+    onRemoved : Set<Function> = new Set;
 
     /**
      * Emits added event to listeners
@@ -47,7 +47,7 @@ class Listener {
      * @param handler {Function} function to run on event emitting
      */
     onAdd (handler : Function) {
-        this.onAdded.push(handler);
+        this.onAdded.add(handler);
     }
 
     /**
@@ -55,7 +55,7 @@ class Listener {
      * @param handler {Function} function to run on event emitting
      */
     onRemove (handler : Function) {
-        this.onRemoved.push(handler);
+        this.onRemoved.add(handler);
     }
 
     /**
@@ -63,11 +63,7 @@ class Listener {
      * @param handler {Function} handler to remove
      */
     offAdd (handler : Function) {
-        let i = this.onAdded.indexOf(handler);
-
-        if (i >= 0) {
-            this.onAdded.splice(i, 1);
-        }
+        this.onAdded.delete(handler);
     }
 
     /**
@@ -75,11 +71,7 @@ class Listener {
      * @param handler {Function} handler to remove
      */
     offRemove (handler : Function) {
-        let i = this.onRemoved.indexOf(handler);
-
-        if (i >= 0) {
-            this.onRemoved.splice(i, 1);
-        }
+        this.onRemoved.delete(handler);
     }
 }
 

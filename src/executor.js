@@ -85,6 +85,8 @@ export class Executor {
 
 export class InstantExecutor extends Executor {
 
+    log : ?Array<Object>;
+
     /**
      * Adds a CSS class
      * @param el {HTMLElement} HTML element

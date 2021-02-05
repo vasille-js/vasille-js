@@ -5,7 +5,7 @@ import { classify }                                                    from "./c
 import { Executor, InstantExecutor }                                   from "./executor.js";
 import type { CoreEl }                                                 from "./interfaces/core.js";
 import { $destroyObject, VasilleNode, VasilleNodePrivate }             from "./interfaces/core.js";
-import { internalError, notFound, typeError, userError, wrongBinding } from "./interfaces/errors";
+import { internalError, notFound, typeError, userError, wrongBinding } from "./interfaces/errors.js";
 import { IBind }                                                       from "./interfaces/ibind.js";
 import { Callable, checkType }                                         from "./interfaces/idefinition.js";
 import { IValue }                                                      from "./interfaces/ivalue.js";
@@ -62,6 +62,13 @@ export class TextNodePrivate extends VasilleNodePrivate {
 
         ts.$$appendChild(node, before);
     }
+
+    $destroy () {
+        this.value = null;
+        this.handler = null;
+
+        super.$destroy();
+    }
 }
 
 /**
@@ -97,8 +104,11 @@ export class TextNode extends VasilleNode {
      * Runs garbage collector
      */
     $destroy () : void {
-        super.$destroy();
         this.$.$destroy();
+        this.$ = null;
+        this.node = null;
+
+        super.$destroy();
     }
 }
 
@@ -150,6 +160,36 @@ export class BaseNodePrivate extends VasilleNodePrivate {
      */
     get rt () : BaseNode {
         return !this.building && super.root instanceof BaseNode ? super.root : this.ts;
+    }
+
+    $destroy () {
+        for (let c of this.class) {
+            c.$destroy();
+        }
+        this.class.clear();
+        this.class = null;
+
+        for (let w of this.watch) {
+            w.$destroy();
+        }
+        this.watch.clear();
+        this.watch = null;
+
+        this.signal.clear();
+        this.signal = null;
+
+        for (let ref of this.refs) {
+            if (ref instanceof Set) {
+                ref.clear();
+            }
+        }
+        this.refs.clear();
+        this.refs = null;
+
+        this.slots.clear();
+        this.slots = null;
+
+        super.$destroy();
     }
 }
 
@@ -241,7 +281,7 @@ export class BaseNode extends VasilleNode {
             ts[prop] = value;
         }
         else {
-            ts[prop].set(value);
+            field.$ = value;
         }
     }
 
@@ -261,8 +301,7 @@ export class BaseNode extends VasilleNode {
      * Runs garbage collector
      */
     $destroy () : void {
-        let $ = this.$;
-        super.$destroy();
+        let $ : BaseNodePrivate = this.$;
 
         if ($.root instanceof BaseNode) {
             for (let it of $.root.$.refs) {
@@ -281,8 +320,12 @@ export class BaseNode extends VasilleNode {
             child.$destroy();
         }
 
-        $destroyObject(this.$.class);
-        $destroyObject(this.$.watch);
+        $.$destroy();
+        this.$ = null;
+        this.$children.splice(0);
+        this.$children = null;
+
+        super.$destroy();
     }
 
     /** To be overloaded: attributes creation milestone */
@@ -993,7 +1036,7 @@ export class BaseNode extends VasilleNode {
      * @private
      */
     $$appendChild (node : CoreEl, before : ?VasilleNode) : void {
-        let $ = this.$;
+        let $ : BaseNodePrivate = this.$;
         before = before || $.next;
 
         // If we are inserting before a element node
@@ -1141,7 +1184,11 @@ export class BaseNode extends VasilleNode {
 
     $$callPropsCallback<T> (node : T, props : ($ : T) => void) {
         if (node instanceof BaseNode) {
-            let obj = {};
+            let obj = {
+                $bind: function (...args) {
+                    return node.$bind(...args);
+                }
+            };
 
             for (let i in node) {
                 if (node.hasOwnProperty(i)) {
@@ -1150,6 +1197,9 @@ export class BaseNode extends VasilleNode {
                         enumerable   : false,
                         set (value) {
                             node.$$unsafeAssign(node, i, value);
+                        },
+                        get () {
+                            return (node : Object)[i];
                         }
                     });
                 }
@@ -1204,7 +1254,7 @@ export class BaseNode extends VasilleNode {
      */
     $defIf (
         cond : any,
-        cb : CaseCallBack
+        cb : (node : RepeatNodeItem, v : ?number) => void
     ) : this {
         return this.$defSwitch({ cond, cb });
     }
@@ -1218,8 +1268,8 @@ export class BaseNode extends VasilleNode {
      */
     $defIfElse (
         ifCond : any,
-        ifCb : CaseCallBack,
-        elseCb : CaseCallBack
+        ifCb : (node : RepeatNodeItem, v : ?number) => void,
+        elseCb : (node : RepeatNodeItem, v : ?number) => void
     ) : this {
         return this.$defSwitch({ cond : ifCond, cb : ifCb }, { cond : true, cb : elseCb });
     }
@@ -1230,7 +1280,7 @@ export class BaseNode extends VasilleNode {
      * @return {BaseNode}
      */
     $defSwitch (
-        ...cases : Array<CaseArg>
+        ...cases : Array<{ cond : IValue<boolean> | boolean, cb : (node : RepeatNodeItem, v : ?number) => void }>
     ) : this {
         let $ = this.$;
         let default_ = $.slots.get("default");
@@ -1284,6 +1334,12 @@ export class TagNode extends BaseNode {
         this.$node = document.createElement(tagName);
         this.$$preinitNode(app, rt, ts, before, this.$node);
     }
+
+    $destroy () {
+        super.$destroy();
+        this.$node.remove();
+        this.$node = null;
+    }
 }
 
 /**
@@ -1312,6 +1368,10 @@ export class ExtensionNode extends BaseNode {
             throw internalError("A extension node can be encapsulated in a tag or extension node only");
         }
     }
+
+    $destroy () {
+        super.$destroy();
+    }
 }
 
 export class UserNode extends ExtensionNode {
@@ -1333,9 +1393,7 @@ export class UserNode extends ExtensionNode {
 }
 
 type CallBack = (node : RepeatNodeItem, v : ?any) => void;
-type CaseCallBack = (node : RepeatNodeItem, v : ?number) => void;
-type Case = { cond : IValue<boolean>, cb : CaseCallBack };
-type CaseArg = { cond : IValue<boolean> | boolean, cb : CaseCallBack };
+type CaseArg = { cond : IValue<boolean> | boolean, cb : (node : RepeatNodeItem, v : ?number) => void };
 
 /**
  * Defines a abstract node, which represents a dynamical part of application
@@ -1352,16 +1410,8 @@ export class RepeatNodeItem extends ExtensionNode {
      * Destroy all children
      */
     $destroy () {
+        this.$id = null;
         super.$destroy();
-
-        for (let child of this.$children) {
-            if (child instanceof TagNode) {
-                this.$.el.removeChild(child.$.el);
-            }
-            else {
-                child.$destroy();
-            }
-        }
     }
 }
 
@@ -1382,7 +1432,7 @@ export class SwitchedNodePrivate extends BaseNodePrivate {
      * Array of possible casses
      * @type {Array<{cond : IValue<boolean>, cb : Function}>}
      */
-    cases : Array<Case>;
+    cases : { cond : IValue<boolean>, cb : (node : RepeatNodeItem, v : ?number) => void }[];
 
     /**
      * A function which sync index and content, will be bounded to each condition
@@ -1390,6 +1440,20 @@ export class SwitchedNodePrivate extends BaseNodePrivate {
      */
     sync : Function;
 
+    $destroy () {
+        this.index = null;
+        this.node = null;
+
+        for (let c of this.cases) {
+            delete c.cond;
+            delete c.cb;
+        }
+        this.cases.splice(0);
+        this.cases = null;
+        this.sync = null;
+
+        super.$destroy();
+    }
 }
 
 /**
@@ -1422,6 +1486,7 @@ class SwitchedNode extends ExtensionNode {
             if ($.node) {
                 $.node.$destroy();
                 this.$children.splice(this.$children.indexOf($.node), 1);
+                $.node = null;
             }
 
             if (i !== $.cases.length) {
@@ -1503,9 +1568,6 @@ class SwitchedNode extends ExtensionNode {
             c.cond.off($.sync);
         }
 
-        if ($.node) {
-            $.node.$destroy();
-        }
         super.$destroy();
     }
 }
@@ -1541,5 +1603,10 @@ export class AppNode extends BaseNode {
         if (props.debug instanceof Boolean) {
             this.$debug = props.debug;
         }
+    }
+
+    $destroy () {
+        this.$run = null;
+        super.$destroy();
     }
 }
