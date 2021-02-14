@@ -44,7 +44,7 @@ section:
 ```
 
 Also the variables can be typed:
-```flow js
+```typescript
 let foo : number = 2;
 let bar : string = 'bar';
 ```
@@ -52,7 +52,7 @@ let bar : string = 'bar';
 ### Component properties
 
 Component properties are marked by `export` keyword, and must be typed:
-```flow js
+```typescript
 export let foo : number;
 export let bar : string = 'default value';
 ```
@@ -63,7 +63,7 @@ An expression is a state variable which default value is an expression.
 It's value will be automatically recalculated.
 
 Syntax:
-```flow js
+```typescript
 let x = 2;
 let y = 3;
 let z = x + y;
@@ -73,7 +73,7 @@ let z = x + y;
 
 To declare a component method, just declare a function. It also can be typed;
 
-```flow js
+```typescript
 function sum (a, b) {
     return a + b;
 }
@@ -84,7 +84,7 @@ function diff (a : number, b : number) : number {
 
 To make a method available outside of component declare a slot using
 `export` key:
-```flow js
+```typescript
 export function slot() {
     return x + y;
 }
@@ -96,7 +96,7 @@ An event can be handled outside of function, to declare an event use
 `declare` keyword, after call it, the event signature must be typed.
 
 Syntax:
-```flow js
+```typescript
 declare function myEvent(a: number, b: number);
 
 // emit a event
@@ -107,7 +107,7 @@ myEvent(x, y);
 
 All state variables used in a function are tracked, and function will
 be called each time when an argument or state variable get changed:
-```flow js
+```typescript
 let x = 0, y = 1;
 
 function sum (a) {
@@ -127,7 +127,7 @@ in current context, and function result must be **assigned to a local state**
 variable.
 
 Example:
-```flow js
+```typescript
 let x = 0, y = 0, visible = true;
 
 let watcher = function () {
@@ -163,7 +163,7 @@ let multilineExpression = function () {
 
 Use import from `global` to resolve global variables names.
 
-```flow js
+```typescript
 import { window, document, location } from 'global';
 
 window.requestAnimationFrame(() => {
@@ -432,7 +432,7 @@ language.
 A pointer can be defined using a `var` keyword. Details about pointers
 will be added after.
 
-```flow js
+```typescript
 var pointer;
 var pointer = 'default value';
 let x = 'x', y = 'y';
