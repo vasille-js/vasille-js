@@ -81,6 +81,9 @@ export class Reference<T> extends IValue<T> {
         return this;
     }
 
+    /**
+     * Runs GC
+     */
     $destroy () {
         super.$destroy();
         this.onchange.clear();
@@ -89,10 +92,19 @@ export class Reference<T> extends IValue<T> {
 
 /**
  * Declares a notifiable bind to a value
- * @implements IValue
+ * @extends IValue
  */
 export class Pointer extends IValue<IValue<any>> {
+    /**
+     * value of pointer
+     * @type {IValue<*>}
+     */
     value : IValue<any>;
+
+    /**
+     * Collection of handlers
+     * @type {Set<Function>}
+     */
     onchange : Set<Function>;
 
     /**

@@ -10,19 +10,19 @@ import { Reference } from "./value.js";
 class Listener {
     /**
      * Functions to run on adding new items
-     * @type {Array<Function>}
+     * @type {Set<Function>}
      */
     onAdded : Set<Function> = new Set;
 
     /**
      * Functions to run on item removing
-     * @type {Array<Function>}
+     * @type {Set<Function>}
      */
     onRemoved : Set<Function> = new Set;
 
     /**
      * Emits added event to listeners
-     * @param index {number | string | null} index of value
+     * @param index {number | string | *} index of value
      * @param value {IValue} value of added item
      */
     emitAdded (index : number | string | any, value : IValue<any>) {
@@ -33,7 +33,7 @@ class Listener {
 
     /**
      * Emits removed event to listeners
-     * @param index {number | string | null} index of removed value
+     * @param index {number | string | *} index of removed value
      * @param value {IValue} value of removed item
      */
     emitRemoved (index : number | string | any, value : IValue<any>) {
@@ -76,7 +76,7 @@ class Listener {
 }
 
 /**
- * Model based on <b>Array</b> class
+ * Model based on Array class
  * @extends Array<IValue>
  */
 export class ArrayModel<T> extends Array<IValue<T>> {
@@ -221,8 +221,8 @@ export class ArrayModel<T> extends Array<IValue<T>> {
 
     /**
      * Inserts a value to the end of array
-     * @param v {IValue} value to insert
-     * @return {ArrayModel} a pointer to this
+     * @param v {*} value to insert
+     * @return {this} a pointer to this
      */
     append (v : any) : this {
         v = vassilify(v);
@@ -233,7 +233,7 @@ export class ArrayModel<T> extends Array<IValue<T>> {
 
     /**
      * Clears array
-     * @return {ArrayModel} a pointer to this
+     * @return {this} a pointer to this
      */
     clear () : this {
         for (let v of this) {
@@ -246,8 +246,8 @@ export class ArrayModel<T> extends Array<IValue<T>> {
     /**
      * Inserts a value to position <i>index</i>
      * @param index {number} index to insert value
-     * @param v {IValue} value to insert
-     * @return {ArrayModel} a pointer to this
+     * @param v {*} value to insert
+     * @return {this} a pointer to this
      */
     insert (index : number, v : any) : this {
         v = vassilify(v);
@@ -258,8 +258,8 @@ export class ArrayModel<T> extends Array<IValue<T>> {
 
     /**
      * Inserts a value to the beginning of array
-     * @param v {IValue} value to insert
-     * @return {ArrayModel} a pointer to this
+     * @param v {*} value to insert
+     * @return {this} a pointer to this
      */
     prepend (v : any) : this {
         v = vassilify(v);
@@ -271,7 +271,7 @@ export class ArrayModel<T> extends Array<IValue<T>> {
     /**
      * Removes a value from an index
      * @param index {number} index of value to remove
-     * @return {ArrayModel} a pointer to this
+     * @return {this} a pointer to this
      */
     removeAt (index : number) : this {
         if (this[index]) {
@@ -283,7 +283,7 @@ export class ArrayModel<T> extends Array<IValue<T>> {
 
     /**
      * Removes the first value of array
-     * @return {ArrayModel} a pointer to this
+     * @return {this} a pointer to this
      */
     removeFirst () : this {
         if (this.length) {
@@ -295,7 +295,7 @@ export class ArrayModel<T> extends Array<IValue<T>> {
 
     /**
      * Removes the ast value of array
-     * @return {ArrayModel} a pointer to this
+     * @return {this} a pointer to this
      */
     removeLast () : this {
         if (this.last) {
@@ -308,7 +308,7 @@ export class ArrayModel<T> extends Array<IValue<T>> {
     /**
      * Remove the first occurrence of value
      * @param v {IValue} value to remove
-     * @return {ArrayModel}
+     * @return {this}
      */
     removeOne (v : IValue<T>) : this {
         this.removeAt(this.indexOf(v));
@@ -317,7 +317,7 @@ export class ArrayModel<T> extends Array<IValue<T>> {
 }
 
 /**
- * A <b>Object</b> based model
+ * A Object based model
  * @extends Object<String, IValue>
  */
 export class ObjectModel<T> extends Object {
@@ -340,6 +340,11 @@ export class ObjectModel<T> extends Object {
         }
     }
 
+    /**
+     * Gets a value of a field
+     * @param key {string}
+     * @return {IValue<*>}
+     */
     get (key : string) : IValue<T> {
         let ts : { [key : string] : IValue<T> } = this;
 
@@ -349,7 +354,7 @@ export class ObjectModel<T> extends Object {
     /**
      * Sets a object property value <b>(use for new properties only)</b>
      * @param key {string} property name
-     * @param v {IValue} property value
+     * @param v {*} property value
      * @return {ObjectModel} a pointer to this
      */
     set (key : string, v : any) : this {
@@ -379,7 +384,7 @@ export class ObjectModel<T> extends Object {
 }
 
 /**
- * A <b>Map</b> based memory
+ * A Map based memory
  * @extends Map<*, IValue>
  */
 export class MapModel<K, T> extends Map<K, IValue<T>> {
@@ -445,7 +450,7 @@ export class MapModel<K, T> extends Map<K, IValue<T>> {
 }
 
 /**
- * A <b>Set</b> based model
+ * A Set based model
  * @extends Set<IValue>
  */
 export class SetModel<T> extends Set<IValue<T>> {
@@ -465,8 +470,8 @@ export class SetModel<T> extends Set<IValue<T>> {
 
     /**
      * Calls Set.add and notify abut changes
-     * @param value {IValue} value
-     * @return {SetModel} a pointer to this
+     * @param value {*} value
+     * @return {this} a pointer to this
      */
     add (value : any) : this {
         value = vassilify(value);

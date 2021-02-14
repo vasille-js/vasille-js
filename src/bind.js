@@ -3,6 +3,7 @@ import { notOverwritten, typeError, wrongBinding } from "./interfaces/errors";
 import { IBind }                                   from "./interfaces/ibind.js";
 import { checkType }                               from "./interfaces/idefinition";
 import { IValue }                                  from "./interfaces/ivalue.js";
+import type { BaseNode }                                from "./node";
 import { Reference }                               from "./value.js";
 
 
@@ -14,7 +15,7 @@ import { Reference }                               from "./value.js";
 export class Expression extends IBind {
     /**
      * The array of value which will trigger recalculation
-     * @type {Array<IValue>}
+     * @type {Array<IValue<*>>}
      */
     values : Array<IValue<any>>;
 
@@ -46,14 +47,14 @@ export class Expression extends IBind {
 
     /**
      * The buffer to keep the last calculated value
-     * @type {Reference}
+     * @type {Reference<*>}
      */
     sync : Reference<any> = new Reference(null);
 
     /**
      * Creates a function bounded to N value
      * @param func {Function} The function to bound
-     * @param values {Array<IValue>} Values to bound to
+     * @param values {Array<IValue<*>>} Values to bound to
      * @param link {Boolean} If true links immediately
      */
     constructor (
@@ -106,7 +107,7 @@ export class Expression extends IBind {
     /**
      * Sets the last calculated value in manual mode
      * @param value {*} New value for last calculated value
-     * @return {Expression} A pointer to this
+     * @return {Expression<*>} A pointer to this
      */
     set $ (value : any) : this {
         this.sync.$ = value;
@@ -116,7 +117,7 @@ export class Expression extends IBind {
     /**
      * Sets a user handler on value change
      * @param handler {Function} User defined handler
-     * @return {Expression} A pointer to this
+     * @return {this} A pointer to this
      */
     on (handler : Function) : this {
         this.sync.on(handler);
@@ -126,7 +127,7 @@ export class Expression extends IBind {
     /**
      * Unsets a user handler from value change
      * @param handler {Function} User installed handler
-     * @return {Expression} A pointer to this
+     * @return {this} A pointer to this
      */
     off (handler : Function) : this {
         this.sync.off(handler);
@@ -135,7 +136,7 @@ export class Expression extends IBind {
 
     /**
      * Binds function to each value
-     * @returns {Expression} A pointer to this
+     * @returns {this} A pointer to this
      */
     link () : this {
         if (!this.linked) {
@@ -151,7 +152,7 @@ export class Expression extends IBind {
 
     /**
      * Unbind function from each value
-     * @returns {Expression} A pointer to this
+     * @returns {this} A pointer to this
      */
     unlink () : this {
         if (this.linked) {
@@ -193,8 +194,8 @@ export class Binding extends IValue<any> {
      * @param values {Array<IValue>} values array to bind
      */
     constructor (
-        rt : any,
-        ts : any,
+        rt : BaseNode,
+        ts : BaseNode,
         name : string,
         func : ?Function,
         ...values : Array<IValue<any>>
@@ -240,7 +241,7 @@ export class Binding extends IValue<any> {
     /**
      * Sets the binding value
      * @param any {*} The new binding value
-     * @return {Binding} A pointer to this
+     * @return {this} A pointer to this
      */
     set $ (any : any) : this {
         this.binding.$ = any;

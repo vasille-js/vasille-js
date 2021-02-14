@@ -14,7 +14,7 @@ export class IBind extends IValue<any> {
      * @return a pointer to this
      * @throws must be overwritten
      */
-    link () : IBind {
+    link () : this {
         throw notOverwritten();
     }
 
@@ -23,7 +23,7 @@ export class IBind extends IValue<any> {
      * @return a pointer to this
      * @throws must be overwritten
      */
-    unlink () : IBind {
+    unlink () : this {
         throw notOverwritten();
     }
 }

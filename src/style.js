@@ -2,6 +2,7 @@
 import { Binding }    from "./bind.js";
 import { Callable }   from "./interfaces/idefinition.js";
 import { IValue }     from "./interfaces/ivalue.js";
+import type { BaseNode }   from "./node";
 import { propertify } from "./property.js";
 
 
@@ -16,8 +17,8 @@ import { propertify } from "./property.js";
  * @return {StyleBinding} A ready style binding
  */
 export function stylify (
-    rt : any,
-    ts : any,
+    rt : BaseNode,
+    ts : BaseNode,
     name : string,
     value : ?string | ?IValue<string> = null,
     func : ?Callable                  = null
@@ -32,15 +33,15 @@ export function stylify (
 export class StyleBinding extends Binding {
     /**
      * Constructs a style binding attribute
-     * @param rt is root component
-     * @param ts is this component
-     * @param name is the name of style property
-     * @param func is the function to calc style value
+     * @param rt {BaseNode} is root component
+     * @param ts {BaseNode} is this component
+     * @param name {string} is the name of style property
+     * @param func {function} is the function to calc style value
      * @param values is the value to be synced
      */
     constructor (
-        rt : any,
-        ts : any,
+        rt : BaseNode,
+        ts : BaseNode,
         name : string,
         func : ?Function,
         ...values : Array<IValue<string>>
@@ -50,6 +51,7 @@ export class StyleBinding extends Binding {
 
     /**
      * Generates a function to update style property value
+     * @param name {string}
      * @returns {Function} a function to update style property
      */
     bound (name : string) : Function {

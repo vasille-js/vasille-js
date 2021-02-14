@@ -17,8 +17,8 @@ import { propertify }    from "./property.js";
  * @returns {AttributeBinding} 1 to 1 bind of attribute
  */
 export function classify (
-    rt : any,
-    ts : any,
+    rt : BaseNode,
+    ts : BaseNode,
     name : string,
     value : ?any     = null,
     func : ?Callable = null
@@ -42,8 +42,8 @@ export class ClassBinding extends Binding {
      * @param values {Array<IValue>} is the array of values to bind to
      */
     constructor (
-        rt : any,
-        ts : any,
+        rt : BaseNode,
+        ts : BaseNode,
         name : string,
         func : ?Function,
         ...values : Array<IValue<any>>

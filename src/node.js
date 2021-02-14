@@ -4,7 +4,7 @@ import { Binding, Expression }                                         from "./b
 import { classify }                                                    from "./class.js";
 import { Executor, InstantExecutor }                                   from "./executor.js";
 import type { CoreEl }                                                 from "./interfaces/core.js";
-import { $destroyObject, VasilleNode, VasilleNodePrivate }             from "./interfaces/core.js";
+import { VasilleNode, VasilleNodePrivate }                             from "./interfaces/core.js";
 import { internalError, notFound, typeError, userError, wrongBinding } from "./interfaces/errors.js";
 import { IBind }                                                       from "./interfaces/ibind.js";
 import { Callable, checkType }                                         from "./interfaces/idefinition.js";
@@ -63,6 +63,9 @@ export class TextNodePrivate extends VasilleNodePrivate {
         ts.$$appendChild(node, before);
     }
 
+    /**
+     * Clear node data
+     */
     $destroy () {
         //$FlowFixMe
         this.value = null;
@@ -77,6 +80,10 @@ export class TextNodePrivate extends VasilleNodePrivate {
  * Represents a text node
  */
 export class TextNode extends VasilleNode {
+    /**
+     * private data
+     * @type {TextNodePrivate}
+     */
     $ : any = new TextNodePrivate();
 
     /**
@@ -85,6 +92,9 @@ export class TextNode extends VasilleNode {
      */
     node : Text;
 
+    /**
+     * Constructs a text node
+     */
     constructor () {
         super();
     }
@@ -158,13 +168,16 @@ export class BaseNodePrivate extends VasilleNodePrivate {
     slots : Map<string, BaseNode> = new Map;
 
     /**
-     * Get the current root (this on building, rt on filling)
+     * Get the current root (ts on building, rt on filling)
      * @type {BaseNode}
      */
     get rt () : BaseNode {
         return !this.building && super.root instanceof BaseNode ? super.root : this.ts;
     }
 
+    /**
+     * Garbage collection
+     */
     $destroy () {
         for (let c of this.class) {
             c.$destroy();
@@ -212,6 +225,10 @@ export class BaseNode extends VasilleNode {
      */
     $children : Array<VasilleNode> = [];
 
+    /**
+     * Constructs a base node
+     * @param $ {?BaseNodePrivate}
+     */
     constructor ($ : ?BaseNodePrivate) {
         super($ || new BaseNodePrivate);
     }
@@ -237,11 +254,17 @@ export class BaseNode extends VasilleNode {
         ts.$$appendChild(node, before);
     }
 
+    /**
+     * Start component building
+     */
     $$startBuilding () {
         this.$.slots.set("default", this);
         this.$.building = true;
     }
 
+    /**
+     * Stop component building
+     */
     $$stopBuilding () {
         this.$.building = false;
         this.$mounted();
@@ -249,7 +272,6 @@ export class BaseNode extends VasilleNode {
 
     /**
      * Initialize node
-     * @param props {Object} VasilleNode properties values
      */
     $init () {
         this.$$startBuilding();
@@ -274,7 +296,9 @@ export class BaseNode extends VasilleNode {
     $$unsafeAssign (ts : Object, prop : string, value : any) {
         let field = ts[prop];
 
-        if (!field || !(field instanceof IValue)) {
+        if (!field || !(
+            field instanceof IValue
+        )) {
             throw notFound("no such property: " + prop);
         }
         if (!field.type) {
@@ -303,6 +327,10 @@ export class BaseNode extends VasilleNode {
 
     /** To be overloaded: ready event handler */
     $ready () {
+    }
+
+    /** To be overloaded: attributes creation milestone */
+    $createAttrs () {
     }
 
     /**
@@ -337,10 +365,6 @@ export class BaseNode extends VasilleNode {
         super.$destroy();
     }
 
-    /** To be overloaded: attributes creation milestone */
-    $createAttrs () {
-    }
-
     /** To be overloaded: $style attributes creation milestone */
     $createStyle () {
     }
@@ -357,12 +381,23 @@ export class BaseNode extends VasilleNode {
     $createDom () {
     }
 
+    /**
+     * create a private field
+     * @param value {*}
+     * @return {IValue<*>}
+     */
     $private (value : any) : IValue<any> {
         let ret = vassilify(value);
         this.$.watch.add(ret);
         return ret;
     }
 
+    /**
+     * creates a publis field
+     * @param type {Function}
+     * @param value {*}
+     * @return {Reference}
+     */
     $public (type : Function, value : any = null) : Reference<any> {
         if (!checkType(value, type) || value instanceof IValue) {
             throw typeError("wrong initial public field value");
@@ -379,6 +414,11 @@ export class BaseNode extends VasilleNode {
         }
     }
 
+    /**
+     * creates a pointer
+     * @param type {Function}
+     * @return {Pointer}
+     */
     $pointer (type : Function) : Pointer {
         let ref = new Reference();
         let pointer = new Pointer(ref);
@@ -499,15 +539,15 @@ export class BaseNode extends VasilleNode {
 
     /**
      * Bind a CSS class
-     * @param cl
-     * @param value
-     * @param func
+     * @param cl {?string}
+     * @param value {string | IValue | null}
+     * @param func {?Callable}
      * @return {BaseNode}
      */
     $bindClass (
         cl : ?string,
         value : string | IValue<boolean | string> | null = null,
-        func : ?Callable = null
+        func : ?Callable                                 = null
     ) : this {
         this.$.class.add(classify(this.$.rt, this, cl || "", value, func));
         return this;
@@ -516,7 +556,7 @@ export class BaseNode extends VasilleNode {
     /**
      * Gets a style attribute value
      * @param name {string} Name of style attribute
-     * @return {IValue<string>}
+     * @return {IValue}
      */
     $style (name : string) : IValue<string> {
         return this.$.style(name);
@@ -526,7 +566,7 @@ export class BaseNode extends VasilleNode {
      * Defines a style attribute
      * @param name {String} The name of style attribute
      * @param value {String | IValue | Callable} A value or a value getter
-     * @return {BaseNode} A pointer to this
+     * @return {this} A pointer to this
      */
     $defStyle (name : string, value : string | IValue<string> | Callable) : this {
         if (value instanceof Callable) {
@@ -541,7 +581,7 @@ export class BaseNode extends VasilleNode {
     /**
      * Defines a set of style attributes
      * @param obj {Object<String, String | IValue>} A set of style attributes
-     * @return {BaseNode} A pointer to this
+     * @return {this} A pointer to this
      */
     $defStyles (obj : { [key : string] : string | IValue<any> }) : this {
         for (let i in obj) {
@@ -555,7 +595,7 @@ export class BaseNode extends VasilleNode {
      * @param name {String} Name of style attribute
      * @param calculator {Function} A calculator for style value
      * @param values {...IValue} Values to bind
-     * @return {BaseNode} A pointer to this
+     * @return {this} A pointer to this
      */
     $bindStyle (
         name : string,
@@ -663,228 +703,444 @@ export class BaseNode extends VasilleNode {
     /**
      * Add a listener for an event
      * @param name {string} Event name
-     * @param handler {function} Event handler
+     * @param handler {function (Event)} Event handler
      * @param options {Object | boolean} addEventListener options
-     * @return {BaseNode}
+     * @return {this}
      */
     $listen (name : string, handler : Function, options : ?EventListenerOptionsOrUseCapture) : this {
         this.$.el.addEventListener(name, handler, options || {});
         return this;
     }
 
-    $listenContextMenu (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (MouseEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenContextMenu (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("contextmenu", handler, options);
     }
 
-    $listenMouseDown (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (MouseEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenMouseDown (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("mousedown", handler, options);
     }
 
-    $listenMouseEnter (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (MouseEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenMouseEnter (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("mouseenter", handler, options);
     }
 
-    $listenMouseLeave (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (MouseEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenMouseLeave (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("mouseleave", handler, options);
     }
 
-    $listenMouseMove (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (MouseEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenMouseMove (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("mousemove", handler, options);
     }
 
-    $listenMouseOut (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (MouseEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenMouseOut (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("mouseout", handler, options);
     }
 
-    $listenMouseOver (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (MouseEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenMouseOver (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("mouseover", handler, options);
     }
 
-    $listenMouseUp (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (MouseEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenMouseUp (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("mouseup", handler, options);
     }
 
-    $listenClick (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (MouseEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenClick (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("click", handler, options);
     }
 
-    $listenDblClick (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (MouseEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenDblClick (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("dblclick", handler, options);
     }
 
-    $listenBlur (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (FocusEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenBlur (handler : FocusEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("blur", handler, options);
     }
 
-    $listenFocus (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (FocusEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenFocus (handler : FocusEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("focus", handler, options);
     }
 
-    $listenFocusIn (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (FocusEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenFocusIn (handler : FocusEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("focusin", handler, options);
     }
 
-    $listenFocusOut (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (FocusEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenFocusOut (handler : FocusEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("focusout", handler, options);
     }
 
-    $listenKeyDown (handler : Function, options : EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (KeyboardEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenKeyDown (handler : KeyboardEvent => void, options : EventListenerOptionsOrUseCapture) {
         this.$listen("keydown", handler, options);
     }
 
-    $listenKeyUp (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (KeyboardEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenKeyUp (handler : KeyboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("keyup", handler, options);
     }
 
-    $listenKeyPress (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (KeyboardEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenKeyPress (handler : KeyboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("keypress", handler, options);
     }
 
-    $listenTouchStart (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (TouchEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenTouchStart (handler : TouchEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("touchstart", handler, options);
     }
 
-    $listenTouchMove (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (TouchEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenTouchMove (handler : TouchEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("touchmove", handler, options);
     }
 
-    $listenTouchEnd (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (TouchEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenTouchEnd (handler : TouchEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("touchend", handler, options);
     }
 
-    $listenTouchCancel (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (TouchEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenTouchCancel (handler : TouchEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("touchcancel", handler, options);
     }
 
-    $listenWheel (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (WheelEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenWheel (handler : WheelEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("wheel", handler, options);
     }
 
-    $listenAbort (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (ProgressEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenAbort (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("abort", handler, options);
     }
 
-    $listenError (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (ProgressEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenError (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("error", handler, options);
     }
 
-    $listenLoad (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (ProgressEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenLoad (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("load", handler, options);
     }
 
-    $listenLoadEnd (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (ProgressEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenLoadEnd (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("loadend", handler, options);
     }
 
-    $listenLoadStart (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (ProgressEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenLoadStart (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("loadstart", handler, options);
     }
 
-    $listenProgress (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (ProgressEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenProgress (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("progress", handler, options);
     }
 
-    $listenTimeout (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (ProgressEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenTimeout (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("timeout", handler, options);
     }
 
-    $listenDrag (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (DragEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenDrag (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("drag", handler, options);
     }
 
-    $listenDragEnd (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (DragEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenDragEnd (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("dragend", handler, options);
     }
 
-    $listenDragEnter (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (DragEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenDragEnter (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("dragenter", handler, options);
     }
 
-    $listenDragExit (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (DragEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenDragExit (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("dragexit", handler, options);
     }
 
-    $listenDragLeave (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (DragEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenDragLeave (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("dragleave", handler, options);
     }
 
-    $listenDragOver (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (DragEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenDragOver (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("dragover", handler, options);
     }
 
-    $listenDragStart (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (DragEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenDragStart (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("dragstart", handler, options);
     }
 
-    $listenDrop (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (DragEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenDrop (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("drop", handler, options);
     }
 
-    $listenPointerOver (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (PointerEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenPointerOver (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointerover", handler, options);
     }
 
-    $listenPointerEnter (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (PointerEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenPointerEnter (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointerenter", handler, options);
     }
 
-    $listenPointerDown (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (PointerEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenPointerDown (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointerdown", handler, options);
     }
 
-    $listenPointerMove (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (PointerEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenPointerMove (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointermove", handler, options);
     }
 
-    $listenPointerUp (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (PointerEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenPointerUp (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointerup", handler, options);
     }
 
-    $listenPointerCancel (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (PointerEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenPointerCancel (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointercancel", handler, options);
     }
 
-    $listenPointerOut (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (PointerEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenPointerOut (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointerout", handler, options);
     }
 
-    $listenPointerLeave (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (PointerEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenPointerLeave (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointerleave", handler, options);
     }
 
-    $listenGotPointerCapture (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (PointerEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenGotPointerCapture (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("gotpointercapture", handler, options);
     }
 
-    $listenLostPointerCapture (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (PointerEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenLostPointerCapture (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("lostpointercapture", handler, options);
     }
 
-    $listenAnimationStart (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (AnimationEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenAnimationStart (handler : AnimationEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("animationstart", handler, options);
     }
 
-    $listenAnimationEnd (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (AnimationEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenAnimationEnd (handler : AnimationEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("animationend", handler, options);
     }
 
-    $listenAnimationIteraton (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (AnimationEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenAnimationIteraton (handler : AnimationEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("animationiteration", handler, options);
     }
 
-    $listenClipboardChange (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (ClipboardEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenClipboardChange (handler : ClipboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("clipboardchange", handler, options);
     }
 
-    $listenCut (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (ClipboardEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenCut (handler : ClipboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("cut", handler, options);
     }
 
-    $listenCopy (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (ClipboardEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenCopy (handler : ClipboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("copy", handler, options);
     }
 
-    $listenPaste (handler : Function, options : ?EventListenerOptionsOrUseCapture) {
+    /**
+     * @param handler {function (ClipboardEvent)}
+     * @param options {Object | boolean}
+     */
+    $listenPaste (handler : ClipboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("paste", handler, options);
     }
 
@@ -901,6 +1157,12 @@ export class BaseNode extends VasilleNode {
         this.$.watch.add(new Expression(func, vars));
     }
 
+    /**
+     * Creates a bind expression
+     * @param f {Function} function to alc expression value
+     * @param args {...IValue} value sto bind
+     * @return {IBind}
+     */
     $bind (f : Function, ...args : Array<IValue<any>>) : IBind {
         let res : IBind;
 
@@ -915,28 +1177,38 @@ export class BaseNode extends VasilleNode {
         return res;
     }
 
+    $ensureRef (name : string, group : boolean) : Set | Object | null {
+        let current = this.$.refs.get(name);
+        let ret;
+
+        if (!current) {
+            ret = group ? new Set : { el: null };
+            this.$.refs.set(group, name);
+        }
+
+        return ret;
+    }
+
     /**
      * Creates a reference to this element
      * @param reference {String} The reference name
-     * @param group {Boolean} Store reference to group
      */
-    $makeRef (reference : string, group : boolean = false) : void {
-        let $ = this.$;
+    $makeRef (reference : string) : void {
+        let $ : BaseNodePrivate = this.$;
 
         if ($.root instanceof BaseNode) {
             let refs = $.root.$.refs;
             let ref = refs.get(reference);
+            let el = this instanceof TagNode ? this.$node : this;
 
-            if (group) {
-                if (ref instanceof Set) {
-                    ref.add(this);
-                }
-                else {
-                    refs.set(reference, new Set().add(this));
-                }
+            if (ref instanceof Set) {
+                ref.add(el);
+            }
+            else if (ref instanceof Object) {
+                ref.el = el;
             }
             else {
-                refs.set(reference, this);
+                throw notFound("no such ref: " + reference);
             }
         }
     }
@@ -946,11 +1218,11 @@ export class BaseNode extends VasilleNode {
      * @param name {string} reference name
      * @return {BaseNode}
      */
-    $ref (name : string) : BaseNode {
+    $ref (name : string) : BaseNode | Element {
         let ref = this.$.refs.get(name);
 
-        if (ref instanceof BaseNode) {
-            return ref;
+        if (ref.el instanceof BaseNode) {
+            return ref.$.el;
         }
 
         throw notFound("no such ref: " + name);
@@ -1067,8 +1339,7 @@ export class BaseNode extends VasilleNode {
         // If we are inserting in a shadow node or uninitiated element node
         if (
             (this instanceof ExtensionNode && !($.parent instanceof AppNode)) ||
-            (this instanceof TagNode && !$.el)
-        ) {
+            (this instanceof TagNode && !$.el)) {
             $.parent.$$appendChild(node, $.next);
             return;
         }
@@ -1077,11 +1348,15 @@ export class BaseNode extends VasilleNode {
         $.app.$run.appendChild($.el, node);
     }
 
+    /**
+     * A v-show & ngShow alternative
+     * @param cond {IValue} show condition
+     */
     $bindShow (cond : IValue<boolean>) : this {
         let $ : BaseNodePrivate = this.$;
 
         if ($.watch.has(cond)) {
-            throw wrongBinding("show must be bound to an external comoonent");
+            throw wrongBinding("show must be bound to an external component");
         }
 
         let expr = null;
@@ -1111,7 +1386,7 @@ export class BaseNode extends VasilleNode {
     /**
      * Defines a text fragment
      * @param text {String | IValue} A text fragment string
-     * @param cb {?Function} Callback if previous is slot name
+     * @param cb {?function (TextNode)} Callback if previous is slot name
      * @return {BaseNode} A pointer to this
      */
     $defText (
@@ -1142,7 +1417,7 @@ export class BaseNode extends VasilleNode {
     /**
      * Defines a tag element
      * @param tagName {String} is the tag name
-     * @param cb {Function} Callback if previous is slot name
+     * @param cb {function(TagNode, *)} Callback if previous is slot name
      * @return {BaseNode} A pointer to this
      */
     $defTag (
@@ -1175,8 +1450,8 @@ export class BaseNode extends VasilleNode {
     /**
      * Defines a custom element
      * @param node {*} Custom element constructor
-     * @param props {Object} List of properties values
-     * @param cb {?Function} Callback if previous is slot name
+     * @param props {function(BaseNode)} List of properties values
+     * @param cb {?function(BaseNode, *)} Callback if previous is slot name
      * @return {BaseNode} A pointer to this
      */
     $defElement<T> (
@@ -1222,10 +1497,16 @@ export class BaseNode extends VasilleNode {
         return this;
     }
 
+    /**
+     * Calls callback function to create properties
+     * @param node {BaseNode}
+     * @param props {function(BaseNode)}
+     * @return {*}
+     */
     $$callPropsCallback<T> (node : T, props : ($ : T) => void) {
         if (node instanceof BaseNode) {
             let obj = {
-                $bind: function (...args) {
+                $bind : function (...args) {
                     return node.$bind(...args);
                 }
             };
@@ -1254,8 +1535,8 @@ export class BaseNode extends VasilleNode {
     /**
      * Defines a repeater node
      * @param nodeT {RepeatNode} A repeat node object
-     * @param props {Object} Send data to repeat node
-     * @param cb {Function} Call-back to create child nodes
+     * @param props {function(BaseNode)} Send data to repeat node
+     * @param cb {function(RepeatNodeItem, *)} Call-back to create child nodes
      * @return {BaseNode}
      */
     $defRepeater<T> (
@@ -1289,7 +1570,7 @@ export class BaseNode extends VasilleNode {
     /**
      * Defines a if node
      * @param cond {* | IValue<*>} condition
-     * @param cb {Function} Call-back to create child nodes
+     * @param cb {function(RepeatNodeItem, ?number)} Call-back to create child nodes
      * @return {this}
      */
     $defIf (
@@ -1302,8 +1583,8 @@ export class BaseNode extends VasilleNode {
     /**
      * Defines a if-else node
      * @param ifCond {* | IValue<*>} `if` condition
-     * @param ifCb {Function} Call-back to create `if` child nodes
-     * @param elseCb {Function} Call-back to create `else` child nodes
+     * @param ifCb {function(RepeatNodeItem, ?number)} Call-back to create `if` child nodes
+     * @param elseCb {function(RepeatNodeItem, ?number)} Call-back to create `else` child nodes
      * @return {this}
      */
     $defIfElse (
@@ -1315,8 +1596,8 @@ export class BaseNode extends VasilleNode {
     }
 
     /**
-     * Defines a switch nodes
-     * @param cases {{ cond : IValue<boolean> | boolean, cb : Function }} Will break after first true condition
+     * Defines a switch nodes: Will break after first true condition
+     * @param cases {...{ cond : IValue<boolean> | boolean, cb : function(RepeatNodeItem, ?number) }}
      * @return {BaseNode}
      */
     $defSwitch (
@@ -1343,6 +1624,8 @@ export class BaseNode extends VasilleNode {
 
         return this;
     }
+
+
 }
 
 /**
@@ -1375,6 +1658,9 @@ export class TagNode extends BaseNode {
         this.$$preinitNode(app, rt, ts, before, this.$node);
     }
 
+    /**
+     * Runs GC
+     */
     $destroy () {
         super.$destroy();
         this.$node.remove();
@@ -1410,11 +1696,17 @@ export class ExtensionNode extends BaseNode {
         }
     }
 
+    /**
+     * Runs GC
+     */
     $destroy () {
         super.$destroy();
     }
 }
 
+/**
+ * Defines a node which cas has just a child (TagNode | UserNode)
+ */
 export class UserNode extends ExtensionNode {
     $mounted () {
         super.$mounted();
@@ -1440,8 +1732,16 @@ type CaseArg = { cond : IValue<boolean> | boolean, cb : (node : RepeatNodeItem, 
  * Defines a abstract node, which represents a dynamical part of application
  */
 export class RepeatNodeItem extends ExtensionNode {
+    /**
+     * node identifier
+     * @type {*}
+     */
     $id : any;
 
+    /**
+     * Constructs a repeat node item
+     * @param id {*}
+     */
     constructor (id : any) {
         super();
         this.$id = id;
@@ -1456,6 +1756,9 @@ export class RepeatNodeItem extends ExtensionNode {
     }
 }
 
+/**
+ * Private part of switch node
+ */
 export class SwitchedNodePrivate extends BaseNodePrivate {
     /**
      * Index of current true condition
@@ -1471,7 +1774,7 @@ export class SwitchedNodePrivate extends BaseNodePrivate {
 
     /**
      * Array of possible casses
-     * @type {Array<{cond : IValue<boolean>, cb : Function}>}
+     * @type {Array<{cond : IValue<boolean>, cb : function(RepeatNodeItem, ?number)}>}
      */
     cases : { cond : IValue<boolean>, cb : (node : RepeatNodeItem, v : ?number) => void }[];
 
@@ -1481,6 +1784,9 @@ export class SwitchedNodePrivate extends BaseNodePrivate {
      */
     sync : Function;
 
+    /**
+     * Runs GC
+     */
     $destroy () {
         //$FlowFixMe
         this.index = null;
@@ -1507,14 +1813,11 @@ export class SwitchedNodePrivate extends BaseNodePrivate {
  * Defines a node witch can switch its children conditionally
  */
 class SwitchedNode extends ExtensionNode {
-
-    $ = new SwitchedNodePrivate();
-
     /**
      * Constructs a switch node and define a sync function
      */
-    constructor () {
-        super();
+    constructor ($ : SwitchedNodePrivate) {
+        super($ || new SwitchedNodePrivate);
 
         this.$.sync = () => {
             let $ = this.$;
@@ -1549,7 +1852,7 @@ class SwitchedNode extends ExtensionNode {
 
     /**
      * Set up switch cases
-     * @param cases {{ cond : *, cb : Function }}
+     * @param cases {{ cond : IValue | boolean, cb : function(RepeatNodeItem, ?number) }}
      */
     setCases (cases : Array<CaseArg>) {
         let $ = this.$;
@@ -1561,21 +1864,9 @@ class SwitchedNode extends ExtensionNode {
     }
 
     /**
-     * Prepare shadow node
-     * @param app {AppNode} App node
-     * @param rt {BaseNode} Root node
-     * @param ts {BaseNode} This node
-     * @param before {VasilleNode} The next node
-     */
-    $$preinitShadow (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
-        super.$$preinitShadow(app, rt, ts, before);
-        this.$.encapsulate(ts.$.el);
-    }
-
-    /**
      * Creates a child node
      * @param id {*} id of node
-     * @param cb {Function} Call-back
+     * @param cb {function(RepeatNodeItem, *)} Call-back
      */
     createChild (id : any, cb : CallBack) {
         let node = new RepeatNodeItem(id);
@@ -1590,6 +1881,20 @@ class SwitchedNode extends ExtensionNode {
         this.$.node = node;
         this.$children.push(node);
     };
+
+    /**
+     * Prepare shadow node
+     * @param app {AppNode} App node
+     * @param rt {BaseNode} Root node
+     * @param ts {BaseNode} This node
+     * @param before {VasilleNode} The next node
+     */
+    $$preinitShadow (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
+        super.$$preinitShadow(app, rt, ts, before);
+        this.$.encapsulate(ts.$.el);
+    }
+
+
 
     /**
      * Run then the node is ready

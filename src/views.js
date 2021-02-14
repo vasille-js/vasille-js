@@ -133,6 +133,9 @@ export class RepeatNode extends ExtensionNode {
     };
 }
 
+/**
+ * Private part of repeater
+ */
 export class RepeaterPrivate extends RepeatNodePrivate {
     /**
      * Handler to catch count updates
@@ -158,7 +161,6 @@ export class RepeaterPrivate extends RepeatNodePrivate {
  */
 export class Repeater extends RepeatNode {
 
-    // props
     /**
      * The count of children
      * @type {IValue<number>}
@@ -226,6 +228,9 @@ export class Repeater extends RepeatNode {
     }
 }
 
+/**
+ * Private part of BaseView
+ */
 export class BaseViewPrivate extends RepeatNodePrivate {
     /**
      * Handler to catch values addition
@@ -309,6 +314,9 @@ export class BaseView extends RepeatNode {
     }
 }
 
+/**
+ * Private part of array view
+ */
 export class ArrayViewPrivate extends BaseViewPrivate {
     /**
      * Contains handlers of each child
@@ -328,6 +336,10 @@ export class ArrayViewPrivate extends BaseViewPrivate {
  */
 export class ArrayView extends BaseView {
 
+    /**
+     * model of view
+     * @type {IValue<ArrayModel<*>>}
+     */
     model : IValue<ArrayModel<*>>;
 
     /**
@@ -400,6 +412,9 @@ export class ArrayView extends BaseView {
     }
 }
 
+/**
+ * private part of object view
+ */
 class ObjectViewPrivate extends BaseViewPrivate {
     /**
      * Handler of property changes
@@ -477,6 +492,9 @@ export class ObjectView extends BaseView {
     }
 }
 
+/**
+ * private part of map view
+ */
 class MapViewPrivate extends BaseViewPrivate {
     /**
      * Contains update handler for each value
@@ -551,6 +569,9 @@ export class MapView extends BaseView {
     }
 }
 
+/**
+ * private part of set view
+ */
 class SetViewPrivate extends BaseViewPrivate {
     /**
      * Contains update handler for each value

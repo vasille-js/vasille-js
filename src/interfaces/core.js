@@ -185,7 +185,8 @@ export class VasilleNodePrivate extends Destroyable {
 
     /**
      * Gets the component life style attribute
-     * @type {Object<String, IValue>}
+     * @param field {Object<String, IValue>}
+     * @return {IValue<string>}
      * @see VasilleNode#$style
      */
     style (field : string) : IValue<string> {
@@ -229,8 +230,15 @@ export class VasilleNodePrivate extends Destroyable {
  * This class is symbolic
  */
 export class VasilleNode extends Destroyable {
+    /**
+     * @type {VasilleNodePrivate}
+     */
     $ : any;
 
+    /**
+     * Constructs a Vasille Node
+     * @param $ {VasilleNodePrivate}
+     */
     constructor ($ : ?VasilleNodePrivate) {
         super();
         this.$ = $ || new VasilleNodePrivate;
