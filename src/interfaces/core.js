@@ -204,14 +204,23 @@ export class VasilleNodePrivate extends Destroyable {
     $destroy () {
         $destroyObject(this.$attrs);
         $destroyObject(this.$style);
+        //$FlowFixMe
         this.$el = null;
+        //$FlowFixMe
         this.$attrs = null;
+        //$FlowFixMe
         this.$style = null;
+        //$FlowFixMe
         this.root = null;
+        //$FlowFixMe
         this.ts = null;
+        //$FlowFixMe
         this.app = null;
+        //$FlowFixMe
         this.parent = null;
+        //$FlowFixMe
         this.next = null;
+        //$FlowFixMe
         this.prev = null;
     }
 }

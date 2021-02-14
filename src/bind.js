@@ -19,10 +19,24 @@ export class Expression extends IBind {
     values : Array<IValue<any>>;
 
     /**
+     * Cache the values of expression variables
+     * @type {Array<*>}
+     * @version 1.1
+     */
+    valuesCache : Array<any> = [];
+
+    /**
      * The function which will be executed on recalculation
      * @type {Function}
      */
     func : Function;
+
+    /**
+     * Expression will link different handler for each value of list
+     * @type {Array<Function>}
+     * @version 1.1
+     */
+    linkedFunc : Array<Function> = [];
 
     /**
      * The current linking state
@@ -48,8 +62,11 @@ export class Expression extends IBind {
         link : boolean = true
     ) {
         super();
-        let handler = () => {
-            let value = func(...values.map(v => v.$));
+        let handler = (i : ?number) => {
+            if (i != null) {
+                this.valuesCache[i] = this.values[i].$;
+            }
+            let value = func.apply(this, this.valuesCache);
 
             if (this.type) {
                 if (!checkType(value, this.type)) {
@@ -60,6 +77,12 @@ export class Expression extends IBind {
             this.sync.$ = value;
         };
 
+        let i = 0;
+        for (let value of values) {
+            this.valuesCache.push(value.$);
+            this.linkedFunc.push(handler.bind(this, Number(i++)));
+        }
+
         this.values = values;
         this.func = handler;
         this.linked = false;
@@ -68,7 +91,7 @@ export class Expression extends IBind {
             this.link();
         }
         else {
-            handler();
+            handler(null);
         }
     }
 
@@ -116,10 +139,11 @@ export class Expression extends IBind {
      */
     link () : this {
         if (!this.linked) {
-            for (let value of this.values) {
-                value.on(this.func);
+            for (let i = 0; i < this.values.length; i++) {
+                this.values[i].on(this.linkedFunc[i]);
+                this.valuesCache[i] = this.values[i].$;
             }
-            this.func();
+            this.func(null);
             this.linked = true;
         }
         return this;
@@ -131,8 +155,8 @@ export class Expression extends IBind {
      */
     unlink () : this {
         if (this.linked) {
-            for (let value of this.values) {
-                value.off(this.func);
+            for (let i = 0; i < this.values.length; i++) {
+                this.values[i].off(this.linkedFunc[i]);
             }
             this.linked = false;
         }
@@ -144,6 +168,10 @@ export class Expression extends IBind {
      */
     $destroy () : void {
         this.unlink();
+        this.values.splice(0);
+        this.valuesCache.splice(0);
+        this.linkedFunc.splice(0);
+        this.func = null;
     }
 }
 

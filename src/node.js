@@ -64,7 +64,9 @@ export class TextNodePrivate extends VasilleNodePrivate {
     }
 
     $destroy () {
+        //$FlowFixMe
         this.value = null;
+        //$FlowFixMe
         this.handler = null;
 
         super.$destroy();
@@ -106,6 +108,7 @@ export class TextNode extends VasilleNode {
     $destroy () : void {
         this.$.$destroy();
         this.$ = null;
+        //$FlowFixMe
         this.node = null;
 
         super.$destroy();
@@ -167,15 +170,18 @@ export class BaseNodePrivate extends VasilleNodePrivate {
             c.$destroy();
         }
         this.class.clear();
+        //$FlowFixMe
         this.class = null;
 
         for (let w of this.watch) {
             w.$destroy();
         }
         this.watch.clear();
+        //$FlowFixMe
         this.watch = null;
 
         this.signal.clear();
+        //$FlowFixMe
         this.signal = null;
 
         for (let ref of this.refs) {
@@ -184,9 +190,11 @@ export class BaseNodePrivate extends VasilleNodePrivate {
             }
         }
         this.refs.clear();
+        //$FlowFixMe
         this.refs = null;
 
         this.slots.clear();
+        //$FlowFixMe
         this.slots = null;
 
         super.$destroy();
@@ -323,6 +331,7 @@ export class BaseNode extends VasilleNode {
         $.$destroy();
         this.$ = null;
         this.$children.splice(0);
+        //$FlowFixMe
         this.$children = null;
 
         super.$destroy();
@@ -1068,6 +1077,37 @@ export class BaseNode extends VasilleNode {
         $.app.$run.appendChild($.el, node);
     }
 
+    $bindShow (cond : IValue<boolean>) : this {
+        let $ : BaseNodePrivate = this.$;
+
+        if ($.watch.has(cond)) {
+            throw wrongBinding("show must be bound to an external comoonent");
+        }
+
+        let expr = null;
+
+        expr = new Expression((cond) => {
+            if (!cond) {
+                for (let watcher of $.watch) {
+                    if (watcher instanceof IBind && watcher !== expr) {
+                        watcher.unlink();
+                    }
+                }
+            }
+            else {
+                for (let watcher of $.watch) {
+                    if (watcher instanceof IBind) {
+                        watcher.link();
+                    }
+                }
+            }
+
+            return cond;
+        }, [cond]);
+
+        $.watch.add(expr);
+    }
+
     /**
      * Defines a text fragment
      * @param text {String | IValue} A text fragment string
@@ -1338,6 +1378,7 @@ export class TagNode extends BaseNode {
     $destroy () {
         super.$destroy();
         this.$node.remove();
+        //$FlowFixMe
         this.$node = null;
     }
 }
@@ -1441,15 +1482,21 @@ export class SwitchedNodePrivate extends BaseNodePrivate {
     sync : Function;
 
     $destroy () {
+        //$FlowFixMe
         this.index = null;
+        //$FlowFixMe
         this.node = null;
 
         for (let c of this.cases) {
+            //$FlowFixMe
             delete c.cond;
+            //$FlowFixMe
             delete c.cb;
         }
         this.cases.splice(0);
+        //$FlowFixMe
         this.cases = null;
+        //$FlowFixMe
         this.sync = null;
 
         super.$destroy();
@@ -1486,6 +1533,7 @@ class SwitchedNode extends ExtensionNode {
             if ($.node) {
                 $.node.$destroy();
                 this.$children.splice(this.$children.indexOf($.node), 1);
+                //$FlowFixMe
                 $.node = null;
             }
 
@@ -1606,6 +1654,7 @@ export class AppNode extends BaseNode {
     }
 
     $destroy () {
+        //$FlowFixMe
         this.$run = null;
         super.$destroy();
     }
