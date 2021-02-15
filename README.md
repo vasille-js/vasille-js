@@ -1,10 +1,13 @@
 # Vasille.js
 
 Vasille.js is **very fast** javascript frontend framework,
-it is not using virtual DOM or use own reactive mechanism.
+it is not using virtual DOM, it updates DOM directly using an own
+reactive mechanism.
 
 This framework is in active development, if you want to contribute contact 
 the maintainer: Lelițac Vasile (lixcode@vivaldi.net).
+
+Currently, just JavaScript API is available, the main API is not ready yet.
 
 ## API description
 
