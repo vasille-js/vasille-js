@@ -9,6 +9,19 @@ the maintainer: Lelițac Vasile (lixcode@vivaldi.net).
 
 Currently, just JavaScript API is available, the main API is not ready yet.
 
+## Project roadmap
+
+| Feature                                     | Deadline     | Status     |
+|---------------------------------------------|--------------|------------|
+| Initial Version                             | 01.07.2021   | Ready      |
+| Patch to 1.1                                | 02.12.2021   | Ready      |
+| Describe API                                | 02.14.2021   | Ready      |
+| Describe JS API                             | 02.15.2021   | WIP        |
+| Describe VCC architecture                   | 02.22.2021   | Waiting    |
+| Code and debug VCC                          | 03.xx.2021   |            |
+| First enterprise ready version              | xx.xx.2021   |            |
+| Boost by HTML templates                     | xx.xx.2021   |            |
+
 ## API description
 
 To define a Vasille.js component, create a file with extension `.vc` 
@@ -93,10 +106,37 @@ export function slot() {
 }
 ```
 
+### Components hooks
+
+The Vasille.js components has 4 hooks. The `$created`
+hook is called when the component is created and properties are
+initialized. The `$mounted` hook is called when all elements defined in
+component are mounted. The `$ready` hook is called when all elements
+declared is component and installed to its slots are mounted. The
+`$destroy` hook is called when component is destroyed.
+
+To define a hook just define a function with its name.
+
+```typescript
+function $created () {
+    // created hook
+}
+function $mounted () {
+    // mounted hook
+}
+function $ready () {
+    // ready hook
+}
+function $destroy () {
+    // before destroy hook
+}
+```
+
 ### Events
 
 An event can be handled outside of function, to declare an event use
-`declare` keyword, after call it, the event signature must be typed.
+`declare` keyword, after call it to emit the defined event, the event
+signature must be typed.
 
 Syntax:
 ```typescript
@@ -324,26 +364,31 @@ Use `:html` directive to set inner HTML:
 ### Reference to node or subcomponents
 
 To make a reference to a component or element or a set of elements,
-at first is necessary to create a local variable of type `ref`, `vref`,
-`Set<ref>` or `Set<vref>`, at second is necessary to link that variable
-to element/component using `:ref` directive.
+at first is necessary to create a local variable of type `ref<Element>`, 
+`ref<App>`, `ref<Component>`, `ref<Fragment>`, `refs<Element>`, `refs<App>`,
+`refs<Component>`, `refs<Fragment>` at second is necessary to link that 
+variable to element/component using `:ref` directive. 
+
+References are available in `$mounted` hook.
 
 Examples:
 ```html
 <script>
-    import { ref, vref } from 'vasille';
-    import Component from './Component';
+    import { ref, refs, Component } from 'vasille-js';
+    import MyComponent from './MyComponent';
     
-    let div : ref;
-    let sub : vref;
-    let items : Set<ref>;
+    let div : ref<HTMLDivElement>; // refer to <div>
+    let sub : ref<MyComponent>;    // refer to <MyComponent>
+    let items : refs<Element>;     // refer to [<p>, <p>, <p>]
 </script>
 
 <Fragment>
     <div :ref='div' />
-    <Component :ref="sub">
+    <MyComponent :ref="sub">
         <p :ref="items"/>
-    </Component>
+        <p :ref="items"/>
+        <p :ref="items"/>
+    </MyComponent>
 </Fragment>
 ```
 
