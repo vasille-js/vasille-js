@@ -1,8 +1,5 @@
 # Vasille.js
 
-{:: style="text-align: center" }
-
-
 |Intro|
 |:---:|
 |![Vasille.js logo](img/logo.png "Title Text")|
