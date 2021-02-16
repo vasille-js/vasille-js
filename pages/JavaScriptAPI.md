@@ -20,6 +20,9 @@ an existing DOM node. `Component` defines a typical component, which root
 is an HTML node created by Vasille.js. `Fragment` can contain any number of
 nodes at top level.
 
+## Table of content
+[[_TOC_]]
+
 ## Class fields and methods
 
 Component data, functions, events, slots and watcher are defined as class
