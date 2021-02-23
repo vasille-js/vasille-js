@@ -2,7 +2,7 @@
 
 |Intro|
 |:---:|
-|![Vasille.js logo](img/logo.png "Title Text")|
+|![Vasille.js logo](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/logo.png)|
 |Vasille.js is **very fast** javascript frontend framework, it is not using virtual DOM, it updates DOM directly using an own reactive mechanism.|
 
 This framework is in active development, if you want to contribute contact
@@ -52,7 +52,7 @@ which can be zoomed up to 32x, this project was called "Project x32".
 
 On the next image is demonstrated the difference between 1x zoom (on the 
 left side) and x32 zoom (on the right side):
-![x1-x32](img/x1-x32.png)
+![x1-x32](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/x1-x32.png)
 
 There are 100 random squares over each brick, on small zoom the squares 
 are hidden to optimize browser performance, because the page is composed 
@@ -72,7 +72,7 @@ The project x32 was coded using the next frameworks:
 
 After zooming in each production build and measuring performance 
 I had got the next results:
-![results 1](img/scores-wo.png)
+![results 1](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-wo.png)
 
 The Vue & React builds are the slowest: the average frame time of:
 * React build is 1263.48ms.
@@ -80,7 +80,7 @@ The Vue & React builds are the slowest: the average frame time of:
 * Vue 2 build is 823.56ms.
 
 There is the same graphic in logarithmic scale:
-![results 1](img/scores-wo-log.png)
+![results 1](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-wo-log.png)
 
 Let's analyze the Angular, Svelte & Vasille JS results:
 * Angular & Svelte has a similar result, the average time of frame 
@@ -105,13 +105,13 @@ the number of components. So let's zoom each optimized build
 from x1 to x32.
 
 Tests results:
-![results 2](img/scores-o.png)
+![results 2](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-o.png)
 
 After X8 the number of onscreen components is very small, the optimization has a good result.
 The Reactive frameworks are the slowest before and after optimization.
 
 There is the same graphic in logarithmic scale:
-![results 2](img/scores-o-log.png)
+![results 2](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-o-log.png)
 
 After optimization Angular, Svelte & Vasille JS has very good 
 results close to Vasille JS before optimization.
