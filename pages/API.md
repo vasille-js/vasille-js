@@ -2,13 +2,13 @@
 
 |Intro|
 |:---:|
-|![Vasille.js logo](img/logo.png "Title Text")|
+|![Vasille.js logo](../img/logo.png "Title Text")|
 |Vasille.js is **very fast** javascript frontend framework, it is not using virtual DOM, it updates DOM directly using an own reactive mechanism.|
 
 This framework is in active development, if you want to contribute contact 
 the maintainer: Lelițac Vasile (lixcode@vivaldi.net).
 
-Currently, just [JavaScript API](pages/JavaScriptAPI.md) is available, the 
+Currently, just [JavaScript API](JavaScriptAPI.md) is available, the 
 main API is not ready yet.
 
 ### Table of content
@@ -22,7 +22,7 @@ main API is not ready yet.
 | Initial Version                             | 01.07.2021   | Ready      |
 | Patch to 1.1                                | 02.12.2021   | Ready      |
 | Describe API                                | 02.14.2021   | Ready      |
-| Describe JS API                             | 02.15.2021   | WIP        |
+| Describe JS API                             | 02.15.2021   | Ready      |
 | Describe VCC architecture                   | 02.22.2021   | Waiting    |
 | Code and debug VCC                          | 03.xx.2021   |            |
 | First enterprise ready version              | xx.xx.2021   |            |
