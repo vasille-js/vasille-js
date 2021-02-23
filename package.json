@@ -4,6 +4,11 @@
   "description": "The fastest (Vanilla.js based) front-end javascript framework",
   "main": "src/index.js",
   "types": "types/index.d.ts",
+  "exports": {
+    "default": "./src/index.js",
+    "import": "./src/index.js",
+    "browser": "./src/index.js"
+  },
   "scripts": {
     "flow": "flow",
     "prebuild": "rm -r lib",
