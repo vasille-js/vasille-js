@@ -11,6 +11,7 @@ please consider:
 * Become a backer or sponsor on Patreon.
 * [One-time donation via MasterCard, Visa, Maestro etc.](https://sobe.ru/na/vasille)
 
+<br/>
 <div align="center">
 
 ## Special sponsors
