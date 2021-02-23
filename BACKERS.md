@@ -15,6 +15,6 @@ please consider:
 <div align="center">
 
 ## Special sponsors
-![getlocus](img/getLocus.svg)
+[![getlocus](img/getLocus.svg)](https://getlocus.io)
 
 </div>
