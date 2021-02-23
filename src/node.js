@@ -168,6 +168,24 @@ export class BaseNodePrivate extends VasilleNodePrivate {
     slots : Map<string, BaseNode> = new Map;
 
     /**
+     * Defined the frozen state of component
+     * @type {boolean}
+     */
+    frozen : boolean = false;
+
+    /**
+     * Defines if node is unmounted
+     * @type {boolean}
+     */
+    unmounted : boolean = false;
+
+    /**
+     * Handle to run on component destroy
+     * @type {Function}
+     */
+    onDestroy : Function;
+
+    /**
      * Get the current root (ts on building, rt on filling)
      * @type {BaseNode}
      */
@@ -209,6 +227,10 @@ export class BaseNodePrivate extends VasilleNodePrivate {
         this.slots.clear();
         //$FlowFixMe
         this.slots = null;
+
+        if (this.onDestroy) {
+            this.onDestroy();
+        }
 
         super.$destroy();
     }
@@ -1154,7 +1176,7 @@ export class BaseNode extends VasilleNode {
             throw wrongBinding("a watcher must be bound to a value at last");
         }
 
-        this.$.watch.add(new Expression(func, vars));
+        this.$.watch.add(new Expression(func, vars, !this.freezed));
     }
 
     /**
@@ -1170,77 +1192,15 @@ export class BaseNode extends VasilleNode {
             throw wrongBinding("no values to bind");
         }
         else {
-            res = new Expression(f, args);
+            res = new Expression(f, args, !this.freezed);
         }
 
         this.$.watch.add(res);
         return res;
     }
 
-    $ensureRef (name : string, group : boolean) : Set | Object | null {
-        let current = this.$.refs.get(name);
-        let ret;
-
-        if (!current) {
-            ret = group ? new Set : { el: null };
-            this.$.refs.set(group, name);
-        }
-
-        return ret;
-    }
-
-    /**
-     * Creates a reference to this element
-     * @param reference {String} The reference name
-     */
-    $makeRef (reference : string) : void {
-        let $ : BaseNodePrivate = this.$;
-
-        if ($.root instanceof BaseNode) {
-            let refs = $.root.$.refs;
-            let ref = refs.get(reference);
-            let el = this instanceof TagNode ? this.$node : this;
-
-            if (ref instanceof Set) {
-                ref.add(el);
-            }
-            else if (ref instanceof Object) {
-                ref.el = el;
-            }
-            else {
-                throw notFound("no such ref: " + reference);
-            }
-        }
-    }
-
-    /**
-     * Gets a reference node
-     * @param name {string} reference name
-     * @return {BaseNode}
-     */
-    $ref (name : string) : BaseNode | Element {
-        let ref = this.$.refs.get(name);
-
-        if (ref.el instanceof BaseNode) {
-            return ref.$.el;
-        }
-
-        throw notFound("no such ref: " + name);
-    }
-
-    /**
-     * Gets a reference group
-     * @param name {string} reference group name
-     * @return {Set<BaseNode>}
-     */
-    $refs (name : string) : Set<BaseNode> {
-        let ref = this.$.refs.get(name);
-
-        if (ref instanceof Set) {
-            return ref;
-        }
-
-        throw notFound("no such ref: " + name);
+    $runOnDestroy (f : Function) {
+        (this.$ : BaseNodePrivate).onDestroy = f;
     }
 
     /**
@@ -1297,6 +1257,8 @@ export class BaseNode extends VasilleNode {
      */
     $$findFirstChild (node : ExtensionNode) : ?CoreEl {
         for (let child of node.$children) {
+            if (child.$.unmounted) continue;
+
             if (child instanceof ExtensionNode) {
                 let first = this.$$findFirstChild(child);
 
@@ -1320,6 +1282,10 @@ export class BaseNode extends VasilleNode {
         let $ : BaseNodePrivate = this.$;
         before = before || $.next;
 
+        while (before && before.$.unmounted) {
+            before = before.$.next;
+        }
+
         // If we are inserting before a element node
         if (before instanceof TagNode) {
             $.app.$run.insertBefore($.el, node, before.$.el);
@@ -1339,7 +1305,7 @@ export class BaseNode extends VasilleNode {
         // If we are inserting in a shadow node or uninitiated element node
         if (
             (this instanceof ExtensionNode && !($.parent instanceof AppNode)) ||
-            (this instanceof TagNode && !$.el)) {
+            (this instanceof TagNode && (!$.el || $.el === node))) {
             $.parent.$$appendChild(node, $.next);
             return;
         }
@@ -1349,38 +1315,82 @@ export class BaseNode extends VasilleNode {
     }
 
     /**
-     * A v-show & ngShow alternative
+     * Disable/Enable reactivity of component with feedback
      * @param cond {IValue} show condition
+     * @param onOff {Function} on show feedback
+     * @param onOn {Function} on hide feedback
      */
-    $bindShow (cond : IValue<boolean>) : this {
+    $bindFreeze (cond : IValue<boolean>, onOff : Function, onOn : Function) : this {
         let $ : BaseNodePrivate = this.$;
 
         if ($.watch.has(cond)) {
-            throw wrongBinding("show must be bound to an external component");
+            throw wrongBinding(":show must be bound to an external component");
         }
 
         let expr = null;
 
         expr = new Expression((cond) => {
-            if (!cond) {
-                for (let watcher of $.watch) {
-                    if (watcher instanceof IBind && watcher !== expr) {
-                        watcher.unlink();
-                    }
-                }
-            }
-            else {
+            $.frozen = !cond;
+
+            if (cond) {
+                onOn();
+
                 for (let watcher of $.watch) {
                     if (watcher instanceof IBind) {
                         watcher.link();
                     }
                 }
             }
+            else {
+                onOff();
 
-            return cond;
+                for (let watcher of $.watch) {
+                    if (watcher instanceof IBind && watcher !== expr) {
+                        watcher.unlink();
+                    }
+                }
+            }
         }, [cond]);
 
         $.watch.add(expr);
+    }
+
+    /**
+     * A v-show & ngShow alternative
+     * @param cond {IValue} show condition
+     */
+    $bindShow (cond : IValue<boolean>) : this {
+        let $ : BaseNodePrivate = this.$;
+        let lastDisplay = '';
+
+        return this.$bindFreeze(cond, () => {
+            lastDisplay = $.el.style.display;
+            $.el.style.display = 'none';
+        }, () => {
+            $.el.style.display = lastDisplay;
+        });
+    }
+
+    /**
+     * Mount/Unmount a node
+     * @param cond {IValue} show condition
+     */
+    $bindMount (cond : IValue<boolean>) : this {
+        let $ : BaseNodePrivate = this.$;
+
+        return this.$bindFreeze(cond, () => {
+            $.unmounted = true;
+        }, () => {
+            $.unmounted = false;
+        });
+    }
+
+    /**
+     * Enable/Disable reactivity o component
+     * @param cond {IValue} show condition
+     */
+    $bindAlive (cond : IValue<boolean>) : this {
+        return this.$bindFreeze(cond, () => {}, () => {});
     }
 
     /**
