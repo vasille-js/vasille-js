@@ -1,34 +1,4 @@
-# Vasille.js
-
-|Intro|
-|:---:|
-|![Vasille.js logo](../img/logo.png "Title Text")|
-|Vasille.js is **very fast** javascript frontend framework, it is not using virtual DOM, it updates DOM directly using an own reactive mechanism.|
-
-This framework is in active development, if you want to contribute contact 
-the maintainer: Lelițac Vasile (lixcode@vivaldi.net).
-
-Currently, just [JavaScript API](JavaScriptAPI.md) is available, the 
-main API is not ready yet.
-
-### Table of content
-[[_TOC_]]
-
-
-## Project roadmap
-
-| Feature                                     | Deadline     | Status     |
-|---------------------------------------------|--------------|------------|
-| Initial Version                             | 01.07.2021   | Ready      |
-| Patch to 1.1                                | 02.12.2021   | Ready      |
-| Describe API                                | 02.14.2021   | Ready      |
-| Describe JS API                             | 02.15.2021   | Ready      |
-| Describe VCC architecture                   | 02.22.2021   | Waiting    |
-| Code and debug VCC                          | 03.xx.2021   |            |
-| First enterprise ready version              | xx.xx.2021   |            |
-| Boost by HTML templates                     | xx.xx.2021   |            |
-
-## API description
+# Vasille.js API description
 
 To define a Vasille.js component, create a file with extension `.vc` 
 and the next structure:
@@ -65,7 +35,7 @@ section:
 </script>
 ```
 
-Also the variables can be typed:
+Also, the variables can be typed:
 ```typescript
 let foo : number = 2;
 let bar : string = 'bar';
@@ -247,6 +217,38 @@ Examples:
 ## HTML
 
 HTML part is used to define the HTML nodes and subcomponents.
+
+### Root tags
+
+The root of template must be `App` or `Component` or `Fragement`.
+
+`App` defines a root of an application or a page.
+Attributes of `App` & `Fragment` nodes will be applied to
+container node. Attributes of `Component` node will be applied to the
+root of component.
+
+Examples:
+```html
+<App>
+    <!-- Root of a simple application -->
+</App>
+
+<App role="app">
+    <!-- Root of a single page application -->
+</App>
+
+<App role="page">
+    <!-- Page in multi-page application -->
+</App>
+
+<Component>
+    <!-- Here must be a child node which is a component or HTMl node -->
+</Component>
+
+<Fragment>
+    <!-- Here can by any number of children, inclusive no children -->
+</Fragment>
+```
 
 ### HTML node/tag
 
@@ -481,6 +483,83 @@ Use `debug` tag to define debug comments:
 There are some advanced options, which can be coded using Vasille.js
 language.
 
+### Multi-page applications (multiple HTML files)
+
+Defines some `App` with role `page` and attribute `static-url` with the 
+path to future HTML file.
+
+Example:
+```html
+<!-- Index.vc file -->
+<App role="page" static-url="index.html">
+    <!-- Index file content -->
+</App>
+
+<!-- About.vc file -->
+<App role="page" static-url="pages/about.html">
+    <!-- About page content -->
+</App>
+```
+
+After compilation, you get the next files:
+```
+/index.html
+/index.html.js
+/index.html.css
+/pages/about.html
+/pages/about.html.js
+/pages/about.html.css
+```
+
+### Multi-page applications (single HTML file)
+
+Optionally define a `App` with role `app` which will represent the loading 
+screen. Strong define one or more `App` with role `page` and attribute
+`url` with a regular expression to match the url of page.
+
+Example:
+```html
+<!-- Index.vc file -->
+<App role="page" url="^/?$">
+    <!-- Index file content -->
+</App>
+
+<!-- News.vc file -->
+<App role="page" url="^/news/(?<newsId>\\w+)/?$">
+    <!-- About page content -->
+</App>
+
+<script>
+    export let newsId;
+    
+    // use here newsId url parameter
+</script>
+```
+
+After compilation, you get the next files:
+```
+/index.html
+/Index.js
+/News.js
+```
+
+### Executors
+
+An executor is a class which releases all changes in DOM, the default
+executor is `InstantExecutor`, it applies all changes immediately. To 
+create an own executor use JavaScript API.
+
+Example how to apply a custom executor:
+```html
+<App executor='MyExecutor'>
+    <!-- App children -->
+</App>
+
+<script>
+    import {MyExecutor} from "./MyExecutor";
+</script>
+```
+
 ### Pointers
 
 A pointer can be defined using a `var` keyword. Details about pointers
@@ -511,12 +590,3 @@ Syntax:
     <!-- Code to be updated -->
 </Watch>
 ```
-
-## Questions
-
-If you have questions fell free to contact the maintainer of project:
-
-* mail: lixcode@vivaldi.net
-* discord: lixcode
-* telegram: https://t.me/lixcode
-* vk: https://vk.com/lixcode
