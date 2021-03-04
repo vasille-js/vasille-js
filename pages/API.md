@@ -180,13 +180,11 @@ let multilineExpression = function () {
 
 ### Use global variable in Vassile.js components
 
-Use import from `global` to resolve global variables names.
+Use `window` variable to access global variables:
 
 ```typescript
-import { window, document, location } from 'global';
-
 window.requestAnimationFrame(() => {
-    // smoe code here
+    // smoe code heres
 });
 ```
 
@@ -343,7 +341,7 @@ Example:
 ### Listen for events
 
 To listen for default DOM events, use `onmousedown` or other HTML
-standard attributes. To listen to component events use `on-eventName`,
+standard attributes. To listen to component events use `on.eventName`,
 events accept as value functions names, expressions and
 lambda-functions.
 
@@ -356,8 +354,8 @@ Examples:
         onmousemove="(ev) => x = ev.clientX"
     ></div>
     <Component
-        on-eventName="functionName"
-        on-hover='hovered = true'
+        on.eventName="functionName"
+        on.hover='hovered = true'
     />
 </App>
 ```
@@ -382,12 +380,11 @@ References are available in `$mounted` hook.
 Examples:
 ```html
 <script>
-    import { ref, refs, Component } from 'vasille-js';
     import MyComponent from './MyComponent';
     
-    let div : ref<HTMLDivElement>; // refer to <div>
-    let sub : ref<MyComponent>;    // refer to <MyComponent>
-    let items : refs<Element>;     // refer to [<p>, <p>, <p>]
+    let div : HTMLDivElement;     // refer to <div>
+    let sub : MyComponent;        // refer to <MyComponent>
+    let items : Set<Element>;     // refer to [<p>, <p>, <p>]
 </script>
 
 <Fragment>

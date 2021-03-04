@@ -5,7 +5,6 @@
   "main": "src/index.js",
   "types": "types/index.d.ts",
   "exports": {
-    "default": "./src/index.js",
     "import": "./src/index.js",
     "browser": "./src/index.js"
   },
