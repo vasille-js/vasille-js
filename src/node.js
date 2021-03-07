@@ -1320,7 +1320,7 @@ export class BaseNode extends VasilleNode {
      * @param onOff {Function} on show feedback
      * @param onOn {Function} on hide feedback
      */
-    $bindFreeze (cond : IValue<boolean>, onOff : Function, onOn : Function) : this {
+    $bindFreeze (cond : IValue<boolean>, onOff : ?Function, onOn : ?Function, onOffAfter: ?Function, onOnAfter : ?Function) : this {
         let $ : BaseNodePrivate = this.$;
 
         if ($.watch.has(cond)) {
@@ -1333,22 +1333,22 @@ export class BaseNode extends VasilleNode {
             $.frozen = !cond;
 
             if (cond) {
-                onOn();
-
+                onOn?.();
                 for (let watcher of $.watch) {
                     if (watcher instanceof IBind) {
                         watcher.link();
                     }
                 }
+                onOnAfter?.();
             }
             else {
-                onOff();
-
+                onOff?.();
                 for (let watcher of $.watch) {
                     if (watcher instanceof IBind && watcher !== expr) {
                         watcher.unlink();
                     }
                 }
+                onOffAfter?.();
             }
         }, [cond]);
 
@@ -1361,7 +1361,7 @@ export class BaseNode extends VasilleNode {
      */
     $bindShow (cond : IValue<boolean>) : this {
         let $ : BaseNodePrivate = this.$;
-        let lastDisplay = '';
+        let lastDisplay = $.el.style.display;
 
         return this.$bindFreeze(cond, () => {
             lastDisplay = $.el.style.display;
@@ -1390,7 +1390,7 @@ export class BaseNode extends VasilleNode {
      * @param cond {IValue} show condition
      */
     $bindAlive (cond : IValue<boolean>) : this {
-        return this.$bindFreeze(cond, () => {}, () => {});
+        return this.$bindFreeze(cond);
     }
 
     /**
@@ -1727,7 +1727,12 @@ export class UserNode extends ExtensionNode {
         let child = this.$children[0];
 
         if (child instanceof TagNode || child instanceof UserNode) {
-            this.$.encapsulate(child.$.el);
+            let $ : BaseNodePrivate = this.$.
+
+            $.encapsulate(child.$.el);
+            if ($.app.$debug) {
+                this.$.el.vasille ||= this;
+            }
         }
         else {
             throw userError("UserNode child must be TagNode or UserNode", "dom-error");
@@ -1965,6 +1970,14 @@ export class AppNode extends BaseNode {
 
         if (props.debug instanceof Boolean) {
             this.$debug = props.debug;
+        }
+    }
+
+    $mounted () {
+        super.$mounted();
+
+        if (this.$debug) {
+            (this.$ : BaseNodePrivate).el.vasille = this;
         }
     }
 
