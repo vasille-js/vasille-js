@@ -41,8 +41,8 @@ class MyComponent extends App {
     constructor() {
         super();
         
-        this.foo = this.$private(2);
-        this.bar = this.$private('bar');
+        this.foo = this.$ref(2);
+        this.bar = this.$ref('bar');
     }
 }
 ```
@@ -58,8 +58,8 @@ class MyComponent extends App {
     constructor() {
         super();
 
-        this.foo = this.$private(2);
-        this.bar = this.$private('bar');
+        this.foo = this.$ref(2);
+        this.bar = this.$ref('bar');
     }
 }
 ```
@@ -73,11 +73,14 @@ Component properties are created by a call to
 import {App} from 'vasille-js';
 
 class MyComponent extends App {
+    foo: IValue<number>;
+    bar: IValue<string>;
+
     constructor() {
         super();
         
-        this.foo = this.$public(Number);
-        this.bar = this.$public(String, 'default value');
+        this.foo = this.$prop(Number);
+        this.bar = this.$prop(String, 'default value');
     }
 }
 ```
@@ -94,8 +97,8 @@ class MyComponent extends App {
     constructor() {
         super();
         
-        this.x = this.$private(2);
-        this.y = this.$private(3);
+        this.x = this.$ref(2);
+        this.y = this.$ref(3);
         this.z = this.$bind((x, y) => x + y, this.x, this.y);
     }
 }
@@ -168,10 +171,9 @@ import {App} from 'vasille-js';
 
 class MyComponent extends App {
     $createSignals () {
-        this.$defSignal()
+        this.$defSignal();
     }
 }
-declare function myEvent(a: number, b: number);
 
 // emit a event
 myEvent(x, y);
@@ -198,9 +200,9 @@ class MyComponent extends App {
     constructor() {
         super();
         
-        this.x = this.$private(0);
-        this.y = this.$private(0);
-        this.visible = this.$private(false);
+        this.x = this.$ref(0);
+        this.y = this.$ref(0);
+        this.visible = this.$ref(false);
     }
     
     $createWatchers () {
@@ -540,16 +542,16 @@ import {App} from 'vasille-js';
 
 class MyComponent extends App {
     constructor() {
-        this.pointer = this.$pointer(String);
+        this.pointer = this.$point(String);
         this.pointer = 'default value';
         
-        this.x = this.$private('x');
-        this.y = this.$private('y');
+        this.x = this.$ref('x');
+        this.y = this.$ref('y');
 
         // change pointer value
-        this.pointer = x;
+        this.pointer.$ = x;
         // change pointed value
-        this.pointer = 'y';
+        this.pointer.$ = 'y';
         
         console.log(this.x.$, this.y.$);
     }

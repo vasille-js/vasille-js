@@ -1,6 +1,6 @@
 # Vasille.js API description
 
-To define a Vasille.js component, create a file with extension `.vc` 
+To define a Vasille.js component, create a file with extension `.vc.html` 
 and the next structure:
 ```html
 <script>
@@ -26,27 +26,38 @@ Component data, functions, events, slots and watcher are defined in the
 
 ### Component data/state
 
-Component state is composed of javascript variables defined in `script`
-section:
+Reactive component state is composed of javascript references defined in `script`
+section using `ref`, `objectRef`, `mapRef`, `arrayRef` & `setRef` functions:
 ```html
 <script>
-    let foo = 2;
-    let bar = 'bar';
+    import { ref } from 'vcc';
+    
+    let foo = ref(2);
+    let bar = ref('bar');
+    
+    // non reactive data
+    let data = 3;
+    // const data
+    const pi = 3.14;
 </script>
 ```
 
-Also, the variables can be typed:
-```typescript
-let foo : number = 2;
-let bar : string = 'bar';
-```
+`ref` function returns a `Reference` object, value is referenced on variable use,
+`objectRef` function returns a `Reference<Object>` value which can be used as 
+javascript object, `mapRef` function returns a `Reference<Map>`, `arrayRef` 
+function returns a `Reference<Array>`, `setRef` returns a `Reference<Set>` value. 
 
 ### Component properties
 
-Component properties are marked by `export` keyword, and must be typed:
-```typescript
-export let foo : number;
-export let bar : string = 'default value';
+Component properties (assets) must be typed:
+```javascript
+import { asset } from 'vcc';
+
+let foo = asset(Number);
+let bar = asset(String);
+
+// non reactive property
+const nonReactive = asset(ObjectModel);
 ```
 
 ### Computed properties (expressions)
@@ -55,32 +66,49 @@ An expression is a state variable which default value is an expression.
 It's value will be automatically recalculated.
 
 Syntax:
-```typescript
-let x = 2;
-let y = 3;
-let z = x + y;
+```javascript
+import { ref, bind } from 'vcc';
+
+let x = ref(2);
+let y = ref(3);
+let z = bind(x + y);
+
+// multiline computed property
+let multilineExpression = bind(() => {
+    let result;
+
+    switch (x) {
+        case 1:
+            result = x + 2;
+            break;
+
+        case 2:
+            result = y + 3;
+            break;
+
+        default:
+            result = visible ? x - 2 : y - 4;
+    }
+
+    return result;
+});
+
+// partial bind expression
+let z1 = bind(x => x + y);   // update only on x change
+let z2 = bind((y) => x + y); // update only on y change
 ```
 
 ### Methods (functions)
 
-To declare a component method, just declare a function. It also can be typed;
+To declare a component method, just declare a function:
 
-```typescript
+```javascript
 function sum (a, b) {
     return a + b;
 }
-function diff (a : number, b : number) : number {
-    return a - b;
-}
 ```
 
-To make a method available outside of component declare a slot using
-`export` key:
-```typescript
-export function slot() {
-    return x + y;
-}
-```
+The methods are available outside of component.
 
 ### Components hooks
 
@@ -93,7 +121,7 @@ declared is component and installed to its slots are mounted. The
 
 To define a hook just define a function with its name.
 
-```typescript
+```javascript
 function $created () {
     // created hook
 }
@@ -110,13 +138,13 @@ function $destroy () {
 
 ### Events
 
-An event can be handled outside of function, to declare an event use
-`declare` keyword, after call it to emit the defined event, the event
-signature must be typed.
+An event can be handled outside of function, it can be declared like
+a function with empty body, after call it to emit the defined event, 
+the event arguments must be enumerated.
 
 Syntax:
-```typescript
-declare function myEvent(a: number, b: number);
+```javascript
+function myEvent(a, b) {};
 
 // emit a event
 myEvent(x, y);
@@ -126,8 +154,8 @@ myEvent(x, y);
 
 All state variables used in a function are tracked, and function will
 be called each time when an argument or state variable get changed:
-```typescript
-let x = 0, y = 1;
+```javascript
+let x = ref(0), y = ref(1);
 
 function sum (a) {
     return x + a;
@@ -139,46 +167,30 @@ let expr = sum(y);
 
 ### Watchers
 
-A watcher is an anonymous function which will be called each time when a state
-variable used in it get changed. It also can be used like multiline 
-expresion. Watcher functions must have **no parameters**, to be **"called"** 
-in current context, and function result must be **assigned to a local state**
-variable.
+A watcher is a lambda based reference.
 
 Example:
-```typescript
-let x = 0, y = 0, visible = true;
+```javascript
+import { ref, bind } from 'vcc';
 
-let watcher = function () {
+let x = ref(0), y = ref(0), visible = ref(true);
+
+let watcher = bind(() => {
+    // depedency tracket based watcher
     if (x < 0 && y < 0) {
         visible = true;
     }
     else {
         visible = false;
     }
-}.call();
+});
 
-let multilineExpression = function () {
-    let result;
-    
-    switch (x) {
-        case 1:
-            result = x + 2;
-            break;
-            
-        case 2:
-            result = y + 3;
-            break;
-            
-        default:
-            result = visible ? x - 2 : y - 4;
-    }
-    
-    return result;
-}.call();
+let watcher2 = bind((x, y) => {
+    // x & y only watcher
+})
 ```
 
-### Use global variable in Vassile.js components
+### Use global variable in Vasille.js components
 
 Use `window` variable to access global variables:
 
@@ -192,8 +204,7 @@ window.requestAnimationFrame(() => {
 
 A style tag which is present is each file, can be used to declare local
 and global style rules. The operator `|` is used to combine a global
-selector with a local one. `@global` (which is used like `@media`) is 
-used to define global rules simply.
+selector with a local one.
 
 Examples:
 ```html
@@ -205,10 +216,6 @@ Examples:
     p | span {
         /* Hybrid selector example */
     }
-
-    @global {
-        /* Global CSS here */
-    }
 </style>
 ```
 
@@ -218,7 +225,7 @@ HTML part is used to define the HTML nodes and subcomponents.
 
 ### Root tags
 
-The root of template must be `App` or `Component` or `Fragement`.
+The root of template must be `App` or `Component` or `Fragment`.
 
 `App` defines a root of an application or a page.
 Attributes of `App` & `Fragment` nodes will be applied to
@@ -244,7 +251,7 @@ Examples:
 </Component>
 
 <Fragment>
-    <!-- Here can by any number of children, inclusive no children -->
+    <!-- Here can be any number of children, inclusive no children -->
 </Fragment>
 ```
 
@@ -265,7 +272,7 @@ Subcomponents must be imported in `script` part, after used is HTML part
 like a tag which name is the component name:
 ```html
 <script>
-    import Component from './Component';
+    import { Component } from './Component';
 </script>
 
 <App>
@@ -314,7 +321,7 @@ Use directive `class='classNameVariable'` to add a dynamical class and
 ### Style directives
 
 Style can be defined static, dynamical and dynamical with units. Use 
-directive `style="static style"` to define static style, use
+directive `style.property="static style"` to define static style, use
 `style.property='variable'` to define dynamical one and 
 `style.property.unit='value'` to define dynamical with unit.
 
@@ -322,7 +329,7 @@ Example:
 ```html
 <App>
     <div 
-        style="width: 3px"
+        style.width="3px"
         style.width='3 + "px"'
         style.width.px='3'
     />
@@ -370,21 +377,21 @@ Use `:html` directive to set inner HTML:
 ### Reference to node or subcomponents
 
 To make a reference to a component or element or a set of elements,
-at first is necessary to create a local variable of type `ref<Element>`, 
-`ref<App>`, `ref<Component>`, `ref<Fragment>`, `refs<Element>`, `refs<App>`,
-`refs<Component>`, `refs<Fragment>` at second is necessary to link that 
-variable to element/component using `:ref` directive. 
+at first is necessary to create a local variable using function `tag`, 
+or `tags`, at second is necessary to link that variable to 
+element/component using `:ref` directive. 
 
 References are available in `$mounted` hook.
 
 Examples:
 ```html
 <script>
+    import { tag, tags } from 'vcc';
     import MyComponent from './MyComponent';
     
-    let div : HTMLDivElement;     // refer to <div>
-    let sub : MyComponent;        // refer to <MyComponent>
-    let items : Set<Element>;     // refer to [<p>, <p>, <p>]
+    let div   = tag(HTMLDivElement); // refer to <div>
+    let sub   = tag(MyComponent);    // refer to <MyComponent>
+    let items = tags(Element);       // refer to Set([<p>, <p>, <p>])
 </script>
 
 <Fragment>
@@ -527,7 +534,9 @@ Example:
 </App>
 
 <script>
-    export let newsId;
+    import { prop } from 'vcc';
+    
+    let newsId = prop(String);
     
     // use here newsId url parameter
 </script>
@@ -559,20 +568,27 @@ Example how to apply a custom executor:
 
 ### Pointers
 
-A pointer can be defined using a `var` keyword. Details about pointers
-will be added after.
+A pointer can be defined using `point` function.
 
-```typescript
-var pointer;
-var pointer = 'default value';
-let x = 'x', y = 'y';
+```javascript
+import { point, ref } from 'vcc';
+
+let pointer  = point();
+let pointer1 = point('default value');
+let x = ref('x'), y = ref('y');
 
 // change pointer value
+pointer = 0&x;
+// equivalent to
 pointer = x;
-// change pointed value
-pointer = 'y';
 
-console.log(x, y); // will print y y
+// change pointed value;
+pointer = 0*y;
+// equivalent to
+pointer = 'y'
+
+console.log(x, y);
+// will print y y
 ```
 
 ### Watch for
