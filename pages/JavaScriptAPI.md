@@ -32,7 +32,7 @@ fields and methods.
 ### Component data/state
 
 Component state is composed of private class fields, created by a call
-to `$private(initialValue: any): Reference<any>` method:
+to `$ref(initialValue: any): Reference<any>` method:
 
 ```typescript
 import {App} from 'vasille-js';
@@ -43,25 +43,14 @@ class MyComponent extends App {
         
         this.foo = this.$ref(2);
         this.bar = this.$ref('bar');
+        
+        // non reactive data
+        this.data = 3;
     }
 }
-```
 
-Also the variables can be typed:
-```typescript
-import {App, IValue} from 'vasille-js';
-
-class MyComponent extends App {
-    foo: IValue<number>;
-    bar: IValue<string>;
-    
-    constructor() {
-        super();
-
-        this.foo = this.$ref(2);
-        this.bar = this.$ref('bar');
-    }
-}
+// const data
+const pi = 3.14;
 ```
 
 ### Component properties
@@ -73,9 +62,6 @@ Component properties are created by a call to
 import {App} from 'vasille-js';
 
 class MyComponent extends App {
-    foo: IValue<number>;
-    bar: IValue<string>;
-
     constructor() {
         super();
         
@@ -100,13 +86,38 @@ class MyComponent extends App {
         this.x = this.$ref(2);
         this.y = this.$ref(3);
         this.z = this.$bind((x, y) => x + y, this.x, this.y);
+        
+        // multiline computed expression
+        this.multilineExpression = this.$bind((x, y, visible) => {
+            let result;
+            
+            switch (x.$) {
+                case 1:
+                    result = x.$ + 2;
+                    break;
+                    
+                case 2:
+                    result = y.$ + 3;
+                    break;
+
+                default:
+                    result = visible.$ ? x.$ - 2 : y.$ - 4;
+                    break;
+            }
+            
+            return result;
+        }, this.x, this.y, this.visible);
+        
+        // partial bind expression
+        this.z1 = this.$bind(x => x + this.y.$, this.x);
+        this.z2 = this.$bind(y => this.x.$ + y, this.y);
     }
 }
 ```
 
 ### Methods (functions)
 
-To declare a component method, just declare a method. It also can be typed:
+To declare a component method, just declare a method:
 
 ```typescript
 import {App} from 'vasille-js';
@@ -114,9 +125,6 @@ import {App} from 'vasille-js';
 class MyComponent extends App {
     sum (a, b) {
         return a + b;
-    }
-    diff (a : number, b : number) : number {
-        return a - b;
     }
 }
 ```
@@ -171,12 +179,14 @@ import {App} from 'vasille-js';
 
 class MyComponent extends App {
     $createSignals () {
-        this.$defSignal();
+        this.$defSignal("myEvent", Number, Number);
+    }
+    
+    $mounted () {
+        // emit a event
+        this.$emit('myEvent', x, y);
     }
 }
-
-// emit a event
-myEvent(x, y);
 ```
 
 ### Dependency track
@@ -213,6 +223,32 @@ class MyComponent extends App {
                 this.visible.$ = false;
             }
         }, this.x, this.y);
+    }
+}
+```
+
+## Style
+
+A style tag which is present is each file, can be used to declare local
+and global style rules. The operator `|` is used to combine a global
+selector with a local one.
+
+Examples:
+```javascript
+import {App} from 'vasille-js';
+
+class MyComponent extends App {
+    $stylePack () {
+        return [
+            /* Local selector example */
+            this.$local('p span', {
+                width: '100%'
+            }),
+            /* Hybrid selector example */
+            this.$hybrid('p', 'span', {
+                height: '100%'
+            })
+        ]
     }
 }
 ```
@@ -271,19 +307,6 @@ Attributes are set upped by calls next methods:
 `$bind*` methods are used to bind expressions.
 
 Example:
-```html
-<App>
-    <div
-        id="id"
-        class="class1 class2"
-        data-mydata='sum(a, b)'
-    ></div>
-    <Component 
-        prop1="string value"
-        prop2='x + y'
-    />
-</App>
-```
 ```javascript
 import {App} from 'vasille-js';
 
@@ -365,8 +388,8 @@ import {Component} from './Component';
 class MyComponent extends App {
     $createDom () {
         this.$defTag("div", div => {
-            div.$listenMouseDown(() => { /* code here */ });
-            div.$listenMouseMove(ev => this.x.$ = ev.clientX);
+            div.$onmousedown(() => { /* code here */ });
+            div.$onmousemove(ev => this.x.$ = ev.clientX);
         });
         this.$defElement(new Component, $ => {}, component => {
             component.$on("eventName", () => { /* code here */ });
@@ -494,14 +517,15 @@ this.$defIfElse(condition, trueNode => {
 A switch accepts pairs of conditions and callback.
 ```javascript
 this.$defSwitch(
-    {
-        cond: condition,
-        cb: callback
-    },
-    {
-        cond: condition,
-        cb: callback
-    }
+    this.$case(condition, fragment => {
+        // create DOM here
+    }),
+    this.$case(condition, fragment => {
+        // create DOM here
+    }),
+    this.$default(fragment => {
+        // create DOM here
+    })
 );
 ```
 
@@ -515,7 +539,7 @@ A repeater will repeat a fragment, by a special rule. List of predefined repeate
 * `MapView` - use `MapModel` as model.
  
 ```javascript
-this.$defRepeater(new ArrayView, $ => $.model = new ArrayModel, node => {
+this.$defRepeater(new ArrayView, $ => $.model = new ArrayModel, (node, item, index) => {
     // create some nodes here
 });
 ```
@@ -532,10 +556,28 @@ this.$defDebug(stringValueOrBind);
 There are some advanced options, which can be coded using Vasille.js
 language.
 
+### Executors
+
+An executor is a class which releases all changes in DOM, the default
+executor is `InstantExecutor`, it applies all changes immediately.
+
+Example how to apply a custom executor:
+```javascript
+import {App} from 'vasille-js';
+import {MyExecutor} from "./MyExecutor";
+
+class MyComponent extends App {
+    constructor() {
+        super(node, {});
+        
+        this.$run = new MyExecutor();
+    }
+}
+```
+
 ### Pointers
 
-A pointer can be defined using a `$pointer` method. Details about pointers
-will be added after.
+A pointer can be defined using a `$point` method.
 
 ```javascript
 import {App} from 'vasille-js';
@@ -550,9 +592,12 @@ class MyComponent extends App {
 
         // change pointer value
         this.pointer.$ = x;
-        // change pointed value
+
+        // change pointed value;
+        this.pointer.$ = y.$;
+        // equivalent to
         this.pointer.$ = 'y';
-        
+
         console.log(this.x.$, this.y.$);
     }
 }
@@ -579,4 +624,3 @@ If you have questions fell free to contact the maintainer of project:
 * discord: lixcode
 * telegram: https://t.me/lixcode
 * vk: https://vk.com/lixcode
-

@@ -54,7 +54,7 @@ Component properties (assets) must be typed:
 import { asset } from 'vcc';
 
 let foo = asset(Number);
-let bar = asset(String);
+let bar = asset(String, 'default value');
 
 // non reactive property
 const nonReactive = asset(ObjectModel);
@@ -140,11 +140,12 @@ function $destroy () {
 
 An event can be handled outside of function, it can be declared like
 a function with empty body, after call it to emit the defined event, 
-the event arguments must be enumerated.
+the event arguments must be enumerated with names having syntax 
+`<varName>_<typeName>`.
 
 Syntax:
 ```javascript
-function myEvent(a, b) {};
+function myEvent(x_Number, y_Number) {};
 
 // emit a event
 myEvent(x, y);
@@ -171,11 +172,11 @@ A watcher is a lambda based reference.
 
 Example:
 ```javascript
-import { ref, bind } from 'vcc';
+import { ref, bind, watch } from 'vcc';
 
 let x = ref(0), y = ref(0), visible = ref(true);
 
-let watcher = bind(() => {
+watch(() => {
     // depedency tracket based watcher
     if (x < 0 && y < 0) {
         visible = true;
@@ -185,7 +186,7 @@ let watcher = bind(() => {
     }
 });
 
-let watcher2 = bind((x, y) => {
+watch((x, y) => {
     // x & y only watcher
 })
 ```
@@ -209,12 +210,14 @@ selector with a local one.
 Examples:
 ```html
 <style>
+    /* Local selector example */
     p span {
-        /* Local selector example */
+        width: 100%;
     }
 
+    /* Hybrid selector example */
     p | span {
-        /* Hybrid selector example */
+        height: 100%;
     }
 </style>
 ```
@@ -297,7 +300,7 @@ Example:
     ></div>
     <Component 
         prop1="string value"
-        prop2='x + y'
+        prop2='bind(x + y)'
     />
 </App>
 ```
@@ -603,3 +606,12 @@ Syntax:
     <!-- Code to be updated -->
 </Watch>
 ```
+
+## Questions
+
+If you have questions fell free to contact the maintainer of project:
+
+* mail: lixcode@vivaldi.net
+* discord: lixcode
+* telegram: https://t.me/lixcode
+* vk: https://vk.com/lixcode
