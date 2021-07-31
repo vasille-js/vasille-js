@@ -12,13 +12,28 @@ class Listener {
      * Functions to run on adding new items
      * @type {Set<Function>}
      */
-    onAdded : Set<Function> = new Set;
+    onAdded : Set<Function>;
 
     /**
      * Functions to run on item removing
      * @type {Set<Function>}
      */
-    onRemoved : Set<Function> = new Set;
+    onRemoved : Set<Function>;
+
+    constructor () {
+        Object.defineProperties(this, {
+            onAdded: {
+                value: new Set,
+                writable: false,
+                configurable: false
+            },
+            onRemoved: {
+                value: new Set,
+                writable: false,
+                configurable: false
+            }
+        });
+    }
 
     /**
      * Emits added event to listeners
@@ -84,7 +99,7 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      * Listener of array model
      * @type {Listener}
      */
-    listener : Listener = new Listener();
+    listener : Listener;
 
     /* Constructor */
 
@@ -94,6 +109,12 @@ export class ArrayModel<T> extends Array<IValue<T>> {
      */
     constructor (data : Array<any> = []) {
         super();
+
+        ObjectModel.defineProperty(this, 'listener', {
+            value: new Listener,
+            writable: false,
+            customisable: false
+        });
 
         for (let i = 0; i < data.length; i++) {
             super.push(vassilify(data[i]));
@@ -325,7 +346,7 @@ export class ObjectModel<T> extends Object {
      * the listener of object
      * @type {Listener}
      */
-    listener : Listener = new Listener();
+    listener : Listener;
 
     /**
      * Constructs a object model from an object
@@ -333,6 +354,13 @@ export class ObjectModel<T> extends Object {
      */
     constructor (obj : Object = {}) {
         super();
+
+        ObjectModel.defineProperty(this, 'listener', {
+            value: new Listener,
+            writable: false,
+            customisable: false
+        });
+
         let ts : { [key : string] : IValue<T> } = this;
 
         for (let i in obj) {
@@ -392,7 +420,7 @@ export class MapModel<K, T> extends Map<K, IValue<T>> {
      * listener of map
      * @type {Listener}
      */
-    listener : Listener = new Listener();
+    listener : Listener;
 
     /**
      * Constructs a map model based on a map
@@ -400,6 +428,12 @@ export class MapModel<K, T> extends Map<K, IValue<T>> {
      */
     constructor (map : Map<K, any> = new Map) {
         super();
+
+        ObjectModel.defineProperty(this, 'listener', {
+            value: new Listener,
+            writable: false,
+            customisable: false
+        });
 
         for (let data of map) {
             super.set(data[0], vassilify(data[1]));
@@ -454,7 +488,7 @@ export class MapModel<K, T> extends Map<K, IValue<T>> {
  * @extends Set<IValue>
  */
 export class SetModel<T> extends Set<IValue<T>> {
-    listener : Listener = new Listener();
+    listener : Listener;
 
     /**
      * Constructs a set model based on a set
@@ -462,6 +496,12 @@ export class SetModel<T> extends Set<IValue<T>> {
      */
     constructor (set : Set<any> = new Set) {
         super();
+
+        ObjectModel.defineProperty(this, 'listener', {
+            value: new Listener,
+            writable: false,
+            customisable: false
+        });
 
         for (let item of set) {
             super.add(vassilify(item));

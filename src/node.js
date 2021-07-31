@@ -32,6 +32,12 @@ export class TextNodePrivate extends VasilleNodePrivate {
      */
     handler : Function;
 
+    constructor () {
+        super ();
+
+        this.seal();
+    }
+
     /**
      * Pre-initializes a text node
      * @param app {AppNode} the app node
@@ -97,6 +103,8 @@ export class TextNode extends VasilleNode {
      */
     constructor () {
         super();
+
+        this.seal();
     }
 
     /**
@@ -193,6 +201,11 @@ export class BaseNodePrivate extends VasilleNodePrivate {
         return !this.building && super.root instanceof BaseNode ? super.root : this.ts;
     }
 
+    constructor () {
+        super ();
+        this.seal();
+    }
+
     /**
      * Garbage collection
      */
@@ -253,6 +266,8 @@ export class BaseNode extends VasilleNode {
      */
     constructor ($ : ?BaseNodePrivate) {
         super($ || new BaseNodePrivate);
+
+        this.seal();
     }
 
     /**
@@ -1176,7 +1191,7 @@ export class BaseNode extends VasilleNode {
             throw wrongBinding("a watcher must be bound to a value at last");
         }
 
-        this.$.watch.add(new Expression(func, vars, !this.freezed));
+        this.$.watch.add(new Expression(func, vars, !this.$.frozen));
     }
 
     /**
@@ -1192,7 +1207,7 @@ export class BaseNode extends VasilleNode {
             throw wrongBinding("no values to bind");
         }
         else {
-            res = new Expression(f, args, !this.freezed);
+            res = new Expression(f, args, !this.$.frozen);
         }
 
         this.$.watch.add(res);
@@ -1353,6 +1368,8 @@ export class BaseNode extends VasilleNode {
         }, [cond]);
 
         $.watch.add(expr);
+
+        return this;
     }
 
     /**
@@ -1648,6 +1665,11 @@ export class TagNode extends BaseNode {
      * @type {HTMLElement}
      */
     $node : HTMLElement;
+    
+    constructor () {
+        super ();
+        this.seal();
+    }
 
     /**
      * Constructs a element node
@@ -1706,6 +1728,11 @@ export class ExtensionNode extends BaseNode {
         }
     }
 
+    constructor ($ : ?BaseNodePrivate) {
+        super ($);
+        this.seal();
+    }
+
     /**
      * Runs GC
      */
@@ -1718,6 +1745,11 @@ export class ExtensionNode extends BaseNode {
  * Defines a node which cas has just a child (TagNode | UserNode)
  */
 export class UserNode extends ExtensionNode {
+    constructor () {
+        super ();
+        this.seal();
+    }
+
     $mounted () {
         super.$mounted();
 
@@ -1727,11 +1759,12 @@ export class UserNode extends ExtensionNode {
         let child = this.$children[0];
 
         if (child instanceof TagNode || child instanceof UserNode) {
-            let $ : BaseNodePrivate = this.$.
+            let $ : BaseNodePrivate = this.$;
 
             $.encapsulate(child.$.el);
             if ($.app.$debug) {
-                this.$.el.vasille ||= this;
+                // $FlowFixMe
+                $.el.vasille = $.el.vasille || this;
             }
         }
         else {
@@ -1760,6 +1793,7 @@ export class RepeatNodeItem extends ExtensionNode {
     constructor (id : any) {
         super();
         this.$id = id;
+        this.seal();
     }
 
     /**
@@ -1799,6 +1833,11 @@ export class SwitchedNodePrivate extends BaseNodePrivate {
      */
     sync : Function;
 
+    constructor () {
+        super ();
+        this.seal();
+    }
+
     /**
      * Runs GC
      */
@@ -1831,8 +1870,8 @@ class SwitchedNode extends ExtensionNode {
     /**
      * Constructs a switch node and define a sync function
      */
-    constructor ($ : SwitchedNodePrivate) {
-        super($ || new SwitchedNodePrivate);
+    constructor ($ : ?SwitchedNodePrivate) {
+        super($ ?? new SwitchedNodePrivate);
 
         this.$.sync = () => {
             let $ = this.$;
@@ -1863,6 +1902,8 @@ class SwitchedNode extends ExtensionNode {
                 $.index = -1;
             }
         };
+
+        this.seal();
     };
 
     /**
@@ -1971,12 +2012,15 @@ export class AppNode extends BaseNode {
         if (props.debug instanceof Boolean) {
             this.$debug = props.debug;
         }
+
+        this.seal();
     }
 
     $mounted () {
         super.$mounted();
 
         if (this.$debug) {
+            // $FlowFixMe
             (this.$ : BaseNodePrivate).el.vasille = this;
         }
     }

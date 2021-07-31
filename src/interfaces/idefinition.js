@@ -19,7 +19,11 @@ export class Callable {
      * @param func {Function} function to encapsulate
      */
     constructor (func : Function) {
-        this.func = func;
+        Object.defineProperty(this, 'func', {
+            value: func,
+            writable: false,
+            configurable: false
+        });
     }
 }
 

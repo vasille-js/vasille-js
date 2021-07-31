@@ -19,6 +19,11 @@ export class RepeatNodePrivate extends BaseNodePrivate {
      * @type {function(RepeatNodeItem, ?*) : void}
      */
     cb : (node : RepeatNodeItem, v : ?any) => void;
+
+    constructor () {
+        super ();
+        this.seal();
+    }
 }
 
 /**
@@ -154,6 +159,11 @@ export class RepeaterPrivate extends RepeatNodePrivate {
      * @type {Array<IValue<number>>}
      */
     orderNumber : Array<IValue<number>> = [];
+
+    constructor () {
+        super ();
+        this.seal();
+    }
 }
 
 /**
@@ -169,6 +179,7 @@ export class Repeater extends RepeatNode {
 
     constructor ($ : ?RepeaterPrivate) {
         super($ || new RepeaterPrivate);
+        this.seal();
     }
 
     /**
@@ -243,6 +254,11 @@ export class BaseViewPrivate extends RepeatNodePrivate {
      * @type {Function}
      */
     removeHandler : Function;
+
+    constructor () {
+        super ();
+        this.seal();
+    }
 }
 
 /**
@@ -270,6 +286,8 @@ export class BaseView extends RepeatNode {
         $.removeHandler = (id : *, item : IValue<any>) => {
             this.destroyChild(id, item);
         };
+
+        this.seal();
     }
 
     /**
@@ -329,6 +347,11 @@ export class ArrayViewPrivate extends BaseViewPrivate {
      * @type {Array<string>}
      */
     buffer : Array<IValue<*>> = [];
+
+    constructor () {
+        super ();
+        this.seal();
+    }
 }
 
 /**
@@ -349,6 +372,7 @@ export class ArrayView extends BaseView {
         super($ || new ArrayViewPrivate);
 
         this.model = this.$public(ArrayModel);
+        this.seal();
     }
 
 
@@ -421,6 +445,11 @@ class ObjectViewPrivate extends BaseViewPrivate {
      * @type {Object<string, function>}
      */
     handlers : { [key : string] : Function } = {};
+
+    constructor () {
+        super ();
+        this.seal();
+    }
 }
 
 /**
@@ -501,6 +530,11 @@ class MapViewPrivate extends BaseViewPrivate {
      * @type {Map<*, Function>}
      */
     handlers : Map<*, Function> = new Map();
+
+    constructor () {
+        super ();
+        this.seal();
+    }
 }
 
 /**
@@ -578,6 +612,11 @@ class SetViewPrivate extends BaseViewPrivate {
      * @type {Map<IValue<*>, Function>}
      */
     handlers : Map<IValue<*>, Function> = new Map();
+
+    constructor () {
+        super ();
+        this.seal();
+    }
 }
 
 /**

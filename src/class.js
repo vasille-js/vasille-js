@@ -49,6 +49,8 @@ export class ClassBinding extends Binding {
         ...values : Array<IValue<any>>
     ) {
         super(rt, ts, name, func, ...values);
+
+        this.seal();
     }
 
     /**

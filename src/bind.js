@@ -94,6 +94,8 @@ export class Expression extends IBind {
         else {
             handler(null);
         }
+
+        this.seal();
     }
 
     /**
@@ -218,6 +220,8 @@ export class Binding extends IValue<any> {
 
         this.binding.on(this.func);
         this.func(this.binding.$);
+
+        this.seal();
     }
 
     /**

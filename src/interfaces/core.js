@@ -92,6 +92,8 @@ export class VasilleNodePrivate extends Destroyable {
 
     constructor () {
         super();
+
+        this.seal();
     }
 
     /**

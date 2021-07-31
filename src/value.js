@@ -30,6 +30,7 @@ export class Reference<T> extends IValue<T> {
         super();
         this.value = value;
         this.onchange = new Set<Function>();
+        this.seal();
     }
 
     /**
@@ -115,6 +116,7 @@ export class Pointer extends IValue<IValue<any>> {
         super();
         this.onchange = new Set<Function>();
         this.$ = value;
+        this.seal();
     }
 
     /**

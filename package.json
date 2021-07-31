@@ -1,5 +1,5 @@
 {
-  "name": "vasille-js",
+  "name": "vasille-js-seal",
   "version": "1.2.3",
   "description": "The fastest (Vanilla.js based) front-end javascript framework",
   "main": "src/index.js",
