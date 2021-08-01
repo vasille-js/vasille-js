@@ -5,8 +5,8 @@ define a ES6 class which extends `App`, `Component` or `Fragment`.
 
 Example:
 
-```typescript
-import {App} from 'vasille-js';
+```javascript
+import {App} from 'vasille';
 
 class MyComponent extends App {
     constructor() {
@@ -34,8 +34,8 @@ fields and methods.
 Component state is composed of private class fields, created by a call
 to `$ref(initialValue: any): Reference<any>` method:
 
-```typescript
-import {App} from 'vasille-js';
+```javascript
+import {App} from 'vasille';
 
 class MyComponent extends App {
     constructor() {
@@ -56,10 +56,10 @@ const pi = 3.14;
 ### Component properties
 
 Component properties are created by a call to 
-`$private(type: Function, initialValue?: any): Reference<any>` method:
+`$prop(type: Function, initialValue?: any): Reference<any>` method:
 
-```typescript
-import {App} from 'vasille-js';
+```javascript
+import {App} from 'vasille';
 
 class MyComponent extends App {
     constructor() {
@@ -76,8 +76,8 @@ class MyComponent extends App {
 An expression is a state variable which is created by a call to
 `$bind(expr: Function, ...args: IValue<any>): Expression` method:
 
-```typescript
-import {App} from 'vasille-js';
+```javascript
+import {App} from 'vasille';
 
 class MyComponent extends App {
     constructor() {
@@ -119,8 +119,8 @@ class MyComponent extends App {
 
 To declare a component method, just declare a method:
 
-```typescript
-import {App} from 'vasille-js';
+```javascript
+import {App} from 'vasille';
 
 class MyComponent extends App {
     sum (a, b) {
@@ -142,8 +142,8 @@ declared is component and installed to its slots are mounted. The
 
 To define a hook just overwrite the method with its name.
 
-```typescript
-import {App} from 'vasille-js';
+```javascript
+import {App} from 'vasille';
 
 class MyComponent extends App {
     $created () {
@@ -174,8 +174,8 @@ An event can be handled outside of function, events are defined in
 `$emit(name: string, ...args: any)` to emit the defined event.
 
 Syntax:
-```typescript
-import {App} from 'vasille-js';
+```javascript
+import {App} from 'vasille';
 
 class MyComponent extends App {
     $createSignals () {
@@ -203,8 +203,8 @@ to define a watcher in `$createWatchers` milestone.
 
 Example:
 
-```typescript
-import {App} from 'vasille-js';
+```javascript
+import {App} from 'vasille';
 
 class MyComponent extends App {
     constructor() {
@@ -216,7 +216,7 @@ class MyComponent extends App {
     }
     
     $createWatchers () {
-        this.$defWatcher((x, y) => {
+        this.$watch((x, y) => {
             if (x < 0 && y < 0) {
                 this.visible.$ = true;
             } else {
@@ -235,20 +235,21 @@ selector with a local one.
 
 Examples:
 ```javascript
-import {App} from 'vasille-js';
+import {App} from 'vasille';
 
 class MyComponent extends App {
-    $stylePack () {
-        return [
-            /* Local selector example */
-            this.$local('p span', {
-                width: '100%'
-            }),
-            /* Hybrid selector example */
-            this.$hybrid('p', 'span', {
-                height: '100%'
-            })
-        ]
+    $createCss () {
+        /*  Set unique class for component elements */
+        this.$setMataClass("myClass");
+        
+        /* Local selector example */
+        this.$local('p span', {
+            width: '100%'
+        });
+        /* Hybrid selector example */
+        this.$hybrid('p', 'span', {
+            height: '100%'
+        });
     }
 }
 ```
@@ -263,12 +264,12 @@ An HTML tag is defined by
 `$defTag(tagName: string, callback: (createdNode: TagNode) => void)`
 method in `$createDom` milestone:
 ```javascript
-import {App} from 'vasille-js';
+import {App} from 'vasille';
 
 class MyComponent extends App {
     $createDom () {
         this.$defTag("div", div => {
-            this.$defTag("p", p => {
+            div.$defTag("p", p => {
                 p.$defText("some text here");
             });
         });
@@ -282,7 +283,7 @@ Subcomponents must be imported, after are defined by a call to
 `$defElement<T>(element: T, props: (T) => void, callback: (T) => void`
 method. `props` handler is used to set up component properties.
 ```javascript
-import {App} from 'vasille-js';
+import {App} from 'vasille';
 import {Component} from './Component';
 
 class MyComponent extends App {
@@ -308,7 +309,7 @@ Attributes are set upped by calls next methods:
 
 Example:
 ```javascript
-import {App} from 'vasille-js';
+import {App} from 'vasille';
 
 class MyComponent extends App {
     $createDom () {
@@ -338,7 +339,7 @@ The next methods is used to set up classes:
 * `$bindClass (cl: ?string, value: string | IValue<boolean | string>)`.
 
 ```javascript
-import {App} from 'vasille-js';
+import {App} from 'vasille';
 
 class MyComponent extends App {
     $createDom () {
@@ -363,7 +364,7 @@ set up style:
 
 Example:
 ```javascript
-import {App} from 'vasille-js';
+import {App} from 'vasille';
 
 class MyComponent extends App {
     $createDom () {
@@ -382,7 +383,7 @@ methods. To listen to component events use `$on` method.
 
 Examples:
 ```javascript
-import {App} from 'vasille-js';
+import {App} from 'vasille';
 import {Component} from './Component'; 
 
 class MyComponent extends App {
@@ -403,7 +404,7 @@ class MyComponent extends App {
 
 Use `$bindHtml` method to set inner HTML:
 ```javascript
-import {App} from 'vasille-js';
+import {App} from 'vasille';
 
 class MyComponent extends App {
     $createDom () {
@@ -423,7 +424,7 @@ References are available in `$mounted` hook.
 
 Examples:
 ```javascript
-import {App} from 'vasille-js';
+import {App} from 'vasille';
 import MyComponent from './MyComponent';
 
 class MyComponent extends App {
@@ -457,7 +458,7 @@ a concrete slot.
 
 Example:
 ```javascript
-import {App, Fragment} from 'vasille-js';
+import {App, Fragment} from 'vasille';
 import MyComponent from './MyComponent';
 
 class MyComponent extends App {
@@ -563,7 +564,7 @@ executor is `InstantExecutor`, it applies all changes immediately.
 
 Example how to apply a custom executor:
 ```javascript
-import {App} from 'vasille-js';
+import {App} from 'vasille';
 import {MyExecutor} from "./MyExecutor";
 
 class MyComponent extends App {
@@ -580,7 +581,7 @@ class MyComponent extends App {
 A pointer can be defined using a `$point` method.
 
 ```javascript
-import {App} from 'vasille-js';
+import {App} from 'vasille';
 
 class MyComponent extends App {
     constructor() {

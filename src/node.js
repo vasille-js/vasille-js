@@ -34,14 +34,14 @@ export class TextNodePrivate extends VasilleNodePrivate {
 
     /**
      * Pre-initializes a text node
-     * @param app {AppNode} the app node
+     * @param app {App} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
      * @param before {?VasilleNode} node to paste after
      * @param text {String | IValue}
      */
     preinitText (
-        app : AppNode,
+        app : App,
         rt : BaseNode,
         ts : BaseNode,
         before : ?VasilleNode,
@@ -101,13 +101,13 @@ export class TextNode extends VasilleNode {
 
     /**
      * Pre-initializes a text node
-     * @param app {AppNode} the app node
+     * @param app {App} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
      * @param before {?VasilleNode} node to paste after
      * @param text {String | IValue}
      */
-    $$preinitText (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode, text : IValue<string> | string) {
+    $$preinitText (app : App, rt : BaseNode, ts : BaseNode, before : ?VasilleNode, text : IValue<string> | string) {
         this.$.preinitText(app, rt, ts, before, text);
         this.node = this.$.text;
     }
@@ -186,6 +186,22 @@ export class BaseNodePrivate extends VasilleNodePrivate {
     onDestroy : Function;
 
     /**
+     * Defines a HTML class for all html nodes
+     * @type {string}
+     */
+    metaClass : string;
+
+    /**
+     * Defines a container for CSS rule in creation time
+     * @type {Array<{scoped : string, unscoped : string, rules : {[p : string] : string}}>}
+     */
+    metaStyle : Array<{
+        scoped : string,
+        unscoped ?: string,
+        rules : { [p : string] : string }
+    }>;
+
+    /**
      * Get the current root (ts on building, rt on filling)
      * @type {BaseNode}
      */
@@ -257,14 +273,14 @@ export class BaseNode extends VasilleNode {
 
     /**
      * Pre-initializes a base node which can contain children
-     * @param app {AppNode} the app node
+     * @param app {App} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
      * @param before {?VasilleNode} node to paste after it
      * @param node {HTMLElement | Text | Comment} The encapsulated node
      */
     $$preinitNode (
-        app : AppNode,
+        app : App,
         rt : BaseNode,
         ts : BaseNode,
         before : ?VasilleNode,
@@ -403,24 +419,28 @@ export class BaseNode extends VasilleNode {
     $createDom () {
     }
 
+    /** To be overloaded: CSS creation milestone */
+    $createCss () {
+    }
+
     /**
      * create a private field
      * @param value {*}
      * @return {IValue<*>}
      */
-    $private (value : any) : IValue<any> {
+    $ref (value : any) : IValue<any> {
         let ret = vassilify(value);
         this.$.watch.add(ret);
         return ret;
     }
 
     /**
-     * creates a publis field
+     * creates a public field
      * @param type {Function}
      * @param value {*}
      * @return {Reference}
      */
-    $public (type : Function, value : any = null) : Reference<any> {
+    $prop (type : Function, value : any = null) : Reference<any> {
         if (!checkType(value, type) || value instanceof IValue) {
             throw typeError("wrong initial public field value");
         }
@@ -738,7 +758,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $listenContextMenu (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $oncontextmenu (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("contextmenu", handler, options);
     }
 
@@ -746,7 +766,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $listenMouseDown (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onmousedown (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("mousedown", handler, options);
     }
 
@@ -754,7 +774,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $listenMouseEnter (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onmouseenter (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("mouseenter", handler, options);
     }
 
@@ -762,7 +782,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $listenMouseLeave (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onmouseleave (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("mouseleave", handler, options);
     }
 
@@ -770,7 +790,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $listenMouseMove (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onmousemove (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("mousemove", handler, options);
     }
 
@@ -778,7 +798,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $listenMouseOut (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onmouseout (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("mouseout", handler, options);
     }
 
@@ -786,7 +806,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $listenMouseOver (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onmouseover (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("mouseover", handler, options);
     }
 
@@ -794,7 +814,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $listenMouseUp (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onmouseup (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("mouseup", handler, options);
     }
 
@@ -802,7 +822,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $listenClick (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onclick (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("click", handler, options);
     }
 
@@ -810,7 +830,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $listenDblClick (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ondblclick (handler : MouseEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("dblclick", handler, options);
     }
 
@@ -818,7 +838,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (FocusEvent)}
      * @param options {Object | boolean}
      */
-    $listenBlur (handler : FocusEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onblur (handler : FocusEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("blur", handler, options);
     }
 
@@ -826,7 +846,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (FocusEvent)}
      * @param options {Object | boolean}
      */
-    $listenFocus (handler : FocusEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onfocus (handler : FocusEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("focus", handler, options);
     }
 
@@ -834,7 +854,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (FocusEvent)}
      * @param options {Object | boolean}
      */
-    $listenFocusIn (handler : FocusEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onfocusin (handler : FocusEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("focusin", handler, options);
     }
 
@@ -842,7 +862,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (FocusEvent)}
      * @param options {Object | boolean}
      */
-    $listenFocusOut (handler : FocusEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onfocusout (handler : FocusEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("focusout", handler, options);
     }
 
@@ -850,7 +870,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (KeyboardEvent)}
      * @param options {Object | boolean}
      */
-    $listenKeyDown (handler : KeyboardEvent => void, options : EventListenerOptionsOrUseCapture) {
+    $onkeydown (handler : KeyboardEvent => void, options : EventListenerOptionsOrUseCapture) {
         this.$listen("keydown", handler, options);
     }
 
@@ -858,7 +878,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (KeyboardEvent)}
      * @param options {Object | boolean}
      */
-    $listenKeyUp (handler : KeyboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onkeyup (handler : KeyboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("keyup", handler, options);
     }
 
@@ -866,7 +886,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (KeyboardEvent)}
      * @param options {Object | boolean}
      */
-    $listenKeyPress (handler : KeyboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onkeypress (handler : KeyboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("keypress", handler, options);
     }
 
@@ -874,7 +894,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (TouchEvent)}
      * @param options {Object | boolean}
      */
-    $listenTouchStart (handler : TouchEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ontouchstart (handler : TouchEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("touchstart", handler, options);
     }
 
@@ -882,7 +902,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (TouchEvent)}
      * @param options {Object | boolean}
      */
-    $listenTouchMove (handler : TouchEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ontouchmove (handler : TouchEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("touchmove", handler, options);
     }
 
@@ -890,7 +910,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (TouchEvent)}
      * @param options {Object | boolean}
      */
-    $listenTouchEnd (handler : TouchEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ontouchend (handler : TouchEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("touchend", handler, options);
     }
 
@@ -898,7 +918,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (TouchEvent)}
      * @param options {Object | boolean}
      */
-    $listenTouchCancel (handler : TouchEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ontouchcancel (handler : TouchEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("touchcancel", handler, options);
     }
 
@@ -906,7 +926,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (WheelEvent)}
      * @param options {Object | boolean}
      */
-    $listenWheel (handler : WheelEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onwheel (handler : WheelEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("wheel", handler, options);
     }
 
@@ -914,7 +934,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    $listenAbort (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onabort (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("abort", handler, options);
     }
 
@@ -922,7 +942,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    $listenError (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onerror (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("error", handler, options);
     }
 
@@ -930,7 +950,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    $listenLoad (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onload (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("load", handler, options);
     }
 
@@ -938,7 +958,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    $listenLoadEnd (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onloadend (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("loadend", handler, options);
     }
 
@@ -946,7 +966,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    $listenLoadStart (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onloadstart (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("loadstart", handler, options);
     }
 
@@ -954,7 +974,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    $listenProgress (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onprogress (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("progress", handler, options);
     }
 
@@ -962,7 +982,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    $listenTimeout (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ontimeout (handler : ProgressEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("timeout", handler, options);
     }
 
@@ -970,7 +990,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $listenDrag (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ondrag (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("drag", handler, options);
     }
 
@@ -978,7 +998,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $listenDragEnd (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ondragend (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("dragend", handler, options);
     }
 
@@ -986,7 +1006,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $listenDragEnter (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ondragenter (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("dragenter", handler, options);
     }
 
@@ -994,7 +1014,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $listenDragExit (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ondragexit (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("dragexit", handler, options);
     }
 
@@ -1002,7 +1022,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $listenDragLeave (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ondragleave (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("dragleave", handler, options);
     }
 
@@ -1010,7 +1030,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $listenDragOver (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ondragover (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("dragover", handler, options);
     }
 
@@ -1018,7 +1038,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $listenDragStart (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ondragstart (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("dragstart", handler, options);
     }
 
@@ -1026,7 +1046,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $listenDrop (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ondrop (handler : DragEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("drop", handler, options);
     }
 
@@ -1034,7 +1054,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $listenPointerOver (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onpointerover (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointerover", handler, options);
     }
 
@@ -1042,7 +1062,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $listenPointerEnter (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onpointerenter (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointerenter", handler, options);
     }
 
@@ -1050,7 +1070,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $listenPointerDown (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onpointerdown (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointerdown", handler, options);
     }
 
@@ -1058,7 +1078,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $listenPointerMove (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onpointermove (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointermove", handler, options);
     }
 
@@ -1066,7 +1086,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $listenPointerUp (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onpointerup (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointerup", handler, options);
     }
 
@@ -1074,7 +1094,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $listenPointerCancel (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onpointercancel (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointercancel", handler, options);
     }
 
@@ -1082,7 +1102,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $listenPointerOut (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onpointerout (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointerout", handler, options);
     }
 
@@ -1090,7 +1110,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $listenPointerLeave (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onpointerleave (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("pointerleave", handler, options);
     }
 
@@ -1098,7 +1118,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $listenGotPointerCapture (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $ongotpointercapture (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("gotpointercapture", handler, options);
     }
 
@@ -1106,7 +1126,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $listenLostPointerCapture (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onlostpointercapture (handler : PointerEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("lostpointercapture", handler, options);
     }
 
@@ -1114,7 +1134,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (AnimationEvent)}
      * @param options {Object | boolean}
      */
-    $listenAnimationStart (handler : AnimationEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onanimationstart (handler : AnimationEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("animationstart", handler, options);
     }
 
@@ -1122,7 +1142,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (AnimationEvent)}
      * @param options {Object | boolean}
      */
-    $listenAnimationEnd (handler : AnimationEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onanimationend (handler : AnimationEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("animationend", handler, options);
     }
 
@@ -1130,7 +1150,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (AnimationEvent)}
      * @param options {Object | boolean}
      */
-    $listenAnimationIteraton (handler : AnimationEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onanimationiteraton (handler : AnimationEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("animationiteration", handler, options);
     }
 
@@ -1138,7 +1158,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (ClipboardEvent)}
      * @param options {Object | boolean}
      */
-    $listenClipboardChange (handler : ClipboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onclipboardchange (handler : ClipboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("clipboardchange", handler, options);
     }
 
@@ -1146,7 +1166,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (ClipboardEvent)}
      * @param options {Object | boolean}
      */
-    $listenCut (handler : ClipboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $oncut (handler : ClipboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("cut", handler, options);
     }
 
@@ -1154,7 +1174,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (ClipboardEvent)}
      * @param options {Object | boolean}
      */
-    $listenCopy (handler : ClipboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $oncopy (handler : ClipboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("copy", handler, options);
     }
 
@@ -1162,7 +1182,7 @@ export class BaseNode extends VasilleNode {
      * @param handler {function (ClipboardEvent)}
      * @param options {Object | boolean}
      */
-    $listenPaste (handler : ClipboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
+    $onpaste (handler : ClipboardEvent => void, options : ?EventListenerOptionsOrUseCapture) {
         this.$listen("paste", handler, options);
     }
 
@@ -1171,12 +1191,12 @@ export class BaseNode extends VasilleNode {
      * @param func {function} Function to run on value change
      * @param vars {...IValue} Values to listen
      */
-    $defWatcher (func : Function, ...vars : Array<IValue<any>>) {
+    $watch (func : Function, ...vars : Array<IValue<any>>) {
         if (vars.length === 0) {
             throw wrongBinding("a watcher must be bound to a value at last");
         }
 
-        this.$.watch.add(new Expression(func, vars, !this.freezed));
+        this.$.watch.add(new Expression(func, vars, !this.$.frozen));
     }
 
     /**
@@ -1192,7 +1212,7 @@ export class BaseNode extends VasilleNode {
             throw wrongBinding("no values to bind");
         }
         else {
-            res = new Expression(f, args, !this.freezed);
+            res = new Expression(f, args, !this.$.frozen);
         }
 
         this.$.watch.add(res);
@@ -1252,14 +1272,14 @@ export class BaseNode extends VasilleNode {
 
     /**
      * Find first core node in shadow element if so exists
-     * @param node {ExtensionNode} Node to iterate
+     * @param node {Fragment} Node to iterate
      * @return {?CoreEl}
      */
-    $$findFirstChild (node : ExtensionNode) : ?CoreEl {
+    $$findFirstChild (node : Fragment) : ?CoreEl {
         for (let child of node.$children) {
             if (child.$.unmounted) continue;
 
-            if (child instanceof ExtensionNode) {
+            if (child instanceof Fragment) {
                 let first = this.$$findFirstChild(child);
 
                 if (first) {
@@ -1293,7 +1313,7 @@ export class BaseNode extends VasilleNode {
         }
 
         // If we are inserting before a shadow node
-        if (before instanceof ExtensionNode) {
+        if (before instanceof Fragment) {
             let beforeNode = this.$$findFirstChild(before);
 
             if (beforeNode) {
@@ -1304,7 +1324,7 @@ export class BaseNode extends VasilleNode {
 
         // If we are inserting in a shadow node or uninitiated element node
         if (
-            (this instanceof ExtensionNode && !($.parent instanceof AppNode)) ||
+            (this instanceof Fragment && !($.parent instanceof App)) ||
             (this instanceof TagNode && (!$.el || $.el === node))) {
             $.parent.$$appendChild(node, $.next);
             return;
@@ -1481,7 +1501,7 @@ export class BaseNode extends VasilleNode {
             node.$.parent = this;
         }
 
-        if (node instanceof ExtensionNode) {
+        if (node instanceof Fragment) {
             node.$$preinitShadow($.app, $.rt, this, null);
         }
         else if (node instanceof TagNode || node instanceof TextNode) {
@@ -1635,7 +1655,79 @@ export class BaseNode extends VasilleNode {
         return this;
     }
 
+    /**
+     * collect identifiers of created rules packs
+     * @type {Set<string>}
+     */
+    static cssRules : Set<string> = new Set;
 
+    /**
+     * @param class_ {string} set class which will be used to scope style
+     */
+    $setMetaClass (class_ : string) {
+        (this.$ : BaseNodePrivate).metaClass = class_;
+    }
+
+    /**
+     * Scope a selector to current component
+     * @param selector {string} selector to scope
+     * @return {string}
+     */
+    $scope (selector : string) : string {
+        return selector + '.' + (this.$ : BaseNodePrivate).metaClass;
+    }
+
+    /**
+     * Defines a local CSS rule
+     * @param scoped {string} selector to scope
+     * @param rules {Object<string, string>} css rules
+     */
+    $local (scoped : string, rules : {[p : string] : string}) {
+        (this.$ : BaseNodePrivate).metaStyle.push({scoped, rules});
+    }
+
+    /**
+     * Defines a hybrid rule
+     * @param scoped {string} selector to scope
+     * @param unscoped {string} selector to append unscoped
+     * @param rules {Object<string, string>} css rules
+     */
+    $hybrid (scoped : string, unscoped : string, rules : {[p : string] : string}) {
+        (this.$ : BaseNodePrivate).metaStyle.push({scoped, unscoped, rules});
+    }
+
+    /**
+     * Make style tag for component
+     */
+    $$makeStyleTag () {
+        let $ : BaseNodePrivate = this.$;
+
+        if (!$.metaClass || BaseNode.cssRules.has($.metaClass)) {
+            return;
+        }
+
+        $.metaStyle = [];
+        this.$createCss();
+
+        let content = '';
+        let suffix = $.app.$debug ? '\n' : '';
+
+        for (let pack of $.metaStyle) {
+            content += this.$scope(pack.scoped) + ' ' + (pack.unscoped || '') + '{' + suffix;
+
+            for (let i in pack.rules) {
+                content += i + ':' + pack.rules[i] + ';' + suffix;
+            }
+
+            content += '}' + suffix;
+        }
+
+        let style = document.createElement('style');
+        style.classList.add($.metaClass);
+        style.innerHTML = content;
+        document.head?.appendChild(style);
+        BaseNode.cssRules.add($.metaClass);
+    }
 }
 
 /**
@@ -1651,14 +1743,14 @@ export class TagNode extends BaseNode {
 
     /**
      * Constructs a element node
-     * @param app {AppNode} the app node
+     * @param app {App} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
      * @param before {VasilleNode} Node to insert before it
      * @param tagName {String} Name of HTML tag
      */
     $$preinitElementNode (
-        app : AppNode,
+        app : App,
         rt : BaseNode,
         ts : BaseNode,
         before : ?VasilleNode,
@@ -1682,16 +1774,16 @@ export class TagNode extends BaseNode {
 /**
  * Represents a Vasille.js shadow node
  */
-export class ExtensionNode extends BaseNode {
+export class Fragment extends BaseNode {
     /**
      * Pre-initialize a shadow node
-     * @param app {AppNode} the app node
+     * @param app {App} the app node
      * @param rt {BaseNode} The root node
      * @param ts {BaseNode} The this node
      * @param before {VasilleNode} node to paste after it
      */
     $$preinitShadow (
-        app : AppNode,
+        app : App,
         rt : BaseNode,
         ts : BaseNode,
         before : ?VasilleNode
@@ -1715,9 +1807,9 @@ export class ExtensionNode extends BaseNode {
 }
 
 /**
- * Defines a node which cas has just a child (TagNode | UserNode)
+ * Defines a node which cas has just a child (TagNode | Component)
  */
-export class UserNode extends ExtensionNode {
+export class Component extends Fragment {
     $mounted () {
         super.$mounted();
 
@@ -1726,12 +1818,13 @@ export class UserNode extends ExtensionNode {
         }
         let child = this.$children[0];
 
-        if (child instanceof TagNode || child instanceof UserNode) {
-            let $ : BaseNodePrivate = this.$.
+        if (child instanceof TagNode || child instanceof Component) {
+            let $ : BaseNodePrivate = this.$;
 
             $.encapsulate(child.$.el);
             if ($.app.$debug) {
-                this.$.el.vasille ||= this;
+                //$FlowFixMe
+                $.el.vasille = $.el.vasille || this;
             }
         }
         else {
@@ -1746,7 +1839,7 @@ type CaseArg = { cond : IValue<boolean> | boolean, cb : (node : RepeatNodeItem, 
 /**
  * Defines a abstract node, which represents a dynamical part of application
  */
-export class RepeatNodeItem extends ExtensionNode {
+export class RepeatNodeItem extends Fragment {
     /**
      * node identifier
      * @type {*}
@@ -1783,9 +1876,9 @@ export class SwitchedNodePrivate extends BaseNodePrivate {
 
     /**
      * The unique child which can be absent
-     * @type {ExtensionNode}
+     * @type {Fragment}
      */
-    node : ExtensionNode;
+    node : Fragment;
 
     /**
      * Array of possible casses
@@ -1827,11 +1920,11 @@ export class SwitchedNodePrivate extends BaseNodePrivate {
 /**
  * Defines a node witch can switch its children conditionally
  */
-class SwitchedNode extends ExtensionNode {
+class SwitchedNode extends Fragment {
     /**
      * Constructs a switch node and define a sync function
      */
-    constructor ($ : SwitchedNodePrivate) {
+    constructor ($ : ?SwitchedNodePrivate) {
         super($ || new SwitchedNodePrivate);
 
         this.$.sync = () => {
@@ -1899,12 +1992,12 @@ class SwitchedNode extends ExtensionNode {
 
     /**
      * Prepare shadow node
-     * @param app {AppNode} App node
+     * @param app {App} App node
      * @param rt {BaseNode} Root node
      * @param ts {BaseNode} This node
      * @param before {VasilleNode} The next node
      */
-    $$preinitShadow (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
+    $$preinitShadow (app : App, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
         super.$$preinitShadow(app, rt, ts, before);
         this.$.encapsulate(ts.$.el);
     }
@@ -1943,7 +2036,7 @@ class SwitchedNode extends ExtensionNode {
 /**
  * Represents a Vasille.js application node
  */
-export class AppNode extends BaseNode {
+export class App extends BaseNode {
     /**
      * The debug state of application, if true will output debug data
      * @type {boolean}

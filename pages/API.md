@@ -267,7 +267,7 @@ Subcomponents must be imported in `script` part, after used is HTML part
 like a tag which name is the component name:
 ```html
 <script>
-    import { Component } from './Component';
+    import { Component } from './Component.vc';
 </script>
 
 <App>
@@ -382,7 +382,7 @@ Examples:
 ```html
 <script>
     import { tag, tags } from 'vcc';
-    import MyComponent from './MyComponent';
+    import MyComponent from './MyComponent.vc';
     
     let div   = tag(HTMLDivElement); // refer to <div>
     let sub   = tag(MyComponent);    // refer to <MyComponent>

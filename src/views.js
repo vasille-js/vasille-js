@@ -2,7 +2,7 @@
 import { VasilleNode }                                                       from "./interfaces/core";
 import { IValue }                                                            from "./interfaces/ivalue.js";
 import { ArrayModel, MapModel, ObjectModel, SetModel }                       from "./models.js";
-import { AppNode, BaseNode, BaseNodePrivate, ExtensionNode, RepeatNodeItem } from "./node.js";
+import { App, BaseNode, BaseNodePrivate, Fragment, RepeatNodeItem } from "./node.js";
 import { Reference }                                                         from "./value.js";
 
 
@@ -10,9 +10,9 @@ import { Reference }                                                         fro
 export class RepeatNodePrivate extends BaseNodePrivate {
     /**
      * Children node hash
-     * @type {Map<*, ExtensionNode>}
+     * @type {Map<*, Fragment>}
      */
-    nodes : Map<any, ExtensionNode> = new Map();
+    nodes : Map<any, Fragment> = new Map();
 
     /**
      * Call-back function to create a children pack
@@ -24,7 +24,7 @@ export class RepeatNodePrivate extends BaseNodePrivate {
 /**
  * Repeat node repeats its children
  */
-export class RepeatNode extends ExtensionNode {
+export class RepeatNode extends Fragment {
 
     constructor ($ : ?RepeatNodePrivate) {
         super($ || new RepeatNodePrivate);
@@ -40,12 +40,12 @@ export class RepeatNode extends ExtensionNode {
 
     /**
      * Initialize the shadow node
-     * @param app {AppNode} App node
+     * @param app {App} App node
      * @param rt {BaseNode} Root node
      * @param ts {BaseNode} This node
      * @param before {VasilleNode} Node to paste content before it
      */
-    $$preinitShadow (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
+    $$preinitShadow (app : App, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
         let $ : RepeatNodePrivate = this.$;
 
         super.$$preinitShadow(app, rt, ts, before);
@@ -348,7 +348,7 @@ export class ArrayView extends BaseView {
     constructor ($ : ?ArrayViewPrivate) {
         super($ || new ArrayViewPrivate);
 
-        this.model = this.$public(ArrayModel);
+        this.model = this.$prop(ArrayModel);
     }
 
 
@@ -432,7 +432,7 @@ export class ObjectView extends BaseView {
      */
     constructor ($ : ?ObjectViewPrivate) {
         super($ || new ObjectViewPrivate);
-        this.model = this.$public(ObjectModel);
+        this.model = this.$prop(ObjectModel);
     }
 
 
@@ -513,7 +513,7 @@ export class MapView extends BaseView {
      */
     constructor ($ : ?MapViewPrivate) {
         super($ || new MapViewPrivate);
-        this.model = this.$public(MapModel);
+        this.model = this.$prop(MapModel);
     }
 
 
@@ -590,7 +590,7 @@ export class SetView extends BaseView {
      */
     constructor ($ : ?SetViewPrivate) {
         super($ || new SetViewPrivate);
-        this.model = this.$public(SetModel);
+        this.model = this.$prop(SetModel);
     }
 
 
