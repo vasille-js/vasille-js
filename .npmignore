@@ -1,8 +1,9 @@
-lib/
+src/
 models/
 docs/
 doc/
 out/
+pages/
 .idea/
 /**.md
 .flowconfig

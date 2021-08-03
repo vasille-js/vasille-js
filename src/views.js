@@ -2,7 +2,7 @@
 import { VasilleNode }                                                       from "./interfaces/core";
 import { IValue }                                                            from "./interfaces/ivalue.js";
 import { ArrayModel, MapModel, ObjectModel, SetModel }                       from "./models.js";
-import { App, BaseNode, BaseNodePrivate, Fragment, RepeatNodeItem } from "./node.js";
+import { App, BaseNode, BaseNodePrivate, Extension, RepeatNodeItem } from "./node.js";
 import { Reference }                                                         from "./value.js";
 
 
@@ -10,9 +10,9 @@ import { Reference }                                                         fro
 export class RepeatNodePrivate extends BaseNodePrivate {
     /**
      * Children node hash
-     * @type {Map<*, Fragment>}
+     * @type {Map<*, Extension>}
      */
-    nodes : Map<any, Fragment> = new Map();
+    nodes : Map<any, Extension> = new Map();
 
     /**
      * Call-back function to create a children pack
@@ -29,7 +29,7 @@ export class RepeatNodePrivate extends BaseNodePrivate {
 /**
  * Repeat node repeats its children
  */
-export class RepeatNode extends Fragment {
+export class RepeatNode extends Extension {
 
     constructor ($ : ?RepeatNodePrivate) {
         super($ || new RepeatNodePrivate);

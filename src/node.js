@@ -1287,14 +1287,14 @@ export class BaseNode extends VasilleNode {
 
     /**
      * Find first core node in shadow element if so exists
-     * @param node {Fragment} Node to iterate
+     * @param node {Extension} Node to iterate
      * @return {?CoreEl}
      */
-    $$findFirstChild (node : Fragment) : ?CoreEl {
+    $$findFirstChild (node : Extension) : ?CoreEl {
         for (let child of node.$children) {
             if (child.$.unmounted) continue;
 
-            if (child instanceof Fragment) {
+            if (child instanceof Extension) {
                 let first = this.$$findFirstChild(child);
 
                 if (first) {
@@ -1328,7 +1328,7 @@ export class BaseNode extends VasilleNode {
         }
 
         // If we are inserting before a shadow node
-        if (before instanceof Fragment) {
+        if (before instanceof Extension) {
             let beforeNode = this.$$findFirstChild(before);
 
             if (beforeNode) {
@@ -1339,7 +1339,7 @@ export class BaseNode extends VasilleNode {
 
         // If we are inserting in a shadow node or uninitiated element node
         if (
-            (this instanceof Fragment && !($.parent instanceof App)) ||
+            (this instanceof Extension && !($.parent instanceof App)) ||
             (this instanceof TagNode && (!$.el || $.el === node))) {
             $.parent.$$appendChild(node, $.next);
             return;
@@ -1515,7 +1515,7 @@ export class BaseNode extends VasilleNode {
             node.$.parent = this;
         }
 
-        if (node instanceof Fragment) {
+        if (node instanceof Extension) {
             node.$$preinitShadow($.app, $.rt, this, null);
         }
         else if (node instanceof TagNode || node instanceof TextNode) {
@@ -1825,7 +1825,7 @@ export class TagNode extends BaseNode {
 /**
  * Represents a Vasille.js shadow node
  */
-export class Fragment extends BaseNode {
+export class Extension extends BaseNode {
     /**
      * Pre-initialize a shadow node
      * @param app {App} the app node
@@ -1865,7 +1865,7 @@ export class Fragment extends BaseNode {
 /**
  * Defines a node which cas has just a child (TagNode | Component)
  */
-export class Component extends Fragment {
+export class Component extends Extension {
     constructor () {
         super ();
         this.seal();
@@ -1900,7 +1900,7 @@ type CaseArg = { cond : IValue<boolean> | boolean, cb : (node : RepeatNodeItem, 
 /**
  * Defines a abstract node, which represents a dynamical part of application
  */
-export class RepeatNodeItem extends Fragment {
+export class RepeatNodeItem extends Extension {
     /**
      * node identifier
      * @type {*}
@@ -1938,9 +1938,9 @@ export class SwitchedNodePrivate extends BaseNodePrivate {
 
     /**
      * The unique child which can be absent
-     * @type {Fragment}
+     * @type {Extension}
      */
-    node : Fragment;
+    node : Extension;
 
     /**
      * Array of possible casses
@@ -1987,7 +1987,7 @@ export class SwitchedNodePrivate extends BaseNodePrivate {
 /**
  * Defines a node witch can switch its children conditionally
  */
-class SwitchedNode extends Fragment {
+class SwitchedNode extends Extension {
     /**
      * Constructs a switch node and define a sync function
      */

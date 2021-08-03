@@ -1,8 +1,8 @@
 {
-  "name": "vasille-js-seal",
+  "name": "vasille",
   "version": "1.2.3",
   "description": "The fastest (Vanilla.js based) front-end javascript framework",
-  "main": "src/index.js",
+  "main": "lib/index.js",
   "types": "types/index.d.ts",
   "exports": {
     "import": "./src/index.js",
