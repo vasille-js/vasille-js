@@ -1340,7 +1340,7 @@ export class BaseNode extends VasilleNode {
      * @param onOff {Function} on show feedback
      * @param onOn {Function} on hide feedback
      */
-    $bindFreeze (cond : IValue<boolean>, onOff : ?Function, onOn : ?Function, onOffAfter: ?Function, onOnAfter : ?Function) : this {
+    $bindFreeze (cond : IValue<boolean>, onOff : ?Function, onOn : ?Function) : this {
         let $ : BaseNodePrivate = this.$;
 
         if ($.watch.has(cond)) {
@@ -1359,7 +1359,6 @@ export class BaseNode extends VasilleNode {
                         watcher.link();
                     }
                 }
-                onOnAfter?.();
             }
             else {
                 onOff?.();
@@ -1368,11 +1367,11 @@ export class BaseNode extends VasilleNode {
                         watcher.unlink();
                     }
                 }
-                onOffAfter?.();
             }
         }, [cond]);
 
         $.watch.add(expr);
+        return this;
     }
 
     /**
@@ -1653,6 +1652,38 @@ export class BaseNode extends VasilleNode {
         });
 
         return this;
+    }
+
+    /**
+     * @param cond {IValue<boolean> | boolean}
+     * @param cb {(function(RepeatNodeItem, ?number) : void)}
+     * @return {{cond : (IValue<boolean>|boolean), cb : (function(RepeatNodeItem, ?number) : void)}}
+     */
+    $case (cond : IValue<boolean> | boolean, cb : (node : RepeatNodeItem, v : ?number) => void)
+        : {cond : IValue<boolean> | boolean, cb : (node : RepeatNodeItem, v : ?number) => void} {
+        return {cond, cb};
+    }
+
+    /**
+     * @param cb {(function(RepeatNodeItem, ?number) : void)}
+     * @return {{cond : boolean, cb : (function(RepeatNodeItem, ?number) : void)}}
+     */
+    $default (cb: (node : RepeatNodeItem, v : ?number) => void)
+        : {cond : IValue<boolean> | boolean, cb : (node : RepeatNodeItem, v : ?number) => void} {
+        return {cond: true, cb};
+    }
+
+    /**
+     * bind HTML
+     * @param value {IValue<string>}
+     */
+    $bindHTML (value : IValue<string>) {
+        let $ : BaseNodePrivate = this.$;
+
+        $.el.innerHTML = value.$;
+        this.$watch((v : string) => {
+            $.el.innerHTML = v;
+        }, value);
     }
 
     /**
@@ -2052,17 +2083,21 @@ export class App extends BaseNode {
     /**
      * Constructs a app node
      * @param node {HTMLElement} The root of application
-     * @param props {{debug : boolean}} Application properties
+     * @param props {function($ : any) : void}
+     * @param meta {{debug : boolean}} Application properties
      */
-    constructor (node : HTMLElement, props : { debug : boolean }) {
+    constructor<T> (node : HTMLElement, props : ($ : T) => void, meta ?: { debug : boolean }) {
         super();
 
         this.$run = new InstantExecutor();
         this.$.encapsulate(node);
         this.$.preinit(this, this, this, this);
 
-        if (props.debug instanceof Boolean) {
-            this.$debug = props.debug;
+        // $FlowFixMe
+        this.$$callPropsCallback(this, props);
+
+        if (meta?.debug instanceof Boolean) {
+            this.$debug = meta.debug;
         }
     }
 
@@ -2070,6 +2105,7 @@ export class App extends BaseNode {
         super.$mounted();
 
         if (this.$debug) {
+            //$FlowFixMe
             (this.$ : BaseNodePrivate).el.vasille = this;
         }
     }

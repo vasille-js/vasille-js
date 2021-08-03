@@ -238,10 +238,13 @@ Examples:
 import {App} from 'vasille';
 
 class MyComponent extends App {
+    constructor () {
+        /* ass for component elements */
+        this.$setMetaClass("myClass");
+    }
+    
     $createCss () {
-        /*  Set unique class for component elements */
-        this.$setMataClass("myClass");
-        
+        /*  Set unique cl
         /* Local selector example */
         this.$local('p span', {
             width: '100%'

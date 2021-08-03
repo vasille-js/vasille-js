@@ -4,7 +4,7 @@ To define a Vasille.js component, create a file with extension `.vc.html`
 and the next structure:
 ```html
 <script>
-	// flow.js code
+	// js code
 </script>
 
 <App>..</App> or <Component>..</Component> or <Fragment>..</Fragment>	
