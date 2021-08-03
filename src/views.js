@@ -1,18 +1,18 @@
 // @flow
-import { VasilleNode }                                                       from "./interfaces/core";
-import { IValue }                                                            from "./interfaces/ivalue.js";
-import { ArrayModel, MapModel, ObjectModel, SetModel }                       from "./models.js";
-import { App, BaseNode, BaseNodePrivate, Fragment, RepeatNodeItem } from "./node.js";
-import { Reference }                                                         from "./value.js";
+import { VasilleNode }                                            from "./interfaces/core";
+import { IValue }                                                 from "./interfaces/ivalue.js";
+import { ArrayModel, MapModel, ObjectModel, SetModel }            from "./models.js";
+import { App, INode, BaseNodePrivate, Extension, RepeatNodeItem } from "./node.js";
+import { Reference }                                              from "./value.js";
 
 
 
 export class RepeatNodePrivate extends BaseNodePrivate {
     /**
      * Children node hash
-     * @type {Map<*, Fragment>}
+     * @type {Map<*, Extension>}
      */
-    nodes : Map<any, Fragment> = new Map();
+    nodes : Map<any, Extension> = new Map();
 
     /**
      * Call-back function to create a children pack
@@ -24,7 +24,7 @@ export class RepeatNodePrivate extends BaseNodePrivate {
 /**
  * Repeat node repeats its children
  */
-export class RepeatNode extends Fragment {
+export class RepeatNode extends Extension {
 
     constructor ($ : ?RepeatNodePrivate) {
         super($ || new RepeatNodePrivate);
@@ -41,11 +41,11 @@ export class RepeatNode extends Fragment {
     /**
      * Initialize the shadow node
      * @param app {App} App node
-     * @param rt {BaseNode} Root node
-     * @param ts {BaseNode} This node
+     * @param rt {INode} Root node
+     * @param ts {INode} This node
      * @param before {VasilleNode} Node to paste content before it
      */
-    $$preinitShadow (app : App, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
+    $$preinitShadow (app : App, rt : INode, ts : INode, before : ?VasilleNode) {
         let $ : RepeatNodePrivate = this.$;
 
         super.$$preinitShadow(app, rt, ts, before);

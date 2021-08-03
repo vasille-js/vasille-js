@@ -94,12 +94,12 @@ export class Reference<T> extends IValue<T> {
  * Declares a notifiable bind to a value
  * @extends IValue
  */
-export class Pointer extends IValue<IValue<any>> {
+export class Pointer<T> extends IValue<IValue<T>> {
     /**
      * value of pointer
      * @type {IValue<*>}
      */
-    value : IValue<any>;
+    value : IValue<T>;
 
     /**
      * Collection of handlers
@@ -111,7 +111,7 @@ export class Pointer extends IValue<IValue<any>> {
      * Constructs a notifiable bind to a value
      * @param value {IValue} is initial value
      */
-    constructor (value : IValue<any>) {
+    constructor (value : IValue<T>) {
         super();
         this.onchange = new Set<Function>();
         this.$ = value;
@@ -121,7 +121,8 @@ export class Pointer extends IValue<IValue<any>> {
      * Gets the notifiable value as js value
      * @returns {any} contained value
      */
-    get $ () : any {
+    // $FlowFixMe
+    get $ () : T {
         return this.value.$;
     }
 
@@ -130,7 +131,7 @@ export class Pointer extends IValue<IValue<any>> {
      * @param value {IValue} is the new value
      * @returns {IValue} a pointer to this
      */
-    set $ (value : IValue<any>) : this {
+    set $ (value : IValue<T>) : this {
         if (this.value !== value) {
             if (this.type) {
                 if (this.type !== value.type) {

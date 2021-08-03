@@ -7,7 +7,7 @@ import { notOverwritten } from "./errors";
 /**
  * A interface which describes a value
  * @interface
- * @implements Destroyable
+ * @extends Destroyable
  */
 export class IValue<T> extends Destroyable {
 

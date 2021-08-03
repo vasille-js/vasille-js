@@ -1,24 +1,24 @@
 // @flow
-import { Binding }       from "./bind.js";
-import { Callable }      from "./interfaces/idefinition.js";
-import { IValue }        from "./interfaces/ivalue.js";
-import type { BaseNode } from "./node.js";
-import { propertify }    from "./property.js";
+import { Binding }    from "./bind.js";
+import { Callable }   from "./interfaces/idefinition.js";
+import { IValue }     from "./interfaces/ivalue.js";
+import type { INode } from "./node.js";
+import { propertify } from "./property.js";
 
 
 
 /**
  * Creates a class target 1 to 1 bind
- * @param rt {BaseNode} is the root component
- * @param ts {BaseNode} is the this component
+ * @param rt {INode} is the root component
+ * @param ts {INode} is the this component
  * @param name {String} is attribute name
  * @param value {?any} is attribute value
  * @param func {?Callable} is attribute value calculation function
  * @returns {AttributeBinding} 1 to 1 bind of attribute
  */
 export function classify (
-    rt : BaseNode,
-    ts : BaseNode,
+    rt : INode,
+    ts : INode,
     name : string,
     value : ?any     = null,
     func : ?Callable = null
@@ -35,15 +35,15 @@ export class ClassBinding extends Binding {
 
     /**
      * Constructs a HTML class binding description
-     * @param rt {BaseNode} is root component
-     * @param ts {BaseNode} is this component
+     * @param rt {INode} is root component
+     * @param ts {INode} is this component
      * @param name {String} is the name of attribute
      * @param func {?Function} is the function to bound
      * @param values {Array<IValue>} is the array of values to bind to
      */
     constructor (
-        rt : BaseNode,
-        ts : BaseNode,
+        rt : INode,
+        ts : INode,
         name : string,
         func : ?Function,
         ...values : Array<IValue<any>>
@@ -58,15 +58,15 @@ export class ClassBinding extends Binding {
      */
     bound (name : string) : Function {
 
-        function addClass (rt : BaseNode, ts : BaseNode, cl : string) {
+        function addClass (rt : INode, ts : INode, cl : string) {
             rt.$.app.$run.addClass(ts.$.el, cl);
         }
 
-        function removeClass (rt : BaseNode, ts : BaseNode, cl : string) {
+        function removeClass (rt : INode, ts : INode, cl : string) {
             rt.$.app.$run.removeClass(ts.$.el, cl);
         }
 
-        return (rt : BaseNode, ts : BaseNode, value : string | boolean) => {
+        return (rt : INode, ts : INode, value : string | boolean) => {
             let current : ? string | boolean = this.current;
 
             if (value !== current) {
