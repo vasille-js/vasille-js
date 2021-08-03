@@ -41,15 +41,15 @@ export class TextNodePrivate extends VasilleNodePrivate {
     /**
      * Pre-initializes a text node
      * @param app {App} the app node
-     * @param rt {BaseNode} The root node
-     * @param ts {BaseNode} The this node
+     * @param rt {INode} The root node
+     * @param ts {INode} The this node
      * @param before {?VasilleNode} node to paste after
      * @param text {String | IValue}
      */
     preinitText (
         app : App,
-        rt : BaseNode,
-        ts : BaseNode,
+        rt : INode,
+        ts : INode,
         before : ?VasilleNode,
         text : IValue<string> | string
     ) {
@@ -110,12 +110,12 @@ export class TextNode extends VasilleNode {
     /**
      * Pre-initializes a text node
      * @param app {App} the app node
-     * @param rt {BaseNode} The root node
-     * @param ts {BaseNode} The this node
+     * @param rt {INode} The root node
+     * @param ts {INode} The this node
      * @param before {?VasilleNode} node to paste after
      * @param text {String | IValue}
      */
-    $$preinitText (app : App, rt : BaseNode, ts : BaseNode, before : ?VasilleNode, text : IValue<string> | string) {
+    $$preinitText (app : App, rt : INode, ts : INode, before : ?VasilleNode, text : IValue<string> | string) {
         this.$.preinitText(app, rt, ts, before, text);
         this.node = this.$.text;
     }
@@ -165,15 +165,15 @@ export class BaseNodePrivate extends VasilleNodePrivate {
 
     /**
      * List of references
-     * @type {Map<String, BaseNode|Set<BaseNode>>}
+     * @type {Map<String, INode|Set<INode>>}
      */
-    refs : Map<string, BaseNode | Set<BaseNode>> = new Map;
+    refs : Map<string, INode | Set<INode>> = new Map;
 
     /**
      * List of $slots
-     * @type {Map<String, BaseNode>}
+     * @type {Map<String, INode>}
      */
-    slots : Map<string, BaseNode> = new Map;
+    slots : Map<string, INode> = new Map;
 
     /**
      * Defined the frozen state of component
@@ -211,10 +211,10 @@ export class BaseNodePrivate extends VasilleNodePrivate {
 
     /**
      * Get the current root (ts on building, rt on filling)
-     * @type {BaseNode}
+     * @type {INode}
      */
-    get rt () : BaseNode {
-        return !this.building && super.root instanceof BaseNode ? super.root : this.ts;
+    get rt () : INode {
+        return !this.building && super.root instanceof INode ? super.root : this.ts;
     }
 
     constructor () {
@@ -269,7 +269,7 @@ export class BaseNodePrivate extends VasilleNodePrivate {
  * Represents an Vasille.js node which can contains children
  * @extends VasilleNode
  */
-export class BaseNode extends VasilleNode {
+export class INode extends VasilleNode {
     /**
      * The children list
      * @type {Array<VasilleNode>}
@@ -289,15 +289,15 @@ export class BaseNode extends VasilleNode {
     /**
      * Pre-initializes a base node which can contain children
      * @param app {App} the app node
-     * @param rt {BaseNode} The root node
-     * @param ts {BaseNode} The this node
+     * @param rt {INode} The root node
+     * @param ts {INode} The this node
      * @param before {?VasilleNode} node to paste after it
      * @param node {HTMLElement | Text | Comment} The encapsulated node
      */
     $$preinitNode (
         app : App,
-        rt : BaseNode,
-        ts : BaseNode,
+        rt : INode,
+        ts : INode,
         before : ?VasilleNode,
         node : CoreEl
     ) {
@@ -392,7 +392,7 @@ export class BaseNode extends VasilleNode {
     $destroy () : void {
         let $ : BaseNodePrivate = this.$;
 
-        if ($.root instanceof BaseNode) {
+        if ($.root instanceof INode) {
             for (let it of $.root.$.refs) {
                 let ref = it[1];
 
@@ -476,7 +476,7 @@ export class BaseNode extends VasilleNode {
      * @param type {Function}
      * @return {Pointer}
      */
-    $pointer (type : Function) : Pointer {
+    $pointer (type : Function) : Pointer<any> {
         let ref = new Reference();
         let pointer = new Pointer(ref);
 
@@ -500,7 +500,7 @@ export class BaseNode extends VasilleNode {
      * Defines a attribute
      * @param name {String} The name of attribute
      * @param value {String | IValue | Callable} A $$value or a $$value getter
-     * @return {BaseNode} A pointer to this
+     * @return {INode} A pointer to this
      */
     $defAttr (name : string, value : string | IValue<any> | Callable) : this {
         if (value instanceof Callable) {
@@ -515,7 +515,7 @@ export class BaseNode extends VasilleNode {
     /**
      * Defines a set of attributes
      * @param obj {Object<String, String | IValue>} A set attributes
-     * @return {BaseNode} A pointer to this
+     * @return {INode} A pointer to this
      */
     $defAttrs (obj : { [key : string] : string | IValue<any> }) : this {
         for (let i in obj) {
@@ -529,7 +529,7 @@ export class BaseNode extends VasilleNode {
      * @param name {String} The name of attribute
      * @param calculator {Function} Binding calculator (must return a value)
      * @param values {...IValue} Values to bind
-     * @return {BaseNode} A pointer to this
+     * @return {INode} A pointer to this
      */
     $bindAttr (
         name : string,
@@ -550,7 +550,7 @@ export class BaseNode extends VasilleNode {
      * Sets a attribute value
      * @param name {string} Name of attribute
      * @param value {string} Reference of attribute
-     * @return {BaseNode} A pointer to this
+     * @return {INode} A pointer to this
      */
     $setAttr (
         name : string,
@@ -563,7 +563,7 @@ export class BaseNode extends VasilleNode {
     /**
      * Sets value of some attributes
      * @param data {Object<string, string>} Names and values of attributes
-     * @return {BaseNode} A pointer to this
+     * @return {INode} A pointer to this
      */
     $setAttrs (
         data : { [key : string] : string }
@@ -577,7 +577,7 @@ export class BaseNode extends VasilleNode {
     /**
      * Adds a CSS class
      * @param cl {string} Class name
-     * @return {BaseNode} A pointer to this
+     * @return {INode} A pointer to this
      */
     $addClass (cl : string) : this {
         this.$.el.classList.add(cl);
@@ -587,7 +587,7 @@ export class BaseNode extends VasilleNode {
     /**
      * Adds some CSS classes
      * @param cl {...string} Classes names
-     * @return {BaseNode} A pointer to this
+     * @return {INode} A pointer to this
      */
     $addClasses (...cl : Array<string>) : this {
         this.$.el.classList.add(...cl);
@@ -599,7 +599,7 @@ export class BaseNode extends VasilleNode {
      * @param cl {?string}
      * @param value {string | IValue | null}
      * @param func {?Callable}
-     * @return {BaseNode}
+     * @return {INode}
      */
     $bindClass (
         cl : ?string,
@@ -673,7 +673,7 @@ export class BaseNode extends VasilleNode {
      * Sets a style property value
      * @param prop {string} Property name
      * @param value {string} Property value
-     * @return {BaseNode}
+     * @return {INode}
      */
     $setStyle (
         prop : string,
@@ -686,7 +686,7 @@ export class BaseNode extends VasilleNode {
     /**
      * Sets some style property value
      * @param data {Object<string, string>} Names and value of properties
-     * @return {BaseNode}
+     * @return {INode}
      */
     $setStyles (
         data : { [key : string] : string }
@@ -1243,7 +1243,7 @@ export class BaseNode extends VasilleNode {
      * @param name {String} The name of slot
      */
     $makeSlot (name : string) : this {
-        if (this.$.rt instanceof BaseNode) {
+        if (this.$.rt instanceof INode) {
             this.$.rt.$.slots.set(name, this);
         }
         return this;
@@ -1252,12 +1252,12 @@ export class BaseNode extends VasilleNode {
     /**
      * Gets a slot by name
      * @param name {string} Name of slot
-     * @return {BaseNode}
+     * @return {INode}
      */
-    $slot (name : string) : BaseNode {
+    $slot (name : string) : INode {
         let node = this.$.slots.get(name);
 
-        if (node instanceof BaseNode) {
+        if (node instanceof INode) {
             return node;
         }
 
@@ -1301,7 +1301,7 @@ export class BaseNode extends VasilleNode {
                     return first;
                 }
             }
-            else if (child instanceof TagNode || child instanceof TextNode) {
+            else if (child instanceof Tag || child instanceof TextNode) {
                 return child.$.$el;
             }
         }
@@ -1322,7 +1322,7 @@ export class BaseNode extends VasilleNode {
         }
 
         // If we are inserting before a element node
-        if (before instanceof TagNode) {
+        if (before instanceof Tag) {
             $.app.$run.insertBefore($.el, node, before.$.el);
             return;
         }
@@ -1340,7 +1340,7 @@ export class BaseNode extends VasilleNode {
         // If we are inserting in a shadow node or uninitiated element node
         if (
             (this instanceof Extension && !($.parent instanceof App)) ||
-            (this instanceof TagNode && (!$.el || $.el === node))) {
+            (this instanceof Tag && (!$.el || $.el === node))) {
             $.parent.$$appendChild(node, $.next);
             return;
         }
@@ -1431,12 +1431,12 @@ export class BaseNode extends VasilleNode {
      * Defines a text fragment
      * @param text {String | IValue} A text fragment string
      * @param cb {?function (TextNode)} Callback if previous is slot name
-     * @return {BaseNode} A pointer to this
+     * @return {INode} A pointer to this
      */
     $defText (
         text : string | IValue<any>,
         cb : ?(text : TextNode) => void
-    ) : BaseNode {
+    ) : INode {
         let $ = this.$;
         let default_ = $.slots.get("default");
 
@@ -1461,13 +1461,13 @@ export class BaseNode extends VasilleNode {
     /**
      * Defines a tag element
      * @param tagName {String} is the tag name
-     * @param cb {function(TagNode, *)} Callback if previous is slot name
-     * @return {BaseNode} A pointer to this
+     * @param cb {function(Tag, *)} Callback if previous is slot name
+     * @return {INode} A pointer to this
      */
     $defTag (
         tagName : string,
-        cb : ?(node : TagNode, v : ?any) => void
-    ) : BaseNode {
+        cb : ?(node : Tag, v : ?any) => void
+    ) : INode {
         let $ = this.$;
         let default_ = $.slots.get("default");
 
@@ -1475,7 +1475,7 @@ export class BaseNode extends VasilleNode {
             default_.$defTag(tagName, cb);
             return this;
         }
-        let node = new TagNode();
+        let node = new Tag();
 
         node.$.parent = this;
         node.$$preinitElementNode($.app, $.rt, this, null, tagName);
@@ -1494,15 +1494,15 @@ export class BaseNode extends VasilleNode {
     /**
      * Defines a custom element
      * @param node {*} Custom element constructor
-     * @param props {function(BaseNode)} List of properties values
-     * @param cb {?function(BaseNode, *)} Callback if previous is slot name
-     * @return {BaseNode} A pointer to this
+     * @param props {function(INode)} List of properties values
+     * @param cb {?function(INode, *)} Callback if previous is slot name
+     * @return {INode} A pointer to this
      */
     $defElement<T> (
         node : T,
         props : ($ : T) => void,
         cb : ?(node : T, v : ?any) => void
-    ) : BaseNode {
+    ) : INode {
         let $ = this.$;
         let default_ = $.slots.get("default");
 
@@ -1518,7 +1518,7 @@ export class BaseNode extends VasilleNode {
         if (node instanceof Extension) {
             node.$$preinitShadow($.app, $.rt, this, null);
         }
-        else if (node instanceof TagNode || node instanceof TextNode) {
+        else if (node instanceof Tag || node instanceof TextNode) {
             node.$.preinit($.app, $.rt, this, null);
         }
 
@@ -1533,7 +1533,7 @@ export class BaseNode extends VasilleNode {
                 cb(node);
             }
 
-            if (node instanceof BaseNode) {
+            if (node instanceof INode) {
                 node.$ready();
             }
         });
@@ -1543,12 +1543,12 @@ export class BaseNode extends VasilleNode {
 
     /**
      * Calls callback function to create properties
-     * @param node {BaseNode}
-     * @param props {function(BaseNode)}
+     * @param node {INode}
+     * @param props {function(INode)}
      * @return {*}
      */
     $$callPropsCallback<T> (node : T, props : ($ : T) => void) {
-        if (node instanceof BaseNode) {
+        if (node instanceof INode) {
             let obj = {
                 $bind : function (...args) {
                     return node.$bind(...args);
@@ -1579,9 +1579,9 @@ export class BaseNode extends VasilleNode {
     /**
      * Defines a repeater node
      * @param nodeT {RepeatNode} A repeat node object
-     * @param props {function(BaseNode)} Send data to repeat node
+     * @param props {function(INode)} Send data to repeat node
      * @param cb {function(RepeatNodeItem, *)} Call-back to create child nodes
-     * @return {BaseNode}
+     * @return {INode}
      */
     $defRepeater<T> (
         nodeT : T,
@@ -1642,7 +1642,7 @@ export class BaseNode extends VasilleNode {
     /**
      * Defines a switch nodes: Will break after first true condition
      * @param cases {...{ cond : IValue<boolean> | boolean, cb : function(RepeatNodeItem, ?number) }}
-     * @return {BaseNode}
+     * @return {INode}
      */
     $defSwitch (
         ...cases : Array<{ cond : IValue<boolean> | boolean, cb : (node : RepeatNodeItem, v : ?number) => void }>
@@ -1748,7 +1748,7 @@ export class BaseNode extends VasilleNode {
     $$makeStyleTag () {
         let $ : BaseNodePrivate = this.$;
 
-        if (!$.metaClass || BaseNode.cssRules.has($.metaClass)) {
+        if (!$.metaClass || INode.cssRules.has($.metaClass)) {
             return;
         }
 
@@ -1772,14 +1772,14 @@ export class BaseNode extends VasilleNode {
         style.classList.add($.metaClass);
         style.innerHTML = content;
         document.head?.appendChild(style);
-        BaseNode.cssRules.add($.metaClass);
+        INode.cssRules.add($.metaClass);
     }
 }
 
 /**
  * Represents an Vasille.js HTML element node
  */
-export class TagNode extends BaseNode {
+export class Tag extends INode {
 
     /**
      * HTML node created by this TagNode
@@ -1795,15 +1795,15 @@ export class TagNode extends BaseNode {
     /**
      * Constructs a element node
      * @param app {App} the app node
-     * @param rt {BaseNode} The root node
-     * @param ts {BaseNode} The this node
+     * @param rt {INode} The root node
+     * @param ts {INode} The this node
      * @param before {VasilleNode} Node to insert before it
      * @param tagName {String} Name of HTML tag
      */
     $$preinitElementNode (
         app : App,
-        rt : BaseNode,
-        ts : BaseNode,
+        rt : INode,
+        ts : INode,
         before : ?VasilleNode,
         tagName : string
     ) {
@@ -1825,18 +1825,18 @@ export class TagNode extends BaseNode {
 /**
  * Represents a Vasille.js shadow node
  */
-export class Extension extends BaseNode {
+export class Extension extends INode {
     /**
      * Pre-initialize a shadow node
      * @param app {App} the app node
-     * @param rt {BaseNode} The root node
-     * @param ts {BaseNode} The this node
+     * @param rt {INode} The root node
+     * @param ts {INode} The this node
      * @param before {VasilleNode} node to paste after it
      */
     $$preinitShadow (
         app : App,
-        rt : BaseNode,
-        ts : BaseNode,
+        rt : INode,
+        ts : INode,
         before : ?VasilleNode
     ) {
         this.$.preinit(app, rt, ts, before);
@@ -1879,7 +1879,7 @@ export class Component extends Extension {
         }
         let child = this.$children[0];
 
-        if (child instanceof TagNode || child instanceof Component) {
+        if (child instanceof Tag || child instanceof Component) {
             let $ : BaseNodePrivate = this.$;
 
             $.encapsulate(child.$.el);
@@ -2062,11 +2062,11 @@ class SwitchedNode extends Extension {
     /**
      * Prepare shadow node
      * @param app {App} App node
-     * @param rt {BaseNode} Root node
-     * @param ts {BaseNode} This node
+     * @param rt {INode} Root node
+     * @param ts {INode} This node
      * @param before {VasilleNode} The next node
      */
-    $$preinitShadow (app : App, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
+    $$preinitShadow (app : App, rt : INode, ts : INode, before : ?VasilleNode) {
         super.$$preinitShadow(app, rt, ts, before);
         this.$.encapsulate(ts.$.el);
     }
@@ -2105,7 +2105,7 @@ class SwitchedNode extends Extension {
 /**
  * Represents a Vasille.js application node
  */
-export class App extends BaseNode {
+export class App extends INode {
     /**
      * The debug state of application, if true will output debug data
      * @type {boolean}

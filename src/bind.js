@@ -3,7 +3,7 @@ import { notOverwritten, typeError, wrongBinding } from "./interfaces/errors";
 import { IBind }                                   from "./interfaces/ibind.js";
 import { checkType }                               from "./interfaces/idefinition";
 import { IValue }                                  from "./interfaces/ivalue.js";
-import type { BaseNode }                                from "./node";
+import type { INode }                              from "./node";
 import { Reference }                               from "./value.js";
 
 
@@ -189,15 +189,15 @@ export class Binding extends IValue<any> {
 
     /**
      * Constructs a common binding logic
-     * @param rt {BaseNode} Root component
-     * @param ts {BaseNode} This component
+     * @param rt {INode} Root component
+     * @param ts {INode} This component
      * @param name {String} Name of property/attribute
      * @param func {?Function} A function to run on value change
      * @param values {Array<IValue>} values array to bind
      */
     constructor (
-        rt : BaseNode,
-        ts : BaseNode,
+        rt : INode,
+        ts : INode,
         name : string,
         func : ?Function,
         ...values : Array<IValue<any>>

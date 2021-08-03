@@ -2,7 +2,7 @@
 
 /**
  * Mark an object which can be destroyed
- * @interface
+ * @class
  */
 export class Destroyable {
     seal () {

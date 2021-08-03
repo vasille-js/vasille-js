@@ -1,5 +1,5 @@
 // @flow
-import type { App, BaseNode }  from "../node";
+import type { App, INode }         from "../node";
 import { Destroyable }             from "./destroyable.js";
 import { internalError, notFound } from "./errors";
 import { IValue }                  from "./ivalue.js";
@@ -56,15 +56,15 @@ export class VasilleNodePrivate extends Destroyable {
     $style : LiveFields = {};
     /**
      * The root node
-     * @type {BaseNode}
+     * @type {INode}
      */
-    root : BaseNode;
+    root : INode;
 
     /**
      * The this node
-     * @type {BaseNode}
+     * @type {INode}
      */
-    ts : BaseNode;
+    ts : INode;
 
     /**
      * The app node
@@ -76,7 +76,7 @@ export class VasilleNodePrivate extends Destroyable {
      * A link to a parent node
      * @type {VasilleNode}
      */
-    parent : BaseNode;
+    parent : INode;
 
     /**
      * The next node
@@ -160,11 +160,11 @@ export class VasilleNodePrivate extends Destroyable {
     /**
      * Pre-initializes the base of a node
      * @param app {App} the app node
-     * @param rt {BaseNode} The root node
-     * @param ts {BaseNode} The this node
+     * @param rt {INode} The root node
+     * @param ts {INode} The this node
      * @param before {?VasilleNode} VasilleNode to paste this after
      */
-    preinit (app : App, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
+    preinit (app : App, rt : INode, ts : INode, before : ?VasilleNode) {
         this.app = app;
         this.root = rt;
         this.ts = ts;
