@@ -1,5 +1,5 @@
 // @flow
-import type { AppNode, BaseNode }  from "../node";
+import type { App, BaseNode }  from "../node";
 import { Destroyable }             from "./destroyable.js";
 import { internalError, notFound } from "./errors";
 import { IValue }                  from "./ivalue.js";
@@ -70,7 +70,7 @@ export class VasilleNodePrivate extends Destroyable {
      * The app node
      * @type {VasilleNode}
      */
-    app : AppNode;
+    app : App;
 
     /**
      * A link to a parent node
@@ -164,7 +164,7 @@ export class VasilleNodePrivate extends Destroyable {
      * @param ts {BaseNode} The this node
      * @param before {?VasilleNode} VasilleNode to paste this after
      */
-    preinit (app : AppNode, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
+    preinit (app : App, rt : BaseNode, ts : BaseNode, before : ?VasilleNode) {
         this.app = app;
         this.root = rt;
         this.ts = ts;

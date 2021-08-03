@@ -4,7 +4,7 @@ To define a Vasille.js component, create a file with extension `.vc.html`
 and the next structure:
 ```html
 <script>
-	// flow.js code
+	// js code
 </script>
 
 <App>..</App> or <Component>..</Component> or <Fragment>..</Fragment>	
@@ -241,14 +241,6 @@ Examples:
     <!-- Root of a simple application -->
 </App>
 
-<App role="app">
-    <!-- Root of a single page application -->
-</App>
-
-<App role="page">
-    <!-- Page in multi-page application -->
-</App>
-
 <Component>
     <!-- Here must be a child node which is a component or HTMl node -->
 </Component>
@@ -275,7 +267,7 @@ Subcomponents must be imported in `script` part, after used is HTML part
 like a tag which name is the component name:
 ```html
 <script>
-    import { Component } from './Component';
+    import { Component } from './Component.vc';
 </script>
 
 <App>
@@ -390,7 +382,7 @@ Examples:
 ```html
 <script>
     import { tag, tags } from 'vcc';
-    import MyComponent from './MyComponent';
+    import MyComponent from './MyComponent.vc';
     
     let div   = tag(HTMLDivElement); // refer to <div>
     let sub   = tag(MyComponent);    // refer to <MyComponent>
@@ -486,71 +478,6 @@ Use `debug` tag to define debug comments:
 ```
 
 ## Advanced
-
-There are some advanced options, which can be coded using Vasille.js
-language.
-
-### Multi-page applications (multiple HTML files)
-
-Defines some `App` with role `page` and attribute `static-url` with the 
-path to future HTML file.
-
-Example:
-```html
-<!-- Index.vc file -->
-<App role="page" static-url="index.html">
-    <!-- Index file content -->
-</App>
-
-<!-- About.vc file -->
-<App role="page" static-url="pages/about.html">
-    <!-- About page content -->
-</App>
-```
-
-After compilation, you get the next files:
-```
-/index.html
-/index.html.js
-/index.html.css
-/pages/about.html
-/pages/about.html.js
-/pages/about.html.css
-```
-
-### Multi-page applications (single HTML file)
-
-Optionally define a `App` with role `app` which will represent the loading 
-screen. Strong define one or more `App` with role `page` and attribute
-`url` with a regular expression to match the url of page.
-
-Example:
-```html
-<!-- Index.vc file -->
-<App role="page" url="^/?$">
-    <!-- Index file content -->
-</App>
-
-<!-- News.vc file -->
-<App role="page" url="^/news/(?<newsId>\\w+)/?$">
-    <!-- About page content -->
-</App>
-
-<script>
-    import { prop } from 'vcc';
-    
-    let newsId = prop(String);
-    
-    // use here newsId url parameter
-</script>
-```
-
-After compilation, you get the next files:
-```
-/index.html
-/Index.js
-/News.js
-```
 
 ### Executors
 
