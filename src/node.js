@@ -2121,24 +2121,28 @@ export class App extends INode {
     /**
      * Constructs a app node
      * @param node {HTMLElement} The root of application
-     * @param props {function($ : any) : void}
-     * @param meta {{debug : boolean}} Application properties
+     * @param meta {?{debug : boolean}} Application properties
      */
-    constructor<T> (node : HTMLElement, props : ($ : T) => void, meta ?: { debug : boolean }) {
+    constructor<T> (node : HTMLElement, meta ?: { debug : boolean }) {
         super();
 
         this.$run = new InstantExecutor();
         this.$.encapsulate(node);
         this.$.preinit(this, this, this, this);
 
-        // $FlowFixMe
-        this.$$callPropsCallback(this, props);
-
         if (meta?.debug instanceof Boolean) {
             this.$debug = meta.debug;
         }
 
         this.seal();
+    }
+
+    /**
+     * @param props {function($ : any) : void}
+     */
+    $create<T> (props : ($ : T) => void) {
+        // $FlowFixMe
+        this.$$callPropsCallback(this, props);
     }
 
     $mounted () {

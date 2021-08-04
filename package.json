@@ -1,12 +1,12 @@
 {
   "name": "vasille",
-  "version": "1.2.3",
   "description": "The fastest (Vanilla.js based) front-end javascript framework",
+  "version": "1.2.6",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "exports": {
-    "import": "./src/index.js",
-    "browser": "./src/index.js"
+    "import": "./lib/index.js",
+    "browser": "./lib/index.js"
   },
   "scripts": {
     "flow": "flow",
