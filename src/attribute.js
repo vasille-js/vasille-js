@@ -58,10 +58,10 @@ export class AttributeBinding extends Binding {
         return function (rt : any, ts : any, value : string) {
 
             if (value) {
-                rt.$app.$run.setAttribute(ts.el, name, value);
+                rt.$.app.$run.setAttribute(ts.el, name, value);
             }
             else {
-                rt.$app.$run.removeAttribute(ts.el, name);
+                rt.$.app.$run.removeAttribute(ts.el, name);
             }
 
             return value;
