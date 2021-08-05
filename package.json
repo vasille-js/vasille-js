@@ -1,7 +1,7 @@
 {
   "name": "vasille",
   "description": "The fastest (Vanilla.js based) front-end javascript framework",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "exports": {
