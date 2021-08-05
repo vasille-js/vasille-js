@@ -3,7 +3,7 @@
   "description": "The fastest (Vanilla.js based) front-end javascript framework",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "exports": {
     "import": "./lib/index.js",
     "browser": "./lib/index.js"
