@@ -110,7 +110,7 @@ export class VasilleNodePrivate extends Destroyable {
      */
     get el () : HTMLElement {
         let el = this.coreEl;
-        if (el instanceof HTMLElement) {
+        if (el instanceof HTMLElement || el instanceof window.SVGElement) {
             return el;
         }
 
