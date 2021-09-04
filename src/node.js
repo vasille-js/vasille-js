@@ -1,18 +1,17 @@
 // @flow
-import { AttributeBinding, attributify }                               from "./attribute.js";
-import { Binding, Expression }                                         from "./bind.js";
-import { classify }                                                    from "./class.js";
-import { Executor, InstantExecutor }                                   from "./executor.js";
-import type { CoreEl }                                                 from "./interfaces/core.js";
-import { VasilleNode, VasilleNodePrivate }                             from "./interfaces/core.js";
-import { internalError, notFound, typeError, userError, wrongBinding } from "./interfaces/errors.js";
-import { IBind }                                                       from "./interfaces/ibind.js";
-import { Callable, checkType }                                         from "./interfaces/idefinition.js";
-import { IValue }                                                      from "./interfaces/ivalue.js";
-import { vassilify }                                                   from "./models.js";
-import { StyleBinding, stylify }                                       from "./style.js";
-import { Pointer, Reference }                                          from "./value.js";
-import type { RepeatNode }                                             from "./views.js";
+import { AttributeBinding, attributify }      from "./attribute.js";
+import { Binding }                            from "./bind.js";
+import { classify }                           from "./class.js";
+import { Executor, InstantExecutor }          from "./executor.js";
+import type { CoreEl }                        from "./interfaces/core.js";
+import { VasilleNode, VasilleNodePrivate }    from "./interfaces/core.js";
+import { internalError, notFound, userError } from "./interfaces/errors.js";
+import { Callable }                           from "./interfaces/idefinition.js";
+import { IValue }                             from "./interfaces/ivalue.js";
+import { vassilify }                          from "./models.js";
+import { StyleBinding, stylify }              from "./style.js";
+import { Pointer, Reference }                 from "./value.js";
+import type { RepeatNode }                    from "./views.js";
 
 
 
@@ -133,8 +132,6 @@ export class TextNode extends VasilleNode {
     }
 }
 
-export type Signal = {| args : Array<Function>, handlers : Array<Function> |};
-
 /**
  * The private part of a base node
  */
@@ -146,28 +143,10 @@ export class BaseNodePrivate extends VasilleNodePrivate {
     building : boolean;
 
     /**
-     * Represents style bindings
+     * Represents class bindings
      * @type {Set<Binding>}
      */
     class : Set<Binding> = new Set;
-
-    /**
-     * Represents a list of user-defined bindings
-     * @type {Set<IValue>}
-     */
-    watch : Set<IValue<*>> = new Set;
-
-    /**
-     * List of user defined signals
-     * @type {Map<string, {args : Array<Function>, handlers : Array<Function>}>}
-     */
-    signal : Map<string, Signal> = new Map;
-
-    /**
-     * List of references
-     * @type {Map<String, INode|Set<INode>>}
-     */
-    refs : Map<string, INode | Set<INode>> = new Map;
 
     /**
      * List of $slots
@@ -176,22 +155,10 @@ export class BaseNodePrivate extends VasilleNodePrivate {
     slots : Map<string, INode> = new Map;
 
     /**
-     * Defined the frozen state of component
-     * @type {boolean}
-     */
-    frozen : boolean = false;
-
-    /**
      * Defines if node is unmounted
      * @type {boolean}
      */
     unmounted : boolean = false;
-
-    /**
-     * Handle to run on component destroy
-     * @type {Function}
-     */
-    onDestroy : Function;
 
     /**
      * Defines a HTML class for all html nodes
@@ -233,33 +200,9 @@ export class BaseNodePrivate extends VasilleNodePrivate {
         //$FlowFixMe
         this.class = null;
 
-        for (let w of this.watch) {
-            w.$destroy();
-        }
-        this.watch.clear();
-        //$FlowFixMe
-        this.watch = null;
-
-        this.signal.clear();
-        //$FlowFixMe
-        this.signal = null;
-
-        for (let ref of this.refs) {
-            if (ref instanceof Set) {
-                ref.clear();
-            }
-        }
-        this.refs.clear();
-        //$FlowFixMe
-        this.refs = null;
-
         this.slots.clear();
         //$FlowFixMe
         this.slots = null;
-
-        if (this.onDestroy) {
-            this.onDestroy();
-        }
 
         super.$destroy();
     }
@@ -326,7 +269,7 @@ export class INode extends VasilleNode {
     /**
      * Initialize node
      */
-    $init () {
+    $init () : this {
         this.$$startBuilding();
 
         this.$createAttrs();
@@ -338,6 +281,8 @@ export class INode extends VasilleNode {
         this.$createDom();
 
         this.$$stopBuilding();
+
+        return this;
     }
 
     /**
@@ -390,27 +335,10 @@ export class INode extends VasilleNode {
      * Runs garbage collector
      */
     $destroy () : void {
-        let $ : BaseNodePrivate = this.$;
-
-        if ($.root instanceof INode) {
-            for (let it of $.root.$.refs) {
-                let ref = it[1];
-
-                if (ref === this) {
-                    $.root.$.refs.delete(it[0]);
-                }
-                else if (ref instanceof Set && ref.has(this)) {
-                    ref.delete(this);
-                }
-            }
-        }
-
         for (let child of this.$children) {
             child.$destroy();
         }
 
-        $.$destroy();
-        this.$ = null;
         this.$children.splice(0);
         //$FlowFixMe
         this.$children = null;
@@ -436,55 +364,6 @@ export class INode extends VasilleNode {
 
     /** To be overloaded: CSS creation milestone */
     $createCss () {
-    }
-
-    /**
-     * create a private field
-     * @param value {*}
-     * @return {IValue<*>}
-     */
-    $ref (value : any) : IValue<any> {
-        let ret = vassilify(value);
-        this.$.watch.add(ret);
-        return ret;
-    }
-
-    /**
-     * creates a public field
-     * @param type {Function}
-     * @param value {*}
-     * @return {Reference}
-     */
-    $prop (type : Function, value : any = null) : Reference<any> {
-        if (!checkType(value, type) || value instanceof IValue) {
-            throw typeError("wrong initial public field value");
-        }
-
-        let ret = vassilify(value);
-        if (ret instanceof Reference) {
-            ret.type = type;
-            this.$.watch.add(ret);
-            return ret;
-        }
-        else {
-            throw internalError("Something goes wrong :(");
-        }
-    }
-
-    /**
-     * creates a pointer
-     * @param type {Function}
-     * @return {Pointer}
-     */
-    $pointer (type : Function) : Pointer<any> {
-        let ref = new Reference();
-        let pointer = new Pointer(ref);
-
-        ref.type = type;
-        this.$.watch.add(ref);
-        this.$.watch.add(pointer);
-
-        return pointer;
     }
 
     /**
@@ -695,66 +574,6 @@ export class INode extends VasilleNode {
             this.$.app.$run.setStyle(this.$.el, i, data[i]);
         }
         return this;
-    }
-
-    /**
-     * Defines a signal
-     * @param name {string} Signal name
-     * @param types {...Function} Arguments types
-     */
-    $defSignal (name : string, ...types : Array<Function>) {
-        this.$.signal.set(name, { args : types, handlers : [] });
-    }
-
-    /**
-     * Add a handler for a signal
-     * @param name {string} Signal name
-     * @param func {Function} Handler
-     */
-    $on (name : string, func : Function) {
-        let signal = this.$.signal.get(name);
-
-        if (!signal) {
-            throw notFound("no such signal: " + name);
-        }
-
-        signal.handlers.push(func);
-    }
-
-    /**
-     * Emit a signal
-     * @param name {string} Signal name
-     * @param args {...*} Signal arguments
-     */
-    $emit (name : string, ...args : Array<any>) {
-        let signal = this.$.signal.get(name);
-
-        if (!signal) {
-            throw notFound("no such signal: " + name);
-        }
-
-        let compatible = args.length === signal.args.length;
-
-        if (compatible && this.$.app.$debug) {
-            for (let i = 0; i < args.length; i++) {
-                if (!checkType(args[i], signal.args[i])) {
-                    compatible = false;
-                }
-            }
-        }
-
-        if (!compatible) {
-            throw typeError("incompatible signals arguments");
-        }
-
-        for (let handler of signal.handlers) {
-            try {
-                handler(...args);
-            }
-            catch (e) {
-                console.error(`Vasille.js: Handler throw exception at ${this.constructor.name}::${name}: `, e);
-            }
-        }
     }
 
     /**
@@ -1201,39 +1020,6 @@ export class INode extends VasilleNode {
         this.$listen("paste", handler, options);
     }
 
-    /**
-     * Defines a watcher
-     * @param func {function} Function to run on value change
-     * @param vars {...IValue} Values to listen
-     */
-    $watch (func : Function, ...vars : Array<IValue<any>>) {
-        if (vars.length === 0) {
-            throw wrongBinding("a watcher must be bound to a value at last");
-        }
-
-        this.$.watch.add(new Expression(func, vars, !this.$.frozen));
-    }
-
-    /**
-     * Creates a bind expression
-     * @param f {Function} function to alc expression value
-     * @param args {...IValue} value sto bind
-     * @return {IBind}
-     */
-    $bind (f : Function, ...args : Array<IValue<any>>) : IBind {
-        let res : IBind;
-
-        if (args.length === 0) {
-            throw wrongBinding("no values to bind");
-        }
-        else {
-            res = new Expression(f, args, !this.$.frozen);
-        }
-
-        this.$.watch.add(res);
-        return res;
-    }
-
     $runOnDestroy (f : Function) {
         (this.$ : BaseNodePrivate).onDestroy = f;
     }
@@ -1347,46 +1133,6 @@ export class INode extends VasilleNode {
 
         // If we have no more variants
         $.app.$run.appendChild($.el, node);
-    }
-
-    /**
-     * Disable/Enable reactivity of component with feedback
-     * @param cond {IValue} show condition
-     * @param onOff {Function} on show feedback
-     * @param onOn {Function} on hide feedback
-     */
-    $bindFreeze (cond : IValue<boolean>, onOff : ?Function, onOn : ?Function) : this {
-        let $ : BaseNodePrivate = this.$;
-
-        if ($.watch.has(cond)) {
-            throw wrongBinding(":show must be bound to an external component");
-        }
-
-        let expr = null;
-
-        expr = new Expression((cond) => {
-            $.frozen = !cond;
-
-            if (cond) {
-                onOn?.();
-                for (let watcher of $.watch) {
-                    if (watcher instanceof IBind) {
-                        watcher.link();
-                    }
-                }
-            }
-            else {
-                onOff?.();
-                for (let watcher of $.watch) {
-                    if (watcher instanceof IBind && watcher !== expr) {
-                        watcher.unlink();
-                    }
-                }
-            }
-        }, [cond]);
-
-        $.watch.add(expr);
-        return this;
     }
 
     /**
