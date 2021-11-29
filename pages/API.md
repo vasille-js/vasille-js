@@ -401,8 +401,9 @@ Examples:
 
 ### Slots
 
-Use `slot` tag to define a slot, and `slot` directive to put a component
-to a concrete slot.
+Use `slot` tag to define a slot, and `slot` directive to put a fragment
+to a slot. Also, you can share slot data from children to parent node using
+`share` and `shared` directives.
 
 Example:
 ```html
@@ -410,13 +411,19 @@ Example:
     <!-- Default slot -->
     <slot />
     <!-- Named slot -->
-    <slot name="slotName" />
+    <slot name="slotName" :share="var1, var2">
+        <!-- Some default slot content -->
+        <div></div>
+    </slot>
     
     <Compoent>
         <!-- Paste to default slot -->
         <div />
         <!-- Paste to named slot -->
-        <div slot="slotName"/>
+        <Fragment :slot="slotName" :shared="var1, var2">
+            <!-- var1 & var2 are available here -->
+        </Fragment>
+        <div/>
     </Compoent>
 </App>
 ```
