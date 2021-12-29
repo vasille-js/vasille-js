@@ -1,36 +1,15 @@
 // @flow
-import { Binding }    from "./bind.js";
-import { Callable }   from "./interfaces/idefinition.js";
-import { IValue }     from "./interfaces/ivalue.js";
-import type { INode } from "./node.js";
-import { propertify } from "./property.js";
+import { Binding } from "./binding";
+import type { INode } from "../node/node";
+import type { IValue } from "../core/ivalue";
 
 
-
-/**
- * Creates a class target 1 to 1 bind
- * @param rt {INode} is the root component
- * @param ts {INode} is the this component
- * @param name {String} is attribute name
- * @param value {?any} is attribute value
- * @param func {?Callable} is attribute value calculation function
- * @returns {AttributeBinding} 1 to 1 bind of attribute
- */
-export function classify (
-    rt : INode,
-    ts : INode,
-    name : string,
-    value : ?any     = null,
-    func : ?Callable = null
-) : ClassBinding {
-    return new ClassBinding(rt, ts, name, null, propertify(value, func));
-}
 
 /**
  * Represents a HTML class binding description
  * @extends Binding
  */
-export class ClassBinding extends Binding {
+export class ClassBinding extends Binding<string | boolean> {
     current : ? string | boolean = null;
 
     /**
@@ -38,19 +17,16 @@ export class ClassBinding extends Binding {
      * @param rt {INode} is root component
      * @param ts {INode} is this component
      * @param name {String} is the name of attribute
-     * @param func {?Function} is the function to bound
-     * @param values {Array<IValue>} is the array of values to bind to
+     * @param value
      */
     constructor (
         rt : INode,
         ts : INode,
         name : string,
-        func : ?Function,
-        ...values : Array<IValue<any>>
+        value : IValue<string | boolean>
     ) {
-        super(rt, ts, name, func, ...values);
-
-        this.seal();
+        super(rt, ts, name, value);
+        this.$seal();
     }
 
     /**
@@ -58,7 +34,7 @@ export class ClassBinding extends Binding {
      * @param name {String} The name of attribute
      * @returns {Function} a function which will update attribute value
      */
-    bound (name : string) : Function {
+    bound (name : string) : (rt : INode, ts : INode, value : string | boolean) => void {
 
         function addClass (rt : INode, ts : INode, cl : string) {
             rt.$.app.$run.addClass(ts.$.el, cl);
@@ -89,8 +65,6 @@ export class ClassBinding extends Binding {
 
                 this.current = value;
             }
-
-            return value;
         };
     }
 }

@@ -10,6 +10,7 @@
   },
   "scripts": {
     "flow": "flow",
+    "flow-typed": "flow-typed create-def vasille 2.0.0",
     "prebuild": "rm -r lib",
     "build": "flow-remove-types --pretty --sourcemaps src/ -d lib/",
     "prepare": "flow-remove-types --pretty --sourcemaps src/ -d lib/",
@@ -21,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://gitlab.com/vasille.js/vasille.js.git"
+    "url": "https://gitlab.com/vasille-js/vasille-js.git"
   },
   "keywords": [
     "javascript",
@@ -40,6 +41,7 @@
     "@types/node": "latest",
     "flow-bin": "latest",
     "flow-remove-types": "latest",
+    "flow-typed": "latest",
     "jsdoc": "latest",
     "typescript": "latest"
   }

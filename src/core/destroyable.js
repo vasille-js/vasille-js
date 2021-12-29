@@ -5,7 +5,7 @@
  * @class
  */
 export class Destroyable {
-    seal () {
+    $seal () {
         let $ : Object = this;
 
         for (let i in $) {

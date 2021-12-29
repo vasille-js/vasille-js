@@ -1,7 +1,6 @@
 // @flow
-import { Destroyable }    from "./destroyable.js";
+import { Destroyable } from "./destroyable.js";
 import { notOverwritten } from "./errors";
-
 
 
 /**
@@ -11,11 +10,12 @@ import { notOverwritten } from "./errors";
  */
 export class IValue<T> extends Destroyable {
 
-    /**
-     * Used for strong type checking
-     * @type {?Function}
-     */
-    type : ?Function = null;
+    isEnabled : boolean;
+
+    constructor (isEnabled : boolean = false) {
+        super ();
+        this.isEnabled = isEnabled;
+    }
 
     /**
      * Gets the encapsulated value
@@ -23,7 +23,7 @@ export class IValue<T> extends Destroyable {
      * @throws Must be overwritten
      */
     get $ () : T {
-        throw notOverwritten();
+        throw notOverwritten ();
     }
 
     /**
@@ -33,7 +33,7 @@ export class IValue<T> extends Destroyable {
      * @throws Must be overwritten
      */
     set $ (value : T) : this {
-        throw notOverwritten();
+        throw notOverwritten ();
     }
 
     /**
@@ -42,8 +42,8 @@ export class IValue<T> extends Destroyable {
      * @return {IValue} a pointer to this
      * @throws Must be overwritten
      */
-    on (handler : Function) : this {
-        throw notOverwritten();
+    on (handler : (value : T) => void) : this {
+        throw notOverwritten ();
     }
 
     /**
@@ -52,7 +52,21 @@ export class IValue<T> extends Destroyable {
      * @return {IValue} a pointer to this
      * @throws Must be overwritten
      */
-    off (handler : Function) : this {
+    off (handler : (value : T) => void) : this {
+        throw notOverwritten ();
+    }
+
+    /**
+     * Enable update handlers triggering
+     */
+    enable () : this {
+        throw notOverwritten();
+    }
+
+    /**
+     * disable update handlers triggering
+     */
+    disable () : this {
         throw notOverwritten();
     }
 }

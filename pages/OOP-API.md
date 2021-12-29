@@ -1,12 +1,12 @@
 # Vassile - Low Level Object-Oriented Programming Documentation
 
 To create a Vassile.js component, create a file with extension `.js` and 
-define a ES6 class which extends `App`, `Component` or `Fragment`.
+define a ES6 class which extends `App`, `Component`, `Extension` or `Fragment`.
 
 Example:
 
 ```javascript
-import {App} from 'vasille';
+import { App } from 'vasille';
 
 class MyComponent extends App {
     constructor() {
@@ -35,7 +35,7 @@ Component state is composed of private class fields, created by a call
 to `$ref<T>(initialValue: T): Reference<T>` method:
 
 ```javascript
-import {App} from 'vasille';
+import { App } from 'vasille';
 
 class MyComponent extends App {
     constructor() {
@@ -58,15 +58,15 @@ const pi = 3.14;
 Component properties are created by a call to 
 `$prop<T>(initialValue?: T): Reference<T>` method:
 
-```javascript
-import {App} from 'vasille';
+```typescript
+import { App } from 'vasille';
 
 class MyComponent extends App {
     constructor() {
         super();
         
-        this.foo = this.$prop(Number);
-        this.bar = this.$prop(String, 'default value');
+        this.foo = this.$ref<number>(0);
+        this.bar = this.$ref<string>('default value');
     }
 }
 ```
@@ -77,7 +77,7 @@ An expression is a state variable which is created by a call to
 `$bind<T, ...Args>(expr: (args: ...Args) => T, ...args: IValue<...Args>): Expression<T>` method:
 
 ```javascript
-import {App} from 'vasille';
+import { App } from 'vasille';
 
 class MyComponent extends App {
     constructor() {
@@ -91,17 +91,17 @@ class MyComponent extends App {
         this.multilineExpression = this.$bind((x, y, visible) => {
             let result;
             
-            switch (x.$) {
+            switch (x) {
                 case 1:
-                    result = x.$ + 2;
+                    result = x + 2;
                     break;
                     
                 case 2:
-                    result = y.$ + 3;
+                    result = y + 3;
                     break;
 
                 default:
-                    result = visible.$ ? x.$ - 2 : y.$ - 4;
+                    result = visible ? x - 2 : y - 4;
                     break;
             }
             
@@ -120,7 +120,7 @@ class MyComponent extends App {
 To declare a component method, just declare a method:
 
 ```javascript
-import {App} from 'vasille';
+import { App } from 'vasille';
 
 class MyComponent extends App {
     sum (a, b) {
@@ -143,7 +143,7 @@ declared is component and installed to its slots are mounted. The
 To define a hook just overwrite the method with its name.
 
 ```javascript
-import {App} from 'vasille';
+import { App } from 'vasille';
 
 class MyComponent extends App {
     $created () {
@@ -176,7 +176,7 @@ class `Signal<...Args>`, it contain next methods:
 
 Syntax:
 ```typescript
-import {App} from 'vasille';
+import { App } from 'vasille';
 
 class MyComponent extends App {
     myEvent = new Signal<number, number>;
@@ -198,7 +198,7 @@ to define a watcher in `$createWatchers` milestone.
 Example:
 
 ```javascript
-import {App} from 'vasille';
+import { App } from 'vasille';
 
 class MyComponent extends App {
     constructor() {
@@ -232,7 +232,7 @@ An HTML tag is defined by
 `$tag(tagName: string, callback: (createdNode: TagNode) => void)`
 method in `$compose` milestone:
 ```javascript
-import {App} from 'vasille';
+import { App } from 'vasille';
 
 class MyComponent extends App {
     $compose () {
@@ -251,7 +251,7 @@ Subcomponents must be imported, after are defined by a call to
 `$create<T>(component: T, props: (T) => void, defaultSlot?: (T) => void`
 method. `props` handler is used to set up component properties.
 ```javascript
-import {App} from 'vasille';
+import { App } from 'vasille';
 import {Component} from './Component';
 
 class MyComponent extends App {
@@ -266,7 +266,7 @@ class MyComponent extends App {
 Properties of components are set upped in `props` handler.
 Attributes are set upped by calls next methods:
 * `$bindAttr<...Args> (name: string, expr: (args: ...Args) => string, ...values: IValue<...Args>)`.
-* `$defAttr (name: string, value: IValue<any>)`.
+* `$defAttr (name: string, value: IValue<string>)`.
 * `$setAttr (name: string, value: string)`.
 
 `$set*` methods are used to set up static values.
@@ -275,16 +275,14 @@ Attributes are set upped by calls next methods:
 
 Example:
 ```javascript
-import {App} from 'vasille';
+import { App } from 'vasille';
 
 class MyComponent extends App {
-    $composite () {
+    $compose () {
         this.$tag("div", div => {
-            div.$setAttrs({
-                id: "id",
-                class: "class1 class2"
-            });
-            div.$bindAttr((a, b) => {
+            div.$setAttr("id", "id1");
+            div.$setAttr("class", "class1 class2");
+            div.$bindAttr("data-sum", (a, b) => {
                 return this.sum(a, b);
             }, this.a, this.b);
         });
@@ -306,13 +304,13 @@ The next methods is used to set up classes:
 * `$floatingClass (value: IValue<boolean>, cl: string)`.
 
 ```javascript
-import {App} from 'vasille';
+import { App } from 'vasille';
 
 class MyComponent extends App {
     $compose () {
         this.$tag("div", div => {
             div.$addClass("static class");
-            div.$bindClass(this.dynamicalClass);
+            div.$bindClass(this.$ref('dynamical class'));
             div.$floatingClass(this.condition, "conditionalClass");
         });
     }
@@ -329,7 +327,7 @@ set up style:
 
 Example:
 ```javascript
-import {App} from 'vasille';
+import { App } from 'vasille';
 
 class MyComponent extends App {
     $compose () {
@@ -348,7 +346,7 @@ methods. To listen to component events use `$on` method.
 
 Examples:
 ```javascript
-import {App} from 'vasille';
+import { App } from 'vasille';
 import {Component} from './Component'; 
 
 class MyComponent extends App {
@@ -357,7 +355,7 @@ class MyComponent extends App {
             div.$onmousedown(() => { /* code here */ });
             div.$onmousemove(ev => this.x.$ = ev.clientX);
         });
-        this.$defElement(new Component, $ => {}, component => {
+        this.$defElement(new Component, component => {
             component.eventName.subscribe(() => { /* code here */ });
             component.hover.subscribe(() => this.hover.$ = true);
         });
@@ -369,7 +367,7 @@ class MyComponent extends App {
 
 Use `$html` method to set inner HTML:
 ```javascript
-import {App} from 'vasille';
+import { App } from 'vasille';
 
 class MyComponent extends App {
     $compose () {
@@ -389,24 +387,26 @@ References are available in `$mounted` hook.
 
 Examples:
 ```typescript
-import {App} from 'vasille';
+import { App } from 'vasille';
 import MyComponent from './MyComponent';
 
 class MyComponent extends App {
-    div!: HTMLElement;
-    sub!: MyComponent;
+    div: HTMLElement;
+    sub: MyComponent;
     items: Set<HTMLElement> = new Set();
     
     $compose () {
-        this.$tag("div", div => {
-            this.div = div;
+        this.$tag("div", (vElement, element) => {
+            this.div = element;
         });
-        this.$create(new MyComponent, $ => {}, mc => {
-            this.sub = mc;
+        this.$create(new MyComponent, $ => {
+            this.sub = $;
             
-            mc.$tag("p", p => this.items.add(p));
-            mc.$tag("p", p => this.items.add(p));
-            mc.$tag("p", p => this.items.add(p));
+            $.slot.insert(node => {
+                node.$tag("p", (v, p) => this.items.add(p));
+                node.$tag("p", (v, p) => this.items.add(p));
+                node.$tag("p", (v, p) => this.items.add(p));
+            })
         });
     }
 }
@@ -414,8 +414,8 @@ class MyComponent extends App {
 
 ### Slots
 
-Use `$makeSlot` method to define a slot, and use `release` or `predefine` to create the
-slot content.
+Use `Slot` constructor to define a slot, and use `release` or `predefine` method to create the
+slot content. To insert data to child slot use `insert` method.
 
 Example (it is recursively, don't try to run this code):
 ```typescript
@@ -423,8 +423,8 @@ import {App, Fragment} from 'vasille';
 
 class MyComponent extends App {
     // The first declared slot is a default one
-    slot1 = this.$makeSlot<MyComponent>();
-    slot2 = this.$makeSlot<MyComponent, number, number>();
+    slot1 = this.$makeSlot<>();
+    slot2 = this.$makeSlot<number, number>();
     
     $compose () {
         // You can predefine slot content
@@ -434,10 +434,10 @@ class MyComponent extends App {
             node.$tag("div");
         }, this);
         
-        this.$create(new MyComponent, $ => {}, node => {
+        this.$create(new MyComponent, $ => $.slot.insert((node) => {
             // Create the content of second slot in a children node
             this.slot2.release(node, 1, 2);
-        });
+        }));
         
         this.$create(new MyComponent, $ => {
             $.slot1.insert(slot => {
@@ -454,10 +454,9 @@ class MyComponent extends App {
         });
 
         // The easy way
-        // Paste to default slot
-        this.$create(new MyComponent, $ => {}, node => {
+        this.$create(new MyComponent, $ => $.slot.insert((node) => {
             node.$tag("div");
-        });
+        }));
     }
 }
 ```
@@ -465,42 +464,42 @@ class MyComponent extends App {
 ## Flow control
 
 Flow can be controlled using methods:
-* `$defIf (cond: any, cb: (node: RepeatNodeItem) => void)`.
-* `$defIfElse ( ifCond: any,
+* `$if (cond: IValue<boolean>, cb: (node: RepeatNodeItem) => void)`.
+* `$if_else ( ifCond: IValue<boolean>,
     ifCb: (node: RepeatNodeItem) => void, 
     elseCb: (node : RepeatNodeItem) => void)`.
-* `$defSwitch (...cases : Array<{ cond: IValue<boolean> | boolean, 
+* `$switch (...cases : Array<{ cond: IValue<boolean> | boolean, 
   cb: (node: RepeatNodeItem) => void }>)`.
 * `$create<T> ( nodeT : T, props : ($ : T) => void)`
   
 
-### `$defIf`
+### `$if`
 
-The if has one condition, and one callback which get executed when the condition
+The `if` has one condition, and one callback which get executed when the condition
 is true:
 ```javascript
-this.$defIf(booleanCondition, (node) => {
+this.$if(booleanCondition, (node) => {
     // ..
 });
 ```
 
-### `$defIfElse`
+### `$if_else`
 
 If-else has a condition and 2 callbacks, the first will be released when the
 condition is true, the second will be released when the condition is false.
 ```javascript
-this.$defIfElse(condition, trueNode => {
+this.$if_else(condition, trueNode => {
     // ..
 }, falseNode => {
     // ..
 });
 ```
 
-### `$defSwitch`
+### `$switch`
 
 A switch accepts pairs of conditions and callback.
 ```javascript
-this.$defSwitch(
+this.$switch(
     this.$case(condition, fragment => {
         // create DOM here
     }),
@@ -523,9 +522,9 @@ A repeater will repeat a fragment, by a special rule. List of predefined repeate
 * `MapView` - use `MapModel` as model.
  
 ```typescript
-this.$create(new ArrayView, $ => {
-    $.model = new ArrayModel<string>;
-    $.item.insert((node: RepeatNodeItem, item: string, index: number) => {
+this.$create(new MapView, $ => {
+    $.model = new MapModel<int, string>;
+    $.slot.insert((node: Fragment, item: string, index: number) => {
         // create items here
     });
 });
@@ -550,8 +549,8 @@ executor is `InstantExecutor`, it applies all changes immediately.
 
 Example how to apply a custom executor:
 ```javascript
-import {App} from 'vasille';
-import {MyExecutor} from "./MyExecutor";
+import { App } from 'vasille';
+import { MyExecutor } from "./MyExecutor";
 
 class MyComponent extends App {
     constructor() {
@@ -562,7 +561,10 @@ class MyComponent extends App {
     
     $compose() {
         this.$create(new ArrayView, $ => {
-            $.freezeUi.$ = false;
+            $.freezeUi = false;
+            $.slot.insert((node, value, index) => {
+                //
+            })
         });
     }
 }
@@ -573,24 +575,24 @@ class MyComponent extends App {
 A pointer can be defined using a `$point` method.
 
 ```javascript
-import {App} from 'vasille';
+import { App } from 'vasille';
 
 class MyComponent extends App {
     constructor() {
-        this.pointer = this.$point(String);
+        this.pointer = this.$point<string>('');
         this.pointer = 'default-value';
 
-        // prints `x y default-value`
-        console.log(this.x.$, this.y.$, this.pointer.$.$);
-        
         this.x = this.$ref('x');
         this.y = this.$ref('y');
 
+        // prints `x y default-value`
+        console.log(this.x.$, this.y.$, this.pointer.$);
+        
         // change pointer value
-        this.pointer.$ = x;
+        this.pointer.point(x);
 
         // prints `x y x`
-        console.log(this.x.$, this.y.$, this.pointer.$.$);
+        console.log(this.x.$, this.y.$, this.pointer.$);
 
         // change pointed value;
         this.pointer.$ = y.$;
@@ -598,7 +600,7 @@ class MyComponent extends App {
         this.pointer.$ = 'y';
 
         // prints `y y y`
-        console.log(this.x.$, this.y.$, this.pointer.$.$);
+        console.log(this.x.$, this.y.$, this.pointer.$);
     }
 }
 ```
@@ -611,8 +613,11 @@ requested in special cases only.
 
 Example:
 ```javascript
-this.$create(new Watch, $ => $.model = variable, node => {
-    // defines some node here
+this.$create(new Watch, $ => {
+    $.model = variable;
+    $.slot.insert(node => {
+        // defines some node here
+    });
 });
 ```
 
