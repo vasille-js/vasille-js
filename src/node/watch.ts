@@ -17,7 +17,7 @@ export class Watch extends Fragment {
      * iValue to watch
      * @type IValue
      */
-    public model : IValue<any>;
+    public model : IValue<unknown>;
 
     public constructor () {
         super ();

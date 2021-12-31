@@ -133,22 +133,24 @@ export class Expression<
     ) {
         super (false);
         const values = [v1, v2, v3, v4, v5, v6, v7, v8, v9];
-        let handler = (i ? : number) => {
+        const handler = (i ? : number) => {
             if (i != null) {
                 this.valuesCache[i] = this.values[i].$;
             }
             this.sync.$ = func.apply (this, this.valuesCache);
         };
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this.valuesCache = values.map (iValue => iValue.$);
         this.sync = new Reference(func.apply (this, this.valuesCache));
 
         let i = 0;
-        for (let value of values) {
+        values.forEach(() => {
             this.linkedFunc.push (handler.bind (this, Number (i++)));
-        }
+        });
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this.values = values;
         this.func = handler;

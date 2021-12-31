@@ -12,7 +12,7 @@ export class Pointer<T> extends Mirror<T> {
      * @param value {IValue} value to point
      * @param forwardOnly {boolean} forward only data flow
      */
-    public constructor (value : IValue<T>, forwardOnly : boolean = false) {
+    public constructor (value : IValue<T>, forwardOnly = false) {
         super (value, forwardOnly);
     }
 

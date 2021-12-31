@@ -44,16 +44,16 @@ export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
     }
 
     public createChild (id : T, item : T, before ?: Fragment) : any {
-        let $ : ArrayViewPrivate<T> = this.$;
-        let next = $.nodes.get(id);
-        let handler = super.createChild(item, item, before || next);
+        const $ : ArrayViewPrivate<T> = this.$;
+        const next = $.nodes.get(id);
+        const handler = super.createChild(item, item, before || next);
 
         $.handlers.set(item, handler);
     }
 
     public destroyChild (id : T, item : T) {
-        let $ : ArrayViewPrivate<T> = this.$;
-        let handler = $.handlers.get (item);
+        const $ : ArrayViewPrivate<T> = this.$;
+        const handler = $.handlers.get (item);
 
         if (item instanceof IValue && handler) {
             item.off (handler);
@@ -63,17 +63,17 @@ export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
     }
 
     public $ready () {
-        let arr : ArrayModel<T> = this.model.$;
+        const arr : ArrayModel<T> = this.model.$;
 
-        for (let i = 0; i < arr.length; i++) {
-            this.createChild(arr[i], arr[i]);
-        }
+        arr.forEach(item =>  {
+            this.createChild(item, item);
+        })
 
         super.$ready();
     }
 
     public $destroy () {
-        let $ : ArrayViewPrivate<T> = this.$;
+        const $ : ArrayViewPrivate<T> = this.$;
 
         $.handlers.forEach((handler, value) => {
             if (value instanceof IValue) {

@@ -18,7 +18,7 @@ export class RepeaterPrivate<IdT> extends RepeatNodePrivate<IdT> {
     /**
      * Current count of child nodes
      */
-    public currentCount : number = 0;
+    public currentCount = 0;
 
     public constructor () {
         super ();
@@ -49,7 +49,7 @@ export class Repeater extends RepeatNode<number, number> {
      * Changes the children count
      */
     public changeCount (number : number) {
-        let $ : RepeaterPrivate<number> = this.$;
+        const $ : RepeaterPrivate<number> = this.$;
 
         if (number > $.currentCount) {
             for (let i = $.currentCount; i < number; i++) {
@@ -65,7 +65,7 @@ export class Repeater extends RepeatNode<number, number> {
     }
 
     public $created () {
-        let $ : RepeaterPrivate<number> = this.$;
+        const $ : RepeaterPrivate<number> = this.$;
 
         super.$created();
 
@@ -80,7 +80,7 @@ export class Repeater extends RepeatNode<number, number> {
     }
 
     public $destroy () {
-        let $ : RepeaterPrivate<number> = this.$;
+        const $ : RepeaterPrivate<number> = this.$;
 
         super.$destroy();
         this.count.off($.updateHandler);

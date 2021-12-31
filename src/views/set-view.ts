@@ -41,8 +41,8 @@ export class SetView<T> extends BaseView<null, T, SetModel<T>> {
     }
 
     public createChild (id : null, item : T, before ?: Fragment) : any {
-        let $ : SetViewPrivate<T> = this.$;
-        let handler = super.createChild(id, item, before);
+        const $ : SetViewPrivate<T> = this.$;
+        const handler = super.createChild(id, item, before);
 
         if (item instanceof IValue) {
             item.on(handler);
@@ -51,8 +51,8 @@ export class SetView<T> extends BaseView<null, T, SetModel<T>> {
     }
 
     public destroyChild (id : null, item : T) {
-        let $ : SetViewPrivate<T> = this.$;
-        let handler = $.handlers.get(item);
+        const $ : SetViewPrivate<T> = this.$;
+        const handler = $.handlers.get(item);
 
         if (item instanceof IValue && handler) {
             item.off(handler);
@@ -62,29 +62,29 @@ export class SetView<T> extends BaseView<null, T, SetModel<T>> {
     }
 
     public $ready () {
-        let $ : SetViewPrivate<T> = this.$;
-        let set : SetModel<T> = this.model.$;
+        const $ : SetViewPrivate<T> = this.$;
+        const set : SetModel<T> = this.model.$;
 
-        for (let it of set) {
+        set.forEach(item => {
             $.app.$run.callCallback(() => {
-                this.createChild(null, it);
+                this.createChild(null, item);
             });
-        }
+        });
 
         super.$ready();
     }
 
     public $destroy () {
-        let $ : SetViewPrivate<T> = this.$;
-        let set : SetModel<T> = this.model.$;
+        const $ : SetViewPrivate<T> = this.$;
+        const set : SetModel<T> = this.model.$;
 
-        for (let it of set) {
-            const handler = $.handlers.get (it);
+        set.forEach(it => {
+            const handler = $.handlers.get(it);
 
             if (it instanceof IValue && handler) {
                 it.off(handler);
             }
-        }
+        });
 
         $.$destroy();
         super.$destroy();

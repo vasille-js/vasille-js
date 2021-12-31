@@ -42,8 +42,8 @@ export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
     }
 
     public createChild (id : K, item : T, before ?: Fragment) : any {
-        let $ : MapViewPrivate<K, T> = this.$;
-        let handler = super.createChild(id, item, before);
+        const $ : MapViewPrivate<K, T> = this.$;
+        const handler = super.createChild(id, item, before);
 
         if (item instanceof IValue) {
             item.on(handler);
@@ -52,8 +52,8 @@ export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
     }
 
     public destroyChild (id : K, item : T) {
-        let $ : MapViewPrivate<K, T> = this.$;
-        let handler = $.handlers.get(id);
+        const $ : MapViewPrivate<K, T> = this.$;
+        const handler = $.handlers.get(id);
 
         if (item instanceof IValue && handler) {
             item.off(handler);
@@ -63,7 +63,7 @@ export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
     }
 
     public $ready () {
-        let map : MapModel<K, T> = this.model.$;
+        const map : MapModel<K, T> = this.model.$;
 
         map.forEach((value, key) => {
             this.createChild(key, value);
@@ -73,8 +73,8 @@ export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
     }
 
     public $destroy () {
-        let $ : MapViewPrivate<K, T> = this.$;
-        let map : MapModel<K, T> = this.model.$;
+        const $ : MapViewPrivate<K, T> = this.$;
+        const map : MapModel<K, T> = this.model.$;
 
         map.forEach((value, key) => {
             if (value instanceof IValue) {

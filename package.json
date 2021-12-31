@@ -9,7 +9,8 @@
     "browser": "./lib/index.js"
   },
   "scripts": {
-    "prepack": "tsc --build tsconfig-types.json",
+    "prepack": "tsc --build tsconfig-build.json",
+    "build": "tsc --build tsconfig-build.json",
     "test": "echo \"Error: no test specified\"",
     "update-types": "tsc --build tsconfig-types.json"
   },
@@ -32,6 +33,9 @@
     "@types/estree": "latest",
     "@types/events": "latest",
     "@types/node": "latest",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
+    "eslint": "latest",
     "typescript": "latest"
   }
 }

@@ -26,18 +26,18 @@ export class MapModel<K, T> extends Map<K, T> implements IModel<K, T> {
             configurable: false
         });
 
-        for (let data of map) {
-            super.set(data[0], data[1]);
-        }
+        map.forEach(([key, value]) => {
+            super.set(key, value);
+        });
     }
 
     /**
      * Calls Map.clear and notify abut changes
      */
     public clear () {
-        for (let data of this) {
-            this.listener.emitRemoved(data[0], data[1]);
-        }
+        this.forEach((value, key) => {
+            this.listener.emitRemoved(key, value);
+        });
         super.clear();
     }
 
@@ -47,7 +47,7 @@ export class MapModel<K, T> extends Map<K, T> implements IModel<K, T> {
      * @return {boolean} true if removed something, otherwise false
      */
     public delete (key : any) : boolean {
-        let tmp = super.get(key);
+        const tmp = super.get(key);
         if (tmp) {
             this.listener.emitRemoved(key, tmp);
         }
@@ -61,7 +61,7 @@ export class MapModel<K, T> extends Map<K, T> implements IModel<K, T> {
      * @return {MapModel} a pointer to this
      */
     public set (key : K, value : T) : this {
-        let tmp = super.get(key);
+        const tmp = super.get(key);
         if (tmp) {
             this.listener.emitRemoved(key, tmp);
         }

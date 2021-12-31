@@ -9,11 +9,12 @@ export class Destroyable {
      * @protected
      */
     protected $seal () {
-        let $ : Object = this;
+        const $ = this as never as { [key : string] : unknown };
 
-        for (let i in $) {
+        for (const i in $) {
+            // eslint-disable-next-line no-prototype-builtins
             if (this.hasOwnProperty(i)) {
-                let config = Object.getOwnPropertyDescriptor($, i);
+                const config = Object.getOwnPropertyDescriptor($, i);
 
                 if (!config || config.configurable) {
                     Object.defineProperty($, i, config?.set || config?.get ? {
@@ -36,5 +37,6 @@ export class Destroyable {
      * Garbage collector method
      */
     public $destroy () : void {
+        // nothing here
     }
 }

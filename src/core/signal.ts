@@ -35,13 +35,13 @@ export class Signal<
      * @param a9 {*} argument
      */
     public emit (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8, a9 : T9) {
-        for (let handler of this.handlers) {
+        this.handlers.forEach(handler => {
             try {
                 handler (a1, a2, a3, a4, a5, a6, a7, a8, a9);
             } catch (e) {
                 console.error (`Vasille.js: Handler throw exception: `, e);
             }
-        }
+        });
     }
 
     /**

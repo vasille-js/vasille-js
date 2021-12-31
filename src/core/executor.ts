@@ -110,7 +110,7 @@ export class InstantExecutor extends Executor {
     }
 
     public insertBefore (target : Node, child : Node) {
-        let parent = target.parentNode;
+        const parent = target.parentNode;
 
         if (!parent) {
             throw internalError('element don\'t have a parent node');

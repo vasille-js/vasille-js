@@ -5,37 +5,6 @@ import { timeoutExecutor } from "../core/executor";
 
 
 /**
- * Defines an abstract node, which represents a dynamical part of application
- * @class RepeatNodeItem
- * @extends Fragment
- */
-export class RepeatNodeItem extends Fragment {
-    /**
-     * node identifier
-     * @type {*}
-     */
-    public $id : any;
-
-    /**
-     * Constructs a repeat node item
-     * @param id {*}
-     */
-    public constructor (id : any) {
-        super();
-        this.$id = id;
-        this.$seal();
-    }
-
-    /**
-     * Destroy all children
-     */
-    public $destroy () {
-        this.$id = null;
-        super.$destroy();
-    }
-}
-
-/**
  * Private part of repeat node
  * @class RepeatNodePrivate
  * @extends INodePrivate
@@ -74,7 +43,7 @@ export class RepeatNode<IdT, T> extends Fragment {
     /**
      * If false will use timeout executor, otherwise the app executor
      */
-    public freezeUi : boolean = true;
+    public freezeUi = true;
 
     public constructor ($ ?: RepeatNodePrivate<IdT>) {
         super($ || new RepeatNodePrivate);
@@ -83,24 +52,31 @@ export class RepeatNode<IdT, T> extends Fragment {
     }
 
     public createChild (id : IdT, item : T, before ?: Fragment) : any {
-        let current : Fragment = this.$.nodes.get(id);
-        let node = new RepeatNodeItem(id);
+        const current : Fragment = this.$.nodes.get(id);
+        const node = new Fragment();
+
+        // TODO: Refactor: remove @ts-ignore
+
+        // eslint-disable-next-line
         // @ts-ignore
-        let $ : FragmentPrivate = node.$;
+        const $ : FragmentPrivate = node.$;
 
         this.destroyChild(id, item);
 
         if (current) {
+            // eslint-disable-next-line
             // @ts-ignore
             const current$ = current.$;
 
             $.next = current$.next;
             $.prev = current$.prev;
             if ($.next) {
+                // eslint-disable-next-line
                 // @ts-ignore
                 $.next.$.prev = node;
             }
             if ($.prev) {
+                // eslint-disable-next-line
                 // @ts-ignore
                 $.prev.$.next = node;
             }
@@ -109,20 +85,24 @@ export class RepeatNode<IdT, T> extends Fragment {
         }
         else if (before) {
             $.next = before;
+            // eslint-disable-next-line
             // @ts-ignore
             $.prev = before.$.prev;
+            // eslint-disable-next-line
             // @ts-ignore
             before.$.prev = node;
             if ($.prev) {
+                // eslint-disable-next-line
                 // @ts-ignore
                 $.prev.$.next = node;
             }
             this.$children.splice(this.$children.indexOf(before) - 1, 0, node);
         }
         else {
-            let lastChild = this.$children[this.$children.length - 1];
+            const lastChild = this.$children[this.$children.length - 1];
 
             if (lastChild) {
+                // eslint-disable-next-line
                 // @ts-ignore
                 lastChild.$.next = node;
             }
@@ -146,21 +126,24 @@ export class RepeatNode<IdT, T> extends Fragment {
         }
 
         this.$.nodes.set(id, node);
-    };
+    }
 
     public destroyChild (id : IdT, item : T) {
-        let $ : RepeatNodePrivate<IdT> = this.$;
-        let child = $.nodes.get(id);
+        const $ : RepeatNodePrivate<IdT> = this.$;
+        const child = $.nodes.get(id);
 
         if (child) {
+            // eslint-disable-next-line
             // @ts-ignore
-            let $ : FragmentPrivate = child.$;
+            const $ : FragmentPrivate = child.$;
 
             if ($.prev) {
+                // eslint-disable-next-line
                 // @ts-ignore
                 $.prev.$.next = $.next;
             }
             if ($.next) {
+                // eslint-disable-next-line
                 // @ts-ignore
                 $.next.$.prev = $.prev;
             }

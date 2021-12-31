@@ -48,7 +48,7 @@ export class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNode<K, T>
     public constructor ($1 ?: BaseViewPrivate<K, T>) {
         super($1 || new BaseViewPrivate);
 
-        let $ : BaseViewPrivate<K, T> = this.$;
+        const $ : BaseViewPrivate<K, T> = this.$;
         $.addHandler = (id, item) => {
             this.createChild(id, item);
         };
@@ -67,7 +67,7 @@ export class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNode<K, T>
      * @return {handler} handler must be saved and unlinked on value remove
      */
     public createChild (id : K, item : T, before ?: Fragment) : () => void {
-        let handler = () => {
+        const handler = () => {
             this.createChild(id, item);
         };
         if (item instanceof IValue) {
@@ -84,7 +84,7 @@ export class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNode<K, T>
      * Handle ready event
      */
     public $ready () {
-        let $ : BaseViewPrivate<K, T> = this.$;
+        const $ : BaseViewPrivate<K, T> = this.$;
 
         this.model.$.listener.onAdd($.addHandler);
         this.model.$.listener.onRemove($.removeHandler);
@@ -95,7 +95,7 @@ export class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNode<K, T>
      * Handles destroy event
      */
     public $destroy () {
-        let $ : BaseViewPrivate<K, T> = this.$;
+        const $ : BaseViewPrivate<K, T> = this.$;
 
         this.model.$.listener.offAdd($.addHandler);
         this.model.$.listener.offRemove($.removeHandler);

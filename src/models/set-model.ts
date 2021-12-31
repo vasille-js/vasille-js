@@ -23,9 +23,9 @@ export class SetModel<T> extends Set<T> implements IModel<null, T> {
             configurable: false
         });
 
-        for (let item of set) {
+        set.forEach(item => {
             super.add(item);
-        }
+        });
     }
 
     /**
@@ -46,9 +46,9 @@ export class SetModel<T> extends Set<T> implements IModel<null, T> {
      * Calls Set.clear and notify abut changes
      */
     public clear () {
-        for (let item of this) {
+        this.forEach(item => {
             this.listener.emitRemoved(null, item);
-        }
+        });
         super.clear();
     }
 

@@ -43,7 +43,7 @@ export class Binding<T> extends Destroyable {
      */
     protected bound (name : string) : (node : INode, value : T) => void {
         throw notOverwritten ();
-    };
+    }
 
     /**
      * Just clear bindings

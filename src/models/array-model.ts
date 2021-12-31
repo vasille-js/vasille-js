@@ -66,7 +66,7 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
      * @return {*} removed value
      */
     public pop () : T {
-        let v = super.pop();
+        const v = super.pop();
 
         if (v) {
             this.listener.emitRemoved(v, v);
@@ -80,11 +80,11 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
      * @return {number} new length of array
      */
     public push (...items : Array<T>) : number {
-        for (let item of items) {
+        items.forEach(item => {
 
             this.listener.emitAdded(item, item);
             super.push(item);
-        }
+        });
         return this.length;
     }
 
@@ -93,7 +93,7 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
      * @return {*} the shifted value
      */
     public shift () : T {
-        let v = super.shift();
+        const v = super.shift();
 
         if (v) {
             this.listener.emitRemoved(v, v);
@@ -117,7 +117,7 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
         deleteCount = deleteCount || this.length - start;
 
         for (let i = 0; i < deleteCount; i++) {
-            let index = start + deleteCount - i - 1;
+            const index = start + deleteCount - i - 1;
             if (this[index] !== undefined) {
                 this.listener.emitRemoved(this[index], this[index]);
             }
@@ -157,9 +157,9 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
      * @return {this} a pointer to this
      */
     public clear () : this {
-        for (let v of this) {
+        this.forEach(v => {
             this.listener.emitRemoved(v, v);
-        }
+        });
         super.splice(0);
         return this;
     }

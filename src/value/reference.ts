@@ -40,18 +40,18 @@ export class Reference<T> extends IValue<T> {
             this.value = value;
 
             if (this.isEnabled) {
-                for (let handler of this.onchange) {
+                this.onchange.forEach(handler => {
                     handler (value);
-                }
+                });
             }
         }
     }
 
     public enable () : this {
         if (!this.isEnabled) {
-            for (let handler of this.onchange) {
+            this.onchange.forEach(handler => {
                 handler (this.value);
-            }
+            });
             this.isEnabled = true;
         }
         return this;

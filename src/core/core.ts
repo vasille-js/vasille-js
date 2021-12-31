@@ -30,13 +30,13 @@ export class ReactivePrivate extends Destroyable {
      * Reactivity switch state
      * @type {boolean}
      */
-    public enabled : boolean = true;
+    public enabled = true;
 
     /**
      * The frozen state of object
      * @type {boolean}
      */
-    public frozen : boolean = false;
+    public frozen = false;
 
     /**
      * An expression which will freeze/unfreeze the object
@@ -83,8 +83,8 @@ export class Reactive extends Destroyable {
      * @param value {*} value to reference
      */
     public $ref<T> (value : T) : IValue<T> {
-        let $ : ReactivePrivate = this.$;
-        let ref = new Reference (value);
+        const $ : ReactivePrivate = this.$;
+        const ref = new Reference (value);
         $.watch.add (ref);
         return ref;
     }
@@ -94,7 +94,7 @@ export class Reactive extends Destroyable {
      * @param value {IValue} value to mirror
      */
     public $mirror<T> (value : IValue<T>) : Mirror<T> {
-        let mirror = new Mirror(value);
+        const mirror = new Mirror(value);
 
         this.$.watch.add(mirror);
         return mirror;
@@ -105,9 +105,9 @@ export class Reactive extends Destroyable {
      * @param value {*} default value to point
      */
     public $point<T> (value : T | IValue<T>) : Pointer<T> {
-        let $ : ReactivePrivate = this.$;
-        let ref = value instanceof IValue ? value : new Reference<T> (value);
-        let pointer = new Pointer (ref);
+        const $ : ReactivePrivate = this.$;
+        const ref = value instanceof IValue ? value : new Reference<T> (value);
+        const pointer = new Pointer (ref);
 
         // when value is an ivalue will be equal to ref
         if (value !== ref) {
@@ -191,7 +191,7 @@ export class Reactive extends Destroyable {
         v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
         v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
     ) {
-        let $ : ReactivePrivate = this.$;
+        const $ : ReactivePrivate = this.$;
         $.watch.add (new Expression (func, !this.$.frozen, v1, v2, v3, v4, v5, v6, v7, v8, v9));
     }
 
@@ -269,8 +269,8 @@ export class Reactive extends Destroyable {
         v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
         v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
     ) : IValue<T> {
-        let res : IValue<T> = new Expression (func, !this.$.frozen, v1, v2, v3, v4, v5, v6, v7, v8, v9);
-        let $ : ReactivePrivate = this.$;
+        const res : IValue<T> = new Expression (func, !this.$.frozen, v1, v2, v3, v4, v5, v6, v7, v8, v9);
+        const $ : ReactivePrivate = this.$;
 
         $.watch.add (res);
         return res;
@@ -280,12 +280,12 @@ export class Reactive extends Destroyable {
      * Enable reactivity of fields
      */
     public $enable () {
-        let $ : ReactivePrivate = this.$;
+        const $ : ReactivePrivate = this.$;
 
         if (!$.enabled) {
-            for (let watcher of $.watch) {
+            $.watch.forEach(watcher => {
                 watcher.enable();
-            }
+            });
             $.enabled = true;
         }
     }
@@ -294,12 +294,12 @@ export class Reactive extends Destroyable {
      * Disable reactivity of fields
      */
     public $disable () {
-        let $ : ReactivePrivate = this.$;
+        const $ : ReactivePrivate = this.$;
 
         if ($.enabled) {
-            for (let watcher of $.watch) {
+            $.watch.forEach(watcher => {
                 watcher.disable();
-            }
+            });
         }
     }
 
@@ -309,8 +309,8 @@ export class Reactive extends Destroyable {
      * @param onOff {function} on show feedback
      * @param onOn {function} on hide feedback
      */
-    public $bindFreeze (cond : IValue<boolean>, onOff ?: Function, onOn ?: Function) : this {
-        let $ : ReactivePrivate = this.$;
+    public $bindFreeze (cond : IValue<boolean>, onOff ?: () => void, onOn ?: () => void) : this {
+        const $ : ReactivePrivate = this.$;
 
         if ($.freezeExpr) {
             throw wrongBinding("this component already have a freeze state");

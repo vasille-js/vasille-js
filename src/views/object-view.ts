@@ -42,8 +42,8 @@ export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
     }
 
     public createChild (id : string, item : T, before ?: Fragment) : any {
-        let $ : ObjectViewPrivate<T> = this.$;
-        let handler = super.createChild(id, item, before);
+        const $ : ObjectViewPrivate<T> = this.$;
+        const handler = super.createChild(id, item, before);
 
         if (item instanceof IValue) {
             item.on(handler);
@@ -52,7 +52,7 @@ export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
     }
 
     public destroyChild (id : string, item : T) {
-        let $ : ObjectViewPrivate<T> = this.$;
+        const $ : ObjectViewPrivate<T> = this.$;
 
         if (item instanceof IValue) {
             item.off($.handlers[id]);
@@ -62,10 +62,11 @@ export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
     }
 
     public $ready () {
-        let $ : ObjectViewPrivate<T> = this.$;
-        let obj : ObjectModel<T> = this.model.$;
+        const $ : ObjectViewPrivate<T> = this.$;
+        const obj : ObjectModel<T> = this.model.$;
 
-        for (let i in obj) {
+        for (const i in obj) {
+            // eslint-disable-next-line no-prototype-builtins
             if (obj.hasOwnProperty(i) && obj.get(i) instanceof IValue) {
                 $.app.$run.callCallback(() => {
                     this.createChild(i, obj.get(i));
@@ -77,12 +78,13 @@ export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
     }
 
     public $destroy () {
-        let $ : ObjectViewPrivate<T> = this.$;
-        let obj : ObjectModel<T> = this.model.$;
+        const $ : ObjectViewPrivate<T> = this.$;
+        const obj : ObjectModel<T> = this.model.$;
 
-        for (let i in obj) {
+        for (const i in obj) {
+            // eslint-disable-next-line no-prototype-builtins
             if (obj.hasOwnProperty(i)) {
-                let item = obj.get(i);
+                const item = obj.get(i);
 
                 if (item instanceof IValue) {
                     item.off($.handlers[i]);

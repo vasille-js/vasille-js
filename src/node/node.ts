@@ -103,7 +103,7 @@ export class Fragment extends Reactive {
      * @param parent {Fragment} parent of node
      * @param data {*} additional data
      */
-    public $preinit (app: AppNode, parent : Fragment, data ?: any) {
+    public $preinit (app: AppNode, parent : Fragment, data ?: unknown) {
         const $ : FragmentPrivate = this.$;
 
         $.preinit(app);
@@ -127,26 +127,32 @@ export class Fragment extends Reactive {
 
     /** To be overloaded: created event handler */
     public $created () {
+        // empty
     }
 
     /** To be overloaded: mounted event handler */
     public $mounted () {
+        // empty
     }
 
     /** To be overloaded: ready event handler */
     public $ready () {
+        // empty
     }
 
     /** To be overloaded: signals creation milestone */
     public $createSignals () {
+        // empty
     }
 
     /** To be overloaded: watchers creation milestone */
     public $createWatchers () {
+        // empty
     }
 
     /** To be overloaded: DOM creation milestone */
     public $compose () {
+        // empty
     }
 
     /**
@@ -176,13 +182,15 @@ export class Fragment extends Reactive {
      * @protected
      */
     protected $$findFirstChild () : Element {
-        for (let child of this.$children) {
-            let first = this.$$findFirstChild();
+        this.$children.forEach(child => {
+            const first = child.$$findFirstChild();
 
             if (first) {
                 return first;
             }
-        }
+        });
+
+        return null;
     }
 
     /**
@@ -190,7 +198,7 @@ export class Fragment extends Reactive {
      * @param node {Node} node to insert
      */
     public $$appendNode (node : Node) : void {
-        let $ : FragmentPrivate = this.$;
+        const $ : FragmentPrivate = this.$;
 
         if ($.next) {
             $.next.$$insertAdjacent(node);
@@ -205,8 +213,8 @@ export class Fragment extends Reactive {
      * @param node {Node} node to insert
      */
     public $$insertAdjacent (node : Node) : void {
-        let child = this.$$findFirstChild();
-        let $ : FragmentPrivate = this.$;
+        const child = this.$$findFirstChild();
+        const $ : FragmentPrivate = this.$;
 
         if (child) {
             $.app.$run.insertBefore(child, node);
@@ -236,9 +244,9 @@ export class Fragment extends Reactive {
         text : string | IValue<string>,
         cb ?: (text : TextNode) => void
     ) : this {
-        let $ = this.$;
-        let node = new TextNode();
-        let textValue = text instanceof IValue ? text : this.$ref(text);
+        const $ = this.$;
+        const node = new TextNode();
+        const textValue = text instanceof IValue ? text : this.$ref(text);
 
         node.$preinit($.app, this, textValue);
         this.$$pushNode(node);
@@ -252,7 +260,7 @@ export class Fragment extends Reactive {
     }
 
     public $debug(text : IValue<string>) : this {
-        let node = new DebugNode();
+        const node = new DebugNode();
 
         node.$preinit(this.$.app, this, text);
         this.$$pushNode(node);
@@ -280,8 +288,8 @@ export class Fragment extends Reactive {
         tagName : string,
         cb ?: (node : Tag, element : T) => void
     ) : this {
-        let $ : FragmentPrivate = this.$;
-        let node = new Tag();
+        const $ : FragmentPrivate = this.$;
+        const node = new Tag();
 
         node.$preinit($.app, this, tagName);
         node.$init();
@@ -305,7 +313,7 @@ export class Fragment extends Reactive {
         node : T,
         callback ?: ($ : T) => void
     ) : this {
-        let $ : FragmentPrivate = this.$;
+        const $ : FragmentPrivate = this.$;
 
         if (node instanceof Fragment) {
             node.$.parent = this;
@@ -360,8 +368,8 @@ export class Fragment extends Reactive {
     public $switch (
         ...cases : Array<{ cond : IValue<boolean>, cb : (node : Fragment) => void }>
     ) : this {
-        let $ : FragmentPrivate = this.$;
-        let node = new SwitchedNode();
+        const $ : FragmentPrivate = this.$;
+        const node = new SwitchedNode();
 
         node.$preinit($.app, this);
         node.$init();
@@ -393,7 +401,7 @@ export class Fragment extends Reactive {
     }
 
     public $destroy () {
-        for (let child of this.$children) {
+        for (const child of this.$children) {
             child.$destroy();
         }
 
@@ -489,7 +497,7 @@ export class INodePrivate extends FragmentPrivate {
      * Defines if node is unmounted
      * @type {boolean}
      */
-    public unmounted : boolean = false;
+    public unmounted = false;
 
     /**
      * The element of vasille node
@@ -550,10 +558,12 @@ export class INode extends Fragment {
 
     /** To be overloaded: attributes creation milestone */
     public $createAttrs () {
+        // empty
     }
 
     /** To be overloaded: $style attributes creation milestone */
     public $createStyle () {
+        // empty
     }
 
     /**
@@ -562,8 +572,8 @@ export class INode extends Fragment {
      * @param value {IValue} value
      */
     public $attr (name : string, value : IValue<string>) : this {
-        let $ : INodePrivate = this.$;
-        let attr = new AttributeBinding(this, name, value);
+        const $ : INodePrivate = this.$;
+        const attr = new AttributeBinding(this, name, value);
 
         $.bindings.add(attr);
         return this;
@@ -654,8 +664,8 @@ export class INode extends Fragment {
         v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
         v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
     ) : this {
-        let $ : INodePrivate = this.$;
-        let expr = this.$bind(calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
+        const $ : INodePrivate = this.$;
+        const expr = this.$bind(calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
 
         $.bindings.add(new AttributeBinding(this, name, expr));
         return this;
@@ -698,7 +708,7 @@ export class INode extends Fragment {
     public $bindClass (
         className : IValue<string>
     ) : this {
-        let $ : INodePrivate = this.$;
+        const $ : INodePrivate = this.$;
 
         $.bindings.add(new ClassBinding(this, "", className));
         return this;
@@ -720,7 +730,7 @@ export class INode extends Fragment {
      * @param value {IValue} value
      */
     public $style (name : string, value : IValue<string>) : this {
-        let $ : INodePrivate = this.$;
+        const $ : INodePrivate = this.$;
 
         if ($.node instanceof HTMLElement) {
             $.bindings.add(new StyleBinding(this, name, value));
@@ -815,8 +825,8 @@ export class INode extends Fragment {
         v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
         v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
     ) : this {
-        let $ : INodePrivate = this.$;
-        let expr = this.$bind<string, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
+        const $ : INodePrivate = this.$;
+        const expr = this.$bind<string, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
             calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
 
         if ($.node instanceof HTMLElement) {
@@ -857,7 +867,7 @@ export class INode extends Fragment {
         handler : (ev : Event) => void,
         options ?: boolean | AddEventListenerOptions
     ) : this {
-        let $ : INodePrivate = this.$;
+        const $ : INodePrivate = this.$;
 
         $.node.addEventListener(name, handler, options);
         return this;
@@ -1296,13 +1306,13 @@ export class INode extends Fragment {
     }
 
     public $$appendNode (node : Node) {
-        let $ : INodePrivate = this.$;
+        const $ : INodePrivate = this.$;
 
         $.app.$run.appendChild($.node, node);
     }
 
     public $$insertAdjacent (node : Node) {
-        let $ : INodePrivate = this.$;
+        const $ : INodePrivate = this.$;
 
         $.app.$run.insertBefore($.node, node);
     }
@@ -1312,12 +1322,12 @@ export class INode extends Fragment {
      * @param cond {IValue} show condition
      */
     public $bindShow (cond : IValue<boolean>) : this {
-        let $ : INodePrivate = this.$;
-        let node = $.node;
+        const $ : INodePrivate = this.$;
+        const node = $.node;
 
         if (node instanceof HTMLElement) {
             let lastDisplay = node.style.display;
-            let htmlNode : HTMLElement = node;
+            const htmlNode : HTMLElement = node;
 
             return this.$bindFreeze(cond, () => {
                 lastDisplay = htmlNode.style.display;
@@ -1336,7 +1346,7 @@ export class INode extends Fragment {
      * @param cond {IValue} show condition
      */
     public $bindMount (cond : IValue<boolean>) : this {
-        let $ : INodePrivate = this.$;
+        const $ : INodePrivate = this.$;
 
         return this.$bindFreeze(cond, () => {
             $.unmounted = true;
@@ -1350,7 +1360,7 @@ export class INode extends Fragment {
      * @param value {IValue}
      */
     public $html (value : IValue<string>) {
-        let $ : INodePrivate = this.$;
+        const $ : INodePrivate = this.$;
         const node = $.node;
 
         if (node instanceof HTMLElement) {
@@ -1386,8 +1396,8 @@ export class Tag extends INode {
             throw internalError('wrong Tag::$preinit call');
         }
 
-        let node = document.createElement(tagName);
-        let $ : INodePrivate = this.$;
+        const node = document.createElement(tagName);
+        const $ : INodePrivate = this.$;
 
         $.preinit(app);
         $.node = node;
@@ -1457,10 +1467,10 @@ export class Component extends Extension {
         if (this.$children.length !== 1) {
             throw userError("UserNode must have a child only", "dom-error");
         }
-        let child = this.$children[0];
+        const child = this.$children[0];
 
         if (child instanceof Tag || child instanceof Component) {
-            let $ : INodePrivate = this.$;
+            const $ : INodePrivate = this.$;
 
             $.node = child.node;
         }
@@ -1480,7 +1490,7 @@ export class SwitchedNodePrivate extends INodePrivate {
      * Index of current true condition
      * @type number
      */
-    public index : number = -1;
+    public index = -1;
 
     /**
      * The unique child which can be absent
@@ -1509,10 +1519,10 @@ export class SwitchedNodePrivate extends INodePrivate {
      * Runs GC
      */
     public $destroy () {
-        for (let c of this.cases) {
+        this.cases.forEach(c => {
             delete c.cond;
             delete c.cb;
-        }
+        });
         this.cases.splice(0);
 
         super.$destroy();
@@ -1532,7 +1542,7 @@ class SwitchedNode extends Extension {
         super($ ?? new SwitchedNodePrivate);
 
         this.$.sync = () => {
-            let $ : SwitchedNodePrivate = this.$;
+            const $ : SwitchedNodePrivate = this.$;
             let i = 0;
 
             for (; i < $.cases.length; i++) {
@@ -1561,19 +1571,15 @@ class SwitchedNode extends Extension {
         };
 
         this.$seal();
-    };
+    }
 
     /**
      * Set up switch cases
      * @param cases {{ cond : IValue, cb : function(Fragment) }}
      */
     public setCases (cases : Array<{ cond : IValue<boolean>, cb : (node : Fragment) => void }>) {
-        let $ = this.$;
-        $.cases = [];
-
-        for (let case_ of cases) {
-            $.cases.push(case_);
-        }
+        const $ = this.$;
+        $.cases = [...cases];
     }
 
     /**
@@ -1581,7 +1587,7 @@ class SwitchedNode extends Extension {
      * @param cb {function(Fragment)} Call-back
      */
     public createChild (cb : (node : Fragment) => void) {
-        let node = new Fragment();
+        const node = new Fragment();
 
         node.$preinit(this.$.app, this);
         node.$init();
@@ -1589,26 +1595,28 @@ class SwitchedNode extends Extension {
 
         this.$.fragment = node;
         this.$children.push(node);
-    };
+
+        cb(node);
+    }
 
     public $ready () {
-        let $ = this.$;
+        const $ = this.$;
 
         super.$ready();
 
-        for (let c of $.cases) {
+        $.cases.forEach(c => {
             c.cond.on($.sync);
-        }
+        });
 
         $.sync();
     }
 
     public $destroy () {
-        let $ = this.$;
+        const $ = this.$;
 
-        for (let c of $.cases) {
+        $.cases.forEach(c => {
             c.cond.off($.sync);
-        }
+        });
 
         super.$destroy();
     }

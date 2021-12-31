@@ -24,9 +24,9 @@ export class ObjectModel<T> extends Object implements IModel<string, T> {
             configurable: false
         });
 
-        let ts = this as any as { [key : string] : T };
+        const ts = this as never as { [key : string] : T };
 
-        for (let i in obj) {
+        for (const i in obj) {
             Object.defineProperty(this, i, {
                 value: obj[i],
                 configurable: false
@@ -40,7 +40,7 @@ export class ObjectModel<T> extends Object implements IModel<string, T> {
      * @return {*}
      */
     public get (key : string) : T {
-        let ts = this as any as { [key : string] : T };
+        const ts = this as never as { [key : string] : T };
 
         return ts[key];
     }
@@ -52,8 +52,9 @@ export class ObjectModel<T> extends Object implements IModel<string, T> {
      * @return {ObjectModel} a pointer to this
      */
     public set (key : string, v : T) : this {
-        let ts = this as any as { [key : string] : T };
+        const ts = this as never as { [key : string] : T };
 
+        // eslint-disable-next-line no-prototype-builtins
         if (ts.hasOwnProperty(key)) {
             this.listener.emitRemoved(key, ts[key]);
             ts[key] = v;
@@ -74,7 +75,7 @@ export class ObjectModel<T> extends Object implements IModel<string, T> {
      * @param key {string} property name
      */
     public delete (key : string) {
-        let ts = this as any as { [key : string] : T };
+        const ts = this as never as { [key : string] : T };
 
         if (ts[key]) {
             this.listener.emitRemoved(key, ts[key]);

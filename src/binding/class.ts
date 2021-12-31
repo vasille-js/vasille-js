@@ -43,7 +43,7 @@ export class ClassBinding extends Binding<string | boolean> {
         }
 
         return (node : INode, value : string | boolean) => {
-            let current : string | boolean = this.current;
+            const current : string | boolean = this.current;
 
             if (value !== current) {
                 if (typeof current === "string" && current !== "") {

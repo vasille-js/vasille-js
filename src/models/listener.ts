@@ -80,9 +80,9 @@ export class Listener<ValueT, IndexT = string | number> {
             }
         }
         else {
-            for (let handler of this.onAdded) {
+            this.onAdded.forEach(handler => {
                 handler(index, value);
-            }
+            });
         }
     }
 
@@ -98,9 +98,9 @@ export class Listener<ValueT, IndexT = string | number> {
             }
         }
         else {
-            for (let handler of this.onRemoved) {
+            this.onRemoved.forEach(handler => {
                 handler(index, value);
-            }
+            });
         }
     }
 

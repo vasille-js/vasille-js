@@ -32,7 +32,7 @@ export class Mirror<T> extends Reference<T> {
      * @param value {IValue} is initial value
      * @param forwardOnly {boolean} ensure forward only synchronization
      */
-    public constructor (value : IValue<T>, forwardOnly : boolean = false) {
+    public constructor (value : IValue<T>, forwardOnly = false) {
         super (value.$);
         this.handler = (v : T) => {
             this.$ = v;
@@ -45,10 +45,16 @@ export class Mirror<T> extends Reference<T> {
     }
 
     public get $ () : T {
+        // this is a ts bug
+        // eslint-disable-next-line
+        // @ts-ignore
         return super.$;
     }
 
     public set $ (v : T) {
+        // this is a ts bug
+        // eslint-disable-next-line
+        // @ts-ignore
         super.$ = v;
         if (!this.forwardOnly) {
             this.pointedValue.$ = v;

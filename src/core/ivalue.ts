@@ -18,7 +18,7 @@ export class IValue<T> extends Destroyable {
     /**
      * @param isEnabled {boolean} initial is enabled state
      */
-    public constructor (isEnabled : boolean = false) {
+    public constructor (isEnabled = false) {
         super ();
         this.isEnabled = isEnabled;
     }
