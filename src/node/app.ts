@@ -1,5 +1,3 @@
-// @flow
-
 import { Executor, instantExecutor, timeoutExecutor } from "../core/executor";
 import { INode } from "./node";
 
@@ -8,6 +6,11 @@ type AppOptions = {
     executor : Executor
 };
 
+/**
+ * Application Node
+ * @class AppNode
+ * @extends INode
+ */
 export class AppNode extends INode {
     /**
      * Executor is used to optimize the page creation/update
@@ -15,6 +18,9 @@ export class AppNode extends INode {
      */
     $run : Executor;
 
+    /**
+     * @param options {Object} Application options
+     */
     constructor (options ?: AppOptions) {
         super ();
 
@@ -23,14 +29,17 @@ export class AppNode extends INode {
 }
 
 /**
- * Represents a Vasille.js application node
+ * Represents a Vasille.js application
+ * @class App
+ * @extends AppNode
  */
 export class App extends AppNode {
     /**
      * Constructs an app node
-     * @param node {HTMLElement} The root of application
+     * @param node {Element} The root of application
+     * @param options {Object} Application options
      */
-    constructor (node : HTMLElement, options ?: AppOptions) {
+    constructor (node : Element, options ?: AppOptions) {
         super(options);
 
         this.$.node = node;

@@ -1,26 +1,31 @@
-// @flow
 import { Destroyable } from "./destroyable.js";
 import { notOverwritten } from "./errors";
 
 
 /**
- * A interface which describes a value
- * @interface
+ * Interface which describes a value
+ * @class IValue
  * @extends Destroyable
  */
 export class IValue<T> extends Destroyable {
 
+    /**
+     * Is enabled state flag
+     * @protected
+     */
     protected isEnabled : boolean;
 
+    /**
+     * @param isEnabled {boolean} initial is enabled state
+     */
     public constructor (isEnabled : boolean = false) {
         super ();
         this.isEnabled = isEnabled;
     }
 
     /**
-     * Gets the encapsulated value
-     * @return {*} Must return a value
-     * @throws Must be overwritten
+     * Get the encapsulated value
+     * @return {*} the encapsulated value
      */
     public get $ () : T {
         throw notOverwritten ();
@@ -28,9 +33,7 @@ export class IValue<T> extends Destroyable {
 
     /**
      * Sets the encapsulated value
-     * @param value {*} Reference to encapsulate
-     * @return {IValue} A pointer to this
-     * @throws Must be overwritten
+     * @param value {*} value to encapsulate
      */
     public set $ (value : T) {
         throw notOverwritten ();
@@ -38,9 +41,7 @@ export class IValue<T> extends Destroyable {
 
     /**
      * Add a new handler to value change
-     * @param handler {Function} The handler to add
-     * @return {IValue} a pointer to this
-     * @throws Must be overwritten
+     * @param handler {function(value : *)} the handler to add
      */
     public on (handler : (value : T) => void) : this {
         throw notOverwritten ();
@@ -48,9 +49,7 @@ export class IValue<T> extends Destroyable {
 
     /**
      * Removes a handler of value change
-     * @param handler {Function} the handler to remove
-     * @return {IValue} a pointer to this
-     * @throws Must be overwritten
+     * @param handler {function(value : *)} the handler to remove
      */
     public off (handler : (value : T) => void) : this {
         throw notOverwritten ();

@@ -1,4 +1,3 @@
-// @flow
 import { Listener } from "./listener";
 import type { IModel } from "./model";
 
@@ -6,18 +5,17 @@ import type { IModel } from "./model";
 
 /**
  * A Map based memory
- * @extends Map<*, IValue>
+ * @class MapModel
+ * @extends Map
+ * @implements IModel
  */
 export class MapModel<K, T> extends Map<K, T> implements IModel<K, T> {
-    /**
-     * listener of map
-     * @type {Listener}
-     */
+
     public listener : Listener<T, K>;
 
     /**
-     * Constructs a map model based on a map
-     * @param map {Map<*, IValue>} input data
+     * Constructs a map model
+     * @param map {[*, *][]} input data
      */
     public constructor (map : [K, T][] = []) {
         super();
@@ -59,7 +57,7 @@ export class MapModel<K, T> extends Map<K, T> implements IModel<K, T> {
     /**
      * Calls Map.set and notify abut changes
      * @param key {*} key
-     * @param value {IValue} value
+     * @param value {*} value
      * @return {MapModel} a pointer to this
      */
     public set (key : K, value : T) : this {

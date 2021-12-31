@@ -3,6 +3,7 @@ import { Destroyable } from "./destroyable.js";
 import { IValue } from "./ivalue.js";
 import { Expression } from "../value/expression";
 import { Pointer } from "../value/pointer";
+import { Mirror } from "../value/mirror";
 
 
 
@@ -24,7 +25,8 @@ declare export class Reactive extends Destroyable {
     constructor ($ : ?ReactivePrivate) : void;
 
     $ref<T> (value : T) : IValue<T>;
-    $pointer<T> (value : T) : Pointer<T>;
+    $mirror<T> (value : IValue<T>) : Mirror<T>;
+    $point<T> (value : T | IValue<T>) : Pointer<T>;
 
     $watch<T1> (
         func : (a1 : T1) => void,

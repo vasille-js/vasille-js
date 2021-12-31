@@ -1,6 +1,4 @@
-// @flow
 import { RepeatNode, RepeatNodePrivate } from "./repeat-node";
-import { Listener } from "../models/listener";
 import { IValue } from "../core/ivalue";
 import { Fragment } from "../node/node";
 import {IModel} from "../models/model";
@@ -9,6 +7,8 @@ import {IModel} from "../models/model";
 
 /**
  * Private part of BaseView
+ * @class BaseViewPrivate
+ * @extends RepeatNodePrivate
  */
 export class BaseViewPrivate<K, T> extends RepeatNodePrivate<K> {
     /**
@@ -31,21 +31,20 @@ export class BaseViewPrivate<K, T> extends RepeatNodePrivate<K> {
 
 /**
  * Base class of default views
+ * @class BaseView
+ * @extends RepeatNode
+ * @implements IModel
  */
 export class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNode<K, T> {
 
     protected $ : BaseViewPrivate<K, T>;
 
-    // props
     /**
      * Property which will contain a model
      * @type {IValue<*>}
      */
     public model : IValue<Model>;
 
-    /**
-     * Sets up model and handlers
-     */
     public constructor ($1 ?: BaseViewPrivate<K, T>) {
         super($1 || new BaseViewPrivate);
 
@@ -62,10 +61,10 @@ export class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNode<K, T>
 
     /**
      * Creates a child when user adds new values
-     * @param id {*} id of children pack
-     * @param item {IValue<*>} Reference of children pack
+     * @param id {*} id of child
+     * @param item {IValue} reference of child value
      * @param before {Fragment} Node to paste before it
-     * @return {handler} handler must be saved and unliked on value remove
+     * @return {handler} handler must be saved and unlinked on value remove
      */
     public createChild (id : K, item : T, before ?: Fragment) : () => void {
         let handler = () => {

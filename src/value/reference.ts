@@ -1,11 +1,11 @@
-// @flow
 import { IValue } from "../core/ivalue";
 
 
 
 /**
  * Declares a notifiable value
- * @implements IValue
+ * @class Reference
+ * @extends IValue
  */
 export class Reference<T> extends IValue<T> {
     /**
@@ -16,13 +16,13 @@ export class Reference<T> extends IValue<T> {
 
     /**
      * Array of handlers
-     * @type {Set<Function>}
+     * @type {Set}
+     * @readonly
      */
     private readonly onchange : Set<(value : T) => void>;
 
     /**
-     * Constructs a notifiable value
-     * @param value {any} is initial value
+     * @param value {any} the initial value
      */
     public constructor (value : T) {
         super (true);
@@ -31,19 +31,10 @@ export class Reference<T> extends IValue<T> {
         this.$seal ();
     }
 
-    /**
-     * Gets the notifiable value as js value
-     * @returns {any} contained value
-     */
     public get $ () : T {
         return this.value;
     }
 
-    /**
-     * Sets the value and notify listeners
-     * @param value {any} is the new value
-     * @returns {Reference} a pointer to this
-     */
     public set $ (value : T) {
         if (this.value !== value) {
             this.value = value;
@@ -71,29 +62,16 @@ export class Reference<T> extends IValue<T> {
         return this;
     }
 
-    /**
-     * Adds a new handler for value change
-     * @param handler {function} is a user-defined event handler
-     * @returns {Reference} a pointer to this
-     */
     public on (handler : (value : T) => void) : this {
         this.onchange.add (handler);
         return this;
     }
 
-    /**
-     * Removes a new handler for value change
-     * @param handler {function} is a existing user-defined handler
-     * @returns {Reference} a pointer to this
-     */
     public off (handler : (value : T) => void) : this {
         this.onchange.delete (handler);
         return this;
     }
 
-    /**
-     * Runs GC
-     */
     public $destroy () {
         super.$destroy ();
         this.onchange.clear ();

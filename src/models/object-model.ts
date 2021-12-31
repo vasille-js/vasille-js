@@ -1,28 +1,24 @@
-// @flow
 import { Listener } from "./listener";
 import type { IModel } from "./model";
 
 
 
 /**
- * A Object based model
- * @extends Object<String, IValue>
+ * Object based model
+ * @extends Object
  */
 export class ObjectModel<T> extends Object implements IModel<string, T> {
-    /**
-     * the listener of object
-     * @type {Listener}
-     */
+
     public listener : Listener<T, string>;
 
     /**
-     * Constructs a object model from an object
-     * @param obj {Object<String, IValue>} input data
+     * Constructs a object model
+     * @param obj {Object} input data
      */
     public constructor (obj : { [p : string] : T } = {}) {
         super();
 
-        ObjectModel.defineProperty(this, 'listener', {
+        Object.defineProperty(this, 'listener', {
             value: new Listener,
             writable: false,
             configurable: false
@@ -31,14 +27,17 @@ export class ObjectModel<T> extends Object implements IModel<string, T> {
         let ts = this as any as { [key : string] : T };
 
         for (let i in obj) {
-            ts[i] = obj[i];
+            Object.defineProperty(this, i, {
+                value: obj[i],
+                configurable: false
+            });
         }
     }
 
     /**
      * Gets a value of a field
      * @param key {string}
-     * @return {IValue<*>}
+     * @return {*}
      */
     public get (key : string) : T {
         let ts = this as any as { [key : string] : T };
@@ -47,7 +46,7 @@ export class ObjectModel<T> extends Object implements IModel<string, T> {
     }
 
     /**
-     * Sets an object property value <b>(use for new properties only)</b>
+     * Sets an object property value
      * @param key {string} property name
      * @param v {*} property value
      * @return {ObjectModel} a pointer to this
@@ -55,10 +54,16 @@ export class ObjectModel<T> extends Object implements IModel<string, T> {
     public set (key : string, v : T) : this {
         let ts = this as any as { [key : string] : T };
 
-        if (ts[key]) {
+        if (ts.hasOwnProperty(key)) {
             this.listener.emitRemoved(key, ts[key]);
+            ts[key] = v;
         }
-        ts[key] = v;
+        else {
+            Object.defineProperty(ts, key, {
+                value: v,
+                configurable: false
+            });
+        }
         this.listener.emitAdded(key, ts[key]);
 
         return this;

@@ -1,4 +1,3 @@
-// @flow
 import { Binding } from "./binding";
 import type { INode } from "../node/node";
 import type { IValue } from "../core/ivalue";
@@ -7,16 +6,15 @@ import type { IValue } from "../core/ivalue";
 
 /**
  * Represents an Attribute binding description
+ * @class AttributeBinding
  * @extends Binding
  */
 export class AttributeBinding extends Binding<string> {
     /**
      * Constructs an attribute binding description
-     * @param rt {INode} is root component
-     * @param ts {INode} is this component
-     * @param name {String} is the name of attribute
-     * @param func {?Function} is the function to bound
-     * @param values {Array<IValue>} is the array of values to bind to
+     * @param node {INode} the vasille node
+     * @param name {String} the name of attribute
+     * @param value {IValue} value to bind
      */
     public constructor (
         node : INode,

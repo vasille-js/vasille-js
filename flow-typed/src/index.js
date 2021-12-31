@@ -11,7 +11,7 @@ import { MapModel } from "./models/map-model";
 import { ObjectModel } from "./models/object-model";
 import { SetModel } from "./models/set-model";
 import { App, AppNode } from "./node/app";
-import { Interceptor } from "./node/interceptor";
+import { Interceptor, InterceptorNode } from "./node/interceptor";
 import { Component, Extension, Fragment, INode, Tag } from "./node/node";
 import { Expression } from "./value/expression";
 import { Mirror } from "./value/mirror";
@@ -37,6 +37,6 @@ export {
     Fragment, INode, Tag, Component, Extension,
     AppNode, App,
     Executor, InstantExecutor, TimeoutExecutor,
-    Signal, Slot, Interceptor,
+    Signal, Slot, Interceptor, InterceptorNode,
     Expression, Binding, Reactive,
 };

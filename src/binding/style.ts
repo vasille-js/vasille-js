@@ -1,23 +1,20 @@
-// @flow
 import { Binding } from "./binding";
 import type { INode } from "../node/node";
 import type { IValue } from "../core/ivalue";
-import {userError} from "../core/errors";
 
 
 
 /**
  * Describes a style attribute binding
+ * @class StyleBinding
  * @extends Binding
  */
 export class StyleBinding extends Binding<string> {
     /**
      * Constructs a style binding attribute
-     * @param rt {INode} is root component
-     * @param ts {INode} is this component
-     * @param name {string} is the name of style property
-     * @param func {function} is the function to calc style value
-     * @param values is the value to be synced
+     * @param node {INode} the vasille node
+     * @param name {string} the name of style property
+     * @param value {IValue} the value to bind
      */
     public constructor (
         node : INode,
@@ -36,9 +33,6 @@ export class StyleBinding extends Binding<string> {
         return function (node : INode, value : string) {
             if (node.node instanceof HTMLElement) {
                 node.app.$run.setStyle(node.node, name, value);
-            }
-            else {
-                throw userError('style can be applied to HTML elements only', 'non-html-element');
             }
         };
     }

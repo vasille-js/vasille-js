@@ -1,17 +1,18 @@
-// @flow
 import { Listener } from "./listener";
 import type { IModel } from "./model";
 
 /**
  * A Set based model
- * @extends Set<IValue>
+ * @class SetModel
+ * @extends Set
+ * @implements IModel
  */
 export class SetModel<T> extends Set<T> implements IModel<null, T> {
     public listener : Listener<T, null>;
 
     /**
      * Constructs a set model based on a set
-     * @param set {Set<IValue>} input data
+     * @param set {Set} input data
      */
     public constructor (set : T[] = []) {
         super();
@@ -53,7 +54,7 @@ export class SetModel<T> extends Set<T> implements IModel<null, T> {
 
     /**
      * Calls Set.delete and notify abut changes
-     * @param value {IValue}
+     * @param value {*}
      * @return {boolean} true if a value was deleted, otherwise false
      */
     public delete (value : T) : boolean {

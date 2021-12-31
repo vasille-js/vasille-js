@@ -1,5 +1,3 @@
-// @flow
-
 import { Fragment, FragmentPrivate, INodePrivate } from "../node/node";
 import { Slot } from "../core/slot";
 import { timeoutExecutor } from "../core/executor";
@@ -8,6 +6,8 @@ import { timeoutExecutor } from "../core/executor";
 
 /**
  * Defines an abstract node, which represents a dynamical part of application
+ * @class RepeatNodeItem
+ * @extends Fragment
  */
 export class RepeatNodeItem extends Fragment {
     /**
@@ -35,10 +35,15 @@ export class RepeatNodeItem extends Fragment {
     }
 }
 
+/**
+ * Private part of repeat node
+ * @class RepeatNodePrivate
+ * @extends INodePrivate
+ */
 export class RepeatNodePrivate<IdT> extends INodePrivate {
     /**
      * Children node hash
-     * @type {Map<*, Extension>}
+     * @type {Map}
      */
     public nodes : Map<IdT, Fragment> = new Map();
 
@@ -55,11 +60,20 @@ export class RepeatNodePrivate<IdT> extends INodePrivate {
 
 /**
  * Repeat node repeats its children
+ * @class RepeatNode
+ * @extends Fragment
  */
 export class RepeatNode<IdT, T> extends Fragment {
     protected $ : RepeatNodePrivate<IdT>;
 
+    /**
+     * Default slot
+     */
     public slot : Slot<T, IdT>;
+
+    /**
+     * If false will use timeout executor, otherwise the app executor
+     */
     public freezeUi : boolean = true;
 
     public constructor ($ ?: RepeatNodePrivate<IdT>) {
@@ -68,12 +82,6 @@ export class RepeatNode<IdT, T> extends Fragment {
         this.slot = new Slot;
     }
 
-    /**
-     * Create a children pack
-     * @param id {*} id of child pack
-     * @param item {IValue<*>} value for children pack
-     * @param before {Fragment} Node to insert before it
-     */
     public createChild (id : IdT, item : T, before ?: Fragment) : any {
         let current : Fragment = this.$.nodes.get(id);
         let node = new RepeatNodeItem(id);
@@ -140,11 +148,6 @@ export class RepeatNode<IdT, T> extends Fragment {
         this.$.nodes.set(id, node);
     };
 
-    /**
-     * Destroy an old child
-     * @param id {*} id of children pack
-     * @param item {IValue<*>} value of children pack
-     */
     public destroyChild (id : IdT, item : T) {
         let $ : RepeatNodePrivate<IdT> = this.$;
         let child = $.nodes.get(id);

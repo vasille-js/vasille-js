@@ -1,18 +1,18 @@
-// @flow
 import { Reference } from "./reference.js";
 import { IValue } from "../core/ivalue";
 
 
 /**
  * Bind some values to one expression
- * @implements IBind
+ * @class Expression
+ * @extends IValue
  */
 export class Expression<
     T, T1 = void, T2 = void, T3 = void, T4 = void, T5 = void, T6 = void, T7 = void, T8 = void, T9 = void
 > extends IValue<T> {
     /**
      * The array of value which will trigger recalculation
-     * @type {Array<IValue<*>>}
+     * @type {Array}
      */
     private values : [
         IValue<T1>,
@@ -28,8 +28,7 @@ export class Expression<
 
     /**
      * Cache the values of expression variables
-     * @type {Array<*>}
-     * @version 1.1
+     * @type {Array}
      */
     private readonly valuesCache : [T1, T2, T3, T4, T5, T6, T7, T8, T9];
 
@@ -49,18 +48,18 @@ export class Expression<
     private sync : Reference<T>;
 
     /**
-     * Creates a function bounded to N value
-     * @param func {Function} The function to bound
-     * @param link {Boolean} If true links immediately
-     * @param v1
-     * @param v2
-     * @param v3
-     * @param v4
-     * @param v5
-     * @param v6
-     * @param v7
-     * @param v8
-     * @param v9
+     * Creates a function bounded to N values
+     * @param func {Function} the function to bound
+     * @param link {Boolean} links immediately if true
+     * @param v1 {*} argument
+     * @param v2 {*} argument
+     * @param v3 {*} argument
+     * @param v4 {*} argument
+     * @param v5 {*} argument
+     * @param v6 {*} argument
+     * @param v7 {*} argument
+     * @param v8 {*} argument
+     * @param v9 {*} argument
      */
     public constructor (
         func : (a1 : T1) => T,
@@ -163,45 +162,28 @@ export class Expression<
         this.$seal ();
     }
 
-    /**
-     * Gets the last calculated value
-     * @return {*} The last calculated value
-     */
     public get $ () : T {
         return this.sync.$;
     }
 
-    /**
-     * Sets the last calculated value in manual mode
-     */
     public set $ (value : T) {
         this.sync.$ = value;
     }
 
-    /**
-     * Sets a user handler on value change
-     */
     public on (handler : (value : T) => void) : this {
         this.sync.on (handler);
         return this;
     }
 
-    /**
-     * Unsets a user handler from value change
-     */
     public off (handler : (value : T) => void) : this {
         this.sync.off (handler);
         return this;
     }
 
-    /**
-     * Binds function to each value
-     */
     public enable () : this {
         if (!this.isEnabled) {
             for (let i = 0; i < this.values.length; i++) {
                 this.values[i].on (this.linkedFunc[i]);
-                // $FlowFixMe
                 this.valuesCache[i] = this.values[i].$;
             }
             this.func ();
@@ -210,9 +192,6 @@ export class Expression<
         return this;
     }
 
-    /**
-     * Unbind function from each value
-     */
     public disable () : this {
         if (this.isEnabled) {
             for (let i = 0; i < this.values.length; i++) {
@@ -223,14 +202,9 @@ export class Expression<
         return this;
     }
 
-    /**
-     * Clear bindings on destroy
-     */
     public $destroy () : void {
         this.disable ();
-        // $FlowFixMe
         this.values.splice (0);
-        // $FlowFixMe
         this.valuesCache.splice (0);
         this.linkedFunc.splice (0);
     }

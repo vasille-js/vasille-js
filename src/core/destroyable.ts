@@ -1,8 +1,13 @@
 /**
  * Mark an object which can be destroyed
- * @class
+ * @class Destroyable
  */
 export class Destroyable {
+
+    /**
+     * Make object fields non configurable
+     * @protected
+     */
     protected $seal () {
         let $ : Object = this;
 

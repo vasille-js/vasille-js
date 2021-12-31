@@ -1,4 +1,3 @@
-// @flow
 import { BaseView, BaseViewPrivate } from "./base-view";
 import { ArrayModel } from "../models/array-model";
 import { IValue } from "../core/ivalue";
@@ -8,11 +7,13 @@ import { Fragment } from "../node/node";
 
 /**
  * Private part of array view
+ * @class ArrayViewPrivate
+ * @extends BaseViewPrivate
  */
 export class ArrayViewPrivate<T> extends BaseViewPrivate<T, T> {
     /**
      * Contains handlers of each child
-     * @type {Map<IValue<*>, Function>}
+     * @type {Map}
      */
     public handlers : Map<T, () => void> = new Map();
 
@@ -20,24 +21,21 @@ export class ArrayViewPrivate<T> extends BaseViewPrivate<T, T> {
         super ();
         this.$seal();
     }
+
+    $destroy() {
+        super.$destroy();
+        this.handlers.clear();
+    }
 }
 
 /**
  * Represents a view of an array model
+ * @class ArrayView
+ * @extends BaseView
  */
 export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
-
     protected $ : ArrayViewPrivate<T>;
 
-    /**
-     * model of view
-     * @type {IValue<ArrayModel<*>>}
-     */
-    public model : IValue<ArrayModel<T>>;
-
-    /**
-     * Sets up model with a default value
-     */
     public constructor ($ ?: ArrayViewPrivate<T>) {
         super($ || new ArrayViewPrivate);
 
@@ -45,11 +43,6 @@ export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
         this.$seal();
     }
 
-
-
-    /**
-     * Overrides child created and generate random id for children
-     */
     public createChild (id : T, item : T, before ?: Fragment) : any {
         let $ : ArrayViewPrivate<T> = this.$;
         let next = $.nodes.get(id);
@@ -58,9 +51,6 @@ export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
         $.handlers.set(item, handler);
     }
 
-    /**
-     * Removes a children pack
-     */
     public destroyChild (id : T, item : T) {
         let $ : ArrayViewPrivate<T> = this.$;
         let handler = $.handlers.get (item);
@@ -72,11 +62,6 @@ export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
         super.destroyChild(item, item);
     }
 
-
-
-    /**
-     * Handle ready event
-     */
     public $ready () {
         let arr : ArrayModel<T> = this.model.$;
 
@@ -87,9 +72,6 @@ export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
         super.$ready();
     }
 
-    /**
-     * Handle destroy event
-     */
     public $destroy () {
         let $ : ArrayViewPrivate<T> = this.$;
 
@@ -99,6 +81,7 @@ export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
             }
         });
 
+        $.$destroy();
         super.$destroy();
     }
 }

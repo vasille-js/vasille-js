@@ -1,21 +1,23 @@
-// @flow
 import { Fragment } from "../node/node";
 
 /**
- * Defines a component slot
+ * Component slot
+ * @class Slot
  */
 export class Slot<
     t1 = void, t2 = void, t3 = void, t4 = void, t5 = void, t6 = void, t7 = void, t8 = void, t9 = void
     > {
-    /**
-     * Function to run
-     * @type {?(function(INode, t1, t2, t3, t4, t5, t6, t7, t8, t9) : void)}
-     */
-    private runner ?: (a0 : Fragment, a1 : t1, a2 : t2, a3 : t3, a4 : t4, a5 : t5, a6 : t6, a7 : t7, a8 : t8, a9 : t9) => void;
 
     /**
-     * Sets the insert handler
-     * @param func {Function} Function to run
+     * Function to run
+     * @type {function(node : Fragment)}
+     */
+    private runner ?:
+        (a0 : Fragment, a1 : t1, a2 : t2, a3 : t3, a4 : t4, a5 : t5, a6 : t6, a7 : t7, a8 : t8, a9 : t9) => void;
+
+    /**
+     * Sets the runner
+     * @param func {function} the function to run
      */
     public insert (
         func : (a0 : Fragment, a1 : t1, a2 : t2, a3 : t3, a4 : t4, a5 : t5, a6 : t6, a7 : t7, a8 : t8, a9 : t9) => void
@@ -24,7 +26,7 @@ export class Slot<
     }
 
     /**
-     * @param a0 {INode} node to paste content
+     * @param a0 {Fragment} node to paste content
      * @param a1 {*} 1st argument
      * @param a2 {*} 2nd argument
      * @param a3 {*} 3rd argument
@@ -45,8 +47,8 @@ export class Slot<
 
     /**
      * Predefine a handler for a slot
-     * @param func {Function} Function to run if no handler specified
-     * @param a0 {INode} node to paste content
+     * @param func {function(node : Fragment)} Function to run if no handler specified
+     * @param a0 {Fragment} node to paste content
      * @param a1 {*} 1st argument
      * @param a2 {*} 2nd argument
      * @param a3 {*} 3rd argument

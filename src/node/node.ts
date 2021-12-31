@@ -1,4 +1,3 @@
-// @flow
 import { Reactive, ReactivePrivate } from "../core/core";
 import { IValue } from "../core/ivalue";
 import { Reference } from "../value/reference";
@@ -6,7 +5,6 @@ import { Expression } from "../value/expression";
 import { AttributeBinding } from "../binding/attribute";
 import { ClassBinding } from "../binding/class";
 import { StyleBinding } from "../binding/style";
-import { Slot } from "../core/slot";
 import { internalError, userError } from "../core/errors";
 import type { AppNode } from "./app";
 
@@ -14,39 +12,34 @@ import type { AppNode } from "./app";
 
 /**
  * Represents a Vasille.js node
+ * @class FragmentPrivate
  * @extends ReactivePrivate
  */
 export class FragmentPrivate extends ReactivePrivate {
 
     /**
      * The app node
-     * @type {Fragment}
+     * @type {AppNode}
      */
     public app : AppNode;
 
     /**
-     * A link to a parent node
+     * Parent node
      * @type {Fragment}
      */
     public parent : Fragment;
 
     /**
-     * The next node
+     * Next node
      * @type {?Fragment}
      */
     public next ?: Fragment;
 
     /**
-     * The previous node
+     * Previous node
      * @type {?Fragment}
      */
     public prev ?: Fragment;
-
-    /**
-     * The building active state
-     * @type {boolean}
-     */
-    public building : boolean;
 
     public constructor () {
         super ();
@@ -76,11 +69,15 @@ export class FragmentPrivate extends ReactivePrivate {
  */
 export class Fragment extends Reactive {
 
+    /**
+     * Private part
+     * @protected
+     */
     protected $ : FragmentPrivate;
 
     /**
      * The children list
-     * @type {Array<Fragment>}
+     * @type Array
      */
     public $children : Array<Fragment> = [];
 
@@ -93,25 +90,19 @@ export class Fragment extends Reactive {
         this.$ = $ || new FragmentPrivate;
     }
 
+    /**
+     * Gets the app of node
+     */
     get app () : AppNode {
         return this.$.app;
     }
 
     /**
-     * Start component building
+     * Prepare to init fragment
+     * @param app {AppNode} app of node
+     * @param parent {Fragment} parent of node
+     * @param data {*} additional data
      */
-    protected $$startBuilding () {
-        this.$.building = true;
-    }
-
-    /**
-     * Stop component building
-     */
-    protected $$stopBuilding () {
-        this.$.building = false;
-        this.$mounted();
-    }
-
     public $preinit (app: AppNode, parent : Fragment, data ?: any) {
         const $ : FragmentPrivate = this.$;
 
@@ -123,15 +114,13 @@ export class Fragment extends Reactive {
      * Initialize node
      */
     public $init () : this {
-        this.$$startBuilding();
 
         this.$createSignals();
         this.$createWatchers();
 
         this.$created();
         this.$compose();
-
-        this.$$stopBuilding();
+        this.$mounted();
 
         return this;
     }
@@ -163,7 +152,7 @@ export class Fragment extends Reactive {
     /**
      * Pushes a node to children immediately
      * @param node {Fragment} A node to push
-     * @private
+     * @protected
      */
     protected $$pushNode (node : Fragment) : void {
         let lastChild = null;
@@ -182,8 +171,9 @@ export class Fragment extends Reactive {
     }
 
     /**
-     * Find first core node in shadow element if so exists
-     * @return {?CoreEl}
+     * Find first node in element if so exists
+     * @return {?Element}
+     * @protected
      */
     protected $$findFirstChild () : Element {
         for (let child of this.$children) {
@@ -195,6 +185,10 @@ export class Fragment extends Reactive {
         }
     }
 
+    /**
+     * Append a node to end of element
+     * @param node {Node} node to insert
+     */
     public $$appendNode (node : Node) : void {
         let $ : FragmentPrivate = this.$;
 
@@ -206,6 +200,10 @@ export class Fragment extends Reactive {
         }
     }
 
+    /**
+     * Insert a node as a sibling of this
+     * @param node {Node} node to insert
+     */
     public $$insertAdjacent (node : Node) : void {
         let child = this.$$findFirstChild();
         let $ : FragmentPrivate = this.$;
@@ -232,8 +230,7 @@ export class Fragment extends Reactive {
     /**
      * Defines a text fragment
      * @param text {String | IValue} A text fragment string
-     * @param cb {?function (TextNode)} Callback if previous is slot name
-     * @return {INode} A pointer to this
+     * @param cb {function (TextNode)} Callback if previous is slot name
      */
     public $text (
         text : string | IValue<string>,
@@ -254,11 +251,18 @@ export class Fragment extends Reactive {
         return this;
     }
 
+    public $debug(text : IValue<string>) : this {
+        let node = new DebugNode();
+
+        node.$preinit(this.$.app, this, text);
+        this.$$pushNode(node);
+        return this;
+    }
+
     /**
      * Defines a tag element
-     * @param tagName {String} is the tag name
-     * @param cb {function(Tag, *)} Callback if previous is slot name
-     * @return {INode} A pointer to this
+     * @param tagName {String} the tag name
+     * @param cb {function(Tag, *)} callback
      */
     public $tag<K extends keyof HTMLElementTagNameMap>(
         tagName : K,
@@ -294,14 +298,12 @@ export class Fragment extends Reactive {
 
     /**
      * Defines a custom element
-     * @param node {*} Custom element constructor
-     * @param props {function(INode)} List of properties values
-     * @param cb {?function(INode, *)} Callback if previous is slot name
-     * @return {INode} A pointer to this
+     * @param node {Fragment} vasille element to insert
+     * @param callback {function($ : *)}
      */
     public $create<T> (
         node : T,
-        callback : ($ : T) => void
+        callback ?: ($ : T) => void
     ) : this {
         let $ : FragmentPrivate = this.$;
 
@@ -309,7 +311,9 @@ export class Fragment extends Reactive {
             node.$.parent = this;
             node.$preinit($.app, this);
 
-            callback(node);
+            if (callback) {
+                callback(node);
+            }
 
             this.$$pushNode(node);
             node.$init().$ready();
@@ -323,12 +327,12 @@ export class Fragment extends Reactive {
 
     /**
      * Defines an if node
-     * @param cond {* | IValue<*>} condition
-     * @param cb {function(RepeatNodeItem, ?number)} Call-back to create child nodes
+     * @param cond {IValue} condition
+     * @param cb {function(Fragment)} callback to run on true
      * @return {this}
      */
     public $if (
-        cond : any,
+        cond : IValue<boolean>,
         cb : (node : Fragment) => void
     ) : this {
         return this.$switch({ cond, cb });
@@ -336,22 +340,21 @@ export class Fragment extends Reactive {
 
     /**
      * Defines a if-else node
-     * @param ifCond {* | IValue<*>} `if` condition
-     * @param ifCb {function(RepeatNodeItem, ?number)} Call-back to create `if` child nodes
-     * @param elseCb {function(RepeatNodeItem, ?number)} Call-back to create `else` child nodes
-     * @return {this}
+     * @param ifCond {IValue} `if` condition
+     * @param ifCb {function(Fragment)} Call-back to create `if` child nodes
+     * @param elseCb {function(Fragment)} Call-back to create `else` child nodes
      */
     public $if_else (
         ifCond : any,
         ifCb : (node : Fragment) => void,
         elseCb : (node : Fragment) => void
     ) : this {
-        return this.$switch({ cond : ifCond, cb : ifCb }, { cond : new Reference(true), cb : elseCb });
+        return this.$switch({ cond : ifCond, cb : ifCb }, { cond : trueIValue, cb : elseCb });
     }
 
     /**
      * Defines a switch nodes: Will break after first true condition
-     * @param cases {...{ cond : IValue<boolean> | boolean, cb : function(RepeatNodeItem, ?number) }}
+     * @param cases {...{ cond : IValue, cb : function(Fragment) }} cases
      * @return {INode}
      */
     public $switch (
@@ -370,22 +373,23 @@ export class Fragment extends Reactive {
     }
 
     /**
-     * @param cond {IValue<boolean> | boolean}
-     * @param cb {(function(RepeatNodeItem, ?number) : void)}
-     * @return {{cond : (IValue<boolean>|boolean), cb : (function(RepeatNodeItem, ?number) : void)}}
+     * Create a case for switch
+     * @param cond {IValue<boolean>}
+     * @param cb {function(Fragment) : void}
+     * @return {{cond : IValue, cb : (function(Fragment) : void)}}
      */
-    public $case (cond : IValue<boolean> | boolean, cb : (node : Fragment) => void)
-        : {cond : IValue<boolean> | boolean, cb : (node : Fragment) => void} {
+    public $case (cond : IValue<boolean>, cb : (node : Fragment) => void)
+        : {cond : IValue<boolean>, cb : (node : Fragment) => void} {
         return {cond, cb};
     }
 
     /**
-     * @param cb {(function(RepeatNodeItem, ?number) : void)}
-     * @return {{cond : boolean, cb : (function(RepeatNodeItem, ?number) : void)}}
+     * @param cb {(function(Fragment) : void)}
+     * @return {{cond : IValue, cb : (function(Fragment) : void)}}
      */
     public $default (cb: (node : Fragment) => void)
-        : {cond : IValue<boolean> | boolean, cb : (node : Fragment) => void} {
-        return {cond: true, cb};
+        : {cond : IValue<boolean>, cb : (node : Fragment) => void} {
+        return {cond: trueIValue, cb};
     }
 
     public $destroy () {
@@ -398,8 +402,12 @@ export class Fragment extends Reactive {
     }
 }
 
+const trueIValue = new Reference(true);
+
 /**
  * The private part of a text node
+ * @class TextNodePrivate
+ * @extends FragmentPrivate
  */
 export class TextNodePrivate extends FragmentPrivate {
     public node : Text;
@@ -411,8 +419,8 @@ export class TextNodePrivate extends FragmentPrivate {
 
     /**
      * Pre-initializes a text node
-     * @param app {App} the app node
-     * @param text {String | IValue}
+     * @param app {AppNode} the app node
+     * @param text {IValue}
      */
     public preinitText (
         app : AppNode,
@@ -443,30 +451,18 @@ export class TextNodePrivate extends FragmentPrivate {
 
 /**
  * Represents a text node
+ * @class TextNode
+ * @extends Fragment
  */
 export class TextNode extends Fragment {
-    /**
-     * private data
-     * @type {TextNodePrivate}
-     */
+
     protected $ : TextNodePrivate = new TextNodePrivate();
 
-    /**
-     * Constructs a text node
-     */
     public constructor () {
         super();
         this.$seal();
     }
 
-    /**
-     * Pre-initializes a text node
-     * @param app {App} the app node
-     * @param rt {INode} The root node
-     * @param ts {INode} The this node
-     * @param before {?Fragment} node to paste after
-     * @param text {String | IValue}
-     */
     public $preinit (app : AppNode, parent : Fragment, text ?: IValue<string>) {
         const $ : TextNodePrivate = this.$;
 
@@ -477,9 +473,6 @@ export class TextNode extends Fragment {
         $.preinitText(app, text);
     }
 
-    /**
-     * Runs garbage collector
-     */
     public $destroy () : void {
         this.$.$destroy();
         super.$destroy();
@@ -488,6 +481,8 @@ export class TextNode extends Fragment {
 
 /**
  * The private part of a base node
+ * @class INodePrivate
+ * @extends FragmentPrivate
  */
 export class INodePrivate extends FragmentPrivate {
     /**
@@ -496,6 +491,10 @@ export class INodePrivate extends FragmentPrivate {
      */
     public unmounted : boolean = false;
 
+    /**
+     * The element of vasille node
+     * @type Element
+     */
     public node : Element;
 
     public constructor () {
@@ -503,16 +502,14 @@ export class INodePrivate extends FragmentPrivate {
         this.$seal();
     }
 
-    /**
-     * Garbage collection
-     */
     public $destroy () {
         super.$destroy();
     }
 }
 
 /**
- * Represents an Vasille.js node which can contains children
+ * Vasille node which can manipulate an element node
+ * @class INode
  * @extends Fragment
  */
 export class INode extends Fragment {
@@ -527,6 +524,9 @@ export class INode extends Fragment {
         this.$seal();
     }
 
+    /**
+     * Get the bound node
+     */
     get node () : Element {
         return this.$.node;
     }
@@ -535,17 +535,15 @@ export class INode extends Fragment {
      * Initialize node
      */
     public $init () : this {
-        this.$$startBuilding();
 
-        this.$createAttrs();
-        this.$createStyle();
         this.$createSignals();
         this.$createWatchers();
+        this.$createAttrs();
+        this.$createStyle();
 
         this.$created();
         this.$compose();
-
-        this.$$stopBuilding();
+        this.$mounted();
 
         return this;
     }
@@ -559,10 +557,9 @@ export class INode extends Fragment {
     }
 
     /**
-     * Defines a attribute
-     * @param name {String} The name of attribute
-     * @param value {String | IValue | Callable} A $$value or a $$value getter
-     * @return {INode} A pointer to this
+     * Bind attribute value
+     * @param name {String} name of attribute
+     * @param value {IValue} value
      */
     public $attr (name : string, value : IValue<string>) : this {
         let $ : INodePrivate = this.$;
@@ -576,7 +573,15 @@ export class INode extends Fragment {
      * Creates and binds a multivalued binding to attribute
      * @param name {String} The name of attribute
      * @param calculator {Function} Binding calculator (must return a value)
-     * @param values {...IValue} Values to bind
+     * @param v1 {*} argument
+     * @param v2 {*} argument
+     * @param v3 {*} argument
+     * @param v4 {*} argument
+     * @param v5 {*} argument
+     * @param v6 {*} argument
+     * @param v7 {*} argument
+     * @param v8 {*} argument
+     * @param v9 {*} argument
      * @return {INode} A pointer to this
      */
     public $bindAttr<T1> (
@@ -657,15 +662,11 @@ export class INode extends Fragment {
     }
 
     /**
-     * Sets a attribute value
-     * @param name {string} Name of attribute
-     * @param value {string} Reference of attribute
-     * @return {INode} A pointer to this
+     * Set attribute value
+     * @param name {string} name of attribute
+     * @param value {string} value
      */
-    public $setAttr (
-        name : string,
-        value : string
-    ) : this {
+    public $setAttr (name : string, value : string) : this {
         this.$.app.$run.setAttribute(this.$.node, name, value);
         return this;
     }
@@ -673,28 +674,26 @@ export class INode extends Fragment {
     /**
      * Adds a CSS class
      * @param cl {string} Class name
-     * @return {INode} A pointer to this
      */
     public $addClass (cl : string) : this {
-        this.$.node.classList.add(cl);
+        this.$.app.$run.addClass(this.$.node, cl);
         return this;
     }
 
     /**
      * Adds some CSS classes
-     * @param cl {...string} Classes names
-     * @return {INode} A pointer to this
+     * @param cls {...string} classes names
      */
-    public $addClasses (...cl : Array<string>) : this {
-        this.$.node.classList.add(...cl);
+    public $addClasses (...cls : Array<string>) : this {
+        cls.forEach(cl => {
+            this.$.app.$run.addClass(this.$.node, cl);
+        });
         return this;
     }
 
     /**
      * Bind a CSS class
-     * @param cl {?string}
-     * @param className {string | IValue | null}
-     * @return {INode}
+     * @param className {IValue}
      */
     public $bindClass (
         className : IValue<string>
@@ -705,32 +704,46 @@ export class INode extends Fragment {
         return this;
     }
 
+    /**
+     * Bind a floating class name
+     * @param cond {IValue} condition
+     * @param className {string} class name
+     */
     public $floatingClass (cond : IValue<boolean>, className : string) : this {
-        let $ : INodePrivate = this.$;
-
-        $.bindings.add(new ClassBinding(this, className, cond));
+        this.$.bindings.add(new ClassBinding(this, className, cond));
         return this;
     }
 
     /**
      * Defines a style attribute
-     * @param name {String} The name of style attribute
-     * @param value {String | IValue | Callable} A value or a value getter
-     * @return {this} A pointer to this
+     * @param name {String} name of style attribute
+     * @param value {IValue} value
      */
     public $style (name : string, value : IValue<string>) : this {
         let $ : INodePrivate = this.$;
 
-        $.bindings.add(new StyleBinding(this, name, value));
+        if ($.node instanceof HTMLElement) {
+            $.bindings.add(new StyleBinding(this, name, value));
+        }
+        else {
+            throw userError('style can be applied to HTML elements only', 'non-html-element');
+        }
         return this;
     }
 
     /**
-     * Creates and binds a calculator to a style attribute
-     * @param name {String} Name of style attribute
-     * @param calculator {Function} A calculator for style value
-     * @param values {...IValue} Values to bind
-     * @return {this} A pointer to this
+     * Binds style property value
+     * @param name {string} name of style attribute
+     * @param calculator {function} calculator for style value
+     * @param v1 {*} argument
+     * @param v2 {*} argument
+     * @param v3 {*} argument
+     * @param v4 {*} argument
+     * @param v5 {*} argument
+     * @param v6 {*} argument
+     * @param v7 {*} argument
+     * @param v8 {*} argument
+     * @param v9 {*} argument
      */
     public $bindStyle<T1> (
         name : string,
@@ -806,7 +819,12 @@ export class INode extends Fragment {
         let expr = this.$bind<string, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
             calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
 
-        $.bindings.add(new StyleBinding(this, name, expr));
+        if ($.node instanceof HTMLElement) {
+            $.bindings.add(new StyleBinding(this, name, expr));
+        }
+        else {
+            throw userError('style can be applied to HTML elements only', 'non-html-element');
+        }
         return this;
     }
 
@@ -814,7 +832,6 @@ export class INode extends Fragment {
      * Sets a style property value
      * @param prop {string} Property name
      * @param value {string} Property value
-     * @return {INode}
      */
     public $setStyle (
         prop : string,
@@ -834,7 +851,6 @@ export class INode extends Fragment {
      * @param name {string} Event name
      * @param handler {function (Event)} Event handler
      * @param options {Object | boolean} addEventListener options
-     * @return {this}
      */
     public $listen (
         name : string,
@@ -1331,7 +1347,7 @@ export class INode extends Fragment {
 
     /**
      * bind HTML
-     * @param value {IValue<string>}
+     * @param value {IValue}
      */
     public $html (value : IValue<string>) {
         let $ : INodePrivate = this.$;
@@ -1351,6 +1367,8 @@ export class INode extends Fragment {
 
 /**
  * Represents an Vasille.js HTML element node
+ * @class Tag
+ * @extends INode
  */
 export class Tag extends INode {
 
@@ -1359,14 +1377,6 @@ export class Tag extends INode {
         this.$seal();
     }
 
-    /**
-     * Constructs an element node
-     * @param app {App} the app node
-     * @param rt {INode} The root node
-     * @param ts {INode} The this node
-     * @param before {Fragment} Node to insert before it
-     * @param tagName {String} Name of HTML tag
-     */
     public $preinit (
         app : AppNode,
         parent : Fragment,
@@ -1400,16 +1410,12 @@ export class Tag extends INode {
 }
 
 /**
- * Represents a Vasille.js extension node
+ * Represents a vasille extension node
+ * @class Extension
+ * @extends INode
  */
 export class Extension extends INode {
-    /**
-     * Pre-initialize a shadow node
-     * @param app {App} the app node
-     * @param rt {INode} The root node
-     * @param ts {INode} The this node
-     * @param before {Fragment} node to paste after it
-     */
+
     public $preinit (app : AppNode, parent : Fragment) {
 
         if (parent instanceof INode) {
@@ -1428,18 +1434,18 @@ export class Extension extends INode {
         this.$seal();
     }
 
-    /**
-     * Runs GC
-     */
     public $destroy () {
         super.$destroy();
     }
 }
 
 /**
- * Defines a node which cas has just a child (TagNode | Component)
+ * Node which cas has just a child
+ * @class Component
+ * @extends Extension
  */
 export class Component extends Extension {
+
     public constructor () {
         super ();
         this.$seal();
@@ -1466,23 +1472,25 @@ export class Component extends Extension {
 
 /**
  * Private part of switch node
+ * @class SwitchedNodePrivate
+ * @extends INodePrivate
  */
 export class SwitchedNodePrivate extends INodePrivate {
     /**
      * Index of current true condition
-     * @type {number}
+     * @type number
      */
     public index : number = -1;
 
     /**
      * The unique child which can be absent
-     * @type {Extension}
+     * @type Extension
      */
     public fragment ?: Fragment;
 
     /**
-     * Array of possible casses
-     * @type {Array<{cond : IValue<boolean>, cb : function(RepeatNodeItem, ?number)}>}
+     * Array of possible cases
+     * @type {Array<{cond : IValue<boolean>, cb : function(Fragment)}>}
      */
     public cases : { cond : IValue<boolean>, cb : (node : Fragment) => void }[];
 
@@ -1502,9 +1510,7 @@ export class SwitchedNodePrivate extends INodePrivate {
      */
     public $destroy () {
         for (let c of this.cases) {
-            //$FlowFixMe
             delete c.cond;
-            //$FlowFixMe
             delete c.cb;
         }
         this.cases.splice(0);
@@ -1559,7 +1565,7 @@ class SwitchedNode extends Extension {
 
     /**
      * Set up switch cases
-     * @param cases {{ cond : IValue | boolean, cb : function(RepeatNodeItem, ?number) }}
+     * @param cases {{ cond : IValue, cb : function(Fragment) }}
      */
     public setCases (cases : Array<{ cond : IValue<boolean>, cb : (node : Fragment) => void }>) {
         let $ = this.$;
@@ -1572,27 +1578,19 @@ class SwitchedNode extends Extension {
 
     /**
      * Creates a child node
-     * @param id {*} id of node
-     * @param cb {function(RepeatNodeItem, *)} Call-back
+     * @param cb {function(Fragment)} Call-back
      */
     public createChild (cb : (node : Fragment) => void) {
         let node = new Fragment();
 
         node.$preinit(this.$.app, this);
-
         node.$init();
-
         node.$ready();
 
         this.$.fragment = node;
         this.$children.push(node);
     };
 
-
-
-    /**
-     * Run then the node is ready
-     */
     public $ready () {
         let $ = this.$;
 
@@ -1605,9 +1603,6 @@ class SwitchedNode extends Extension {
         $.sync();
     }
 
-    /**
-     * Unbind and clear dynamical nodes
-     */
     public $destroy () {
         let $ = this.$;
 
@@ -1663,31 +1658,22 @@ export class DebugPrivate extends FragmentPrivate {
 }
 
 /**
- * Represents a text node
+ * Represents a debug node
+ * @class DebugNode
+ * @extends Fragment
  */
 export class DebugNode extends Fragment {
     /**
      * private data
-     * @type {TextNodePrivate}
+     * @type {DebugNode}
      */
     protected $ : DebugPrivate = new DebugPrivate();
 
-    /**
-     * Constructs a text node
-     */
     public constructor () {
         super();
         this.$seal();
     }
 
-    /**
-     * Pre-initializes a text node
-     * @param app {App} the app node
-     * @param rt {INode} The root node
-     * @param ts {INode} The this node
-     * @param before {?Fragment} node to paste after
-     * @param text {String | IValue}
-     */
     public $preinit (app : AppNode, parent : Fragment, text ?: IValue<string>) {
         const $ : DebugPrivate = this.$;
 

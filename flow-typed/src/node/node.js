@@ -11,7 +11,6 @@ declare export class FragmentPrivate extends ReactivePrivate {
     parent : Fragment;
     next : ?Fragment;
     prev : ?Fragment;
-    building : boolean;
 
     constructor () : void;
     preinit (app : AppNode) : void;
@@ -27,8 +26,6 @@ declare export class Fragment extends Reactive {
 
     constructor ($ : ?FragmentPrivate) : void;
 
-    $$startBuilding () : void;
-    $$stopBuilding () : void;
     $preinit (app: AppNode, parent : Fragment, data ?: any) : void;
     $init () : this;
     $created () : void;
@@ -46,6 +43,7 @@ declare export class Fragment extends Reactive {
         text : string | IValue<string>,
         cb : ?(text : TextNode) => void
     ) : this;
+    $debug(text : IValue<string>) : this;
     $tag<T = Element> (
         tagName : string,
         cb : ?(node : Tag, element : T) => void
@@ -55,7 +53,7 @@ declare export class Fragment extends Reactive {
         callback : ($ : T) => void
     ) : this;
     $if (
-        cond : any,
+        cond : IValue<boolean>,
         cb : (node : Fragment) => void
     ) : this ;
     $if_else (
@@ -66,10 +64,10 @@ declare export class Fragment extends Reactive {
     $switch (
         ...cases : Array<{ cond : IValue<boolean>, cb : (node : Fragment) => void }>
     ) : this;
-    $case (cond : IValue<boolean> | boolean, cb : (node : Fragment) => void)
-        : {cond : IValue<boolean> | boolean, cb : (node : Fragment) => void};
-    $default (cb: (node : Fragment, v : ?number) => void)
-        : {cond : IValue<boolean> | boolean, cb : (node : Fragment) => void};
+    $case (cond : IValue<boolean>, cb : (node : Fragment) => void)
+        : {cond : IValue<boolean>, cb : (node : Fragment) => void};
+    $default (cb: (node : Fragment) => void)
+        : {cond : IValue<boolean>, cb : (node : Fragment) => void};
 }
 
 declare export class TextNodePrivate extends FragmentPrivate {

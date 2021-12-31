@@ -1,23 +1,16 @@
 {
   "name": "vasille",
-  "description": "The fastest (Vanilla.js based) front-end javascript framework",
+  "description": "Vasille - Safe. Fast. Powerful.",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "exports": {
     "import": "./lib/index.js",
     "browser": "./lib/index.js"
   },
   "scripts": {
-    "flow": "flow",
-    "flow-typed": "flow-typed create-def vasille 2.0.0",
-    "prebuild": "rm -r lib",
-    "build": "flow-remove-types --pretty --sourcemaps src/ -d lib/",
-    "prepare": "flow-remove-types --pretty --sourcemaps src/ -d lib/",
     "prepack": "tsc --build tsconfig.json",
     "test": "echo \"Error: no test specified\"",
-    "predoc": "npm run build",
-    "doc": "jsdoc -a all lib/** DOCHOME.md",
     "tsc": "tsc --build tsconfig.json"
   },
   "repository": {

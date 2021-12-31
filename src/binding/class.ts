@@ -1,4 +1,3 @@
-// @flow
 import { Binding } from "./binding";
 import type { INode } from "../node/node";
 import type { IValue } from "../core/ivalue";
@@ -7,17 +6,17 @@ import type { IValue } from "../core/ivalue";
 
 /**
  * Represents a HTML class binding description
+ * @class ClassBinding
  * @extends Binding
  */
 export class ClassBinding extends Binding<string | boolean> {
     private current : string | boolean = null;
 
     /**
-     * Constructs a HTML class binding description
-     * @param rt {INode} is root component
-     * @param ts {INode} is this component
-     * @param name {String} is the name of attribute
-     * @param value
+     * Constructs an HTML class binding description
+     * @param node {INode} the vasille node
+     * @param name {String} the name of class
+     * @param value {IValue} the value to bind
      */
     public constructor (
         node : INode,

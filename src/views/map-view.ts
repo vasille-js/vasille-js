@@ -1,4 +1,3 @@
-// @flow
 import { BaseView, BaseViewPrivate } from "./base-view";
 import { IValue } from "../core/ivalue";
 import { MapModel } from "../models/map-model";
@@ -8,11 +7,13 @@ import { Fragment } from "../node/node";
 
 /**
  * private part of map view
+ * @class MapViewPrivate
+ * @extends BaseViewPrivate
  */
 export class MapViewPrivate<K, T> extends BaseViewPrivate<K, T> {
     /**
      * Contains update handler for each value
-     * @type {Map<*, Function>}
+     * @type {Map}
      */
     public handlers : Map<K, () => void> = new Map();
 
@@ -20,29 +21,26 @@ export class MapViewPrivate<K, T> extends BaseViewPrivate<K, T> {
         super ();
         this.$seal();
     }
+
+    $destroy() {
+        super.$destroy();
+        this.handlers.clear();
+    }
 }
 
 /**
  * Create a children pack for each map value
+ * @class MapView
+ * @extends BaseView
  */
 export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
     protected $ : MapViewPrivate<K, T>;
 
-    public model: IValue<MapModel<K, T>>;
-
-    /**
-     * Sets up model
-     */
     public constructor ($ ?: MapViewPrivate<K, T>) {
         super($ || new MapViewPrivate);
         this.model = this.$ref(new MapModel);
     }
 
-
-
-    /**
-     * Saves the child handler
-     */
     public createChild (id : K, item : T, before ?: Fragment) : any {
         let $ : MapViewPrivate<K, T> = this.$;
         let handler = super.createChild(id, item, before);
@@ -53,9 +51,6 @@ export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
         $.handlers.set(id, handler);
     }
 
-    /**
-     * Disconnects the child handler
-     */
     public destroyChild (id : K, item : T) {
         let $ : MapViewPrivate<K, T> = this.$;
         let handler = $.handlers.get(id);
@@ -67,9 +62,6 @@ export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
         super.destroyChild(id, item);
     }
 
-    /**
-     * Handler ready event
-     */
     public $ready () {
         let map : MapModel<K, T> = this.model.$;
 
@@ -80,9 +72,6 @@ export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
         super.$ready();
     }
 
-    /**
-     * Handler destroy event
-     */
     public $destroy () {
         let $ : MapViewPrivate<K, T> = this.$;
         let map : MapModel<K, T> = this.model.$;
@@ -97,6 +86,7 @@ export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
             }
         })
 
+        $.$destroy();
         super.$destroy();
     }
 }

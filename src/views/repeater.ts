@@ -1,4 +1,3 @@
-// @flow
 import { RepeatNode, RepeatNodePrivate } from "./repeat-node";
 import { Reference } from "../value/reference";
 import { IValue } from "../core/ivalue";
@@ -7,17 +6,17 @@ import { IValue } from "../core/ivalue";
 
 /**
  * Private part of repeater
+ * @class RepeaterPrivate
+ * @extends RepeatNodePrivate
  */
 export class RepeaterPrivate<IdT> extends RepeatNodePrivate<IdT> {
     /**
      * Handler to catch count updates
-     * @type {Function}
      */
     public updateHandler : (value: number) => void;
 
     /**
      * Current count of child nodes
-     * @type {number}
      */
     public currentCount : number = 0;
 
@@ -28,7 +27,9 @@ export class RepeaterPrivate<IdT> extends RepeatNodePrivate<IdT> {
 }
 
 /**
- * The simplest repeat $node interpretation, repeat children pack a several times
+ * The simplest repeat node interpretation, repeat children pack a several times
+ * @class Repeater
+ * @extends RepeatNode
  */
 export class Repeater extends RepeatNode<number, number> {
 
@@ -36,7 +37,6 @@ export class Repeater extends RepeatNode<number, number> {
 
     /**
      * The count of children
-     * @type {IValue<number>}
      */
     public count : IValue<number> = new Reference(0);
 
@@ -47,7 +47,6 @@ export class Repeater extends RepeatNode<number, number> {
 
     /**
      * Changes the children count
-     * @param number {number} The new children count
      */
     public changeCount (number : number) {
         let $ : RepeaterPrivate<number> = this.$;
@@ -65,11 +64,6 @@ export class Repeater extends RepeatNode<number, number> {
         $.currentCount = number;
     }
 
-
-
-    /**
-     * Handles created event
-     */
     public $created () {
         let $ : RepeaterPrivate<number> = this.$;
 
@@ -81,16 +75,10 @@ export class Repeater extends RepeatNode<number, number> {
         this.count.on($.updateHandler);
     }
 
-    /**
-     * Handles ready event
-     */
     public $ready () {
         this.changeCount(this.count.$);
     }
 
-    /**
-     * Handles destroy event
-     */
     public $destroy () {
         let $ : RepeaterPrivate<number> = this.$;
 

@@ -1,47 +1,48 @@
-// @flow
 import { Destroyable } from "./destroyable.js";
 import {  wrongBinding } from "./errors";
 import { IValue } from "./ivalue.js";
 import { Expression } from "../value/expression";
 import { Reference } from "../value/reference";
 import { Pointer } from "../value/pointer";
+import {Mirror} from "../value/mirror";
 
 
 
 /**
- * This is private stuff of a reactive object
+ * Private stuff of a reactive object
+ * @class ReactivePrivate
  * @extends Destroyable
  */
 export class ReactivePrivate extends Destroyable {
     /**
-     * Represents a list of user-defined values
-     * @type {Set<IValue>}
+     * A list of user-defined values
+     * @type {Set}
      */
-    watch : Set<IValue<any>> = new Set;
+    public watch : Set<IValue<any>> = new Set;
 
     /**
-     * Represents a list of user-defined bindings
-     * @type {Set<IValue>}
+     * A list of user-defined bindings
+     * @type {Set}
      */
-    bindings : Set<Destroyable> = new Set;
+    public bindings : Set<Destroyable> = new Set;
 
     /**
      * Reactivity switch state
      * @type {boolean}
      */
-    enabled : boolean = true;
+    public enabled : boolean = true;
 
     /**
-     * Defined the frozen state of component
+     * The frozen state of object
      * @type {boolean}
      */
-    frozen : boolean = false;
+    public frozen : boolean = false;
 
     /**
-     * Contains an expression which will freeze/unfreeze the object
+     * An expression which will freeze/unfreeze the object
      * @type {IValue<void>}
      */
-    freezeExpr : Expression<void, boolean>;
+    public freezeExpr : Expression<void, boolean>;
 
     constructor () {
         super ();
@@ -61,10 +62,15 @@ export class ReactivePrivate extends Destroyable {
 }
 
 /**
- * This is a reactive object
+ * A reactive object
+ * @class Reactive
  * @extends Destroyable
  */
 export class Reactive extends Destroyable {
+    /**
+     * Private stuff
+     * @protected
+     */
     protected $ : ReactivePrivate;
 
     public constructor ($ ?: ReactivePrivate) {
@@ -73,7 +79,8 @@ export class Reactive extends Destroyable {
     }
 
     /**
-     * create a private field
+     * Create a reference
+     * @param value {*} value to reference
      */
     public $ref<T> (value : T) : IValue<T> {
         let $ : ReactivePrivate = this.$;
@@ -83,21 +90,46 @@ export class Reactive extends Destroyable {
     }
 
     /**
-     * creates a pointer
+     * Create a mirror
+     * @param value {IValue} value to mirror
      */
-    public $pointer<T> (value : T) : Pointer<T> {
+    public $mirror<T> (value : IValue<T>) : Mirror<T> {
+        let mirror = new Mirror(value);
+
+        this.$.watch.add(mirror);
+        return mirror;
+    }
+
+    /**
+     * Creates a pointer
+     * @param value {*} default value to point
+     */
+    public $point<T> (value : T | IValue<T>) : Pointer<T> {
         let $ : ReactivePrivate = this.$;
-        let ref = new Reference<T> (value);
+        let ref = value instanceof IValue ? value : new Reference<T> (value);
         let pointer = new Pointer (ref);
 
-        $.watch.add (ref);
+        // when value is an ivalue will be equal to ref
+        if (value !== ref) {
+            $.watch.add (ref);
+        }
         $.watch.add (pointer);
 
         return pointer;
     }
 
     /**
-     * Defines a watcher
+     * Creates a watcher
+     * @param func {function} function to run on any argument change
+     * @param v1 {IValue} argument
+     * @param v2 {IValue} argument
+     * @param v3 {IValue} argument
+     * @param v4 {IValue} argument
+     * @param v5 {IValue} argument
+     * @param v6 {IValue} argument
+     * @param v7 {IValue} argument
+     * @param v8 {IValue} argument
+     * @param v9 {IValue} argument
      */
     public $watch<T1> (
         func : (a1 : T1) => void,
@@ -164,7 +196,18 @@ export class Reactive extends Destroyable {
     }
 
     /**
-     * Creates a bind expression
+     * Creates a computed value
+     * @param func {function} function to run on any argument change
+     * @param v1 {IValue} argument
+     * @param v2 {IValue} argument
+     * @param v3 {IValue} argument
+     * @param v4 {IValue} argument
+     * @param v5 {IValue} argument
+     * @param v6 {IValue} argument
+     * @param v7 {IValue} argument
+     * @param v8 {IValue} argument
+     * @param v9 {IValue} argument
+     * @return {IValue} the created ivalue
      */
     public $bind<T, T1> (
         func : (a1 : T1) => T,
@@ -233,6 +276,9 @@ export class Reactive extends Destroyable {
         return res;
     }
 
+    /**
+     * Enable reactivity of fields
+     */
     public $enable () {
         let $ : ReactivePrivate = this.$;
 
@@ -244,6 +290,9 @@ export class Reactive extends Destroyable {
         }
     }
 
+    /**
+     * Disable reactivity of fields
+     */
     public $disable () {
         let $ : ReactivePrivate = this.$;
 
@@ -255,10 +304,10 @@ export class Reactive extends Destroyable {
     }
 
     /**
-     * Disable/Enable reactivity of component with feedback
+     * Disable/Enable reactivity of object fields with feedback
      * @param cond {IValue} show condition
-     * @param onOff {Function} on show feedback
-     * @param onOn {Function} on hide feedback
+     * @param onOff {function} on show feedback
+     * @param onOn {function} on hide feedback
      */
     public $bindFreeze (cond : IValue<boolean>, onOff ?: Function, onOn ?: Function) : this {
         let $ : ReactivePrivate = this.$;
@@ -288,7 +337,6 @@ export class Reactive extends Destroyable {
 
     public $destroy () {
         this.$.$destroy ();
-        // $FlowFixMe
         this.$ = null;
 
         super.$destroy ();

@@ -6,5 +6,4 @@ out/
 pages/
 .idea/
 /**.md
-.flowconfig
 tsconfig.json

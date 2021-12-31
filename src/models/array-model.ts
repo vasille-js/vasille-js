@@ -1,4 +1,3 @@
-// @flow
 import { Listener } from "./listener";
 import type { IModel } from "./model";
 
@@ -6,20 +5,15 @@ import type { IModel } from "./model";
 
 /**
  * Model based on Array class
- * @extends Array<IValue>
+ * @extends Array
+ * @implements IModel
  */
 export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
-    /**
-     * Listener of array model
-     * @type {Listener}
-     */
+
     public listener : Listener<T, T>;
 
-    /* Constructor */
-
     /**
-     * Constructs an array model from an array
-     * @param data {Array<IValue>} input data
+     * @param data {Array} input data
      */
     public constructor (data : Array<T> = []) {
         super();
@@ -38,8 +32,8 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
     /* Array members */
 
     /**
-     * Gets the last value of array and null when it is empty
-     * @return {?IValue}
+     * Gets the last item of array
+     * @return {*} the last item of array
      */
     public get last () : T {
         return this.length ? this[this.length - 1] : null;
@@ -50,7 +44,6 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
      * @param value {*} value to fill with
      * @param start {?number} begin index
      * @param end {?number} end index
-     * @return {ArrayModel} a pointer to this
      */
     public fill (value : T, start ?: number, end ?: number) : this {
         if (!start) {
@@ -70,7 +63,7 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
 
     /**
      * Calls Array.pop and notify about changes
-     * @return {IValue} removed value
+     * @return {*} removed value
      */
     public pop () : T {
         let v = super.pop();
@@ -83,7 +76,7 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
 
     /**
      * Calls Array.push and notify about changes
-     * @param items {...IValue} values to push
+     * @param items {...*} values to push
      * @return {number} new length of array
      */
     public push (...items : Array<T>) : number {
@@ -97,7 +90,7 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
 
     /**
      * Calls Array.shift and notify about changed
-     * @return {IValue} the shifted value
+     * @return {*} the shifted value
      */
     public shift () : T {
         let v = super.shift();
@@ -112,7 +105,7 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
      * Calls Array.splice and notify about changed
      * @param start {number} start index
      * @param deleteCount {?number} delete count
-     * @param items {...IValue}
+     * @param items {...*}
      * @return {ArrayModel} a pointer to this
      */
     public splice (
@@ -136,12 +129,10 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
         return new ArrayModel<T>(super.splice(start, deleteCount, ...items));
     }
 
-    /* Vasile.js array interface */
-
     /**
      * Calls Array.unshift and notify about changed
-     * @param items {...IValue} values to insert
-     * @return {number | void} the length after prepend
+     * @param items {...*} values to insert
+     * @return {number} the length after prepend
      */
     public unshift (...items : Array<T>) : number {
 
@@ -154,7 +145,6 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
     /**
      * Inserts a value to the end of array
      * @param v {*} value to insert
-     * @return {this} a pointer to this
      */
     public append (v : T) : this {
         this.listener.emitAdded(null, v);
@@ -175,13 +165,13 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
     }
 
     /**
-     * Inserts a value to position <i>index</i>
+     * Inserts a value to position `index`
      * @param index {number} index to insert value
      * @param v {*} value to insert
      * @return {this} a pointer to this
      */
     public insert (index : number, v : T) : this {
-        this.listener.emitAdded(v, v);
+        this.listener.emitAdded(this[index], v);
         super.splice(index, 0, v);
         return this;
     }
@@ -238,7 +228,7 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
 
     /**
      * Remove the first occurrence of value
-     * @param v {IValue} value to remove
+     * @param v {*} value to remove
      * @return {this}
      */
     public removeOne (v : T) : this {

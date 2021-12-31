@@ -1,4 +1,3 @@
-// @flow
 import { BaseView, BaseViewPrivate } from "./base-view";
 import { ObjectModel } from "../models/object-model";
 import { Fragment } from "../node/node";
@@ -8,6 +7,8 @@ import { IValue } from "../core/ivalue";
 
 /**
  * private part of object view
+ * @class ObjectViewPrivate
+ * @extends BaseViewPrivate
  */
 export class ObjectViewPrivate<T> extends BaseViewPrivate<string, T> {
     /**
@@ -20,25 +21,26 @@ export class ObjectViewPrivate<T> extends BaseViewPrivate<string, T> {
         super ();
         this.$seal();
     }
+
+    $destroy() {
+        super.$destroy();
+        this.handlers = null;
+    }
 }
 
 /**
  * Create a children pack for each object field
+ * @class ObjectView
+ * @extends BaseView
  */
 export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
     protected $ : ObjectViewPrivate<T>;
 
-    /**
-     * Sets up model
-     */
     public constructor ($ ?: ObjectViewPrivate<T>) {
         super($ || new ObjectViewPrivate);
         this.model = this.$ref(new ObjectModel);
     }
 
-    /**
-     * Saves the child handler
-     */
     public createChild (id : string, item : T, before ?: Fragment) : any {
         let $ : ObjectViewPrivate<T> = this.$;
         let handler = super.createChild(id, item, before);
@@ -49,9 +51,6 @@ export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
         $.handlers[id] = handler;
     }
 
-    /**
-     * Disconnects the child handler
-     */
     public destroyChild (id : string, item : T) {
         let $ : ObjectViewPrivate<T> = this.$;
 
@@ -62,9 +61,6 @@ export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
         super.destroyChild(id, item);
     }
 
-    /**
-     * Handler ready event
-     */
     public $ready () {
         let $ : ObjectViewPrivate<T> = this.$;
         let obj : ObjectModel<T> = this.model.$;
@@ -80,9 +76,6 @@ export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
         super.$ready();
     }
 
-    /**
-     * Handler destroy event
-     */
     public $destroy () {
         let $ : ObjectViewPrivate<T> = this.$;
         let obj : ObjectModel<T> = this.model.$;
@@ -97,6 +90,7 @@ export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
             }
         }
 
+        $.$destroy();
         super.$destroy();
     }
 }

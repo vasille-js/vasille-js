@@ -1,11 +1,23 @@
-// @flow
 import { Fragment } from "./node";
 import { Slot } from "../core/slot";
 import { IValue } from "../core/ivalue";
 
+/**
+ * Watch Node
+ * @class Watch
+ * @extends Fragment
+ */
 export class Watch extends Fragment {
-    protected slot : Slot;
-    protected model : IValue<any>;
+    /**
+     * Default slot
+     * @type Slot
+     */
+    public slot : Slot;
+    /**
+     * iValue to watch
+     * @type IValue
+     */
+    public model : IValue<any>;
 
     public constructor () {
         super ();

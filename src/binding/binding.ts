@@ -6,7 +6,8 @@ import { notOverwritten } from "../core/errors";
 
 /**
  * Describe a common binding logic
- * @implements IValue
+ * @class Binding
+ * @extends Destroyable
  */
 export class Binding<T> extends Destroyable {
     private binding : IValue<T>;
@@ -14,10 +15,9 @@ export class Binding<T> extends Destroyable {
 
     /**
      * Constructs a common binding logic
-     * @param rt {INode} Root component
-     * @param ts {INode} This component
-     * @param name {String} Name of property/attribute
-     * @param func {?Function} A function to run on value change
+     * @param node {INode} the vasille node
+     * @param name {String} the name of property/attribute/class
+     * @param value {IValue} the value to bind
      */
     public constructor (
         node : INode,
@@ -37,9 +37,9 @@ export class Binding<T> extends Destroyable {
 
     /**
      * Is a virtual function to get the specific bind function
-     * @param name {String} The name of attribute/property
-     * @returns {Function} A function to update attribute/property value
-     * @throws Always trows and must be overloaded in child class
+     * @param name {String} the name of attribute/property
+     * @returns {Function} a function to update attribute/property value
+     * @throws Always throws and must be overloaded in child class
      */
     protected bound (name : string) : (node : INode, value : T) => void {
         throw notOverwritten ();
