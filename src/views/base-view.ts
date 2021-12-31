@@ -1,0 +1,105 @@
+// @flow
+import { RepeatNode, RepeatNodePrivate } from "./repeat-node";
+import { Listener } from "../models/listener";
+import { IValue } from "../core/ivalue";
+import { Fragment } from "../node/node";
+import {IModel} from "../models/model";
+
+
+
+/**
+ * Private part of BaseView
+ */
+export class BaseViewPrivate<K, T> extends RepeatNodePrivate<K> {
+    /**
+     * Handler to catch values addition
+     * @type {Function}
+     */
+    public addHandler : (index : K, value : T) => void;
+
+    /**
+     * Handler to catch values removes
+     * @type {Function}
+     */
+    public removeHandler : (index : K, value : T) => void;
+
+    public constructor () {
+        super ();
+        this.$seal();
+    }
+}
+
+/**
+ * Base class of default views
+ */
+export class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNode<K, T> {
+
+    protected $ : BaseViewPrivate<K, T>;
+
+    // props
+    /**
+     * Property which will contain a model
+     * @type {IValue<*>}
+     */
+    public model : IValue<Model>;
+
+    /**
+     * Sets up model and handlers
+     */
+    public constructor ($1 ?: BaseViewPrivate<K, T>) {
+        super($1 || new BaseViewPrivate);
+
+        let $ : BaseViewPrivate<K, T> = this.$;
+        $.addHandler = (id, item) => {
+            this.createChild(id, item);
+        };
+        $.removeHandler = (id, item) => {
+            this.destroyChild(id, item);
+        };
+
+        this.$seal();
+    }
+
+    /**
+     * Creates a child when user adds new values
+     * @param id {*} id of children pack
+     * @param item {IValue<*>} Reference of children pack
+     * @param before {Fragment} Node to paste before it
+     * @return {handler} handler must be saved and unliked on value remove
+     */
+    public createChild (id : K, item : T, before ?: Fragment) : () => void {
+        let handler = () => {
+            this.createChild(id, item);
+        };
+        if (item instanceof IValue) {
+            item.on(handler);
+        }
+        super.createChild(id, item, before);
+
+        return handler;
+    }
+
+
+
+    /**
+     * Handle ready event
+     */
+    public $ready () {
+        let $ : BaseViewPrivate<K, T> = this.$;
+
+        this.model.$.listener.onAdd($.addHandler);
+        this.model.$.listener.onRemove($.removeHandler);
+        super.$ready();
+    }
+
+    /**
+     * Handles destroy event
+     */
+    public $destroy () {
+        let $ : BaseViewPrivate<K, T> = this.$;
+
+        this.model.$.listener.offAdd($.addHandler);
+        this.model.$.listener.offRemove($.removeHandler);
+        super.$destroy();
+    }
+}
