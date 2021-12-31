@@ -9,9 +9,9 @@
     "browser": "./lib/index.js"
   },
   "scripts": {
-    "prepack": "tsc --build tsconfig.json",
+    "prepack": "tsc --build tsconfig-types.json",
     "test": "echo \"Error: no test specified\"",
-    "tsc": "tsc --build tsconfig.json"
+    "update-types": "tsc --build tsconfig-types.json"
   },
   "repository": {
     "type": "git",
@@ -32,10 +32,6 @@
     "@types/estree": "latest",
     "@types/events": "latest",
     "@types/node": "latest",
-    "flow-bin": "latest",
-    "flow-remove-types": "latest",
-    "flow-typed": "latest",
-    "jsdoc": "latest",
     "typescript": "latest"
   }
 }
