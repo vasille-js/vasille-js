@@ -50,5 +50,6 @@ export class Binding<T> extends Destroyable {
      */
     public $destroy () {
         this.binding.off (this.updateFunc);
+        super.$destroy();
     }
 }

@@ -1,10 +1,11 @@
 import { Destroyable } from "./destroyable.js";
-import {  wrongBinding } from "./errors";
+import { wrongBinding } from "./errors";
 import { IValue } from "./ivalue.js";
 import { Expression } from "../value/expression";
 import { Reference } from "../value/reference";
 import { Pointer } from "../value/pointer";
-import {Mirror} from "../value/mirror";
+import { Mirror } from "../value/mirror";
+import {IModel} from "../models/model";
 
 
 
@@ -18,13 +19,18 @@ export class ReactivePrivate extends Destroyable {
      * A list of user-defined values
      * @type {Set}
      */
-    public watch : Set<IValue<any>> = new Set;
+    public watch : Set<IValue<unknown>> = new Set;
 
     /**
      * A list of user-defined bindings
      * @type {Set}
      */
     public bindings : Set<Destroyable> = new Set;
+
+    /**
+     * A list of user defined models
+     */
+    public models : Set<IModel<any, any>> = new Set;
 
     /**
      * Reactivity switch state
@@ -92,9 +98,10 @@ export class Reactive extends Destroyable {
     /**
      * Create a mirror
      * @param value {IValue} value to mirror
+     * @param forwardOnly {boolean} forward only sync
      */
-    public $mirror<T> (value : IValue<T>) : Mirror<T> {
-        const mirror = new Mirror(value);
+    public $mirror<T> (value : IValue<T>, forwardOnly = false) : Mirror<T> {
+        const mirror = new Mirror(value, forwardOnly);
 
         this.$.watch.add(mirror);
         return mirror;
@@ -103,11 +110,12 @@ export class Reactive extends Destroyable {
     /**
      * Creates a pointer
      * @param value {*} default value to point
+     * @param forwardOnly {boolean} forward only sync
      */
-    public $point<T> (value : T | IValue<T>) : Pointer<T> {
+    public $point<T> (value : T | IValue<T>, forwardOnly = false) : Pointer<T> {
         const $ : ReactivePrivate = this.$;
         const ref = value instanceof IValue ? value : new Reference<T> (value);
-        const pointer = new Pointer (ref);
+        const pointer = new Pointer (ref, forwardOnly);
 
         // when value is an ivalue will be equal to ref
         if (value !== ref) {
@@ -116,6 +124,15 @@ export class Reactive extends Destroyable {
         $.watch.add (pointer);
 
         return pointer;
+    }
+
+    /**
+     * Register a model
+     * @param model
+     */
+    public $register<T extends IModel<any, any>>(model : T) : T {
+        this.$.models.add(model);
+        return model;
     }
 
     /**
@@ -286,6 +303,9 @@ export class Reactive extends Destroyable {
             $.watch.forEach(watcher => {
                 watcher.enable();
             });
+            $.models.forEach(model => {
+                model.enableReactivity();
+            });
             $.enabled = true;
         }
     }
@@ -300,6 +320,10 @@ export class Reactive extends Destroyable {
             $.watch.forEach(watcher => {
                 watcher.disable();
             });
+            $.models.forEach(model => {
+                model.disableReactivity();
+            });
+            $.enabled = false;
         }
     }
 
@@ -309,7 +333,7 @@ export class Reactive extends Destroyable {
      * @param onOff {function} on show feedback
      * @param onOn {function} on hide feedback
      */
-    public $bindFreeze (cond : IValue<boolean>, onOff ?: () => void, onOn ?: () => void) : this {
+    public $bindAlive (cond : IValue<boolean>, onOff ?: () => void, onOn ?: () => void) : this {
         const $ : ReactivePrivate = this.$;
 
         if ($.freezeExpr) {
@@ -336,9 +360,9 @@ export class Reactive extends Destroyable {
     }
 
     public $destroy () {
+        super.$destroy ();
         this.$.$destroy ();
         this.$ = null;
 
-        super.$destroy ();
     }
 }

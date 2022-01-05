@@ -7,8 +7,8 @@ import type { IModel } from "./model";
  * @extends Set
  * @implements IModel
  */
-export class SetModel<T> extends Set<T> implements IModel<null, T> {
-    public listener : Listener<T, null>;
+export class SetModel<T> extends Set<T> implements IModel<T, T> {
+    public listener : Listener<T, T>;
 
     /**
      * Constructs a set model based on a set
@@ -36,7 +36,7 @@ export class SetModel<T> extends Set<T> implements IModel<null, T> {
     public add (value : T) : this {
 
         if (!super.has(value)) {
-            this.listener.emitAdded(null, value);
+            this.listener.emitAdded(value, value);
             super.add(value);
         }
         return this;
@@ -47,7 +47,7 @@ export class SetModel<T> extends Set<T> implements IModel<null, T> {
      */
     public clear () {
         this.forEach(item => {
-            this.listener.emitRemoved(null, item);
+            this.listener.emitRemoved(item, item);
         });
         super.clear();
     }
@@ -59,7 +59,7 @@ export class SetModel<T> extends Set<T> implements IModel<null, T> {
      */
     public delete (value : T) : boolean {
         if (super.has(value)) {
-            this.listener.emitRemoved(null, value);
+            this.listener.emitRemoved(value, value);
         }
         return super.delete(value);
     }

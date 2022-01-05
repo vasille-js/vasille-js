@@ -1,9 +1,9 @@
 import { Executor, instantExecutor, timeoutExecutor } from "../core/executor";
-import { INode } from "./node";
+import {INode, INodePrivate} from "./node";
 
 type AppOptions = {
-    freezeUi : boolean,
-    executor : Executor
+    freezeUi ?: boolean,
+    executor ?: Executor
 };
 
 /**
@@ -24,7 +24,7 @@ export class AppNode extends INode {
     constructor (options ?: AppOptions) {
         super ();
 
-        this.$run = options?.executor || options?.freezeUi === false ? timeoutExecutor : instantExecutor;
+        this.$run = options?.executor || (options?.freezeUi === false ? timeoutExecutor : instantExecutor);
     }
 }
 
@@ -46,5 +46,11 @@ export class App extends AppNode {
         this.$preinit(this, this);
 
         this.$seal();
+    }
+
+    public $$appendNode (node : Node) {
+        const $ : INodePrivate = this.$;
+
+        $.app.$run.appendChild($.node, node);
     }
 }

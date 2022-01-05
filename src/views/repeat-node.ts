@@ -52,38 +52,16 @@ export class RepeatNode<IdT, T> extends Fragment {
     }
 
     public createChild (id : IdT, item : T, before ?: Fragment) : any {
-        const current : Fragment = this.$.nodes.get(id);
-        const node = new Fragment();
-
         // TODO: Refactor: remove @ts-ignore
 
+        const node = new Fragment();
         // eslint-disable-next-line
         // @ts-ignore
         const $ : FragmentPrivate = node.$;
 
         this.destroyChild(id, item);
 
-        if (current) {
-            // eslint-disable-next-line
-            // @ts-ignore
-            const current$ = current.$;
-
-            $.next = current$.next;
-            $.prev = current$.prev;
-            if ($.next) {
-                // eslint-disable-next-line
-                // @ts-ignore
-                $.next.$.prev = node;
-            }
-            if ($.prev) {
-                // eslint-disable-next-line
-                // @ts-ignore
-                $.prev.$.next = node;
-            }
-            current.$destroy();
-            this.$children.splice(this.$children.indexOf(current), 1, node);
-        }
-        else if (before) {
+        if (before) {
             $.next = before;
             // eslint-disable-next-line
             // @ts-ignore
@@ -96,7 +74,7 @@ export class RepeatNode<IdT, T> extends Fragment {
                 // @ts-ignore
                 $.prev.$.next = node;
             }
-            this.$children.splice(this.$children.indexOf(before) - 1, 0, node);
+            this.$children.splice(this.$children.indexOf(before), 0, node);
         }
         else {
             const lastChild = this.$children[this.$children.length - 1];

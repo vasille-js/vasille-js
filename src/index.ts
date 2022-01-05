@@ -10,7 +10,7 @@ import { MapModel } from "./models/map-model";
 import { ObjectModel } from "./models/object-model";
 import { SetModel } from "./models/set-model";
 import { App, AppNode } from "./node/app";
-import {Interceptor, InterceptorNode} from "./node/interceptor";
+import { Interceptor, InterceptorNode } from "./node/interceptor";
 import { Component, Extension, Fragment, INode, Tag } from "./node/node";
 import { Expression } from "./value/expression";
 import { Mirror } from "./value/mirror";
@@ -29,13 +29,37 @@ import { Binding } from "./binding/binding";
 
 export {
     Destroyable,
-    IValue, Reference, Mirror, Pointer,
-    ArrayModel, MapModel, ObjectModel, SetModel,
-    RepeatNode, Repeater, BaseView, Listener,
-    ArrayView, MapView, ObjectView, SetView,
-    Fragment, INode, Tag, Component, Extension,
-    AppNode, App,
-    Executor, InstantExecutor, TimeoutExecutor,
-    Signal, Slot, Interceptor, InterceptorNode,
-    Expression, Binding, Reactive,
+    IValue,
+    Reference,
+    Mirror,
+    Pointer,
+    ArrayModel,
+    MapModel,
+    ObjectModel,
+    SetModel,
+    RepeatNode,
+    Repeater,
+    BaseView,
+    Listener,
+    ArrayView,
+    MapView,
+    ObjectView,
+    SetView,
+    Fragment,
+    INode,
+    Tag,
+    Component,
+    Extension,
+    AppNode,
+    App,
+    Executor,
+    InstantExecutor,
+    TimeoutExecutor,
+    Signal,
+    Slot,
+    Interceptor,
+    InterceptorNode,
+    Expression,
+    Binding,
+    Reactive,
 };

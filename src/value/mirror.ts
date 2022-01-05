@@ -62,13 +62,19 @@ export class Mirror<T> extends Reference<T> {
     }
 
     public enable () : this {
-        this.pointedValue.on(this.handler);
-        this.$ = this.pointedValue.$;
+        if (!this.isEnabled) {
+            this.isEnabled = true;
+            this.pointedValue.on(this.handler);
+            this.$ = this.pointedValue.$;
+        }
         return this;
     }
 
     public disable () : this {
-        this.pointedValue.off(this.handler);
+        if (this.isEnabled) {
+            this.pointedValue.off(this.handler);
+            this.isEnabled = false;
+        }
         return this;
     }
 

@@ -10,8 +10,6 @@ import type { IValue } from "../core/ivalue";
  * @extends Binding
  */
 export class ClassBinding extends Binding<string | boolean> {
-    private current : string | boolean = null;
-
     /**
      * Constructs an HTML class binding description
      * @param node {INode} the vasille node
@@ -34,6 +32,8 @@ export class ClassBinding extends Binding<string | boolean> {
      */
     protected bound (name : string) : (node : INode, value : string | boolean) => void {
 
+        let current : string | boolean = null;
+
         function addClass (node : INode, cl : string) {
             node.app.$run.addClass(node.node, cl);
         }
@@ -43,7 +43,6 @@ export class ClassBinding extends Binding<string | boolean> {
         }
 
         return (node : INode, value : string | boolean) => {
-            const current : string | boolean = this.current;
 
             if (value !== current) {
                 if (typeof current === "string" && current !== "") {
@@ -60,8 +59,7 @@ export class ClassBinding extends Binding<string | boolean> {
                 else if (typeof value === "string" && value !== "") {
                     addClass(node, value);
                 }
-
-                this.current = value;
+                current = value;
             }
         };
     }

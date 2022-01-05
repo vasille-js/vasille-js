@@ -24,13 +24,14 @@ export class ObjectModel<T> extends Object implements IModel<string, T> {
             configurable: false
         });
 
-        const ts = this as never as { [key : string] : T };
-
         for (const i in obj) {
             Object.defineProperty(this, i, {
                 value: obj[i],
-                configurable: false
+                configurable: true,
+                writable: true,
+                enumerable: true
             });
+            this.listener.emitAdded(i, obj[i]);
         }
     }
 
@@ -62,7 +63,9 @@ export class ObjectModel<T> extends Object implements IModel<string, T> {
         else {
             Object.defineProperty(ts, key, {
                 value: v,
-                configurable: false
+                configurable: true,
+                writable: true,
+                enumerable: true
             });
         }
         this.listener.emitAdded(key, ts[key]);

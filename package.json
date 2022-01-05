@@ -11,7 +11,8 @@
   "scripts": {
     "prepack": "tsc --build tsconfig-build.json",
     "build": "tsc --build tsconfig-build.json",
-    "test": "echo \"Error: no test specified\"",
+    "test": "jest",
+    "test-coverage": "jest --coverage",
     "update-types": "tsc --build tsconfig-types.json"
   },
   "repository": {
@@ -32,10 +33,15 @@
     "@types/eslint-scope": "latest",
     "@types/estree": "latest",
     "@types/events": "latest",
+    "@types/jest": "latest",
+    "@types/jsdom": "latest",
     "@types/node": "latest",
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
     "eslint": "latest",
+    "jest": "latest",
+    "jsdom": "latest",
+    "ts-jest": "latest",
     "typescript": "latest"
   }
 }

@@ -69,9 +69,7 @@ export class Repeater extends RepeatNode<number, number> {
 
         super.$created();
 
-        $.updateHandler = (value : number) => {
-            this.changeCount(value);
-        };
+        $.updateHandler = this.changeCount.bind(this);
         this.count.on($.updateHandler);
     }
 

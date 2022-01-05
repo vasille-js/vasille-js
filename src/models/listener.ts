@@ -7,13 +7,13 @@ export class Listener<ValueT, IndexT = string | number> {
      * Functions to run on adding new items
      * @type Set
      */
-    private onAdded : Set<(index : IndexT, value : ValueT) => void>;
+    private readonly onAdded : Set<(index : IndexT, value : ValueT) => void>;
 
     /**
      * Functions to run on item removing
      * @type Set
      */
-    private onRemoved : Set<(index : IndexT, value : ValueT) => void>;
+    private readonly onRemoved : Set<(index : IndexT, value : ValueT) => void>;
 
     /**
      * Describe the frozen state of model
@@ -27,7 +27,7 @@ export class Listener<ValueT, IndexT = string | number> {
      * @type Object[]
      * @private
      */
-    private queue : { sign: boolean, index: IndexT, value: ValueT }[];
+    private readonly queue : { sign: boolean, index: IndexT, value: ValueT }[];
 
     public constructor () {
         Object.defineProperties(this, {
@@ -43,6 +43,7 @@ export class Listener<ValueT, IndexT = string | number> {
             },
             frozen: {
                 value: false,
+                writable: true,
                 configurable: false
             },
             queue: {

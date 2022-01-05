@@ -11,26 +11,35 @@ export class Destroyable {
     protected $seal () {
         const $ = this as never as { [key : string] : unknown };
 
-        for (const i in $) {
+        Object.keys($).forEach(i => {
             // eslint-disable-next-line no-prototype-builtins
             if (this.hasOwnProperty(i)) {
                 const config = Object.getOwnPropertyDescriptor($, i);
 
-                if (!config || config.configurable) {
-                    Object.defineProperty($, i, config?.set || config?.get ? {
-                        configurable: false,
-                        get: config?.get,
-                        set: config?.set,
-                        enumerable: config?.enumerable ?? false
-                    } : {
-                        value: $[i],
-                        configurable: false,
-                        writable: config?.writable ?? false,
-                        enumerable: config?.enumerable ?? false
-                    });
+                if (config.configurable) {
+                    let descriptor : PropertyDescriptor;
+
+                    if (config.set || config.get) {
+                        descriptor = {
+                            configurable: false,
+                            get: config.get,
+                            set: config.set,
+                            enumerable: config.enumerable
+                        };
+                    }
+                    else {
+                        descriptor = {
+                            value: $[i],
+                            configurable: false,
+                            writable: config.writable,
+                            enumerable: config.enumerable
+                        };
+                    }
+
+                    Object.defineProperty($, i, descriptor);
                 }
             }
-        }
+        });
     }
     
     /**

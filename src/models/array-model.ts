@@ -68,7 +68,7 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
     public pop () : T {
         const v = super.pop();
 
-        if (v) {
+        if (v !== undefined) {
             this.listener.emitRemoved(v, v);
         }
         return v;
@@ -95,7 +95,7 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
     public shift () : T {
         const v = super.shift();
 
-        if (v) {
+        if (v !== undefined) {
             this.listener.emitRemoved(v, v);
         }
         return v;
@@ -116,6 +116,8 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
         start = Math.min(start, this.length);
         deleteCount = deleteCount || this.length - start;
 
+        const before = this[start + deleteCount];
+
         for (let i = 0; i < deleteCount; i++) {
             const index = start + deleteCount - i - 1;
             if (this[index] !== undefined) {
@@ -123,7 +125,7 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
             }
         }
         for (let i = 0; i < items.length; i++) {
-            this.listener.emitAdded(this[start + i], items[i]);
+            this.listener.emitAdded(before, items[i]);
         }
 
         return new ArrayModel<T>(super.splice(start, deleteCount, ...items));
@@ -182,7 +184,7 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
      * @return {this} a pointer to this
      */
     public prepend (v : T) : this {
-        this.listener.emitAdded(v, v);
+        this.listener.emitAdded(this[0], v);
         super.unshift(v);
         return this;
     }
@@ -219,7 +221,7 @@ export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
     public removeLast () : this {
         const last = this.last;
 
-        if (last) {
+        if (last != null) {
             this.listener.emitRemoved(this[this.length - 1], last);
             super.pop();
         }

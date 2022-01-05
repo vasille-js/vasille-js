@@ -132,7 +132,7 @@ export class Expression<
         v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
     ) {
         super (false);
-        const values = [v1, v2, v3, v4, v5, v6, v7, v8, v9];
+        const values = [v1, v2, v3, v4, v5, v6, v7, v8, v9].filter(v => v instanceof IValue);
         const handler = (i ? : number) => {
             if (i != null) {
                 this.valuesCache[i] = this.values[i].$;
@@ -209,5 +209,7 @@ export class Expression<
         this.values.splice (0);
         this.valuesCache.splice (0);
         this.linkedFunc.splice (0);
+
+        super.$destroy();
     }
 }

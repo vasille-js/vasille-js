@@ -59,26 +59,6 @@ export class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNode<K, T>
         this.$seal();
     }
 
-    /**
-     * Creates a child when user adds new values
-     * @param id {*} id of child
-     * @param item {IValue} reference of child value
-     * @param before {Fragment} Node to paste before it
-     * @return {handler} handler must be saved and unlinked on value remove
-     */
-    public createChild (id : K, item : T, before ?: Fragment) : () => void {
-        const handler = () => {
-            this.createChild(id, item);
-        };
-        if (item instanceof IValue) {
-            item.on(handler);
-        }
-        super.createChild(id, item, before);
-
-        return handler;
-    }
-
-
 
     /**
      * Handle ready event

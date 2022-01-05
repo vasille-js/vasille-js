@@ -60,7 +60,7 @@ export class Executor {
      * @param target {Element} target element
      * @param child {Node} element to insert before
      */
-    public insertBefore (target : Element, child : Node) : void {
+    public insertBefore (target : Node, child : Node) : void {
         throw notOverwritten();
     }
 
