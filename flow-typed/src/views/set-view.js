@@ -1,7 +1,6 @@
 // @flow
-import { BaseView, BaseViewPrivate } from "./base-view";
+import { BaseView } from "./base-view";
 import { SetModel } from "../models/set-model";
-import { Fragment } from "../node/node";
 
 
 

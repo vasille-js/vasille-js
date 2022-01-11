@@ -1,7 +1,6 @@
 // @flow
-import { BaseView, BaseViewPrivate } from "./base-view";
+import { BaseView } from "./base-view";
 import { ArrayModel } from "../models/array-model";
-import { IValue } from "../core/ivalue";
 import { Fragment } from "../node/node";
 
 
