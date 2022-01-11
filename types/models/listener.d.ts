@@ -7,12 +7,12 @@ export declare class Listener<ValueT, IndexT = string | number> {
      * Functions to run on adding new items
      * @type Set
      */
-    private onAdded;
+    private readonly onAdded;
     /**
      * Functions to run on item removing
      * @type Set
      */
-    private onRemoved;
+    private readonly onRemoved;
     /**
      * Describe the frozen state of model
      * @type boolean
@@ -24,7 +24,7 @@ export declare class Listener<ValueT, IndexT = string | number> {
      * @type Object[]
      * @private
      */
-    private queue;
+    private readonly queue;
     constructor();
     /**
      * Exclude the repeated operation in queue

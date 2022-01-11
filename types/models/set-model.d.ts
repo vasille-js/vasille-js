@@ -6,8 +6,8 @@ import type { IModel } from "./model";
  * @extends Set
  * @implements IModel
  */
-export declare class SetModel<T> extends Set<T> implements IModel<null, T> {
-    listener: Listener<T, null>;
+export declare class SetModel<T> extends Set<T> implements IModel<T, T> {
+    listener: Listener<T, T>;
     /**
      * Constructs a set model based on a set
      * @param set {Set} input data

@@ -40,7 +40,7 @@ export declare class Executor {
      * @param target {Element} target element
      * @param child {Node} element to insert before
      */
-    insertBefore(target: Element, child: Node): void;
+    insertBefore(target: Node, child: Node): void;
     /**
      * Appends a child to element
      * @param el {Element} element

@@ -13,7 +13,7 @@ export declare class IValue<T> extends Destroyable {
     /**
      * @param isEnabled {boolean} initial is enabled state
      */
-    constructor(isEnabled?: boolean);
+    constructor(isEnabled: boolean);
     /**
      * Get the encapsulated value
      * @return {*} the encapsulated value

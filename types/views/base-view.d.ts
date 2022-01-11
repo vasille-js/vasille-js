@@ -1,6 +1,5 @@
 import { RepeatNode, RepeatNodePrivate } from "./repeat-node";
 import { IValue } from "../core/ivalue";
-import { Fragment } from "../node/node";
 import { IModel } from "../models/model";
 /**
  * Private part of BaseView
@@ -34,14 +33,6 @@ export declare class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNo
      */
     model: IValue<Model>;
     constructor($1?: BaseViewPrivate<K, T>);
-    /**
-     * Creates a child when user adds new values
-     * @param id {*} id of child
-     * @param item {IValue} reference of child value
-     * @param before {Fragment} Node to paste before it
-     * @return {handler} handler must be saved and unlinked on value remove
-     */
-    createChild(id: K, item: T, before?: Fragment): () => void;
     /**
      * Handle ready event
      */

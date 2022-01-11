@@ -5,7 +5,7 @@ import type { IModel } from "./model";
 
 
 declare export class SetModel<T> extends Set<T> implements IModel {
-    listener : Listener<T, null>;
+    listener : Listener<T, T>;
 
     constructor (set : T[]) : void;
     add (value : T) : this;

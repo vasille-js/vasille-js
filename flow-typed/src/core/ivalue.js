@@ -10,7 +10,7 @@ import { Destroyable } from "./destroyable.js";
 declare export class IValue<T> extends Destroyable {
     isEnabled : boolean;
 
-    constructor (isEnabled : boolean) : void;
+    constructor (isEnabled ?: boolean) : void;
     get $ () : T;
     set $ (value : T) : this;
     on (handler : (value : T) => void) : this;

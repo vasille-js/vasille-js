@@ -6,7 +6,6 @@ import type { IValue } from "../core/ivalue";
 
 
 declare export class ClassBinding extends Binding<string | boolean> {
-    current : ? string | boolean;
 
     constructor (
         node : INode,

@@ -3,6 +3,7 @@ import { IValue } from "./ivalue.js";
 import { Expression } from "../value/expression";
 import { Pointer } from "../value/pointer";
 import { Mirror } from "../value/mirror";
+import { IModel } from "../models/model";
 /**
  * Private stuff of a reactive object
  * @class ReactivePrivate
@@ -13,12 +14,16 @@ export declare class ReactivePrivate extends Destroyable {
      * A list of user-defined values
      * @type {Set}
      */
-    watch: Set<IValue<any>>;
+    watch: Set<IValue<unknown>>;
     /**
      * A list of user-defined bindings
      * @type {Set}
      */
     bindings: Set<Destroyable>;
+    /**
+     * A list of user defined models
+     */
+    models: Set<IModel<any, any>>;
     /**
      * Reactivity switch state
      * @type {boolean}
@@ -57,13 +62,20 @@ export declare class Reactive extends Destroyable {
     /**
      * Create a mirror
      * @param value {IValue} value to mirror
+     * @param forwardOnly {boolean} forward only sync
      */
-    $mirror<T>(value: IValue<T>): Mirror<T>;
+    $mirror<T>(value: IValue<T>, forwardOnly?: boolean): Mirror<T>;
     /**
      * Creates a pointer
      * @param value {*} default value to point
+     * @param forwardOnly {boolean} forward only sync
      */
-    $point<T>(value: T | IValue<T>): Pointer<T>;
+    $point<T>(value: T | IValue<T>, forwardOnly?: boolean): Pointer<T>;
+    /**
+     * Register a model
+     * @param model
+     */
+    $register<T extends IModel<any, any>>(model: T): T;
     /**
      * Creates a watcher
      * @param func {function} function to run on any argument change
@@ -123,6 +135,6 @@ export declare class Reactive extends Destroyable {
      * @param onOff {function} on show feedback
      * @param onOn {function} on hide feedback
      */
-    $bindFreeze(cond: IValue<boolean>, onOff?: Function, onOn?: Function): this;
+    $bindAlive(cond: IValue<boolean>, onOff?: () => void, onOn?: () => void): this;
     $destroy(): void;
 }

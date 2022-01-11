@@ -13,7 +13,7 @@ declare export class FragmentPrivate extends ReactivePrivate {
     prev : ?Fragment;
 
     constructor () : void;
-    preinit (app : AppNode) : void;
+    preinit (app : AppNode, parent: Fragment) : void;
 }
 
 /**
@@ -35,10 +35,9 @@ declare export class Fragment extends Reactive {
     $createWatchers () : void;
     $compose () : void;
     $$pushNode (node : Fragment) : void;
-    $$findFirstChild () : ?Element;
+    $$findFirstChild () : ?Node;
     $$appendNode (node : Node) : void ;
-    $$insertAdjacent (node : Node) : void;
-    $bindAlive (cond : IValue<boolean>) : this;
+    $$insertAdjacent (node : Node) : void
     $text (
         text : string | IValue<string>,
         cb : ?(text : TextNode) => void
@@ -57,7 +56,7 @@ declare export class Fragment extends Reactive {
         cb : (node : Fragment) => void
     ) : this ;
     $if_else (
-        ifCond : any,
+        ifCond : IValue<boolean>,
         ifCb : (node : Fragment) => void,
         elseCb : (node : Fragment) => void
     ) : this;
@@ -74,10 +73,7 @@ declare export class TextNodePrivate extends FragmentPrivate {
     node : Text;
 
     constructor () : void;
-    preinitText (
-        app : AppNode,
-        text : IValue<string>
-    ) : void;
+    preinitText (app : AppNode, parent: Fragment, text : IValue<string>) : void;
 }
 
 declare export class TextNode extends Fragment {
@@ -281,10 +277,8 @@ declare export class INode extends Fragment {
     $oncut (handler : (ev : ClipboardEvent) => void, options : ?EventListenerOptionsOrUseCapture) : this;
     $oncopy (handler : (ev : ClipboardEvent) => void, options : ?EventListenerOptionsOrUseCapture) : this;
     $onpaste (handler : (ev : ClipboardEvent) => void, options : ?EventListenerOptionsOrUseCapture) : this;
-    $$appendNode (node : Node) : void;
     $$insertAdjacent (node : Node) : void;
     $bindShow (cond : IValue<boolean>) : this;
-    $bindMount (cond : IValue<boolean>) : this;
     $html (value : IValue<string>) : void;
 }
 
@@ -292,11 +286,9 @@ declare export class Tag extends INode {
 
     constructor () : void;
 
-    $preinit (
-        app : AppNode,
-        parent : Fragment,
-        tagName : ?string
-    ) : void;
+    $preinit (app : AppNode, parent : Fragment, tagName : ?string) : void;
+    $$appendNode(node: Node): void;
+    $bindMount(cond: IValue<boolean>): this;
 }
 
 declare export class Extension extends INode {
@@ -332,10 +324,7 @@ declare export class DebugPrivate extends FragmentPrivate {
 
     constructor () : void;
 
-    preinitComment (
-        app : AppNode,
-        text : IValue<string>
-    ) : void;
+    preinitComment (app : AppNode, parent: Fragment, text : IValue<string>) : void;
 }
 
 declare export class DebugNode extends Fragment {

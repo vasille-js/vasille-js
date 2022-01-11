@@ -4,12 +4,14 @@ import { IValue } from "./ivalue.js";
 import { Expression } from "../value/expression";
 import { Pointer } from "../value/pointer";
 import { Mirror } from "../value/mirror";
+import type { IModel } from "../models/model";
 
 
 
 declare export class ReactivePrivate extends Destroyable {
     watch : Set<IValue<any>>;
     bindings : Set<Destroyable>;
+    models: Set<IModel<any, any>>;
     enabled : boolean;
     frozen : boolean;
     freezeExpr : Expression<void, boolean>;
@@ -25,8 +27,9 @@ declare export class Reactive extends Destroyable {
     constructor ($ : ?ReactivePrivate) : void;
 
     $ref<T> (value : T) : IValue<T>;
-    $mirror<T> (value : IValue<T>) : Mirror<T>;
-    $point<T> (value : T | IValue<T>) : Pointer<T>;
+    $mirror<T> (value : IValue<T>, forwardOnly?: boolean) : Mirror<T>;
+    $point<T>(value: T | IValue<T>, forwardOnly?: boolean): Pointer<T>;
+    $register<T>(model: T): T;
 
     $watch<T1> (
         func : (a1 : T1) => void,
@@ -122,6 +125,6 @@ declare export class Reactive extends Destroyable {
 
     $enable () : void;
     $disable () : void;
-    $bindFreeze (cond : IValue<boolean>, onOff : ?Function, onOn : ?Function) : this;
+    $bindAlive(cond: IValue<boolean>, onOff?: () => void, onOn?: () => void): this;
     $destroy () : void;
 }

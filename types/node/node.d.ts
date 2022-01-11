@@ -31,8 +31,9 @@ export declare class FragmentPrivate extends ReactivePrivate {
     /**
      * Pre-initializes the base of a fragment
      * @param app {App} the app node
+     * @param parent {Fragment} the parent node
      */
-    preinit(app: AppNode): void;
+    preinit(app: AppNode, parent: Fragment): void;
     /**
      * Unlinks all bindings
      */
@@ -68,7 +69,7 @@ export declare class Fragment extends Reactive {
      * @param parent {Fragment} parent of node
      * @param data {*} additional data
      */
-    $preinit(app: AppNode, parent: Fragment, data?: any): void;
+    $preinit(app: AppNode, parent: Fragment, data?: unknown): void;
     /**
      * Initialize node
      */
@@ -96,7 +97,7 @@ export declare class Fragment extends Reactive {
      * @return {?Element}
      * @protected
      */
-    protected $$findFirstChild(): Element;
+    protected $$findFirstChild(): Node;
     /**
      * Append a node to end of element
      * @param node {Node} node to insert
@@ -107,11 +108,6 @@ export declare class Fragment extends Reactive {
      * @param node {Node} node to insert
      */
     $$insertAdjacent(node: Node): void;
-    /**
-     * Enable/Disable reactivity of component
-     * @param cond {IValue} show condition
-     */
-    $bindAlive(cond: IValue<boolean>): this;
     /**
      * Defines a text fragment
      * @param text {String | IValue} A text fragment string
@@ -132,7 +128,7 @@ export declare class Fragment extends Reactive {
      * @param node {Fragment} vasille element to insert
      * @param callback {function($ : *)}
      */
-    $create<T>(node: T, callback?: ($: T) => void): this;
+    $create<T extends Fragment>(node: T, callback?: ($: T) => void): this;
     /**
      * Defines an if node
      * @param cond {IValue} condition
@@ -146,7 +142,7 @@ export declare class Fragment extends Reactive {
      * @param ifCb {function(Fragment)} Call-back to create `if` child nodes
      * @param elseCb {function(Fragment)} Call-back to create `else` child nodes
      */
-    $if_else(ifCond: any, ifCb: (node: Fragment) => void, elseCb: (node: Fragment) => void): this;
+    $if_else(ifCond: IValue<boolean>, ifCb: (node: Fragment) => void, elseCb: (node: Fragment) => void): this;
     /**
      * Defines a switch nodes: Will break after first true condition
      * @param cases {...{ cond : IValue, cb : function(Fragment) }} cases
@@ -189,7 +185,7 @@ export declare class TextNodePrivate extends FragmentPrivate {
      * @param app {AppNode} the app node
      * @param text {IValue}
      */
-    preinitText(app: AppNode, text: IValue<string>): void;
+    preinitText(app: AppNode, parent: Fragment, text: IValue<string>): void;
     /**
      * Clear node data
      */
@@ -204,6 +200,7 @@ export declare class TextNode extends Fragment {
     protected $: TextNodePrivate;
     constructor();
     $preinit(app: AppNode, parent: Fragment, text?: IValue<string>): void;
+    protected $$findFirstChild(): Node;
     $destroy(): void;
 }
 /**
@@ -618,18 +615,12 @@ export declare class INode extends Fragment {
      * @param options {Object | boolean}
      */
     $onpaste(handler: (ev: ClipboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    $$appendNode(node: Node): void;
     $$insertAdjacent(node: Node): void;
     /**
      * A v-show & ngShow alternative
      * @param cond {IValue} show condition
      */
     $bindShow(cond: IValue<boolean>): this;
-    /**
-     * Mount/Unmount a node
-     * @param cond {IValue} show condition
-     */
-    $bindMount(cond: IValue<boolean>): this;
     /**
      * bind HTML
      * @param value {IValue}
@@ -644,6 +635,13 @@ export declare class INode extends Fragment {
 export declare class Tag extends INode {
     constructor();
     $preinit(app: AppNode, parent: Fragment, tagName?: string): void;
+    protected $$findFirstChild(): Node;
+    $$appendNode(node: Node): void;
+    /**
+     * Mount/Unmount a node
+     * @param cond {IValue} show condition
+     */
+    $bindMount(cond: IValue<boolean>): this;
     /**
      * Runs GC
      */
@@ -712,9 +710,10 @@ export declare class DebugPrivate extends FragmentPrivate {
     /**
      * Pre-initializes a text node
      * @param app {App} the app node
+     * @param parent {Fragment} parent node
      * @param text {String | IValue}
      */
-    preinitComment(app: AppNode, text: IValue<string>): void;
+    preinitComment(app: AppNode, parent: Fragment, text: IValue<string>): void;
     /**
      * Clear node data
      */

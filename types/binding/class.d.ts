@@ -7,7 +7,6 @@ import type { IValue } from "../core/ivalue";
  * @extends Binding
  */
 export declare class ClassBinding extends Binding<string | boolean> {
-    private current;
     /**
      * Constructs an HTML class binding description
      * @param node {INode} the vasille node

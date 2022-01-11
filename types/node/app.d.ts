@@ -1,8 +1,8 @@
 import { Executor } from "../core/executor";
 import { INode } from "./node";
 declare type AppOptions = {
-    freezeUi: boolean;
-    executor: Executor;
+    freezeUi?: boolean;
+    executor?: Executor;
 };
 /**
  * Application Node
@@ -32,5 +32,6 @@ export declare class App extends AppNode {
      * @param options {Object} Application options
      */
     constructor(node: Element, options?: AppOptions);
+    $$appendNode(node: Node): void;
 }
 export {};

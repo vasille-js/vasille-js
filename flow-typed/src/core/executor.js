@@ -8,7 +8,7 @@ declare export class Executor {
     setAttribute (el : Element, name : string, value : string) : void;
     removeAttribute (el : Element, name : string) : void;
     setStyle (el : HTMLElement, prop : string, value : string) : void;
-    insertBefore (target : Element, child : Node) : void;
+    insertBefore (target : Node, child : Node) : void;
     appendChild (el : Element, child : Node) : void;
     callCallback (cb : () => void) : void;
 }

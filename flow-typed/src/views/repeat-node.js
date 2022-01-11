@@ -5,12 +5,6 @@ import { Slot } from "../core/slot";
 
 
 
-declare export class RepeatNodeItem extends Fragment {
-    $id : any;
-
-    constructor (id : any) : void;
-}
-
 declare export class RepeatNodePrivate<IdT> extends INodePrivate {
     nodes : Map<IdT, Fragment>;
 
