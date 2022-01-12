@@ -1,6 +1,5 @@
 @startuml
 !include uml-style.iuml
-title Vasille.js core library architecture
 
 Reactive <|-- Fragment
 Fragment <|-- TextNode

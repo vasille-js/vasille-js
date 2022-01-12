@@ -8,6 +8,8 @@
 [[_TOC_]]
 
 
+<hr>
+
 ## Installation
 
 ```
@@ -24,6 +26,8 @@ Add the next line to `[libs]` section in your `.flowconfig` file
 ```
 node_modules/vasille/flow-typed
 ```
+
+<hr>
 
 ## How SAFE is Vasille
 
@@ -64,32 +68,44 @@ The test project was coded using the next frameworks:
   [Try Initial](https://vasille-js.gitlab.io/project-x32/vasille-js/) /
   [Try Optimized](https://vasille-js.gitlab.io/project-x32-if/vasille-js/).
 
-The result of test (less is better) are demonstrated in figures 1-4. There are 2 version: 
-the initial one which matches the design and an optimized one which works as fast as possible.
+The result of test are demonstrated in figures 1 & 2. 
+The test result are measured in FPS (frames per second), which is calculated as `1000 / ft`,
+where `ft` is an average frame time in ms of 20 frames. All values are absolute. Higher is better.
+
+The initial version is updating all the page content in each frame. 
+The page reactivity connections are very complex, and we get poor results in Angular, React, Vue & Svelte.
+
+The optimized version disables the offscreen & non-actual content, which simplifies the
+reactivity complexity in time. Angular & Svelte give result similar to Vasille.
+React & Vue continue to be slow in the beginning of test.
+
+**Conclusion:** The reactivity system of Vasille is very fast
+and its complexity is not slowing down the application.
 
 <hr>
 
 ![results 1](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-wo.png)
-Figure 1: Initial version (linear scale)
-
-<hr>
-
-![results 1](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-wo-log.png)
-Figure 2: Initial version (logarithmic scale)
+Figure 1: Initial version
 
 <hr>
 
 ![results 2](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-o.png)
-Figure 3: Optimized version (linear scale)
+Figure 3: Optimized version
 
 <hr>
 
-![results 2](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-o-log.png)
-Figure 4: Optimized version (logarithmic scale)
-
 ## How POWERFUL is Vasille
 
+The secret of `Vasille` is a good task decomposition. The core library is composed of
+an effective reactive module and a DOM generation engine based on it.
 
+### Reactivity Module
+
+![Reactivity Module](img/reactive.png)
+
+### DOM Generation Engine
+
+![DOM Generation Engine](img/nodes.png)
 
 ## API documentation
 
