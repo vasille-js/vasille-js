@@ -84,15 +84,19 @@ and its complexity is not slowing down the application.
 
 <hr>
 
-![results 1](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/img/scores-wo.png)
+&nbsp;
 
 Figure 1: Initial version
 
+![results 1](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/img/scores-wo.png)
+
 <hr>
 
-![results 2](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/img/scores-o.png)
+&nbsp;
 
 Figure 2: Optimized version
+
+![results 2](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/img/scores-o.png)
 
 <hr>
 
