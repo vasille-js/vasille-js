@@ -12,11 +12,11 @@ export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
 
     public constructor () {
         super();
-        this.model = this.$ref(new MapModel);
+        this.model = new MapModel;
     }
 
     public $ready () {
-        const map : MapModel<K, T> = this.model.$;
+        const map : MapModel<K, T> = this.model;
 
         map.forEach((value, key) => {
             this.createChild(key, value);

@@ -11,11 +11,11 @@ import { ObjectModel } from "../models/object-model";
 export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
     public constructor () {
         super();
-        this.model = this.$ref(new ObjectModel);
+        this.model = new ObjectModel;
     }
 
     public $ready () {
-        const obj : {[p : string] : T} = this.model.$ as any;
+        const obj : {[p : string] : T} = this.model as any;
 
         for (const key in obj) {
             this.createChild(key, obj[key]);

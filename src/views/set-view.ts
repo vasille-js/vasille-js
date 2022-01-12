@@ -12,12 +12,12 @@ export class SetView<T> extends BaseView<T, T, SetModel<T>> {
 
     public constructor () {
         super();
-        this.model = this.$ref(new SetModel<T>());
+        this.model = new SetModel<T>();
     }
 
     public $ready () {
         const $ : BaseViewPrivate<T, T> = this.$;
-        const set : SetModel<T> = this.model.$;
+        const set : SetModel<T> = this.model;
 
         set.forEach(item => {
             $.app.$run.callCallback(() => {

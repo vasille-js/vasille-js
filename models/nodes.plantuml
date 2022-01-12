@@ -1,0 +1,31 @@
+@startuml
+!include uml-style.iuml
+title Vasille.js core library architecture
+
+Reactive <|-- Fragment
+Fragment <|-- TextNode
+Fragment <|-- INode
+Fragment <|-- DebugNode
+Fragment <|-- Watch
+Fragment <|-- RepeatNode
+Fragment <|-- InterceptorNode
+
+INode <|-- Extension
+INode <|-- AppNode
+INode <|-- Tag
+
+Extension <|-- Component
+
+RepeatNode <|-- Repeater
+RepeatNode <|-- BaseView
+
+BaseView <|-- ArrayView
+BaseView <|-- ObjectView
+BaseView <|-- MapView
+BaseView <|-- SetView
+
+Fragment *- Slot
+Interceptor --* InterceptorNode
+Slot -[hidden]right- Interceptor
+
+@enduml

@@ -1,0 +1,11 @@
+@startuml
+!include uml-style.iuml
+title Vasille.js core library architecture
+
+Destroyable <|-- Binding
+
+Binding <|-- AttributeBinding
+Binding <|-- StyleBinding
+Binding <|-- ClassBinding
+
+@enduml

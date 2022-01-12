@@ -231,55 +231,55 @@ export class Reactive extends Destroyable {
         v1 : IValue<T1>, v2 ?: IValue<void>, v3 ?: IValue<void>,
         v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
         v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
+    ) : IValue<T>
     public $bind<T, T1, T2> (
         func : (a1 : T1, a2 : T2) => T,
         v1 : IValue<T1>, v2 : IValue<T2>, v3 ?: IValue<void>,
         v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
         v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
+    ) : IValue<T>
     public $bind<T, T1, T2, T3> (
         func : (a1 : T1, a2 : T2, a3 : T3) => T,
         v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
         v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
         v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
+    ) : IValue<T>
     public $bind<T, T1, T2, T3, T4> (
         func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4) => T,
         v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
         v4 : IValue<T4>, v5 ?: IValue<void>, v6 ?: IValue<void>,
         v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
+    ) : IValue<T>
     public $bind<T, T1, T2, T3, T4, T5> (
         func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5) => T,
         v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
         v4 : IValue<T4>, v5 : IValue<T5>, v6 ?: IValue<void>,
         v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
+    ) : IValue<T>
     public $bind<T, T1, T2, T3, T4, T5, T6> (
         func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6) => T,
         v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
         v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
         v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
+    ) : IValue<T>
     public $bind<T, T1, T2, T3, T4, T5, T6, T7> (
         func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7) => T,
         v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
         v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
         v7 : IValue<T7>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
+    ) : IValue<T>
     public $bind<T, T1, T2, T3, T4, T5, T6, T7 , T8> (
         func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8) => T,
         v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
         v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
         v7 : IValue<T7>, v8 : IValue<T8>, v9 ?: IValue<void>,
-    )
+    ) : IValue<T>
     public $bind<T, T1, T2, T3, T4, T5, T6, T7 , T8, T9> (
         func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8, a9 : T9) => T,
         v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
         v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
         v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
-    )
+    ) : IValue<T>
     public $bind<T, T1, T2, T3, T4, T5, T6, T7 , T8, T9> (
         func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8, a9 : T9) => T,
         v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,

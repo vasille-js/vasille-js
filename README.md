@@ -1,32 +1,99 @@
-# Vasille.js
+# Vasille
 
-|Intro|
-|:---:|
-|![Vasille.js logo](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/logo.png)|
-|Vasille.js is **very fast** javascript frontend framework, it is not using virtual DOM, it updates DOM directly using an own reactive mechanism.|
+![Vasille.js logo](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/logo.png)
 
-This framework is in active development, if you want to contribute contact
-the maintainer: Lelițac Vasile (lixcode@vivaldi.net).
+`Vasille` core library is frontend solution for `safe`, `fast` & `powerful` applications.
 
-### Table of content
+## Table of content
 [[_TOC_]]
 
 
-## Project roadmap
+## Installation
 
-| Feature                                     | Deadline     | Status     |
-|---------------------------------------------|--------------|------------|
-| Initial Version                             | 01.07.2021   | Ready      |
-| Patch to 1.1                                | 02.12.2021   | Ready      |
-| Describe API                                | 02.14.2021   | Ready      |
-| Describe JS API                             | 02.15.2021   | Ready      |
-| Describe VCC architecture                   | 02.22.2021   | Waiting    |
-| Code and debug VCC                          | 03.xx.2021   |            |
-| First enterprise ready version              | xx.xx.2021   |            |
-| Boost by HTML templates                     | xx.xx.2021   |            |
+```
+npm install vasille --save
+```
+
+### Getting ready be example
+* JavaScript Example
+* TypeScript Example
+* Flow.js Example
+
+### Flow.js typedef
+Add the next line to `[libs]` section in your `.flowconfig` file
+```
+node_modules/vasille/flow-typed
+```
+
+## How SAFE is Vasille
+
+The safe of your application is ensured by 
+* `100%` coverage of `vasille` code by unit tests.
+  Each function, each branch are working as designed.
+* `strong typing` makes your javascript/typescript code safe as C++ code.
+All entities of `vasille` core library are strong typed, including:
+  * data fields & properties.
+  * computed properties (function parameters & result).
+  * methods.
+  * events (defined handlers & event emit).
+  * DOM events & DOM operation (attributing, styling, etc.).
+  * slots of component.
+  * references to children.
+* What you write is what you get - there is no hidden operations, you can control everything.
+* No asynchronous code, when the line of code is executed, the DOM and reactive things are already synced.
+
+## How FAST is Vasille
+
+The test project was coded using the next frameworks:
+* Angular /
+  [Try Initial](https://vasille-js.gitlab.io/project-x32/angular/) /
+  [Try Optimized](https://vasille-js.gitlab.io/project-x32-if/angular/).
+* React /
+  [Try Initial](https://vasille-js.gitlab.io/project-x32/react/) /
+  [Try Optimized](https://vasille-js.gitlab.io/project-x32-if/react/).
+* Vue 2 /
+  [Try Initial](https://vasille-js.gitlab.io/project-x32/vue-2/) /
+  [Try Optimized](https://vasille-js.gitlab.io/project-x32-if/vue-2/).
+* Vue 3 /
+  [Try Initial](https://vasille-js.gitlab.io/project-x32/vue-3/) /
+  [Try Optimized](https://vasille-js.gitlab.io/project-x32-if/vue-3/).
+* Svelte /
+  [Try Initial](https://vasille-js.gitlab.io/project-x32/svelte/) /
+  [Try Optimized](https://vasille-js.gitlab.io/project-x32-if/svelte/).
+* Vasille /
+  [Try Initial](https://vasille-js.gitlab.io/project-x32/vasille-js/) /
+  [Try Optimized](https://vasille-js.gitlab.io/project-x32-if/vasille-js/).
+
+The result of test (less is better) are demonstrated in figures 1-4. There are 2 version: 
+the initial one which matches the design and an optimized one which works as fast as possible.
+
+<hr>
+
+![results 1](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-wo.png)
+Figure 1: Initial version (linear scale)
+
+<hr>
+
+![results 1](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-wo-log.png)
+Figure 2: Initial version (logarithmic scale)
+
+<hr>
+
+![results 2](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-o.png)
+Figure 3: Optimized version (linear scale)
+
+<hr>
+
+![results 2](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-o-log.png)
+Figure 4: Optimized version (logarithmic scale)
+
+## How POWERFUL is Vasille
+
+
 
 ## API documentation
 
+There are some 
 
 Currently, the [API](pages/API.md) is in development, 
 but the [JavaScript API](pages/JavaScriptAPI.md)
@@ -34,99 +101,6 @@ is available.
 
 * [API Documentation](https://gitlab.com/vasille-js/vasille-js/-/blob/master/pages/API.md)
 * [JS API Documentation](https://gitlab.com/vasille-js/vasille-js/-/blob/master/pages/JavaScriptAPI.md)
-
-## Tools in development
-
-* **Vasille.js** is a component based framework without any dependencies
-* **Reactive Reference** is a build in reactivity library of Vasille.js
-* **Vasille Language** is a user-friendy language to describe Vasille.js 
-  components
-* **VCC** (*Vasille Component Compiler*) translate code from Vasille 
-  language to high-effective Vasille.js components performing a 
-  lot of performance improvements.
-  
-## How it works
-
-To test the speed of frameworks (inclusive Vasille JS) I had created a map, 
-which can be zoomed up to 32x, this project was called "Project x32".
-
-On the next image is demonstrated the difference between 1x zoom (on the 
-left side) and x32 zoom (on the right side):
-![x1-x32](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/x1-x32.png)
-
-There are 100 random squares over each brick, on small zoom the squares 
-are hidden to optimize browser performance, because the page is composed 
-of over than 23 000 nodes. The random squares added one by one to not 
-freeze zoom animation. The zoom animation duration is 300ms, and it 
-must consist of 20 frames on 60Hz screen.
-
-The project x32 was coded using the next frameworks:
-* Angular.
-* React.
-* Vue 2.
-* Vue 3.
-* Svelte.
-* Vasille JS.
-
-### Measuring zoom performance
-
-After zooming in each production build and measuring performance 
-I had got the next results:
-![results 1](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-wo.png)
-
-The Vue & React builds are the slowest: the average frame time of:
-* React build is 1263.48ms.
-* Vue 3 build is 971.80ms.
-* Vue 2 build is 823.56ms.
-
-There is the same graphic in logarithmic scale:
-![results 1](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-wo-log.png)
-
-Let's analyze the Angular, Svelte & Vasille JS results:
-* Angular & Svelte has a similar result, the average time of frame 
-  is 53.94ms for Angular & 53.98 for Svelte.
-* The Vasille JS is the unique framework which support the zoom 
-  animation at 60fps without any additional optimization.  
-  Average time of frame is 3.22ms.
-
-#### Try it:
-* [Project x32 powered by Angular](https://vasille-js.gitlab.io/project-x32/angular/)
-* [Project x32 powered by React](https://vasille-js.gitlab.io/project-x32/react/)
-* [Project x32 powered by Vue 2](https://vasille-js.gitlab.io/project-x32/vue-2/)
-* [Project x32 powered by Vue 3](https://vasille-js.gitlab.io/project-x32/vue-3/)
-* [Project x32 powered by Svelte](https://vasille-js.gitlab.io/project-x32/svelte/)
-* [Project x32 powered by Vasille JS](https://vasille-js.gitlab.io/project-x32/vasille-js/)
-
-### Let's optimize Project x32
-
-To optimize the Project x32 realizations, the optimization consist 
-of removing the off-screen components, that change will decrease 
-the number of components. So let's zoom each optimized build 
-from x1 to x32.
-
-Tests results:
-![results 2](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-o.png)
-
-After X8 the number of onscreen components is very small, the optimization has a good result.
-The Reactive frameworks are the slowest before and after optimization.
-
-There is the same graphic in logarithmic scale:
-![results 2](https://gitlab.com/vasille-js/vasille-js/-/raw/master/img/scores-o-log.png)
-
-After optimization Angular, Svelte & Vasille JS has very good 
-results close to Vasille JS before optimization.
-
-#### Try it:
-* [Optimized Project x32 powered by Angular](https://vasille-js.gitlab.io/project-x32-if/angular/)
-* [Optimized Project x32 powered by React](https://vasille-js.gitlab.io/project-x32-if/react/)
-* [Optimized Project x32 powered by Vue 2](https://vasille-js.gitlab.io/project-x32-if/vue-2/)
-* [Optimized Project x32 powered by Vue 3](https://vasille-js.gitlab.io/project-x32-if/vue-3/)
-* [Optimized Project x32 powered by Svelte](https://vasille-js.gitlab.io/project-x32-if/svelte/)
-* [Optimized Project x32 powered by Vasille JS](https://vasille-js.gitlab.io/project-x32-if/vasille-js/)
-
-## Conclusions
-The main goal of Vasille JS is not to be the fastest JavaScript framework, 
-but to ensure excellent performance without any optimizations.
 
 ## Questions
 

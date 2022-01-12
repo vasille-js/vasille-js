@@ -1,0 +1,14 @@
+@startuml
+!include uml-style.iuml
+
+Destroyable <|-- IValue
+Destroyable <|-- Reactive
+
+IValue <|-- Reference
+IValue <|-- Expression
+Reference <|-- Mirror
+Mirror <|-- Pointer
+
+Reactive *-left- Signal
+
+@enduml

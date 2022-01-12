@@ -1375,6 +1375,20 @@ export class Tag extends INode {
         return this.$.unmounted ? null : this.$.node;
     }
 
+    public $$insertAdjacent(node: Node) {
+        if (this.$.unmounted) {
+            if (this.$.next) {
+                this.$.next.$$insertAdjacent(node);
+            }
+            else {
+                this.$.parent.$$appendNode(node);
+            }
+        }
+        else {
+            super.$$insertAdjacent(node);
+        }
+    }
+
     public $$appendNode (node : Node) {
         const $ : INodePrivate = this.$;
 
@@ -1527,7 +1541,7 @@ export class SwitchedNodePrivate extends INodePrivate {
 /**
  * Defines a node witch can switch its children conditionally
  */
-class SwitchedNode extends Extension {
+class SwitchedNode extends Fragment {
     protected $ : SwitchedNodePrivate;
 
     /**

@@ -7,3 +7,8 @@ pages/
 .idea/
 /**.md
 tsconfig.json
+/coverage
+/test
+.eslint*
+tsconfig*.json
+*config.js

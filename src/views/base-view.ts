@@ -41,9 +41,9 @@ export class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNode<K, T>
 
     /**
      * Property which will contain a model
-     * @type {IValue<*>}
+     * @type {IModel}
      */
-    public model : IValue<Model>;
+    public model : Model;
 
     public constructor ($1 ?: BaseViewPrivate<K, T>) {
         super($1 || new BaseViewPrivate);
@@ -66,8 +66,8 @@ export class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNode<K, T>
     public $ready () {
         const $ : BaseViewPrivate<K, T> = this.$;
 
-        this.model.$.listener.onAdd($.addHandler);
-        this.model.$.listener.onRemove($.removeHandler);
+        this.model.listener.onAdd($.addHandler);
+        this.model.listener.onRemove($.removeHandler);
         super.$ready();
     }
 
@@ -77,8 +77,8 @@ export class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNode<K, T>
     public $destroy () {
         const $ : BaseViewPrivate<K, T> = this.$;
 
-        this.model.$.listener.offAdd($.addHandler);
-        this.model.$.listener.offRemove($.removeHandler);
+        this.model.listener.offAdd($.addHandler);
+        this.model.listener.offRemove($.removeHandler);
         super.$destroy();
     }
 }

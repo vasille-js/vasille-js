@@ -7,17 +7,17 @@ import { IValue } from "../core/ivalue";
  * @class Watch
  * @extends Fragment
  */
-export class Watch extends Fragment {
+export class Watch<T> extends Fragment {
     /**
      * Default slot
      * @type Slot
      */
-    public slot : Slot;
+    public slot : Slot<T>;
     /**
      * iValue to watch
      * @type IValue
      */
-    public model : IValue<unknown>;
+    public model : IValue<T>;
 
     public constructor () {
         super ();
@@ -27,16 +27,16 @@ export class Watch extends Fragment {
     }
 
     public $createWatchers () {
-        this.$watch(() => {
+        this.$watch((value) => {
             this.$children.forEach(child => {
                 child.$destroy();
             });
             this.$children.splice(0);
-            this.slot.release(this);
+            this.slot.release(this, value);
         }, this.model);
     }
 
     public $compose () {
-        this.slot.release(this);
+        this.slot.release(this, this.model.$);
     }
 }

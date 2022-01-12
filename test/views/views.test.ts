@@ -51,7 +51,7 @@ it('array view', function () {
 
     root.$tag('div', (node, element) => {
         node.$create(new ArrayView, $ => {
-            $.model.$ = array;
+            $.model = array;
             $.slot.insert((node, item) => {
                 node.$text(`${item}`);
             });
@@ -126,7 +126,7 @@ it('map view', function () {
 
     root.$tag('div', (node, element) => {
         node.$create(new MapView, $ => {
-            $.model.$ = model;
+            $.model = model;
             $.slot.insert((node, item) => {
                 node.$text(`${item}`);
             });
@@ -160,7 +160,7 @@ it('object view', function () {
 
     root.$tag('div', (node, element) => {
         node.$create(new ObjectView, $ => {
-            $.model.$ = model;
+            $.model = model;
             $.slot.insert((node, item) => {
                 node.$text(`${item}`);
             });
@@ -191,7 +191,7 @@ it('set view', function () {
 
     root.$tag('div', (node, element) => {
         node.$create(new SetView, $ => {
-            $.model.$ = model;
+            $.model = model;
             $.slot.insert((node, item) => {
                 node.$text(`${item}`);
             });
@@ -229,7 +229,7 @@ class ReactivityTest extends Fragment {
         super.$compose();
 
         this.$create(new SetView, $ => {
-            $.model.$ = this.set;
+            $.model = this.set;
             $.slot.insert((node, item) => {
                 node.$text(`${item}`);
             });
@@ -264,7 +264,7 @@ it('view timeout test', function (done) {
 
     root.$tag('div', (node, element) => {
         node.$create(new SetView, $ => {
-            $.model.$ = model;
+            $.model = model;
             $.freezeUi = false;
             $.slot.insert((node, item) => {
                 node.$text(`${item}`);

@@ -13,7 +13,7 @@ export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
     public constructor () {
         super();
 
-        this.model = this.$ref(new ArrayModel);
+        this.model = new ArrayModel;
         this.$seal();
     }
 
@@ -22,9 +22,7 @@ export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
     }
 
     public $ready () {
-        const arr : ArrayModel<T> = this.model.$;
-
-        arr.forEach(item =>  {
+        this.model.forEach(item =>  {
             this.createChild(item, item);
         })
 
