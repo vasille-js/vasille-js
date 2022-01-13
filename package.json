@@ -3,27 +3,33 @@
   "description": "Vasille - Safe. Fast. Powerful.",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "exports": {
     "import": "./lib/index.js",
     "browser": "./lib/index.js"
   },
+  "unpkg": "./cdn/es2015.js",
   "scripts": {
-    "prepack": "tsc --build tsconfig-build.json",
     "build": "tsc --build tsconfig-build.json",
+    "build-es5": "tsc --build tsconfig-build-es5.json",
     "test": "jest",
     "test-coverage": "jest --coverage",
-    "update-types": "tsc --build tsconfig-types.json"
+    "update-types": "tsc --build tsconfig-types.json",
+    "cdn-create": "node cdn/create.js",
+    "es5-check": "es-check es5 cdn/*es5.js"
   },
   "repository": {
     "type": "git",
     "url": "https://gitlab.com/vasille-js/vasille-js.git"
   },
   "keywords": [
-    "javascript",
-    "framework",
+    "safe",
+    "fast",
+    "poweful",
     "frontend",
-    "fast"
+    "javascript",
+    "typescript",
+    "flow-js"
   ],
   "author": "Vasile Lixcode <lixcode@vivaldi.net> (https://t.me/lixcode)",
   "license": "MIT",
@@ -38,6 +44,7 @@
     "@types/node": "latest",
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
+    "es-check": "latest",
     "eslint": "latest",
     "jest": "latest",
     "jsdom": "latest",

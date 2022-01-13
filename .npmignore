@@ -10,6 +10,11 @@ tsconfig.json
 /coverage
 /test
 /img
+/lib-es5
+/cdn/create.js
+/cdn/create-helper-es5.js
+/cdn/*.html
 .eslint*
 tsconfig*.json
 *config.js
+*.tar.gz

@@ -16,6 +16,13 @@
 npm install vasille --save
 ```
 
+### CDN
+
+```html
+<script src="https://unpkg.com/vasille"></script>            - ES215 version
+<script src="https://unpkg.com/vasille/cdn/es5.js"></script> - ES5 Compatible version
+```
+
 ### Getting ready be example
 * JavaScript Example
 * TypeScript Example
