@@ -9,6 +9,7 @@ pages/
 tsconfig.json
 /coverage
 /test
+/img
 .eslint*
 tsconfig*.json
 *config.js
