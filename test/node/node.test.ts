@@ -480,6 +480,49 @@ it('INode unmount/mount advanced', function () {
     });
 });
 
+it('INode unmount/mount advanced 2', function () {
+    const root = new App(page.window.document.body).$init();
+    const mount = new Reference(true);
+
+    root.$tag('div', (main, body) => {
+        main.$create(new Fragment, l1 => {
+            l1.$create(new Fragment, l2 => {
+                l2.$tag("div", div => {
+                    div.$bindMount(mount);
+                    div.$addClass('0');
+                });
+                l2.$tag("div", div => {
+                    div.$bindMount(mount);
+                    div.$addClass('1');
+                });
+                l2.$tag("div", div => {
+                    div.$bindMount(mount);
+                    div.$addClass('2');
+                });
+            });
+            l1.$create(new Fragment, l2 => {
+                l2.$tag("div", div => {
+                    div.$addClass('3');
+                });
+            });
+        });
+
+        // check the unmount process result
+        mount.$ = false;
+        expect(body.children.length).toBe(1);
+        expect(body.innerHTML.trim()).toBe(`<div class="3"></div>`);
+
+        // check the mount order
+        mount.$ = true;
+        expect(body.children.length).toBe(4);
+        expect(body.innerHTML).toBe(
+            '<div class="0"></div>' +
+            '<div class="1"></div>' +
+            '<div class="2"></div>' +
+            '<div class="3"></div>');
+    });
+});
+
 let interceptTest = -1;
 
 class Receiver extends Fragment {

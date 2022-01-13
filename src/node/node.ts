@@ -300,10 +300,12 @@ export class Fragment extends Reactive {
      * Defines a custom element
      * @param node {Fragment} vasille element to insert
      * @param callback {function($ : *)}
+     * @param callback1 {function($ : *)}
      */
     public $create<T extends Fragment> (
         node : T,
-        callback ?: ($ : T) => void
+        callback ?: ($ : T) => void,
+        callback1 ?: ($ : T) => void
     ) : this {
         const $ : FragmentPrivate = this.$;
 
@@ -312,6 +314,9 @@ export class Fragment extends Reactive {
 
         if (callback) {
             callback(node);
+        }
+        if (callback1) {
+            callback1(node);
         }
 
         this.$$pushNode(node);

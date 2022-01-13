@@ -50,12 +50,9 @@ it('array view', function () {
     const array = new ArrayModel<number>([1]);
 
     root.$tag('div', (node, element) => {
-        node.$create(new ArrayView, $ => {
-            $.model = array;
-            $.slot.insert((node, item) => {
-                node.$text(`${item}`);
-            });
-        });
+        node.$create(new ArrayView, $ => $.model = array, $ => $.slot.insert((node, item) => {
+            node.$text(`${item}`);
+        }));
 
         expect(element.innerHTML).toBe("1");
 
