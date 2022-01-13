@@ -6,17 +6,17 @@ import { IValue } from "../core/ivalue";
  * @class Watch
  * @extends Fragment
  */
-export declare class Watch extends Fragment {
+export declare class Watch<T> extends Fragment {
     /**
      * Default slot
      * @type Slot
      */
-    slot: Slot;
+    slot: Slot<T>;
     /**
      * iValue to watch
      * @type IValue
      */
-    model: IValue<unknown>;
+    model: IValue<T>;
     constructor();
     $createWatchers(): void;
     $compose(): void;

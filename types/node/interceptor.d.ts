@@ -1,4 +1,4 @@
-import { Extension } from "./node";
+import { Fragment } from "./node";
 import { Destroyable } from "../core/destroyable";
 import { Signal } from "../core/signal";
 import { Slot } from "../core/slot";
@@ -35,7 +35,7 @@ export declare class Interceptor<t1 = void, t2 = void, t3 = void, t4 = void, t5 
  * @class InterceptorNode
  * @extends Extension
  */
-export declare class InterceptorNode<t1 = void, t2 = void, t3 = void, t4 = void, t5 = void, t6 = void, t7 = void, t8 = void, t9 = void> extends Extension {
+export declare class InterceptorNode<t1 = void, t2 = void, t3 = void, t4 = void, t5 = void, t6 = void, t7 = void, t8 = void, t9 = void> extends Fragment {
     /**
      * Internal interceptor
      * @type Interceptor

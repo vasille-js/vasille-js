@@ -127,8 +127,9 @@ export declare class Fragment extends Reactive {
      * Defines a custom element
      * @param node {Fragment} vasille element to insert
      * @param callback {function($ : *)}
+     * @param callback1 {function($ : *)}
      */
-    $create<T extends Fragment>(node: T, callback?: ($: T) => void): this;
+    $create<T extends Fragment>(node: T, callback?: ($: T) => void, callback1?: ($: T) => void): this;
     /**
      * Defines an if node
      * @param cond {IValue} condition
@@ -636,6 +637,7 @@ export declare class Tag extends INode {
     constructor();
     $preinit(app: AppNode, parent: Fragment, tagName?: string): void;
     protected $$findFirstChild(): Node;
+    $$insertAdjacent(node: Node): void;
     $$appendNode(node: Node): void;
     /**
      * Mount/Unmount a node

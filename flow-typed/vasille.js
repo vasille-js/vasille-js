@@ -324,7 +324,8 @@ declare module "vasille" {
         ) : this;
         $create<T> (
             node : T,
-            callback : ($ : T) => void
+            callback : ($ : T) => void,
+            callback1 : ($ : T) => void
         ) : this;
         $if (
             cond : IValue<boolean>,
@@ -598,9 +599,9 @@ declare module "vasille" {
 
         $preinit (app : AppNode, parent : Fragment, text : ?IValue<string>) : void;
     }
-    declare export class Watch extends Fragment {
-        slot : Slot<>;
-        model : IValue<any>;
+    declare export class Watch<T> extends Fragment {
+        slot : Slot<T>;
+        model : IValue<T>;
 
         constructor () : void;
 

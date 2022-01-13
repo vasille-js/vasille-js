@@ -1,5 +1,4 @@
 import { RepeatNode, RepeatNodePrivate } from "./repeat-node";
-import { IValue } from "../core/ivalue";
 import { IModel } from "../models/model";
 /**
  * Private part of BaseView
@@ -29,9 +28,9 @@ export declare class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNo
     protected $: BaseViewPrivate<K, T>;
     /**
      * Property which will contain a model
-     * @type {IValue<*>}
+     * @type {IModel}
      */
-    model: IValue<Model>;
+    model: Model;
     constructor($1?: BaseViewPrivate<K, T>);
     /**
      * Handle ready event
