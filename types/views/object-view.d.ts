@@ -6,6 +6,6 @@ import { ObjectModel } from "../models/object-model";
  * @extends BaseView
  */
 export declare class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
-    constructor(model : ObjectModel<T>);
+    constructor(model: ObjectModel<T>);
     $ready(): void;
 }

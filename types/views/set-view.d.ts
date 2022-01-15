@@ -6,6 +6,6 @@ import { SetModel } from "../models/set-model";
  * @extends BaseView
  */
 export declare class SetView<T> extends BaseView<T, T, SetModel<T>> {
-    constructor(model : SetModel<T>);
+    constructor(model: SetModel<T>);
     $ready(): void;
 }

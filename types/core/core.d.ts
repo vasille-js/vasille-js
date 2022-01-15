@@ -63,12 +63,12 @@ export declare class Reactive extends Destroyable {
      * Create a mirror
      * @param value {IValue} value to mirror
      */
-    public $mirror<T> (value : IValue<T>) : Mirror<T>;
+    $mirror<T>(value: IValue<T>): Mirror<T>;
     /**
      * Create a forward-only mirror
      * @param value {IValue} value to mirror
      */
-    public $forward<T> (value : IValue<T>) : Mirror<T>;
+    $forward<T>(value: IValue<T>): Mirror<T>;
     /**
      * Creates a pointer
      * @param value {*} default value to point
