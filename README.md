@@ -4,8 +4,17 @@
 
 `Vasille` core library is frontend solution for `safe`, `fast` & `powerful` applications.
 
+[![build](https://gitlab.com/vasille-js/vasille-js/badges/v2/pipeline.svg)](https://gitlab.com/vasille-js/vasille-js)
+[![npm](https://img.shields.io/npm/v/vasille?style=flat-square)](https://www.npmjs.com/package/vasille)
+
 ## Table of content
-[[_TOC_]]
+
+* [Installation](#installation)
+* [How SAFE is Vasille](#how-safe-is-vasille)
+* [How FAST is Vasille](#how-fast-is-vasille)
+* [How POWERFUL is Vasille](#how-powerful-is-vasille)
+* [How to use Vasille](#how-to-use-vasille)
+* [Best Practices](#best-practices)
 
 
 <hr>
@@ -19,8 +28,10 @@ npm install vasille --save
 ### CDN
 
 ```html
-<script src="https://unpkg.com/vasille"></script>            - ES215 version
-<script src="https://unpkg.com/vasille/cdn/es5.js"></script> - ES5 Compatible version
+ES2015 version
+<script src="https://unpkg.com/vasille"></script>
+ES5 Compatible version
+<script src="https://unpkg.com/vasille/cdn/es5.js"></script>
 ```
 
 ### Getting ready be example
@@ -162,12 +173,26 @@ which will be reflected into a browser DOM and keep up to date it.
 * `InterceptorNode` is used to send an event/signal from one child to other 
 without manually creating of interceptors.
 
-## API documentation
+## How to use Vasille
 
-There are several API, and most of it are WIP (Work In Progress):
-* [OOP API - Ready](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/OOP-API.md)
-* [Procedural API - WIP](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/Procedural-API.md)
-* [Final API - WIP](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/API.md)
+There are several modes, and most of it are WIP (Work In Progress):
+* [Object-Oriented Programming - Ready](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/OOP-API.md)
+* [Procedural Programming - WIP](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/Procedural-API.md)
+* [Template Programming - WIP](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/API.md)
+
+## Best Practices
+
+* [Reactive Object Practice](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/reactive-object.ts)
+* [Application](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/application.ts)
+* [Application in Application](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/application-in-application.ts)
+* [Signaling](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/signaling.ts)
+* [Forward Only Data Exchange](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/forward-only.ts)
+* [Absolute, Relative & Auto Values](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/auto-value.ts)
+* [Signaling Intercepting](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/singaling-intercepting.ts)
+* [Debugging](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/debugging.ts)
+* [Fragment vs Component](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/fragment-component.ts)
+* [Extensions](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/extension.ts)
+* [Model-View-Controller](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/model-view-controller.ts)
 
 ## Questions
 

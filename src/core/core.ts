@@ -98,10 +98,20 @@ export class Reactive extends Destroyable {
     /**
      * Create a mirror
      * @param value {IValue} value to mirror
-     * @param forwardOnly {boolean} forward only sync
      */
-    public $mirror<T> (value : IValue<T>, forwardOnly = false) : Mirror<T> {
-        const mirror = new Mirror(value, forwardOnly);
+    public $mirror<T> (value : IValue<T>) : Mirror<T> {
+        const mirror = new Mirror(value, false);
+
+        this.$.watch.add(mirror);
+        return mirror;
+    }
+
+    /**
+     * Create a forward-only mirror
+     * @param value {IValue} value to mirror
+     */
+    public $forward<T> (value : IValue<T>) : Mirror<T> {
+        const mirror = new Mirror(value, true);
 
         this.$.watch.add(mirror);
         return mirror;

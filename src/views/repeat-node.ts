@@ -38,7 +38,7 @@ export class RepeatNode<IdT, T> extends Fragment {
     /**
      * Default slot
      */
-    public slot : Slot<T, IdT>;
+    public slot : Slot<Fragment, T, IdT>;
 
     /**
      * If false will use timeout executor, otherwise the app executor

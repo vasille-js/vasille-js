@@ -1305,10 +1305,18 @@ class Reactive extends Destroyable {
     /**
      * Create a mirror
      * @param value {IValue} value to mirror
-     * @param forwardOnly {boolean} forward only sync
      */
-    $mirror(value, forwardOnly = false) {
-        const mirror = new Mirror(value, forwardOnly);
+    $mirror(value) {
+        const mirror = new Mirror(value, false);
+        this.$.watch.add(mirror);
+        return mirror;
+    }
+    /**
+     * Create a forward-only mirror
+     * @param value {IValue} value to mirror
+     */
+    $forward(value) {
+        const mirror = new Mirror(value, true);
         this.$.watch.add(mirror);
         return mirror;
     }
@@ -1589,9 +1597,11 @@ class Fragment extends Reactive {
         return this;
     }
     $debug(text) {
-        const node = new DebugNode();
-        node.$preinit(this.$.app, this, text);
-        this.$$pushNode(node);
+        if (this.$.app.$debugUi) {
+            const node = new DebugNode();
+            node.$preinit(this.$.app, this, text);
+            this.$$pushNode(node);
+        }
         return this;
     }
     $tag(tagName, cb) {
@@ -2635,6 +2645,7 @@ class AppNode extends INode {
     constructor(options) {
         super();
         this.$run = (options === null || options === void 0 ? void 0 : options.executor) || ((options === null || options === void 0 ? void 0 : options.freezeUi) === false ? timeoutExecutor : instantExecutor);
+        this.$debugUi = (options === null || options === void 0 ? void 0 : options.debugUi) || false;
     }
 }
 /**
@@ -3102,10 +3113,9 @@ window.BaseView = BaseView;
  * @extends BaseView
  */
 class ArrayView extends BaseView {
-    constructor() {
+    constructor(model) {
         super();
-        this.model = new ArrayModel;
-        this.$seal();
+        this.model = model;
     }
     createChild(id, item, before) {
         super.createChild(item, item, before || this.$.nodes.get(id));
@@ -3156,9 +3166,9 @@ window.Watch = Watch;
  * @extends BaseView
  */
 class ObjectView extends BaseView {
-    constructor() {
+    constructor(model) {
         super();
-        this.model = new ObjectModel;
+        this.model = model;
     }
     $ready() {
         const obj = this.model;
@@ -3178,9 +3188,9 @@ window.ObjectView = ObjectView;
  * @extends BaseView
  */
 class MapView extends BaseView {
-    constructor() {
+    constructor(model) {
         super();
-        this.model = new MapModel;
+        this.model = model;
     }
     $ready() {
         const map = this.model;
@@ -3200,9 +3210,9 @@ window.MapView = MapView;
  * @extends BaseView
  */
 class SetView extends BaseView {
-    constructor() {
+    constructor(model) {
         super();
-        this.model = new SetModel();
+        this.model = model;
     }
     $ready() {
         const $ = this.$;

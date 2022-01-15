@@ -10,9 +10,9 @@ import { SetModel } from "../models/set-model";
  */
 export class SetView<T> extends BaseView<T, T, SetModel<T>> {
 
-    public constructor () {
+    public constructor (model : SetModel<T>) {
         super();
-        this.model = new SetModel<T>();
+        this.model = model;
     }
 
     public $ready () {

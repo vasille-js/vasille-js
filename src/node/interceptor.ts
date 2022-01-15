@@ -89,7 +89,7 @@ export class InterceptorNode<
      * The default slot of node
      * @type Slot
      */
-    slot : Slot<Interceptor<t1, t2, t3, t4, t5, t6, t7, t8, t9>> = new Slot;
+    slot : Slot<Fragment, Interceptor<t1, t2, t3, t4, t5, t6, t7, t8, t9>> = new Slot;
 
     $compose () {
         this.slot.release(this, this.interceptor);

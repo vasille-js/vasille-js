@@ -62,9 +62,13 @@ export declare class Reactive extends Destroyable {
     /**
      * Create a mirror
      * @param value {IValue} value to mirror
-     * @param forwardOnly {boolean} forward only sync
      */
-    $mirror<T>(value: IValue<T>, forwardOnly?: boolean): Mirror<T>;
+    public $mirror<T> (value : IValue<T>) : Mirror<T>;
+    /**
+     * Create a forward-only mirror
+     * @param value {IValue} value to mirror
+     */
+    public $forward<T> (value : IValue<T>) : Mirror<T>;
     /**
      * Creates a pointer
      * @param value {*} default value to point
@@ -112,15 +116,15 @@ export declare class Reactive extends Destroyable {
      * @param v9 {IValue} argument
      * @return {IValue} the created ivalue
      */
-    $bind<T, T1>(func: (a1: T1) => T, v1: IValue<T1>): any;
-    $bind<T, T1, T2>(func: (a1: T1, a2: T2) => T, v1: IValue<T1>, v2: IValue<T2>): any;
-    $bind<T, T1, T2, T3>(func: (a1: T1, a2: T2, a3: T3) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>): any;
-    $bind<T, T1, T2, T3, T4>(func: (a1: T1, a2: T2, a3: T3, a4: T4) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>): any;
-    $bind<T, T1, T2, T3, T4, T5>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>): any;
-    $bind<T, T1, T2, T3, T4, T5, T6>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>): any;
-    $bind<T, T1, T2, T3, T4, T5, T6, T7>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>): any;
-    $bind<T, T1, T2, T3, T4, T5, T6, T7, T8>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>): any;
-    $bind<T, T1, T2, T3, T4, T5, T6, T7, T8, T9>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8, a9: T9) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>, v9: IValue<T9>): any;
+    $bind<T, T1>(func: (a1: T1) => T, v1: IValue<T1>): IValue<T>;
+    $bind<T, T1, T2>(func: (a1: T1, a2: T2) => T, v1: IValue<T1>, v2: IValue<T2>): IValue<T>;
+    $bind<T, T1, T2, T3>(func: (a1: T1, a2: T2, a3: T3) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>): IValue<T>;
+    $bind<T, T1, T2, T3, T4>(func: (a1: T1, a2: T2, a3: T3, a4: T4) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>): IValue<T>;
+    $bind<T, T1, T2, T3, T4, T5>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>): IValue<T>;
+    $bind<T, T1, T2, T3, T4, T5, T6>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>): IValue<T>;
+    $bind<T, T1, T2, T3, T4, T5, T6, T7>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>): IValue<T>;
+    $bind<T, T1, T2, T3, T4, T5, T6, T7, T8>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>): IValue<T>;
+    $bind<T, T1, T2, T3, T4, T5, T6, T7, T8, T9>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8, a9: T9) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>, v9: IValue<T9>): IValue<T>;
     /**
      * Enable reactivity of fields
      */

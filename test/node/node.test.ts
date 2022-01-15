@@ -64,7 +64,7 @@ it('Fragment', function () {
 });
 
 it('Tag', function () {
-    const root = new App(page.window.document.body).$init();
+    const root = new App(page.window.document.body, { debugUi: true }).$init();
     const text = new Reference("test");
 
     root.$tag("div", div => {

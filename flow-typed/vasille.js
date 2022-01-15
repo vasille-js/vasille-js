@@ -7,6 +7,7 @@ interface IModel {
     disableReactivity () : void;
 }
 type AppOptions = ?{
+    debugUi?: boolean,
     freezeUi ?: boolean,
     executor ?: Executor
 }
@@ -34,7 +35,8 @@ declare module "vasille" {
         constructor ($ : ?ReactivePrivate) : void;
 
         $ref<T> (value : T) : IValue<T>;
-        $mirror<T> (value : IValue<T>, forwardOnly?: boolean) : Mirror<T>;
+        $mirror<T> (value : IValue<T>) : Mirror<T>;
+        $forward<T> (value : IValue<T>) : Mirror<T>;
         $point<T>(value: T | IValue<T>, forwardOnly?: boolean): Pointer<T>;
         $register<T>(model: T): T;
 
@@ -161,7 +163,7 @@ declare module "vasille" {
         disable () : this;
     }
     declare export class Signal<
-        T1 = void, T2 = void, T3 = void, T4 = void, T5 = void, T6 = void, T7 = void, T8 = void, T9 = void
+        T = Fragment, T1 = void, T2 = void, T3 = void, T4 = void, T5 = void, T6 = void, T7 = void, T8 = void, T9 = void
         > {
         handlers : Set<
             (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8, a9 : T9) => void
@@ -178,17 +180,17 @@ declare module "vasille" {
     declare export class Slot<
         t1 = void, t2 = void, t3 = void, t4 = void, t5 = void, t6 = void, t7 = void, t8 = void, t9 = void
         > {
-        runner : ?(a0 : Fragment, a1 : t1, a2 : t2, a3 : t3, a4 : t4, a5 : t5, a6 : t6, a7 : t7, a8 : t8, a9 : t9) => void;
+        runner : ?(a0 : T, a1 : t1, a2 : t2, a3 : t3, a4 : t4, a5 : t5, a6 : t6, a7 : t7, a8 : t8, a9 : t9) => void;
 
         insert (
-            func : (a0 : Fragment, a1 : t1, a2 : t2, a3 : t3, a4 : t4, a5 : t5, a6 : t6, a7 : t7, a8 : t8, a9 : t9) => void
+            func : (a0 : T, a1 : t1, a2 : t2, a3 : t3, a4 : t4, a5 : t5, a6 : t6, a7 : t7, a8 : t8, a9 : t9) => void
         ) : void;
         release (
-            a0 : Fragment, a1 : t1, a2 : t2, a3 : t3, a4 : t4, a5 : t5, a6 : t6, a7 : t7, a8 : t8, a9 : t9
+            a0 : T, a1 : t1, a2 : t2, a3 : t3, a4 : t4, a5 : t5, a6 : t6, a7 : t7, a8 : t8, a9 : t9
         ) : void;
         predefine (
-            func : (a0 : Fragment, a1 : t1, a2 : t2, a3 : t3, a4 : t4, a5 : t5, a6 : t6, a7 : t7, a8 : t8, a9 : t9) => void,
-            a0 : Fragment, a1 : t1, a2 : t2, a3 : t3, a4 : t4, a5 : t5, a6 : t6, a7 : t7, a8 : t8, a9 : t9
+            func : (a0 : T, a1 : t1, a2 : t2, a3 : t3, a4 : t4, a5 : t5, a6 : t6, a7 : t7, a8 : t8, a9 : t9) => void,
+            a0 : T, a1 : t1, a2 : t2, a3 : t3, a4 : t4, a5 : t5, a6 : t6, a7 : t7, a8 : t8, a9 : t9
         ) : void;
     }
     declare export class Listener<ValueT, IndexT = string | number> {
@@ -283,7 +285,7 @@ declare module "vasille" {
         t1 = void, t2 = void, t3 = void, t4 = void, t5 = void, t6 = void, t7 = void, t8 = void, t9 = void
         > extends Fragment {
         interceptor : Interceptor<t1, t2, t3, t4, t5, t6, t7, t8, t9>;
-        slot : Slot<Interceptor<t1, t2, t3, t4, t5, t6, t7, t8, t9>>;
+        slot : Slot<Fragment, Interceptor<t1, t2, t3, t4, t5, t6, t7, t8, t9>>;
     }
     declare export class FragmentPrivate extends ReactivePrivate {
 
@@ -600,7 +602,7 @@ declare module "vasille" {
         $preinit (app : AppNode, parent : Fragment, text : ?IValue<string>) : void;
     }
     declare export class Watch<T> extends Fragment {
-        slot : Slot<T>;
+        slot : Slot<Fragment, T>;
         model : IValue<T>;
 
         constructor () : void;
@@ -754,14 +756,14 @@ declare module "vasille" {
         constructor ($1 : ?BaseViewPrivate<K, T>) : void;
     }
     declare export class ArrayView<T> extends BaseView<?T, T, ArrayModel<T>> {
-        constructor () : void;
+        constructor (model : ArrayModel<T>) : void;
         createChild (id : ?T, item : T, before : ?Fragment) : any;
     }
     declare export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
-        constructor () : void;
+        constructor (model : MapModel<K, T>) : void;
     }
     declare export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
-        constructor () : void;
+        constructor (model : ObjectModel<T>) : void;
     }
     declare export class RepeatNodePrivate<IdT> extends INodePrivate {
         nodes : Map<IdT, Fragment>;
@@ -769,7 +771,7 @@ declare module "vasille" {
         constructor () : void;
     }
     declare export class RepeatNode<IdT, T> extends Fragment {
-        slot : Slot<T, IdT>;
+        slot : Slot<Fragment, T, IdT>;
         freezeUi : boolean;
 
         constructor ($ : ?RepeatNodePrivate<IdT>) : void;
@@ -791,7 +793,7 @@ declare module "vasille" {
         changeCount (number : number) : void;
     }
     declare export class SetView<T> extends BaseView<T, T, SetModel<T>> {
-        constructor () : void;
+        constructor (model : SetModel<T>) : void;
     }
     declare export class AttributeBinding extends Binding<?string> {
         constructor (

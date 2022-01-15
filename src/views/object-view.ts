@@ -9,9 +9,9 @@ import { ObjectModel } from "../models/object-model";
  * @extends BaseView
  */
 export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
-    public constructor () {
+    public constructor (model : ObjectModel<T>) {
         super();
-        this.model = new ObjectModel;
+        this.model = model;
     }
 
     public $ready () {

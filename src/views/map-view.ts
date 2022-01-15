@@ -10,9 +10,9 @@ import { MapModel } from "../models/map-model";
  */
 export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
 
-    public constructor () {
+    public constructor (model : MapModel<K, T>) {
         super();
-        this.model = new MapModel;
+        this.model = model;
     }
 
     public $ready () {

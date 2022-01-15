@@ -36,10 +36,10 @@ it('import test', function () {
     const repeater = new Repeater();
     const baseView = new BaseView();
     const listener = new Listener();
-    const arrayView = new ArrayView();
-    const mapView = new MapView();
-    const objectView = new ObjectView();
-    const setView = new SetView();
+    const arrayView = new ArrayView(array);
+    const mapView = new MapView(map);
+    const objectView = new ObjectView(obj);
+    const setView = new SetView(set);
     const fragment = new Fragment();
     const inode = new INode();
     const tag = new Tag();

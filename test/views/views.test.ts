@@ -50,7 +50,7 @@ it('array view', function () {
     const array = new ArrayModel<number>([1]);
 
     root.$tag('div', (node, element) => {
-        node.$create(new ArrayView, $ => $.model = array, $ => $.slot.insert((node, item) => {
+        node.$create(new ArrayView(array), $ => $.slot.insert((node, item) => {
             node.$text(`${item}`);
         }));
 
@@ -122,12 +122,9 @@ it('map view', function () {
     const model = new MapModel<number, number>([[1, 2], [2, 3], [3, 4]]);
 
     root.$tag('div', (node, element) => {
-        node.$create(new MapView, $ => {
-            $.model = model;
-            $.slot.insert((node, item) => {
-                node.$text(`${item}`);
-            });
-        });
+        node.$create(new MapView(model), $ => $.slot.insert((node, item) => {
+            node.$text(`${item}`);
+        }));
 
         expect(element.innerHTML).toBe("234");
 
@@ -156,12 +153,9 @@ it('object view', function () {
     const model = new ObjectModel({0: 1, 1: 2, 2: 3});
 
     root.$tag('div', (node, element) => {
-        node.$create(new ObjectView, $ => {
-            $.model = model;
-            $.slot.insert((node, item) => {
-                node.$text(`${item}`);
-            });
-        });
+        node.$create(new ObjectView(model), $ => $.slot.insert((node, item) => {
+            node.$text(`${item}`);
+        }));
 
         expect(element.innerHTML).toBe("123");
 
@@ -187,12 +181,9 @@ it('set view', function () {
     const model = new SetModel([1, 2, 3]);
 
     root.$tag('div', (node, element) => {
-        node.$create(new SetView, $ => {
-            $.model = model;
-            $.slot.insert((node, item) => {
-                node.$text(`${item}`);
-            });
-        });
+        node.$create(new SetView(model), $ => $.slot.insert((node, item) => {
+            node.$text(`${item}`);
+        }));
 
         expect(element.innerHTML).toBe("123");
 
@@ -225,12 +216,9 @@ class ReactivityTest extends Fragment {
     $compose() {
         super.$compose();
 
-        this.$create(new SetView, $ => {
-            $.model = this.set;
-            $.slot.insert((node, item) => {
-                node.$text(`${item}`);
-            });
-        });
+        this.$create(new SetView(this.set), $ => $.slot.insert((node, item) => {
+            node.$text(`${item}`);
+        }));
     }
 }
 
@@ -260,13 +248,9 @@ it('view timeout test', function (done) {
     const model = new SetModel([1, 2, 3]);
 
     root.$tag('div', (node, element) => {
-        node.$create(new SetView, $ => {
-            $.model = model;
-            $.freezeUi = false;
-            $.slot.insert((node, item) => {
-                node.$text(`${item}`);
-            });
-        });
+        node.$create(new SetView(model), $ => $.freezeUi = false, $ => $.slot.insert((node, item) => {
+            node.$text(`${item}`);
+        }));
 
         expect(element.innerHTML).toBe("");
 

@@ -11,7 +11,7 @@ export declare class Watch<T> extends Fragment {
      * Default slot
      * @type Slot
      */
-    slot: Slot<T>;
+    slot: Slot<Fragment, T>;
     /**
      * iValue to watch
      * @type IValue

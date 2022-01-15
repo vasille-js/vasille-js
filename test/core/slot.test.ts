@@ -1,6 +1,6 @@
 import {Fragment, Slot} from "../../src";
 
-const slot = new Slot<number>();
+const slot = new Slot<Fragment, number>();
 const fragment = new Fragment();
 
 let test = 1;

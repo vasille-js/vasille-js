@@ -45,6 +45,6 @@ export declare class InterceptorNode<t1 = void, t2 = void, t3 = void, t4 = void,
      * The default slot of node
      * @type Slot
      */
-    slot: Slot<Interceptor<t1, t2, t3, t4, t5, t6, t7, t8, t9>>;
+    slot: Slot<Fragment, Interceptor<t1, t2, t3, t4, t5, t6, t7, t8, t9>>;
     $compose(): void;
 }

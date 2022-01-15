@@ -6,6 +6,7 @@ class CoreTest extends Reactive {
 
     ref : IValue<number>;
     mirror : IValue<number>;
+    forward : IValue<number>;
     point : Pointer<number>;
     ro_point : IValue<number>;
 
@@ -25,6 +26,7 @@ class CoreTest extends Reactive {
 
         this.ref = this.$ref(1);
         this.mirror = this.$mirror(this.ref);
+        this.forward = this.$forward(this.ref);
         this.point = this.$point(this.mirror);
         this.ro_point = this.$point(this.point, true);
         this.predefined_point = this.$point(23);
@@ -60,6 +62,7 @@ it("Reactive", function () {
 
     expect(coreTest.ref.$).toBe(1);
     expect(coreTest.mirror.$).toBe(1);
+    expect(coreTest.forward.$).toBe(1);
     expect(coreTest.point.$).toBe(1);
     expect(coreTest.ro_point.$).toBe(1);
     expect(coreTest.predefined_point.$).toBe(23);
@@ -76,6 +79,7 @@ it("Reactive", function () {
     coreTest.point.$ = 3;
     expect(coreTest.ref.$).toBe(3);
     expect(coreTest.mirror.$).toBe(3);
+    expect(coreTest.forward.$).toBe(3);
     expect(coreTest.point.$).toBe(3);
     expect(coreTest.ro_point.$).toBe(3);
     expect(coreTest.watch_test).toBe(3);

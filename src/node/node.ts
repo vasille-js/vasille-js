@@ -252,10 +252,12 @@ export class Fragment extends Reactive {
     }
 
     public $debug(text : IValue<string>) : this {
-        const node = new DebugNode();
+        if (this.$.app.$debugUi) {
+            const node = new DebugNode();
 
-        node.$preinit(this.$.app, this, text);
-        this.$$pushNode(node);
+            node.$preinit(this.$.app, this, text);
+            this.$$pushNode(node);
+        }
         return this;
     }
 

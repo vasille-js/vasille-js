@@ -12,166 +12,159 @@ var __spreadArray = function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 
-// if (!window.Set) {
-    var Set = /** @class */ (function (_super) {
-        __extends(Set, _super);
-        function Set(set) {
-            if (set === void 0) { set = []; }
-            var _this = this; _super.call(this);
-            set.forEach(function (item) {
-                _this.add (item)
-            });
-            Object.defineProperty(_this, 'hash', {
-                value: Object.create(null),
-                writable: true
-            });
-            return _this;
+var Set = window.Set || /** @class */ (function (_super) {
+    __extends(Set, _super);
+    function Set(set) {
+        if (set === void 0) { set = []; }
+        var _this = this; _super.call(this);
+        set.forEach(function (item) {
+            _this.add (item)
+        });
+        Object.defineProperty(_this, 'hash', {
+            value: Object.create(null),
+            writable: true
+        });
+        return _this;
+    }
+
+    Set.prototype.has = function (value) {
+        if (typeof value === "string" || typeof value === "number") {
+            return this.hash[value] !== void 0;
         }
+        else {
+            return this.indexOf(value) !== -1;
+        }
+    };
 
-        Set.prototype.has = function (value) {
-            if (typeof value === "string" || typeof value === "number") {
-                return this.hash[value] !== void 0;
+    Set.prototype.add = function (value) {
+        if (typeof value === "string" || typeof value === "number") {
+            if (this.hash[value]) {
+                return this;
             }
             else {
-                return this.indexOf(value) !== -1;
+                this.hash[value] = true;
             }
-        };
-
-        Set.prototype.add = function (value) {
-            if (typeof value === "string" || typeof value === "number") {
-                if (this.hash[value]) {
-                    return this;
-                }
-                else {
-                    this.hash[value] = true;
-                }
-            }
-            else {
-                if (this.indexOf(value) !== -1) {
-                    return this;
-                }
-                this.push(value);
-            }
-            return this;
-        };
-
-        Set.prototype.clear = function () {
-            this.hash = Object.create(null);
-            this.splice(0);
-        };
-
-        Set.prototype.delete = function (value) {
-            if (typeof value === "string" || typeof value === "number") {
-                if (this.hash[value] !== void 0) {
-                    delete this.hash[value];
-                }
-            }
-            else {
-                var index = this.indexOf(value);
-                if (index !== -1) {
-                    this.splice(index, 1);
-                }
+        }
+        else {
+            if (this.indexOf(value) !== -1) {
+                return this;
             }
             this.push(value);
-            return this;
-        };
-        return Set;
-    }(Array));
-
-    window.Set = Set;
-// }
-
-// if (!window.Map) {
-    var Map = /** @class */ (function (_super) {
-        __extends(Map, _super);
-
-        function Map(map) {
-            if (map === void 0) { map = []; }
-            var _this = this; _super.call(this);
-            Object.defineProperty(_this, 'hash', {
-                value: Object.create(null),
-                writable: true
-            });
-            map.forEach(function (_a) {
-                var key = _a[0], value = _a[1];
-                this.set(key, value);
-            });
-            return _this;
         }
+        return this;
+    };
 
-        Map.prototype.clear = function () {
-            this.hash = Object.create(null);
-            this.splice(0);
-        };
+    Set.prototype.clear = function () {
+        this.hash = Object.create(null);
+        this.splice(0);
+    };
 
-        Map.prototype.delete = function (key) {
-            if (typeof key === "string" || typeof key === "number") {
-                if (this.hash[key] !== void 0) {
-                    delete this.hash[key];
-                }
+    Set.prototype.delete = function (value) {
+        if (typeof value === "string" || typeof value === "number") {
+            if (this.hash[value] !== void 0) {
+                delete this.hash[value];
             }
-            else {
-                for (var i = 0; i < this.length; i++) {
-                    if (this[i][0] === key) {
-                        this.splice(i, 1);
-                    }
-                }
+        }
+        else {
+            var index = this.indexOf(value);
+            if (index !== -1) {
+                this.splice(index, 1);
             }
-        };
+        }
+        this.push(value);
+        return this;
+    };
+    return Set;
+}(Array));
 
-        function indexOfKey(key) {
+var Map = window.Map || /** @class */ (function (_super) {
+    __extends(Map, _super);
+
+    function Map(map) {
+        if (map === void 0) { map = []; }
+        var _this = this; _super.call(this);
+        Object.defineProperty(_this, 'hash', {
+            value: Object.create(null),
+            writable: true
+        });
+        map.forEach(function (_a) {
+            var key = _a[0], value = _a[1];
+            this.set(key, value);
+        });
+        return _this;
+    }
+
+    Map.prototype.clear = function () {
+        this.hash = Object.create(null);
+        this.splice(0);
+    };
+
+    Map.prototype.delete = function (key) {
+        if (typeof key === "string" || typeof key === "number") {
+            if (this.hash[key] !== void 0) {
+                delete this.hash[key];
+            }
+        }
+        else {
             for (var i = 0; i < this.length; i++) {
                 if (this[i][0] === key) {
-                    return i;
+                    this.splice(i, 1);
                 }
             }
-            return -1;
         }
+    };
 
-        Map.prototype.set = function (key, value) {
-            if (typeof key === "string" || typeof key === "number") {
-                this.hash[key] = value;
+    function indexOfKey(key) {
+        for (var i = 0; i < this.length; i++) {
+            if (this[i][0] === key) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    Map.prototype.set = function (key, value) {
+        if (typeof key === "string" || typeof key === "number") {
+            this.hash[key] = value;
+        }
+        else {
+            var index = indexOfKey.call(this, key);
+            if (index === -1) {
+                this.push([key, value]);
             }
             else {
-                var index = indexOfKey.call(this, key);
-                if (index === -1) {
-                    this.push([key, value]);
-                }
-                else {
-                    this[index][1] = value;
-                }
+                this[index][1] = value;
             }
-        };
+        }
+    };
 
 
-        Map.prototype.has = function (key) {
-            if (typeof key === "string" || typeof key === "number") {
-                return !!this.hash[key];
+    Map.prototype.has = function (key) {
+        if (typeof key === "string" || typeof key === "number") {
+            return !!this.hash[key];
+        }
+        else {
+            return indexOfKey.call(this, key) !== -1;
+        }
+    };
+
+    Map.prototype.get = function (key) {
+        if (typeof key === "string" || typeof key === "number") {
+            return this.hash[key];
+        }
+        else {
+            var index = indexOfKey.call(this, key);
+            if (index !== -1) {
+                return this[index][1];
             }
             else {
-                return indexOfKey.call(this, key) !== -1;
+                return void 0;
             }
-        };
+        }
+    };
 
-        Map.prototype.get = function (key) {
-            if (typeof key === "string" || typeof key === "number") {
-                return this.hash[key];
-            }
-            else {
-                var index = indexOfKey.call(this, key);
-                if (index !== -1) {
-                    return this[index][1];
-                }
-                else {
-                    return void 0;
-                }
-            }
-        };
-
-        return Map;
-    }(Array));
-    window.Map = Map;
-// }
+    return Map;
+}(Array));
 // ./lib-es5/models/model.js
 
 
@@ -1605,11 +1598,18 @@ var Reactive = /** @class */ (function (_super) {
     /**
      * Create a mirror
      * @param value {IValue} value to mirror
-     * @param forwardOnly {boolean} forward only sync
      */
-    Reactive.prototype.$mirror = function (value, forwardOnly) {
-        if (forwardOnly === void 0) { forwardOnly = false; }
-        var mirror = new Mirror(value, forwardOnly);
+    Reactive.prototype.$mirror = function (value) {
+        var mirror = new Mirror(value, false);
+        this.$.watch.add(mirror);
+        return mirror;
+    };
+    /**
+     * Create a forward-only mirror
+     * @param value {IValue} value to mirror
+     */
+    Reactive.prototype.$forward = function (value) {
+        var mirror = new Mirror(value, true);
         this.$.watch.add(mirror);
         return mirror;
     };
@@ -1904,9 +1904,11 @@ var Fragment = /** @class */ (function (_super) {
         return this;
     };
     Fragment.prototype.$debug = function (text) {
-        var node = new DebugNode();
-        node.$preinit(this.$.app, this, text);
-        this.$$pushNode(node);
+        if (this.$.app.$debugUi) {
+            var node = new DebugNode();
+            node.$preinit(this.$.app, this, text);
+            this.$$pushNode(node);
+        }
         return this;
     };
     Fragment.prototype.$tag = function (tagName, cb) {
@@ -3012,6 +3014,7 @@ var AppNode = /** @class */ (function (_super) {
     function AppNode(options) {
         var _this = this; _super.call(this);
         _this.$run = (options === null || options === void 0 ? void 0 : options.executor) || ((options === null || options === void 0 ? void 0 : options.freezeUi) === false ? timeoutExecutor : instantExecutor);
+        _this.$debugUi = (options === null || options === void 0 ? void 0 : options.debugUi) || false;
         return _this;
     }
     return AppNode;
@@ -3531,10 +3534,9 @@ window.BaseView = BaseView;
  */
 var ArrayView = /** @class */ (function (_super) {
     __extends(ArrayView, _super);
-    function ArrayView() {
+    function ArrayView(model) {
         var _this = this; _super.call(this);
-        _this.model = new ArrayModel;
-        _this.$seal();
+        _this.model = model;
         return _this;
     }
     ArrayView.prototype.createChild = function (id, item, before) {
@@ -3595,9 +3597,9 @@ window.Watch = Watch;
  */
 var ObjectView = /** @class */ (function (_super) {
     __extends(ObjectView, _super);
-    function ObjectView() {
+    function ObjectView(model) {
         var _this = this; _super.call(this);
-        _this.model = new ObjectModel;
+        _this.model = model;
         return _this;
     }
     ObjectView.prototype.$ready = function () {
@@ -3621,9 +3623,9 @@ window.ObjectView = ObjectView;
  */
 var MapView = /** @class */ (function (_super) {
     __extends(MapView, _super);
-    function MapView() {
+    function MapView(model) {
         var _this = this; _super.call(this);
-        _this.model = new MapModel;
+        _this.model = model;
         return _this;
     }
     MapView.prototype.$ready = function () {
@@ -3648,9 +3650,9 @@ window.MapView = MapView;
  */
 var SetView = /** @class */ (function (_super) {
     __extends(SetView, _super);
-    function SetView() {
+    function SetView(model) {
         var _this = this; _super.call(this);
-        _this.model = new SetModel();
+        _this.model = model;
         return _this;
     }
     SetView.prototype.$ready = function () {

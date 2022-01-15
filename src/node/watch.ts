@@ -12,7 +12,7 @@ export class Watch<T> extends Fragment {
      * Default slot
      * @type Slot
      */
-    public slot : Slot<T>;
+    public slot : Slot<Fragment, T>;
     /**
      * iValue to watch
      * @type IValue

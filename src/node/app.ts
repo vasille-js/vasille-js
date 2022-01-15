@@ -2,6 +2,7 @@ import { Executor, instantExecutor, timeoutExecutor } from "../core/executor";
 import {INode, INodePrivate} from "./node";
 
 type AppOptions = {
+    debugUi ?: boolean,
     freezeUi ?: boolean,
     executor ?: Executor
 };
@@ -19,12 +20,18 @@ export class AppNode extends INode {
     $run : Executor;
 
     /**
+     * Enables debug comments
+     */
+    $debugUi : boolean;
+
+    /**
      * @param options {Object} Application options
      */
     constructor (options ?: AppOptions) {
         super ();
 
         this.$run = options?.executor || (options?.freezeUi === false ? timeoutExecutor : instantExecutor);
+        this.$debugUi = options?.debugUi || false;
     }
 }
 

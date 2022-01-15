@@ -1,6 +1,7 @@
 import { Executor } from "../core/executor";
 import { INode } from "./node";
 declare type AppOptions = {
+    debugUi?: boolean;
     freezeUi?: boolean;
     executor?: Executor;
 };
@@ -15,6 +16,10 @@ export declare class AppNode extends INode {
      * @type {Executor}
      */
     $run: Executor;
+    /**
+     * Enables debug comments
+     */
+    $debugUi: boolean;
     /**
      * @param options {Object} Application options
      */

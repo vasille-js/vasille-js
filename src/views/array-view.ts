@@ -10,11 +10,9 @@ import { Fragment } from "../node/node";
  * @extends BaseView
  */
 export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
-    public constructor () {
+    public constructor (model : ArrayModel<T>) {
         super();
-
-        this.model = new ArrayModel;
-        this.$seal();
+        this.model = model;
     }
 
     public createChild (id : T, item : T, before ?: Fragment) : any {
