@@ -397,7 +397,7 @@ it('Error threading', function () {
         expect(() => test.$bindShow(bool)).toThrow("bind-show");
         expect(() => test.$html(text)).toThrow("dom-error");
         expect(() => test.$preinit(root, root, null)).toThrow("internal-error");
-        expect(() => ext.$preinit(root, frag)).toThrow("internal-error");
+        expect(() => ext.$preinit(root, frag)).toThrow("virtual-dom");
         expect(() => debug.$preinit(root, frag, null)).toThrow("internal-error");
         expect(() => textNode.$preinit(root, frag, null)).toThrow("internal-error");
     });

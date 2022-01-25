@@ -2428,7 +2428,7 @@ class Extension extends INode {
             $.node = parent.node;
         }
         else {
-            throw internalError("A extension node can be encapsulated only in a tag/extension/component");
+            throw userError("A extension node can be encapsulated only in a tag/extension/component", "virtual-dom");
         }
     }
     constructor($) {
@@ -2452,7 +2452,7 @@ class Component extends Extension {
     $mounted() {
         super.$mounted();
         if (this.$children.length !== 1) {
-            throw userError("UserNode must have a child only", "dom-error");
+            throw userError("Component must have a child only", "dom-error");
         }
         const child = this.$children[0];
         if (child instanceof Tag || child instanceof Component) {
@@ -2460,8 +2460,11 @@ class Component extends Extension {
             $.node = child.node;
         }
         else {
-            throw userError("UserNode child must be Tag or Component", "dom-error");
+            throw userError("Component child must be Tag or Component", "dom-error");
         }
+    }
+    $preinit(app, parent) {
+        this.$.preinit(app, parent);
     }
 }
 /**

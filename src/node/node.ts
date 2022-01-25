@@ -1451,7 +1451,7 @@ export class Extension extends INode {
             $.node = parent.node;
         }
         else {
-            throw internalError("A extension node can be encapsulated only in a tag/extension/component");
+            throw userError("A extension node can be encapsulated only in a tag/extension/component", "virtual-dom");
         }
     }
 
@@ -1481,7 +1481,7 @@ export class Component extends Extension {
         super.$mounted();
 
         if (this.$children.length !== 1) {
-            throw userError("UserNode must have a child only", "dom-error");
+            throw userError("Component must have a child only", "dom-error");
         }
         const child = this.$children[0];
 
@@ -1491,8 +1491,12 @@ export class Component extends Extension {
             $.node = child.node;
         }
         else {
-            throw userError("UserNode child must be Tag or Component", "dom-error");
+            throw userError("Component child must be Tag or Component", "dom-error");
         }
+    }
+
+    $preinit(app: AppNode, parent: Fragment) {
+        this.$.preinit(app, parent);
     }
 }
 

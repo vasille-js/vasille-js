@@ -17,4 +17,5 @@ tsconfig.json
 .eslint*
 tsconfig*.json
 *config.js
-*.tar.gz
+*.tgz
+.*

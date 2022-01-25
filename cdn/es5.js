@@ -2778,7 +2778,7 @@ var Extension = /** @class */ (function (_super) {
             $.node = parent.node;
         }
         else {
-            throw internalError("A extension node can be encapsulated only in a tag/extension/component");
+            throw userError("A extension node can be encapsulated only in a tag/extension/component", "virtual-dom");
         }
     };
     Extension.prototype.$destroy = function () {
@@ -2802,7 +2802,7 @@ var Component = /** @class */ (function (_super) {
     Component.prototype.$mounted = function () {
         _super.prototype.$mounted.call(this);
         if (this.$children.length !== 1) {
-            throw userError("UserNode must have a child only", "dom-error");
+            throw userError("Component must have a child only", "dom-error");
         }
         var child = this.$children[0];
         if (child instanceof Tag || child instanceof Component) {
@@ -2810,8 +2810,11 @@ var Component = /** @class */ (function (_super) {
             $.node = child.node;
         }
         else {
-            throw userError("UserNode child must be Tag or Component", "dom-error");
+            throw userError("Component child must be Tag or Component", "dom-error");
         }
+    };
+    Component.prototype.$preinit = function (app, parent) {
+        this.$.preinit(app, parent);
     };
     return Component;
 }(Extension));

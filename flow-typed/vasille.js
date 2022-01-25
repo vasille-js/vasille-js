@@ -6,13 +6,14 @@ interface IModel {
     enableReactivity () : void;
     disableReactivity () : void;
 }
-type AppOptions = ?{
-    debugUi?: boolean,
-    freezeUi ?: boolean,
-    executor ?: Executor
-}
-
 declare module "vasille" {
+
+    declare type AppOptions = ?{
+        debugUi?: boolean,
+        freezeUi ?: boolean,
+        executor ?: Executor
+    }
+
     declare export class Destroyable {
         $seal () : void;
         $destroy () : void;
@@ -178,7 +179,7 @@ declare module "vasille" {
         ) : void;
     }
     declare export class Slot<
-        t1 = void, t2 = void, t3 = void, t4 = void, t5 = void, t6 = void, t7 = void, t8 = void, t9 = void
+        T = Fragment, t1 = void, t2 = void, t3 = void, t4 = void, t5 = void, t6 = void, t7 = void, t8 = void, t9 = void
         > {
         runner : ?(a0 : T, a1 : t1, a2 : t2, a3 : t3, a4 : t4, a5 : t5, a6 : t6, a7 : t7, a8 : t8, a9 : t9) => void;
 
@@ -232,6 +233,8 @@ declare module "vasille" {
         removeFirst () : this;
         removeLast () : this;
         removeOne (v : T) : this;
+        enableReactivity () : void;
+        disableReactivity () : void;
     }
     declare export class MapModel<K, T> extends Map<K, T> implements IModel {
         listener : Listener<T, K>;
@@ -240,6 +243,8 @@ declare module "vasille" {
         clear () : void;
         delete (key : any) : boolean;
         set (key : K, value : T) : this;
+        enableReactivity () : void;
+        disableReactivity () : void;
     }
     declare export class ObjectModel<T> extends Object implements IModel {
         listener : Listener<T, string>;
@@ -248,14 +253,18 @@ declare module "vasille" {
         get (key : string) : T;
         set (key : string, v : T) : this;
         delete (key : string) : void;
+        enableReactivity () : void;
+        disableReactivity () : void;
     }
     declare export class SetModel<T> extends Set<T> implements IModel {
         listener : Listener<T, T>;
 
         constructor (set ?: T[]) : void;
         add (value : T) : this;
-        clear () : this;
+        clear () : void;
         delete (value : T) : boolean;
+        enableReactivity () : void;
+        disableReactivity () : void;
     }
     declare export class AppNode extends INode {
         $run : Executor;
@@ -298,7 +307,6 @@ declare module "vasille" {
         preinit (app : AppNode, parent: Fragment) : void;
     }
     declare export class Fragment extends Reactive {
-        $ : FragmentPrivate;
         $children : Array<Fragment>;
 
         constructor ($ : ?FragmentPrivate) : void;
@@ -322,12 +330,12 @@ declare module "vasille" {
         $debug(text : IValue<string>) : this;
         $tag<T = Element> (
             tagName : string,
-            cb : ?(node : Tag, element : T) => void
+            cb ?: (node : Tag, element : T) => void
         ) : this;
         $create<T> (
             node : T,
-            callback : ($ : T) => void,
-            callback1 : ($ : T) => void
+            callback ?: ($ : T) => void,
+            callback1 ?: ($ : T) => void
         ) : this;
         $if (
             cond : IValue<boolean>,
@@ -353,7 +361,6 @@ declare module "vasille" {
         preinitText (app : AppNode, parent: Fragment, text : IValue<string>) : void;
     }
     declare export class TextNode extends Fragment {
-        $ : TextNodePrivate;
         constructor () : void;
 
         $preinit (app : AppNode, parent : Fragment, text : ?IValue<string>) : void;
@@ -366,7 +373,6 @@ declare module "vasille" {
         constructor () : void;
     }
     declare export class INode extends Fragment {
-        $ : INodePrivate;
 
         constructor ($ : ?INodePrivate) : void;
         $init () : this;
@@ -595,7 +601,6 @@ declare module "vasille" {
         preinitComment (app : AppNode, parent: Fragment, text : IValue<string>) : void;
     }
     declare export class DebugNode extends Fragment {
-        $ : DebugPrivate;
 
         constructor () : void;
 

@@ -667,6 +667,7 @@ export declare class Extension extends INode {
 export declare class Component extends Extension {
     constructor();
     $mounted(): void;
+    $preinit(app: AppNode, parent: Fragment): void;
 }
 /**
  * Private part of switch node
