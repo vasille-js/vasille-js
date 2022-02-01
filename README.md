@@ -35,9 +35,9 @@ ES5 Compatible version
 ```
 
 ### Getting ready be example
-* JavaScript Example
-* TypeScript Example
-* Flow.js Example
+* [JavaScript Example](https://gitlab.com/vasille-js/learning/vasille-js-example)
+* [TypeScript Example](https://gitlab.com/vasille-js/learning/vasille-ts-example)
+* [Flow.js Example](https://gitlab.com/vasille-js/learning/vasille-flow-js-example)
 
 ### Flow.js typedef
 Add the next line to `[libs]` section in your `.flowconfig` file
