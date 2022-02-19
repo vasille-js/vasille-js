@@ -1104,7 +1104,7 @@ var Destroyable = /** @class */ (function () {
      * Make object fields non configurable
      * @protected
      */
-    Destroyable.prototype.$seal = function () {
+    Destroyable.prototype.seal = function () {
         var _this = this;
         var $ = this;
         Object.keys($).forEach(function (i) {
@@ -1137,7 +1137,7 @@ var Destroyable = /** @class */ (function () {
     /**
      * Garbage collector method
      */
-    Destroyable.prototype.$destroy = function () {
+    Destroyable.prototype.destroy = function () {
         // nothing here
     };
     return Destroyable;
@@ -1147,6 +1147,26 @@ var Destroyable = /** @class */ (function () {
 window.Destroyable = Destroyable;
 
 // ./lib-es5/core/ivalue.js
+var Switchable = /** @class */ (function (_super) {
+    __extends(Switchable, _super);
+    function Switchable() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    /**
+     * Enable update handlers triggering
+     */
+    Switchable.prototype.enable = function () {
+        throw notOverwritten();
+    };
+    /**
+     * disable update handlers triggering
+     */
+    Switchable.prototype.disable = function () {
+        throw notOverwritten();
+    };
+    return Switchable;
+}(Destroyable));
+
 /**
  * Interface which describes a value
  * @class IValue
@@ -1194,22 +1214,11 @@ var IValue = /** @class */ (function (_super) {
     IValue.prototype.off = function (handler) {
         throw notOverwritten();
     };
-    /**
-     * Enable update handlers triggering
-     */
-    IValue.prototype.enable = function () {
-        throw notOverwritten();
-    };
-    /**
-     * disable update handlers triggering
-     */
-    IValue.prototype.disable = function () {
-        throw notOverwritten();
-    };
     return IValue;
-}(Destroyable));
+}(Switchable));
 
 
+window.Switchable = Switchable;
 window.IValue = IValue;
 
 // ./lib-es5/index.js
@@ -1255,7 +1264,7 @@ var Expression = /** @class */ (function (_super) {
         else {
             handler();
         }
-        _this.$seal();
+        _this.seal();
         return _this;
     }
     Object.defineProperty(Expression.prototype, "$", {
@@ -1296,12 +1305,12 @@ var Expression = /** @class */ (function (_super) {
         }
         return this;
     };
-    Expression.prototype.$destroy = function () {
+    Expression.prototype.destroy = function () {
         this.disable();
         this.values.splice(0);
         this.valuesCache.splice(0);
         this.linkedFunc.splice(0);
-        _super.prototype.$destroy.call(this);
+        _super.prototype.destroy.call(this);
     };
     return Expression;
 }(IValue));
@@ -1324,7 +1333,7 @@ var Reference = /** @class */ (function (_super) {
         var _this = _super.call(this, true) || this;
         _this.value = value;
         _this.onchange = new Set;
-        _this.$seal();
+        _this.seal();
         return _this;
     }
     Object.defineProperty(Reference.prototype, "$", {
@@ -1352,22 +1361,18 @@ var Reference = /** @class */ (function (_super) {
             });
             this.isEnabled = true;
         }
-        return this;
     };
     Reference.prototype.disable = function () {
         this.isEnabled = false;
-        return this;
     };
     Reference.prototype.on = function (handler) {
         this.onchange.add(handler);
-        return this;
     };
     Reference.prototype.off = function (handler) {
         this.onchange.delete(handler);
-        return this;
     };
-    Reference.prototype.$destroy = function () {
-        _super.prototype.$destroy.call(this);
+    Reference.prototype.destroy = function () {
+        _super.prototype.destroy.call(this);
         this.onchange.clear();
     };
     return Reference;
@@ -1399,7 +1404,7 @@ var Mirror = /** @class */ (function (_super) {
         _this.pointedValue = value;
         _this.forwardOnly = forwardOnly;
         value.on(_this.handler);
-        _this.$seal();
+        _this.seal();
         return _this;
     }
     Object.defineProperty(Mirror.prototype, "$", {
@@ -1410,13 +1415,13 @@ var Mirror = /** @class */ (function (_super) {
             return _super.prototype.$;
         },
         set: function (v) {
+            if (!this.forwardOnly) {
+                this.pointedValue.$ = v;
+            }
             // this is a ts bug
             // eslint-disable-next-line
             // @ts-ignore
             _super.prototype.$ = v;
-            if (!this.forwardOnly) {
-                this.pointedValue.$ = v;
-            }
         },
         enumerable: false,
         configurable: true
@@ -1427,18 +1432,16 @@ var Mirror = /** @class */ (function (_super) {
             this.pointedValue.on(this.handler);
             this.$ = this.pointedValue.$;
         }
-        return this;
     };
     Mirror.prototype.disable = function () {
         if (this.isEnabled) {
             this.pointedValue.off(this.handler);
             this.isEnabled = false;
         }
-        return this;
     };
-    Mirror.prototype.$destroy = function () {
+    Mirror.prototype.destroy = function () {
         this.disable();
-        _super.prototype.$destroy.call(this);
+        _super.prototype.destroy.call(this);
     };
     return Mirror;
 }(Reference));
@@ -1489,34 +1492,25 @@ var Binding = /** @class */ (function (_super) {
     __extends(Binding, _super);
     /**
      * Constructs a common binding logic
-     * @param node {INode} the vasille node
-     * @param name {String} the name of property/attribute/class
      * @param value {IValue} the value to bind
      */
-    function Binding(node, name, value) {
+    function Binding(value) {
         var _this = this; _super.call(this);
-        _this.updateFunc = _this.bound(name).bind(null, node);
         _this.binding = value;
-        _this.binding.on(_this.updateFunc);
-        _this.updateFunc(_this.binding.$);
-        _this.$seal();
+        _this.seal();
         return _this;
     }
-    /**
-     * Is a virtual function to get the specific bind function
-     * @param name {String} the name of attribute/property
-     * @returns {Function} a function to update attribute/property value
-     * @throws Always throws and must be overloaded in child class
-     */
-    Binding.prototype.bound = function (name) {
-        throw notOverwritten();
+    Binding.prototype.init = function (bounded) {
+        this.func = bounded;
+        this.binding.on(this.func);
+        this.func(this.binding.$);
     };
     /**
      * Just clear bindings
      */
-    Binding.prototype.$destroy = function () {
-        this.binding.off(this.updateFunc);
-        _super.prototype.$destroy.call(this);
+    Binding.prototype.destroy = function () {
+        this.binding.off(this.func);
+        _super.prototype.destroy.call(this);
     };
     return Binding;
 }(Destroyable));
@@ -1558,17 +1552,19 @@ var ReactivePrivate = /** @class */ (function (_super) {
          * @type {boolean}
          */
         _this.frozen = false;
-        _this.$seal();
+        _this.seal();
         return _this;
     }
-    ReactivePrivate.prototype.$destroy = function () {
+    ReactivePrivate.prototype.destroy = function () {
         var _a;
-        this.watch.forEach(function (value) { return value.$destroy(); });
+        this.watch.forEach(function (value) { return value.destroy(); });
         this.watch.clear();
-        this.bindings.forEach(function (binding) { return binding.$destroy(); });
+        this.bindings.forEach(function (binding) { return binding.destroy(); });
         this.bindings.clear();
-        (_a = this.freezeExpr) === null || _a === void 0 ? void 0 : _a.$destroy();
-        _super.prototype.$destroy.call(this);
+        this.models.forEach(function (model) { return model.disableReactivity(); });
+        this.models.clear();
+        (_a = this.freezeExpr) === null || _a === void 0 ? void 0 : _a.destroy();
+        _super.prototype.destroy.call(this);
     };
     return ReactivePrivate;
 }(Destroyable));
@@ -1589,7 +1585,7 @@ var Reactive = /** @class */ (function (_super) {
      * Create a reference
      * @param value {*} value to reference
      */
-    Reactive.prototype.$ref = function (value) {
+    Reactive.prototype.ref = function (value) {
         var $ = this.$;
         var ref = new Reference(value);
         $.watch.add(ref);
@@ -1599,7 +1595,7 @@ var Reactive = /** @class */ (function (_super) {
      * Create a mirror
      * @param value {IValue} value to mirror
      */
-    Reactive.prototype.$mirror = function (value) {
+    Reactive.prototype.mirror = function (value) {
         var mirror = new Mirror(value, false);
         this.$.watch.add(mirror);
         return mirror;
@@ -1608,7 +1604,7 @@ var Reactive = /** @class */ (function (_super) {
      * Create a forward-only mirror
      * @param value {IValue} value to mirror
      */
-    Reactive.prototype.$forward = function (value) {
+    Reactive.prototype.forward = function (value) {
         var mirror = new Mirror(value, true);
         this.$.watch.add(mirror);
         return mirror;
@@ -1618,15 +1614,10 @@ var Reactive = /** @class */ (function (_super) {
      * @param value {*} default value to point
      * @param forwardOnly {boolean} forward only sync
      */
-    Reactive.prototype.$point = function (value, forwardOnly) {
+    Reactive.prototype.point = function (value, forwardOnly) {
         if (forwardOnly === void 0) { forwardOnly = false; }
         var $ = this.$;
-        var ref = value instanceof IValue ? value : new Reference(value);
-        var pointer = new Pointer(ref, forwardOnly);
-        // when value is an ivalue will be equal to ref
-        if (value !== ref) {
-            $.watch.add(ref);
-        }
+        var pointer = new Pointer(value, forwardOnly);
         $.watch.add(pointer);
         return pointer;
     };
@@ -1634,15 +1625,15 @@ var Reactive = /** @class */ (function (_super) {
      * Register a model
      * @param model
      */
-    Reactive.prototype.$register = function (model) {
+    Reactive.prototype.register = function (model) {
         this.$.models.add(model);
         return model;
     };
-    Reactive.prototype.$watch = function (func, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
+    Reactive.prototype.watch = function (func, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
         var $ = this.$;
         $.watch.add(new Expression(func, !this.$.frozen, v1, v2, v3, v4, v5, v6, v7, v8, v9));
     };
-    Reactive.prototype.$bind = function (func, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
+    Reactive.prototype.bind = function (func, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
         var res = new Expression(func, !this.$.frozen, v1, v2, v3, v4, v5, v6, v7, v8, v9);
         var $ = this.$;
         $.watch.add(res);
@@ -1651,7 +1642,7 @@ var Reactive = /** @class */ (function (_super) {
     /**
      * Enable reactivity of fields
      */
-    Reactive.prototype.$enable = function () {
+    Reactive.prototype.enable = function () {
         var $ = this.$;
         if (!$.enabled) {
             $.watch.forEach(function (watcher) {
@@ -1666,7 +1657,7 @@ var Reactive = /** @class */ (function (_super) {
     /**
      * Disable reactivity of fields
      */
-    Reactive.prototype.$disable = function () {
+    Reactive.prototype.disable = function () {
         var $ = this.$;
         if ($.enabled) {
             $.watch.forEach(function (watcher) {
@@ -1684,7 +1675,7 @@ var Reactive = /** @class */ (function (_super) {
      * @param onOff {function} on show feedback
      * @param onOn {function} on hide feedback
      */
-    Reactive.prototype.$bindAlive = function (cond, onOff, onOn) {
+    Reactive.prototype.bindAlive = function (cond, onOff, onOn) {
         var _this = this;
         var $ = this.$;
         if ($.freezeExpr) {
@@ -1697,18 +1688,18 @@ var Reactive = /** @class */ (function (_super) {
             $.frozen = !cond;
             if (cond) {
                 onOn === null || onOn === void 0 ? void 0 : onOn();
-                _this.$enable();
+                _this.enable();
             }
             else {
                 onOff === null || onOff === void 0 ? void 0 : onOff();
-                _this.$disable();
+                _this.disable();
             }
         }, true, cond);
         return this;
     };
-    Reactive.prototype.$destroy = function () {
-        _super.prototype.$destroy.call(this);
-        this.$.$destroy();
+    Reactive.prototype.destroy = function () {
+        _super.prototype.destroy.call(this);
+        this.$.destroy();
         this.$ = null;
     };
     return Reactive;
@@ -1728,7 +1719,7 @@ var FragmentPrivate = /** @class */ (function (_super) {
     __extends(FragmentPrivate, _super);
     function FragmentPrivate() {
         var _this = this; _super.call(this);
-        _this.$seal();
+        _this.seal();
         return _this;
     }
     /**
@@ -1743,10 +1734,10 @@ var FragmentPrivate = /** @class */ (function (_super) {
     /**
      * Unlinks all bindings
      */
-    FragmentPrivate.prototype.$destroy = function () {
+    FragmentPrivate.prototype.destroy = function () {
         this.next = null;
         this.prev = null;
-        _super.prototype.$destroy.call(this);
+        _super.prototype.destroy.call(this);
     };
     return FragmentPrivate;
 }(ReactivePrivate));
@@ -1762,13 +1753,13 @@ var Fragment = /** @class */ (function (_super) {
      * @param $ {FragmentPrivate}
      */
     function Fragment($) {
-        var _this = this; _super.call(this);
+        var _this = _super.call(this, $ || new FragmentPrivate) || this;
         /**
          * The children list
          * @type Array
          */
-        _this.$children = [];
-        _this.$ = $ || new FragmentPrivate;
+        _this.children = new Set;
+        _this.lastChild = null;
         return _this;
     }
     Object.defineProperty(Fragment.prototype, "app", {
@@ -1787,43 +1778,38 @@ var Fragment = /** @class */ (function (_super) {
      * @param parent {Fragment} parent of node
      * @param data {*} additional data
      */
-    Fragment.prototype.$preinit = function (app, parent, data) {
+    Fragment.prototype.preinit = function (app, parent, data) {
         var $ = this.$;
         $.preinit(app, parent);
     };
     /**
      * Initialize node
      */
-    Fragment.prototype.$init = function () {
-        this.$createSignals();
-        this.$createWatchers();
-        this.$created();
-        this.$compose();
-        this.$mounted();
+    Fragment.prototype.init = function () {
+        this.createWatchers();
+        this.created();
+        this.compose();
+        this.mounted();
         return this;
     };
     /** To be overloaded: created event handler */
-    Fragment.prototype.$created = function () {
+    Fragment.prototype.created = function () {
         // empty
     };
     /** To be overloaded: mounted event handler */
-    Fragment.prototype.$mounted = function () {
+    Fragment.prototype.mounted = function () {
         // empty
     };
     /** To be overloaded: ready event handler */
-    Fragment.prototype.$ready = function () {
-        // empty
-    };
-    /** To be overloaded: signals creation milestone */
-    Fragment.prototype.$createSignals = function () {
+    Fragment.prototype.ready = function () {
         // empty
     };
     /** To be overloaded: watchers creation milestone */
-    Fragment.prototype.$createWatchers = function () {
+    Fragment.prototype.createWatchers = function () {
         // empty
     };
     /** To be overloaded: DOM creation milestone */
-    Fragment.prototype.$compose = function () {
+    Fragment.prototype.compose = function () {
         // empty
     };
     /**
@@ -1831,27 +1817,23 @@ var Fragment = /** @class */ (function (_super) {
      * @param node {Fragment} A node to push
      * @protected
      */
-    Fragment.prototype.$$pushNode = function (node) {
-        var lastChild = null;
-        if (this.$children.length) {
-            lastChild = this.$children[this.$children.length - 1];
+    Fragment.prototype.pushNode = function (node) {
+        if (this.lastChild) {
+            this.lastChild.$.next = node;
         }
-        if (lastChild) {
-            lastChild.$.next = node;
-        }
-        node.$.prev = lastChild;
-        node.$.parent = this;
-        this.$children.push(node);
+        node.$.prev = this.lastChild;
+        this.lastChild = node;
+        this.children.add(node);
     };
     /**
      * Find first node in element if so exists
      * @return {?Element}
      * @protected
      */
-    Fragment.prototype.$$findFirstChild = function () {
+    Fragment.prototype.findFirstChild = function () {
         var first;
-        this.$children.forEach(function (child) {
-            first = first || child.$$findFirstChild();
+        this.children.forEach(function (child) {
+            first = first || child.findFirstChild();
         });
         return first;
     };
@@ -1859,30 +1841,30 @@ var Fragment = /** @class */ (function (_super) {
      * Append a node to end of element
      * @param node {Node} node to insert
      */
-    Fragment.prototype.$$appendNode = function (node) {
+    Fragment.prototype.appendNode = function (node) {
         var $ = this.$;
         if ($.next) {
-            $.next.$$insertAdjacent(node);
+            $.next.insertAdjacent(node);
         }
         else {
-            $.parent.$$appendNode(node);
+            $.parent.appendNode(node);
         }
     };
     /**
      * Insert a node as a sibling of this
      * @param node {Node} node to insert
      */
-    Fragment.prototype.$$insertAdjacent = function (node) {
-        var child = this.$$findFirstChild();
+    Fragment.prototype.insertAdjacent = function (node) {
+        var child = this.findFirstChild();
         var $ = this.$;
         if (child) {
-            $.app.$run.insertBefore(child, node);
+            $.app.run.insertBefore(child, node);
         }
         else if ($.next) {
-            $.next.$$insertAdjacent(node);
+            $.next.insertAdjacent(node);
         }
         else {
-            $.parent.$$appendNode(node);
+            $.parent.appendNode(node);
         }
     };
     /**
@@ -1890,40 +1872,38 @@ var Fragment = /** @class */ (function (_super) {
      * @param text {String | IValue} A text fragment string
      * @param cb {function (TextNode)} Callback if previous is slot name
      */
-    Fragment.prototype.$text = function (text, cb) {
+    Fragment.prototype.text = function (text, cb) {
         var $ = this.$;
         var node = new TextNode();
-        var textValue = text instanceof IValue ? text : this.$ref(text);
-        node.$preinit($.app, this, textValue);
-        this.$$pushNode(node);
+        var textValue = text instanceof IValue ? text : this.ref(text);
+        node.preinit($.app, this, textValue);
+        this.pushNode(node);
         if (cb) {
-            $.app.$run.callCallback(function () {
+            $.app.run.callCallback(function () {
                 cb(node);
             });
         }
-        return this;
     };
-    Fragment.prototype.$debug = function (text) {
-        if (this.$.app.$debugUi) {
+    Fragment.prototype.debug = function (text) {
+        if (this.$.app.debugUi) {
             var node = new DebugNode();
-            node.$preinit(this.$.app, this, text);
-            this.$$pushNode(node);
+            node.preinit(this.$.app, this, text);
+            this.pushNode(node);
         }
         return this;
     };
-    Fragment.prototype.$tag = function (tagName, cb) {
+    Fragment.prototype.tag = function (tagName, cb) {
         var $ = this.$;
         var node = new Tag();
-        node.$preinit($.app, this, tagName);
-        node.$init();
-        this.$$pushNode(node);
-        $.app.$run.callCallback(function () {
+        node.preinit($.app, this, tagName);
+        node.init();
+        this.pushNode(node);
+        $.app.run.callCallback(function () {
             if (cb) {
                 cb(node, node.node);
             }
-            node.$ready();
+            node.ready();
         });
-        return this;
     };
     /**
      * Defines a custom element
@@ -1931,19 +1911,18 @@ var Fragment = /** @class */ (function (_super) {
      * @param callback {function($ : *)}
      * @param callback1 {function($ : *)}
      */
-    Fragment.prototype.$create = function (node, callback, callback1) {
+    Fragment.prototype.create = function (node, callback, callback1) {
         var $ = this.$;
         node.$.parent = this;
-        node.$preinit($.app, this);
+        node.preinit($.app, this);
         if (callback) {
             callback(node);
         }
         if (callback1) {
             callback1(node);
         }
-        this.$$pushNode(node);
-        node.$init().$ready();
-        return this;
+        this.pushNode(node);
+        node.init().ready();
     };
     /**
      * Defines an if node
@@ -1951,8 +1930,8 @@ var Fragment = /** @class */ (function (_super) {
      * @param cb {function(Fragment)} callback to run on true
      * @return {this}
      */
-    Fragment.prototype.$if = function (cond, cb) {
-        return this.$switch({ cond: cond, cb: cb });
+    Fragment.prototype.if = function (cond, cb) {
+        return this.switch({ cond: cond, cb: cb });
     };
     /**
      * Defines a if-else node
@@ -1960,26 +1939,26 @@ var Fragment = /** @class */ (function (_super) {
      * @param ifCb {function(Fragment)} Call-back to create `if` child nodes
      * @param elseCb {function(Fragment)} Call-back to create `else` child nodes
      */
-    Fragment.prototype.$if_else = function (ifCond, ifCb, elseCb) {
-        return this.$switch({ cond: ifCond, cb: ifCb }, { cond: trueIValue, cb: elseCb });
+    Fragment.prototype.if_else = function (ifCond, ifCb, elseCb) {
+        return this.switch({ cond: ifCond, cb: ifCb }, { cond: trueIValue, cb: elseCb });
     };
     /**
      * Defines a switch nodes: Will break after first true condition
      * @param cases {...{ cond : IValue, cb : function(Fragment) }} cases
      * @return {INode}
      */
-    Fragment.prototype.$switch = function () {
+    Fragment.prototype.switch = function () {
         var cases = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             cases[_i] = arguments[_i];
         }
         var $ = this.$;
         var node = new SwitchedNode();
-        node.$preinit($.app, this);
-        node.$init();
-        this.$$pushNode(node);
+        node.preinit($.app, this);
+        node.init();
+        this.pushNode(node);
         node.setCases(cases);
-        node.$ready();
+        node.ready();
         return this;
     };
     /**
@@ -1988,23 +1967,48 @@ var Fragment = /** @class */ (function (_super) {
      * @param cb {function(Fragment) : void}
      * @return {{cond : IValue, cb : (function(Fragment) : void)}}
      */
-    Fragment.prototype.$case = function (cond, cb) {
+    Fragment.prototype.case = function (cond, cb) {
         return { cond: cond, cb: cb };
     };
     /**
      * @param cb {(function(Fragment) : void)}
      * @return {{cond : IValue, cb : (function(Fragment) : void)}}
      */
-    Fragment.prototype.$default = function (cb) {
+    Fragment.prototype.default = function (cb) {
         return { cond: trueIValue, cb: cb };
     };
-    Fragment.prototype.$destroy = function () {
-        for (var _i = 0, _a = this.$children; _i < _a.length; _i++) {
-            var child = _a[_i];
-            child.$destroy();
+    Fragment.prototype.insertBefore = function (node) {
+        var $ = this.$;
+        node.$.prev = $.prev;
+        node.$.next = this;
+        if ($.prev) {
+            $.prev.$.next = node;
         }
-        this.$children.splice(0);
-        _super.prototype.$destroy.call(this);
+        $.prev = node;
+    };
+    Fragment.prototype.insertAfter = function (node) {
+        var $ = this.$;
+        node.$.prev = this;
+        node.$.next = $.next;
+        $.next = node;
+    };
+    Fragment.prototype.remove = function () {
+        var $ = this.$;
+        if ($.next) {
+            $.next.$.prev = $.prev;
+        }
+        if ($.prev) {
+            $.prev.$.next = $.next;
+        }
+    };
+    Fragment.prototype.destroy = function () {
+        this.children.forEach(function (child) { return child.destroy(); });
+        this.children.clear();
+        this.lastChild = null;
+        if (this.$.parent.lastChild === this) {
+            this.$.parent.lastChild = this.$.prev;
+        }
+        _super.prototype.destroy.call(this);
     };
     return Fragment;
 }(Reactive));
@@ -2019,7 +2023,7 @@ var TextNodePrivate = /** @class */ (function (_super) {
     __extends(TextNodePrivate, _super);
     function TextNodePrivate() {
         var _this = this; _super.call(this);
-        _this.$seal();
+        _this.seal();
         return _this;
     }
     /**
@@ -2034,13 +2038,12 @@ var TextNodePrivate = /** @class */ (function (_super) {
         this.bindings.add(new Expression(function (v) {
             _this.node.replaceData(0, -1, v);
         }, true, text));
-        this.parent.$$appendNode(this.node);
     };
     /**
      * Clear node data
      */
-    TextNodePrivate.prototype.$destroy = function () {
-        _super.prototype.$destroy.call(this);
+    TextNodePrivate.prototype.destroy = function () {
+        _super.prototype.destroy.call(this);
     };
     return TextNodePrivate;
 }(FragmentPrivate));
@@ -2052,26 +2055,27 @@ var TextNodePrivate = /** @class */ (function (_super) {
  */
 var TextNode = /** @class */ (function (_super) {
     __extends(TextNode, _super);
-    function TextNode() {
-        var _this = this; _super.call(this);
-        _this.$ = new TextNodePrivate();
-        _this.$seal();
+    function TextNode($) {
+        if ($ === void 0) { $ = new TextNodePrivate(); }
+        var _this = _super.call(this, $) || this;
+        _this.seal();
         return _this;
     }
-    TextNode.prototype.$preinit = function (app, parent, text) {
+    TextNode.prototype.preinit = function (app, parent, text) {
         var $ = this.$;
         if (!text) {
             throw internalError('wrong TextNode::$preninit call');
         }
         $.preinitText(app, parent, text);
+        $.parent.appendNode($.node);
     };
-    TextNode.prototype.$$findFirstChild = function () {
+    TextNode.prototype.findFirstChild = function () {
         return this.$.node;
     };
-    TextNode.prototype.$destroy = function () {
+    TextNode.prototype.destroy = function () {
         this.$.node.remove();
-        this.$.$destroy();
-        _super.prototype.$destroy.call(this);
+        this.$.destroy();
+        _super.prototype.destroy.call(this);
     };
     return TextNode;
 }(Fragment));
@@ -2090,11 +2094,11 @@ var INodePrivate = /** @class */ (function (_super) {
          * @type {boolean}
          */
         _this.unmounted = false;
-        _this.$seal();
+        _this.seal();
         return _this;
     }
-    INodePrivate.prototype.$destroy = function () {
-        _super.prototype.$destroy.call(this);
+    INodePrivate.prototype.destroy = function () {
+        _super.prototype.destroy.call(this);
     };
     return INodePrivate;
 }(FragmentPrivate));
@@ -2112,7 +2116,7 @@ var INode = /** @class */ (function (_super) {
      */
     function INode($) {
         var _this = _super.call(this, $ || new INodePrivate) || this;
-        _this.$seal();
+        _this.seal();
         return _this;
     }
     Object.defineProperty(INode.prototype, "node", {
@@ -2128,22 +2132,21 @@ var INode = /** @class */ (function (_super) {
     /**
      * Initialize node
      */
-    INode.prototype.$init = function () {
-        this.$createSignals();
-        this.$createWatchers();
-        this.$createAttrs();
-        this.$createStyle();
-        this.$created();
-        this.$compose();
-        this.$mounted();
+    INode.prototype.init = function () {
+        this.createWatchers();
+        this.createAttrs();
+        this.createStyle();
+        this.created();
+        this.compose();
+        this.mounted();
         return this;
     };
     /** To be overloaded: attributes creation milestone */
-    INode.prototype.$createAttrs = function () {
+    INode.prototype.createAttrs = function () {
         // empty
     };
     /** To be overloaded: $style attributes creation milestone */
-    INode.prototype.$createStyle = function () {
+    INode.prototype.createStyle = function () {
         // empty
     };
     /**
@@ -2151,47 +2154,45 @@ var INode = /** @class */ (function (_super) {
      * @param name {String} name of attribute
      * @param value {IValue} value
      */
-    INode.prototype.$attr = function (name, value) {
+    INode.prototype.attr = function (name, value) {
         var $ = this.$;
         var attr = new AttributeBinding(this, name, value);
         $.bindings.add(attr);
-        return this;
     };
-    INode.prototype.$bindAttr = function (name, calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
+    INode.prototype.bindAttr = function (name, calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
         var $ = this.$;
-        var expr = this.$bind(calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
+        var expr = this.bind(calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
         $.bindings.add(new AttributeBinding(this, name, expr));
-        return this;
     };
     /**
      * Set attribute value
      * @param name {string} name of attribute
      * @param value {string} value
      */
-    INode.prototype.$setAttr = function (name, value) {
-        this.$.app.$run.setAttribute(this.$.node, name, value);
+    INode.prototype.setAttr = function (name, value) {
+        this.$.app.run.setAttribute(this.$.node, name, value);
         return this;
     };
     /**
      * Adds a CSS class
      * @param cl {string} Class name
      */
-    INode.prototype.$addClass = function (cl) {
-        this.$.app.$run.addClass(this.$.node, cl);
+    INode.prototype.addClass = function (cl) {
+        this.$.app.run.addClass(this.$.node, cl);
         return this;
     };
     /**
      * Adds some CSS classes
      * @param cls {...string} classes names
      */
-    INode.prototype.$addClasses = function () {
+    INode.prototype.addClasses = function () {
         var _this = this;
         var cls = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             cls[_i] = arguments[_i];
         }
         cls.forEach(function (cl) {
-            _this.$.app.$run.addClass(_this.$.node, cl);
+            _this.$.app.run.addClass(_this.$.node, cl);
         });
         return this;
     };
@@ -2199,9 +2200,9 @@ var INode = /** @class */ (function (_super) {
      * Bind a CSS class
      * @param className {IValue}
      */
-    INode.prototype.$bindClass = function (className) {
+    INode.prototype.bindClass = function (className) {
         var $ = this.$;
-        $.bindings.add(new ClassBinding(this, "", className));
+        $.bindings.add(new DynamicalClassBinding(this, className));
         return this;
     };
     /**
@@ -2209,8 +2210,8 @@ var INode = /** @class */ (function (_super) {
      * @param cond {IValue} condition
      * @param className {string} class name
      */
-    INode.prototype.$floatingClass = function (cond, className) {
-        this.$.bindings.add(new ClassBinding(this, className, cond));
+    INode.prototype.floatingClass = function (cond, className) {
+        this.$.bindings.add(new StaticClassBinding(this, className, cond));
         return this;
     };
     /**
@@ -2218,7 +2219,7 @@ var INode = /** @class */ (function (_super) {
      * @param name {String} name of style attribute
      * @param value {IValue} value
      */
-    INode.prototype.$style = function (name, value) {
+    INode.prototype.style = function (name, value) {
         var $ = this.$;
         if ($.node instanceof HTMLElement) {
             $.bindings.add(new StyleBinding(this, name, value));
@@ -2228,9 +2229,9 @@ var INode = /** @class */ (function (_super) {
         }
         return this;
     };
-    INode.prototype.$bindStyle = function (name, calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
+    INode.prototype.bindStyle = function (name, calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
         var $ = this.$;
-        var expr = this.$bind(calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
+        var expr = this.bind(calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
         if ($.node instanceof HTMLElement) {
             $.bindings.add(new StyleBinding(this, name, expr));
         }
@@ -2244,9 +2245,9 @@ var INode = /** @class */ (function (_super) {
      * @param prop {string} Property name
      * @param value {string} Property value
      */
-    INode.prototype.$setStyle = function (prop, value) {
+    INode.prototype.setStyle = function (prop, value) {
         if (this.$.node instanceof HTMLElement) {
-            this.$.app.$run.setStyle(this.$.node, prop, value);
+            this.$.app.run.setStyle(this.$.node, prop, value);
         }
         else {
             throw userError("Style can be setted for HTML elements only", "non-html-element");
@@ -2259,7 +2260,7 @@ var INode = /** @class */ (function (_super) {
      * @param handler {function (Event)} Event handler
      * @param options {Object | boolean} addEventListener options
      */
-    INode.prototype.$listen = function (name, handler, options) {
+    INode.prototype.listen = function (name, handler, options) {
         this.$.node.addEventListener(name, handler, options);
         return this;
     };
@@ -2267,395 +2268,395 @@ var INode = /** @class */ (function (_super) {
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$oncontextmenu = function (handler, options) {
-        return this.$listen("contextmenu", handler, options);
+    INode.prototype.oncontextmenu = function (handler, options) {
+        return this.listen("contextmenu", handler, options);
     };
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onmousedown = function (handler, options) {
-        return this.$listen("mousedown", handler, options);
+    INode.prototype.onmousedown = function (handler, options) {
+        return this.listen("mousedown", handler, options);
     };
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onmouseenter = function (handler, options) {
-        return this.$listen("mouseenter", handler, options);
+    INode.prototype.onmouseenter = function (handler, options) {
+        return this.listen("mouseenter", handler, options);
     };
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onmouseleave = function (handler, options) {
-        return this.$listen("mouseleave", handler, options);
+    INode.prototype.onmouseleave = function (handler, options) {
+        return this.listen("mouseleave", handler, options);
     };
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onmousemove = function (handler, options) {
-        return this.$listen("mousemove", handler, options);
+    INode.prototype.onmousemove = function (handler, options) {
+        return this.listen("mousemove", handler, options);
     };
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onmouseout = function (handler, options) {
-        return this.$listen("mouseout", handler, options);
+    INode.prototype.onmouseout = function (handler, options) {
+        return this.listen("mouseout", handler, options);
     };
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onmouseover = function (handler, options) {
-        return this.$listen("mouseover", handler, options);
+    INode.prototype.onmouseover = function (handler, options) {
+        return this.listen("mouseover", handler, options);
     };
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onmouseup = function (handler, options) {
-        return this.$listen("mouseup", handler, options);
+    INode.prototype.onmouseup = function (handler, options) {
+        return this.listen("mouseup", handler, options);
     };
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onclick = function (handler, options) {
-        return this.$listen("click", handler, options);
+    INode.prototype.onclick = function (handler, options) {
+        return this.listen("click", handler, options);
     };
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ondblclick = function (handler, options) {
-        return this.$listen("dblclick", handler, options);
+    INode.prototype.ondblclick = function (handler, options) {
+        return this.listen("dblclick", handler, options);
     };
     /**
      * @param handler {function (FocusEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onblur = function (handler, options) {
-        return this.$listen("blur", handler, options);
+    INode.prototype.onblur = function (handler, options) {
+        return this.listen("blur", handler, options);
     };
     /**
      * @param handler {function (FocusEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onfocus = function (handler, options) {
-        return this.$listen("focus", handler, options);
+    INode.prototype.onfocus = function (handler, options) {
+        return this.listen("focus", handler, options);
     };
     /**
      * @param handler {function (FocusEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onfocusin = function (handler, options) {
-        return this.$listen("focusin", handler, options);
+    INode.prototype.onfocusin = function (handler, options) {
+        return this.listen("focusin", handler, options);
     };
     /**
      * @param handler {function (FocusEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onfocusout = function (handler, options) {
-        return this.$listen("focusout", handler, options);
+    INode.prototype.onfocusout = function (handler, options) {
+        return this.listen("focusout", handler, options);
     };
     /**
      * @param handler {function (KeyboardEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onkeydown = function (handler, options) {
-        return this.$listen("keydown", handler, options);
+    INode.prototype.onkeydown = function (handler, options) {
+        return this.listen("keydown", handler, options);
     };
     /**
      * @param handler {function (KeyboardEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onkeyup = function (handler, options) {
-        return this.$listen("keyup", handler, options);
+    INode.prototype.onkeyup = function (handler, options) {
+        return this.listen("keyup", handler, options);
     };
     /**
      * @param handler {function (KeyboardEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onkeypress = function (handler, options) {
-        return this.$listen("keypress", handler, options);
+    INode.prototype.onkeypress = function (handler, options) {
+        return this.listen("keypress", handler, options);
     };
     /**
      * @param handler {function (TouchEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ontouchstart = function (handler, options) {
-        return this.$listen("touchstart", handler, options);
+    INode.prototype.ontouchstart = function (handler, options) {
+        return this.listen("touchstart", handler, options);
     };
     /**
      * @param handler {function (TouchEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ontouchmove = function (handler, options) {
-        return this.$listen("touchmove", handler, options);
+    INode.prototype.ontouchmove = function (handler, options) {
+        return this.listen("touchmove", handler, options);
     };
     /**
      * @param handler {function (TouchEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ontouchend = function (handler, options) {
-        return this.$listen("touchend", handler, options);
+    INode.prototype.ontouchend = function (handler, options) {
+        return this.listen("touchend", handler, options);
     };
     /**
      * @param handler {function (TouchEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ontouchcancel = function (handler, options) {
-        return this.$listen("touchcancel", handler, options);
+    INode.prototype.ontouchcancel = function (handler, options) {
+        return this.listen("touchcancel", handler, options);
     };
     /**
      * @param handler {function (WheelEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onwheel = function (handler, options) {
-        return this.$listen("wheel", handler, options);
+    INode.prototype.onwheel = function (handler, options) {
+        return this.listen("wheel", handler, options);
     };
     /**
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onabort = function (handler, options) {
-        return this.$listen("abort", handler, options);
+    INode.prototype.onabort = function (handler, options) {
+        return this.listen("abort", handler, options);
     };
     /**
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onerror = function (handler, options) {
-        return this.$listen("error", handler, options);
+    INode.prototype.onerror = function (handler, options) {
+        return this.listen("error", handler, options);
     };
     /**
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onload = function (handler, options) {
-        return this.$listen("load", handler, options);
+    INode.prototype.onload = function (handler, options) {
+        return this.listen("load", handler, options);
     };
     /**
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onloadend = function (handler, options) {
-        return this.$listen("loadend", handler, options);
+    INode.prototype.onloadend = function (handler, options) {
+        return this.listen("loadend", handler, options);
     };
     /**
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onloadstart = function (handler, options) {
-        return this.$listen("loadstart", handler, options);
+    INode.prototype.onloadstart = function (handler, options) {
+        return this.listen("loadstart", handler, options);
     };
     /**
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onprogress = function (handler, options) {
-        return this.$listen("progress", handler, options);
+    INode.prototype.onprogress = function (handler, options) {
+        return this.listen("progress", handler, options);
     };
     /**
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ontimeout = function (handler, options) {
-        return this.$listen("timeout", handler, options);
+    INode.prototype.ontimeout = function (handler, options) {
+        return this.listen("timeout", handler, options);
     };
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ondrag = function (handler, options) {
-        return this.$listen("drag", handler, options);
+    INode.prototype.ondrag = function (handler, options) {
+        return this.listen("drag", handler, options);
     };
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ondragend = function (handler, options) {
-        return this.$listen("dragend", handler, options);
+    INode.prototype.ondragend = function (handler, options) {
+        return this.listen("dragend", handler, options);
     };
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ondragenter = function (handler, options) {
-        return this.$listen("dragenter", handler, options);
+    INode.prototype.ondragenter = function (handler, options) {
+        return this.listen("dragenter", handler, options);
     };
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ondragexit = function (handler, options) {
-        return this.$listen("dragexit", handler, options);
+    INode.prototype.ondragexit = function (handler, options) {
+        return this.listen("dragexit", handler, options);
     };
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ondragleave = function (handler, options) {
-        return this.$listen("dragleave", handler, options);
+    INode.prototype.ondragleave = function (handler, options) {
+        return this.listen("dragleave", handler, options);
     };
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ondragover = function (handler, options) {
-        return this.$listen("dragover", handler, options);
+    INode.prototype.ondragover = function (handler, options) {
+        return this.listen("dragover", handler, options);
     };
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ondragstart = function (handler, options) {
-        return this.$listen("dragstart", handler, options);
+    INode.prototype.ondragstart = function (handler, options) {
+        return this.listen("dragstart", handler, options);
     };
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ondrop = function (handler, options) {
-        return this.$listen("drop", handler, options);
+    INode.prototype.ondrop = function (handler, options) {
+        return this.listen("drop", handler, options);
     };
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onpointerover = function (handler, options) {
-        return this.$listen("pointerover", handler, options);
+    INode.prototype.onpointerover = function (handler, options) {
+        return this.listen("pointerover", handler, options);
     };
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onpointerenter = function (handler, options) {
-        return this.$listen("pointerenter", handler, options);
+    INode.prototype.onpointerenter = function (handler, options) {
+        return this.listen("pointerenter", handler, options);
     };
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onpointerdown = function (handler, options) {
-        return this.$listen("pointerdown", handler, options);
+    INode.prototype.onpointerdown = function (handler, options) {
+        return this.listen("pointerdown", handler, options);
     };
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onpointermove = function (handler, options) {
-        return this.$listen("pointermove", handler, options);
+    INode.prototype.onpointermove = function (handler, options) {
+        return this.listen("pointermove", handler, options);
     };
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onpointerup = function (handler, options) {
-        return this.$listen("pointerup", handler, options);
+    INode.prototype.onpointerup = function (handler, options) {
+        return this.listen("pointerup", handler, options);
     };
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onpointercancel = function (handler, options) {
-        return this.$listen("pointercancel", handler, options);
+    INode.prototype.onpointercancel = function (handler, options) {
+        return this.listen("pointercancel", handler, options);
     };
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onpointerout = function (handler, options) {
-        return this.$listen("pointerout", handler, options);
+    INode.prototype.onpointerout = function (handler, options) {
+        return this.listen("pointerout", handler, options);
     };
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onpointerleave = function (handler, options) {
-        return this.$listen("pointerleave", handler, options);
+    INode.prototype.onpointerleave = function (handler, options) {
+        return this.listen("pointerleave", handler, options);
     };
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$ongotpointercapture = function (handler, options) {
-        return this.$listen("gotpointercapture", handler, options);
+    INode.prototype.ongotpointercapture = function (handler, options) {
+        return this.listen("gotpointercapture", handler, options);
     };
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onlostpointercapture = function (handler, options) {
-        return this.$listen("lostpointercapture", handler, options);
+    INode.prototype.onlostpointercapture = function (handler, options) {
+        return this.listen("lostpointercapture", handler, options);
     };
     /**
      * @param handler {function (AnimationEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onanimationstart = function (handler, options) {
-        return this.$listen("animationstart", handler, options);
+    INode.prototype.onanimationstart = function (handler, options) {
+        return this.listen("animationstart", handler, options);
     };
     /**
      * @param handler {function (AnimationEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onanimationend = function (handler, options) {
-        return this.$listen("animationend", handler, options);
+    INode.prototype.onanimationend = function (handler, options) {
+        return this.listen("animationend", handler, options);
     };
     /**
      * @param handler {function (AnimationEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onanimationiteraton = function (handler, options) {
-        return this.$listen("animationiteration", handler, options);
+    INode.prototype.onanimationiteraton = function (handler, options) {
+        return this.listen("animationiteration", handler, options);
     };
     /**
      * @param handler {function (ClipboardEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onclipboardchange = function (handler, options) {
-        return this.$listen("clipboardchange", handler, options);
+    INode.prototype.onclipboardchange = function (handler, options) {
+        return this.listen("clipboardchange", handler, options);
     };
     /**
      * @param handler {function (ClipboardEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$oncut = function (handler, options) {
-        return this.$listen("cut", handler, options);
+    INode.prototype.oncut = function (handler, options) {
+        return this.listen("cut", handler, options);
     };
     /**
      * @param handler {function (ClipboardEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$oncopy = function (handler, options) {
-        return this.$listen("copy", handler, options);
+    INode.prototype.oncopy = function (handler, options) {
+        return this.listen("copy", handler, options);
     };
     /**
      * @param handler {function (ClipboardEvent)}
      * @param options {Object | boolean}
      */
-    INode.prototype.$onpaste = function (handler, options) {
-        return this.$listen("paste", handler, options);
+    INode.prototype.onpaste = function (handler, options) {
+        return this.listen("paste", handler, options);
     };
-    INode.prototype.$$insertAdjacent = function (node) {
+    INode.prototype.insertAdjacent = function (node) {
         var $ = this.$;
-        $.app.$run.insertBefore($.node, node);
+        $.app.run.insertBefore($.node, node);
     };
     /**
      * A v-show & ngShow alternative
      * @param cond {IValue} show condition
      */
-    INode.prototype.$bindShow = function (cond) {
+    INode.prototype.bindShow = function (cond) {
         var $ = this.$;
         var node = $.node;
         if (node instanceof HTMLElement) {
             var lastDisplay_1 = node.style.display;
             var htmlNode_1 = node;
-            return this.$bindAlive(cond, function () {
+            return this.bindAlive(cond, function () {
                 lastDisplay_1 = htmlNode_1.style.display;
                 htmlNode_1.style.display = 'none';
             }, function () {
@@ -2670,12 +2671,12 @@ var INode = /** @class */ (function (_super) {
      * bind HTML
      * @param value {IValue}
      */
-    INode.prototype.$html = function (value) {
+    INode.prototype.html = function (value) {
         var $ = this.$;
         var node = $.node;
         if (node instanceof HTMLElement) {
             node.innerHTML = value.$;
-            this.$watch(function (v) {
+            this.watch(function (v) {
                 node.innerHTML = v;
             }, value);
         }
@@ -2695,10 +2696,10 @@ var Tag = /** @class */ (function (_super) {
     __extends(Tag, _super);
     function Tag() {
         var _this = this; _super.call(this);
-        _this.$seal();
+        _this.seal();
         return _this;
     }
-    Tag.prototype.$preinit = function (app, parent, tagName) {
+    Tag.prototype.preinit = function (app, parent, tagName) {
         if (!tagName || typeof tagName !== "string") {
             throw internalError('wrong Tag::$preinit call');
         }
@@ -2706,55 +2707,51 @@ var Tag = /** @class */ (function (_super) {
         var $ = this.$;
         $.preinit(app, parent);
         $.node = node;
-        $.parent.$$appendNode(node);
+        $.parent.appendNode(node);
     };
-    Tag.prototype.$$findFirstChild = function () {
+    Tag.prototype.findFirstChild = function () {
         return this.$.unmounted ? null : this.$.node;
     };
-    Tag.prototype.$$insertAdjacent = function (node) {
+    Tag.prototype.insertAdjacent = function (node) {
         if (this.$.unmounted) {
             if (this.$.next) {
-                this.$.next.$$insertAdjacent(node);
+                this.$.next.insertAdjacent(node);
             }
             else {
-                this.$.parent.$$appendNode(node);
+                this.$.parent.appendNode(node);
             }
         }
         else {
-            _super.prototype.$$insertAdjacent.call(this, node);
+            _super.prototype.insertAdjacent.call(this, node);
         }
     };
-    Tag.prototype.$$appendNode = function (node) {
+    Tag.prototype.appendNode = function (node) {
         var $ = this.$;
-        $.app.$run.appendChild($.node, node);
+        $.app.run.appendChild($.node, node);
     };
     /**
      * Mount/Unmount a node
      * @param cond {IValue} show condition
      */
-    Tag.prototype.$bindMount = function (cond) {
+    Tag.prototype.bindMount = function (cond) {
+        var _this = this;
         var $ = this.$;
-        return this.$bindAlive(cond, function () {
+        this.bindAlive(cond, function () {
             $.node.remove();
             $.unmounted = true;
         }, function () {
-            if (!$.unmounted)
-                return;
-            if ($.next) {
-                $.next.$$insertAdjacent($.node);
+            if ($.unmounted) {
+                _this.insertAdjacent($.node);
+                $.unmounted = false;
             }
-            else {
-                $.parent.$$appendNode($.node);
-            }
-            $.unmounted = false;
         });
     };
     /**
      * Runs GC
      */
-    Tag.prototype.$destroy = function () {
+    Tag.prototype.destroy = function () {
         this.node.remove();
-        _super.prototype.$destroy.call(this);
+        _super.prototype.destroy.call(this);
     };
     return Tag;
 }(INode));
@@ -2768,10 +2765,10 @@ var Extension = /** @class */ (function (_super) {
     __extends(Extension, _super);
     function Extension($) {
         var _this = _super.call(this, $) || this;
-        _this.$seal();
+        _this.seal();
         return _this;
     }
-    Extension.prototype.$preinit = function (app, parent) {
+    Extension.prototype.preinit = function (app, parent) {
         if (parent instanceof INode) {
             var $ = this.$;
             $.preinit(app, parent);
@@ -2781,8 +2778,8 @@ var Extension = /** @class */ (function (_super) {
             throw userError("A extension node can be encapsulated only in a tag/extension/component", "virtual-dom");
         }
     };
-    Extension.prototype.$destroy = function () {
-        _super.prototype.$destroy.call(this);
+    Extension.prototype.destroy = function () {
+        _super.prototype.destroy.call(this);
     };
     return Extension;
 }(INode));
@@ -2796,15 +2793,15 @@ var Component = /** @class */ (function (_super) {
     __extends(Component, _super);
     function Component() {
         var _this = this; _super.call(this);
-        _this.$seal();
+        _this.seal();
         return _this;
     }
-    Component.prototype.$mounted = function () {
-        _super.prototype.$mounted.call(this);
-        if (this.$children.length !== 1) {
+    Component.prototype.mounted = function () {
+        _super.prototype.mounted.call(this);
+        if (this.children.size !== 1) {
             throw userError("Component must have a child only", "dom-error");
         }
-        var child = this.$children[0];
+        var child = this.lastChild;
         if (child instanceof Tag || child instanceof Component) {
             var $ = this.$;
             $.node = child.node;
@@ -2813,7 +2810,7 @@ var Component = /** @class */ (function (_super) {
             throw userError("Component child must be Tag or Component", "dom-error");
         }
     };
-    Component.prototype.$preinit = function (app, parent) {
+    Component.prototype.preinit = function (app, parent) {
         this.$.preinit(app, parent);
     };
     return Component;
@@ -2828,22 +2825,22 @@ var SwitchedNodePrivate = /** @class */ (function (_super) {
     __extends(SwitchedNodePrivate, _super);
     function SwitchedNodePrivate() {
         var _this = this; _super.call(this);
-        _this.$seal();
+        _this.seal();
         return _this;
     }
     /**
      * Runs GC
      */
-    SwitchedNodePrivate.prototype.$destroy = function () {
+    SwitchedNodePrivate.prototype.destroy = function () {
         this.cases.forEach(function (c) {
             delete c.cond;
             delete c.cb;
         });
         this.cases.splice(0);
-        _super.prototype.$destroy.call(this);
+        _super.prototype.destroy.call(this);
     };
     return SwitchedNodePrivate;
-}(INodePrivate));
+}(FragmentPrivate));
 
 /**
  * Defines a node witch can switch its children conditionally
@@ -2866,10 +2863,10 @@ var SwitchedNode = /** @class */ (function (_super) {
             if (i === $.index) {
                 return;
             }
-            if ($.fragment) {
-                $.fragment.$destroy();
-                _this.$children.splice(0);
-                $.fragment = null;
+            if (_this.lastChild) {
+                _this.lastChild.destroy();
+                _this.children.clear();
+                _this.lastChild = null;
             }
             if (i !== $.cases.length) {
                 $.index = i;
@@ -2879,7 +2876,7 @@ var SwitchedNode = /** @class */ (function (_super) {
                 $.index = -1;
             }
         };
-        _this.$seal();
+        _this.seal();
         return _this;
     }
     /**
@@ -2896,27 +2893,25 @@ var SwitchedNode = /** @class */ (function (_super) {
      */
     SwitchedNode.prototype.createChild = function (cb) {
         var node = new Fragment();
-        node.$preinit(this.$.app, this);
-        node.$init();
-        node.$ready();
-        this.$.fragment = node;
-        this.$children.push(node);
+        node.preinit(this.$.app, this);
+        node.init();
+        this.lastChild = node;
+        this.children.add(node);
         cb(node);
     };
-    SwitchedNode.prototype.$ready = function () {
+    SwitchedNode.prototype.ready = function () {
         var $ = this.$;
-        _super.prototype.$ready.call(this);
         $.cases.forEach(function (c) {
             c.cond.on($.sync);
         });
         $.sync();
     };
-    SwitchedNode.prototype.$destroy = function () {
+    SwitchedNode.prototype.destroy = function () {
         var $ = this.$;
         $.cases.forEach(function (c) {
             c.cond.off($.sync);
         });
-        _super.prototype.$destroy.call(this);
+        _super.prototype.destroy.call(this);
     };
     return SwitchedNode;
 }(Fragment));
@@ -2927,7 +2922,7 @@ var DebugPrivate = /** @class */ (function (_super) {
     __extends(DebugPrivate, _super);
     function DebugPrivate() {
         var _this = this; _super.call(this);
-        _this.$seal();
+        _this.seal();
         return _this;
     }
     /**
@@ -2943,14 +2938,14 @@ var DebugPrivate = /** @class */ (function (_super) {
         this.bindings.add(new Expression(function (v) {
             _this.node.replaceData(0, -1, v);
         }, true, text));
-        this.parent.$$appendNode(this.node);
+        this.parent.appendNode(this.node);
     };
     /**
      * Clear node data
      */
-    DebugPrivate.prototype.$destroy = function () {
+    DebugPrivate.prototype.destroy = function () {
         this.node.remove();
-        _super.prototype.$destroy.call(this);
+        _super.prototype.destroy.call(this);
     };
     return DebugPrivate;
 }(FragmentPrivate));
@@ -2969,10 +2964,10 @@ var DebugNode = /** @class */ (function (_super) {
          * @type {DebugNode}
          */
         _this.$ = new DebugPrivate();
-        _this.$seal();
+        _this.seal();
         return _this;
     }
-    DebugNode.prototype.$preinit = function (app, parent, text) {
+    DebugNode.prototype.preinit = function (app, parent, text) {
         var $ = this.$;
         if (!text) {
             throw internalError('wrong DebugNode::$preninit call');
@@ -2982,9 +2977,9 @@ var DebugNode = /** @class */ (function (_super) {
     /**
      * Runs garbage collector
      */
-    DebugNode.prototype.$destroy = function () {
-        this.$.$destroy();
-        _super.prototype.$destroy.call(this);
+    DebugNode.prototype.destroy = function () {
+        this.$.destroy();
+        _super.prototype.destroy.call(this);
     };
     return DebugNode;
 }(Fragment));
@@ -3016,8 +3011,8 @@ var AppNode = /** @class */ (function (_super) {
      */
     function AppNode(options) {
         var _this = this; _super.call(this);
-        _this.$run = (options === null || options === void 0 ? void 0 : options.executor) || ((options === null || options === void 0 ? void 0 : options.freezeUi) === false ? timeoutExecutor : instantExecutor);
-        _this.$debugUi = (options === null || options === void 0 ? void 0 : options.debugUi) || false;
+        _this.run = (options === null || options === void 0 ? void 0 : options.executor) || ((options === null || options === void 0 ? void 0 : options.freezeUi) === false ? timeoutExecutor : instantExecutor);
+        _this.debugUi = (options === null || options === void 0 ? void 0 : options.debugUi) || false;
         return _this;
     }
     return AppNode;
@@ -3038,13 +3033,13 @@ var App = /** @class */ (function (_super) {
     function App(node, options) {
         var _this = _super.call(this, options) || this;
         _this.$.node = node;
-        _this.$preinit(_this, _this);
-        _this.$seal();
+        _this.preinit(_this, _this);
+        _this.seal();
         return _this;
     }
-    App.prototype.$$appendNode = function (node) {
+    App.prototype.appendNode = function (node) {
         var $ = this.$;
-        $.app.$run.appendChild($.node, node);
+        this.run.appendChild($.node, node);
     };
     return App;
 }(AppNode));
@@ -3103,9 +3098,9 @@ var Interceptor = /** @class */ (function (_super) {
             signal.unsubscribe(handler);
         });
     };
-    Interceptor.prototype.$destroy = function () {
+    Interceptor.prototype.destroy = function () {
         var _this = this;
-        _super.prototype.$destroy.call(this);
+        _super.prototype.destroy.call(this);
         this.signals.forEach(function (signal) {
             _this.handlers.forEach(function (handler) {
                 signal.unsubscribe(handler);
@@ -3136,7 +3131,7 @@ var InterceptorNode = /** @class */ (function (_super) {
         _this.slot = new Slot;
         return _this;
     }
-    InterceptorNode.prototype.$compose = function () {
+    InterceptorNode.prototype.compose = function () {
         this.slot.release(this, this.interceptor);
     };
     return InterceptorNode;
@@ -3161,23 +3156,18 @@ var AttributeBinding = /** @class */ (function (_super) {
      * @param value {IValue} value to bind
      */
     function AttributeBinding(node, name, value) {
-        return _super.call(this, node, name, value) || this;
-    }
-    /**
-     * Generates a function which updates the attribute value
-     * @param name {String} The name of attribute
-     * @returns {Function} a function which will update attribute value
-     */
-    AttributeBinding.prototype.bound = function (name) {
-        return function (node, value) {
+        var _this = _super.call(this, value) || this;
+        _this.init(function (value) {
             if (value) {
-                node.app.$run.setAttribute(node.node, name, value);
+                node.app.run.setAttribute(node.node, name, value);
             }
             else {
-                node.app.$run.removeAttribute(node.node, name);
+                node.app.run.removeAttribute(node.node, name);
             }
-        };
-    };
+        });
+        _this.seal();
+        return _this;
+    }
     return AttributeBinding;
 }(Binding));
 
@@ -3199,20 +3189,15 @@ var StyleBinding = /** @class */ (function (_super) {
      * @param value {IValue} the value to bind
      */
     function StyleBinding(node, name, value) {
-        return _super.call(this, node, name, value) || this;
-    }
-    /**
-     * Generates a function to update style property value
-     * @param name {string}
-     * @returns {Function} a function to update style property
-     */
-    StyleBinding.prototype.bound = function (name) {
-        return function (node, value) {
+        var _this = _super.call(this, value) || this;
+        _this.init(function (value) {
             if (node.node instanceof HTMLElement) {
-                node.app.$run.setStyle(node.node, name, value);
+                node.app.run.setStyle(node.node, name, value);
             }
-        };
-    };
+        });
+        _this.seal();
+        return _this;
+    }
     return StyleBinding;
 }(Binding));
 
@@ -3220,62 +3205,59 @@ var StyleBinding = /** @class */ (function (_super) {
 window.StyleBinding = StyleBinding;
 
 // ./lib-es5/binding/class.js
-/**
- * Represents a HTML class binding description
- * @class ClassBinding
- * @extends Binding
- */
-var ClassBinding = /** @class */ (function (_super) {
-    __extends(ClassBinding, _super);
-    /**
-     * Constructs an HTML class binding description
-     * @param node {INode} the vasille node
-     * @param name {String} the name of class
-     * @param value {IValue} the value to bind
-     */
-    function ClassBinding(node, name, value) {
-        var _this = _super.call(this, node, name, value) || this;
-        _this.$seal();
+function addClass(node, cl) {
+    node.app.run.addClass(node.node, cl);
+}
+function removeClass(node, cl) {
+    node.app.run.removeClass(node.node, cl);
+}
+var StaticClassBinding = /** @class */ (function (_super) {
+    __extends(StaticClassBinding, _super);
+    function StaticClassBinding(node, name, value) {
+        var _this = _super.call(this, value) || this;
+        _this.current = false;
+        _this.init(function (value) {
+            if (value !== _this.current) {
+                if (value) {
+                    addClass(node, name);
+                }
+                else {
+                    removeClass(node, name);
+                }
+                _this.current = value;
+            }
+        });
+        _this.seal();
         return _this;
     }
-    /**
-     * Generates a function which updates the html class value
-     * @param name {String} The name of attribute
-     * @returns {Function} a function which will update attribute value
-     */
-    ClassBinding.prototype.bound = function (name) {
-        var current = null;
-        function addClass(node, cl) {
-            node.app.$run.addClass(node.node, cl);
-        }
-        function removeClass(node, cl) {
-            node.app.$run.removeClass(node.node, cl);
-        }
-        return function (node, value) {
-            if (value !== current) {
-                if (typeof current === "string" && current !== "") {
-                    removeClass(node, current);
+    return StaticClassBinding;
+}(Binding));
+
+var DynamicalClassBinding = /** @class */ (function (_super) {
+    __extends(DynamicalClassBinding, _super);
+    function DynamicalClassBinding(node, value) {
+        var _this = _super.call(this, value) || this;
+        _this.current = "";
+        _this.init(function (value) {
+            if (_this.current != value) {
+                if (_this.current.length) {
+                    removeClass(node, _this.current);
                 }
-                if (typeof value === "boolean") {
-                    if (value) {
-                        addClass(node, name);
-                    }
-                    else {
-                        removeClass(node, name);
-                    }
-                }
-                else if (typeof value === "string" && value !== "") {
+                if (value.length) {
                     addClass(node, value);
                 }
-                current = value;
+                _this.current = value;
             }
-        };
-    };
-    return ClassBinding;
+        });
+        _this.seal();
+        return _this;
+    }
+    return DynamicalClassBinding;
 }(Binding));
 
 
-window.ClassBinding = ClassBinding;
+window.StaticClassBinding = StaticClassBinding;
+window.DynamicalClassBinding = DynamicalClassBinding;
 
 // ./lib-es5/views/repeat-node.js
 /**
@@ -3292,12 +3274,12 @@ var RepeatNodePrivate = /** @class */ (function (_super) {
          * @type {Map}
          */
         _this.nodes = new Map();
-        _this.$seal();
+        _this.seal();
         return _this;
     }
-    RepeatNodePrivate.prototype.$destroy = function () {
+    RepeatNodePrivate.prototype.destroy = function () {
         this.nodes.clear();
-        _super.prototype.$destroy.call(this);
+        _super.prototype.destroy.call(this);
     };
     return RepeatNodePrivate;
 }(INodePrivate));
@@ -3322,43 +3304,27 @@ var RepeatNode = /** @class */ (function (_super) {
         // TODO: Refactor: remove @ts-ignore
         var _this = this;
         var node = new Fragment();
-        // eslint-disable-next-line
-        // @ts-ignore
-        var $ = node.$;
         this.destroyChild(id, item);
         if (before) {
-            $.next = before;
-            // eslint-disable-next-line
-            // @ts-ignore
-            $.prev = before.$.prev;
-            // eslint-disable-next-line
-            // @ts-ignore
-            before.$.prev = node;
-            if ($.prev) {
-                // eslint-disable-next-line
-                // @ts-ignore
-                $.prev.$.next = node;
-            }
-            this.$children.splice(this.$children.indexOf(before), 0, node);
+            this.children.add(node);
+            before.insertBefore(node);
         }
         else {
-            var lastChild = this.$children[this.$children.length - 1];
+            var lastChild = this.lastChild;
             if (lastChild) {
-                // eslint-disable-next-line
-                // @ts-ignore
-                lastChild.$.next = node;
+                lastChild.insertAfter(node);
             }
-            $.prev = lastChild;
-            this.$children.push(node);
+            this.children.add(node);
         }
-        node.$preinit(this.$.app, this);
-        node.$init();
+        this.lastChild = node;
+        node.preinit(this.$.app, this);
+        node.init();
         var callback = function () {
             _this.slot.release(node, item, id);
-            node.$ready();
+            node.ready();
         };
         if (this.freezeUi) {
-            this.$.app.$run.callCallback(callback);
+            this.$.app.run.callCallback(callback);
         }
         else {
             timeoutExecutor.callCallback(callback);
@@ -3369,22 +3335,10 @@ var RepeatNode = /** @class */ (function (_super) {
         var $ = this.$;
         var child = $.nodes.get(id);
         if (child) {
-            // eslint-disable-next-line
-            // @ts-ignore
-            var $_1 = child.$;
-            if ($_1.prev) {
-                // eslint-disable-next-line
-                // @ts-ignore
-                $_1.prev.$.next = $_1.next;
-            }
-            if ($_1.next) {
-                // eslint-disable-next-line
-                // @ts-ignore
-                $_1.next.$.prev = $_1.prev;
-            }
-            child.$destroy();
+            child.remove();
+            child.destroy();
             this.$.nodes.delete(id);
-            this.$children.splice(this.$children.indexOf(child), 1);
+            this.children.delete(child);
         }
     };
     return RepeatNode;
@@ -3408,7 +3362,7 @@ var RepeaterPrivate = /** @class */ (function (_super) {
          * Current count of child nodes
          */
         _this.currentCount = 0;
-        _this.$seal();
+        _this.seal();
         return _this;
     }
     return RepeaterPrivate;
@@ -3427,7 +3381,7 @@ var Repeater = /** @class */ (function (_super) {
          * The count of children
          */
         _this.count = new Reference(0);
-        _this.$seal();
+        _this.seal();
         return _this;
     }
     /**
@@ -3447,18 +3401,18 @@ var Repeater = /** @class */ (function (_super) {
         }
         $.currentCount = number;
     };
-    Repeater.prototype.$created = function () {
+    Repeater.prototype.created = function () {
         var $ = this.$;
-        _super.prototype.$created.call(this);
+        _super.prototype.created.call(this);
         $.updateHandler = this.changeCount.bind(this);
         this.count.on($.updateHandler);
     };
-    Repeater.prototype.$ready = function () {
+    Repeater.prototype.ready = function () {
         this.changeCount(this.count.$);
     };
-    Repeater.prototype.$destroy = function () {
+    Repeater.prototype.destroy = function () {
         var $ = this.$;
-        _super.prototype.$destroy.call(this);
+        _super.prototype.destroy.call(this);
         this.count.off($.updateHandler);
     };
     return Repeater;
@@ -3478,7 +3432,7 @@ var BaseViewPrivate = /** @class */ (function (_super) {
     __extends(BaseViewPrivate, _super);
     function BaseViewPrivate() {
         var _this = this; _super.call(this);
-        _this.$seal();
+        _this.seal();
         return _this;
     }
     return BaseViewPrivate;
@@ -3501,26 +3455,26 @@ var BaseView = /** @class */ (function (_super) {
         $.removeHandler = function (id, item) {
             _this.destroyChild(id, item);
         };
-        _this.$seal();
+        _this.seal();
         return _this;
     }
     /**
      * Handle ready event
      */
-    BaseView.prototype.$ready = function () {
+    BaseView.prototype.ready = function () {
         var $ = this.$;
         this.model.listener.onAdd($.addHandler);
         this.model.listener.onRemove($.removeHandler);
-        _super.prototype.$ready.call(this);
+        _super.prototype.ready.call(this);
     };
     /**
      * Handles destroy event
      */
-    BaseView.prototype.$destroy = function () {
+    BaseView.prototype.destroy = function () {
         var $ = this.$;
         this.model.listener.offAdd($.addHandler);
         this.model.listener.offRemove($.removeHandler);
-        _super.prototype.$destroy.call(this);
+        _super.prototype.destroy.call(this);
     };
     return BaseView;
 }(RepeatNode));
@@ -3545,12 +3499,12 @@ var ArrayView = /** @class */ (function (_super) {
     ArrayView.prototype.createChild = function (id, item, before) {
         _super.prototype.createChild.call(this, item, item, before || this.$.nodes.get(id));
     };
-    ArrayView.prototype.$ready = function () {
+    ArrayView.prototype.ready = function () {
         var _this = this;
         this.model.forEach(function (item) {
             _this.createChild(item, item);
         });
-        _super.prototype.$ready.call(this);
+        _super.prototype.ready.call(this);
     };
     return ArrayView;
 }(BaseView));
@@ -3569,21 +3523,21 @@ var Watch = /** @class */ (function (_super) {
     function Watch() {
         var _this = this; _super.call(this);
         _this.slot = new Slot;
-        _this.model = _this.$ref(null);
-        _this.$seal();
+        _this.model = _this.ref(null);
+        _this.seal();
         return _this;
     }
-    Watch.prototype.$createWatchers = function () {
+    Watch.prototype.createWatchers = function () {
         var _this = this;
-        this.$watch(function (value) {
-            _this.$children.forEach(function (child) {
-                child.$destroy();
+        this.watch(function (value) {
+            _this.children.forEach(function (child) {
+                child.destroy();
             });
-            _this.$children.splice(0);
+            _this.children.clear();
             _this.slot.release(_this, value);
         }, this.model);
     };
-    Watch.prototype.$compose = function () {
+    Watch.prototype.compose = function () {
         this.slot.release(this, this.model.$);
     };
     return Watch;
@@ -3605,12 +3559,12 @@ var ObjectView = /** @class */ (function (_super) {
         _this.model = model;
         return _this;
     }
-    ObjectView.prototype.$ready = function () {
+    ObjectView.prototype.ready = function () {
         var obj = this.model;
         for (var key in obj) {
             this.createChild(key, obj[key]);
         }
-        _super.prototype.$ready.call(this);
+        _super.prototype.ready.call(this);
     };
     return ObjectView;
 }(BaseView));
@@ -3631,13 +3585,13 @@ var MapView = /** @class */ (function (_super) {
         _this.model = model;
         return _this;
     }
-    MapView.prototype.$ready = function () {
+    MapView.prototype.ready = function () {
         var _this = this;
         var map = this.model;
         map.forEach(function (value, key) {
             _this.createChild(key, value);
         });
-        _super.prototype.$ready.call(this);
+        _super.prototype.ready.call(this);
     };
     return MapView;
 }(BaseView));
@@ -3658,16 +3612,16 @@ var SetView = /** @class */ (function (_super) {
         _this.model = model;
         return _this;
     }
-    SetView.prototype.$ready = function () {
+    SetView.prototype.ready = function () {
         var _this = this;
         var $ = this.$;
         var set = this.model;
         set.forEach(function (item) {
-            $.app.$run.callCallback(function () {
+            $.app.run.callCallback(function () {
                 _this.createChild(item, item);
             });
         });
-        _super.prototype.$ready.call(this);
+        _super.prototype.ready.call(this);
     };
     return SetView;
 }(BaseView));
