@@ -15,8 +15,8 @@ it("App", function () {
     const timeout = new App(body, { freezeUi: false });
     const custom = new App(body, { executor: test });
 
-    expect(_default.$run).toBe(instantExecutor);
-    expect(instant.$run).toBe(instantExecutor);
-    expect(timeout.$run).toBe(timeoutExecutor);
-    expect(custom.$run).toBe(test);
+    expect(_default.run).toBe(instantExecutor);
+    expect(instant.run).toBe(instantExecutor);
+    expect(timeout.run).toBe(timeoutExecutor);
+    expect(custom.run).toBe(test);
 })

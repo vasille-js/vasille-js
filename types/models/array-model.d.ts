@@ -1,11 +1,11 @@
 import { Listener } from "./listener";
-import type { IModel } from "./model";
+import { ListenableModel } from "./model";
 /**
  * Model based on Array class
  * @extends Array
  * @implements IModel
  */
-export declare class ArrayModel<T> extends Array<T> implements IModel<T, T> {
+export declare class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
     listener: Listener<T, T>;
     /**
      * @param data {Array} input data

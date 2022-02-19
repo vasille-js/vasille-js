@@ -12,7 +12,7 @@ export declare class RepeatNodePrivate<IdT> extends INodePrivate {
      */
     nodes: Map<IdT, Fragment>;
     constructor();
-    $destroy(): void;
+    destroy(): void;
 }
 /**
  * Repeat node repeats its children

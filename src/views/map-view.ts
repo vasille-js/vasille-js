@@ -15,14 +15,14 @@ export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
         this.model = model;
     }
 
-    public $ready () {
+    public ready () {
         const map : MapModel<K, T> = this.model;
 
         map.forEach((value, key) => {
             this.createChild(key, value);
         });
 
-        super.$ready();
+        super.ready();
     }
 }
 

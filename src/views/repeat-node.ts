@@ -18,12 +18,12 @@ export class RepeatNodePrivate<IdT> extends INodePrivate {
 
     public constructor () {
         super ();
-        this.$seal();
+        this.seal();
     }
 
-    public $destroy () {
+    public destroy () {
         this.nodes.clear();
-        super.$destroy ();
+        super.destroy ();
     }
 }
 
@@ -55,49 +55,33 @@ export class RepeatNode<IdT, T> extends Fragment {
         // TODO: Refactor: remove @ts-ignore
 
         const node = new Fragment();
-        // eslint-disable-next-line
-        // @ts-ignore
-        const $ : FragmentPrivate = node.$;
 
         this.destroyChild(id, item);
 
         if (before) {
-            $.next = before;
-            // eslint-disable-next-line
-            // @ts-ignore
-            $.prev = before.$.prev;
-            // eslint-disable-next-line
-            // @ts-ignore
-            before.$.prev = node;
-            if ($.prev) {
-                // eslint-disable-next-line
-                // @ts-ignore
-                $.prev.$.next = node;
-            }
-            this.$children.splice(this.$children.indexOf(before), 0, node);
+            this.children.add(node);
+            before.insertBefore(node);
         }
         else {
-            const lastChild = this.$children[this.$children.length - 1];
+            const lastChild = this.lastChild;
 
             if (lastChild) {
-                // eslint-disable-next-line
-                // @ts-ignore
-                lastChild.$.next = node;
+                lastChild.insertAfter(node);
             }
-            $.prev = lastChild;
-            this.$children.push(node);
+            this.children.add(node);
         }
 
-        node.$preinit(this.$.app, this);
-        node.$init();
+        this.lastChild = node;
+        node.preinit(this.$.app, this);
+        node.init();
 
         const callback = () => {
             this.slot.release(node, item, id);
-            node.$ready();
+            node.ready();
         };
 
         if (this.freezeUi) {
-            this.$.app.$run.callCallback(callback);
+            this.$.app.run.callCallback(callback);
         }
         else {
             timeoutExecutor.callCallback(callback);
@@ -111,23 +95,10 @@ export class RepeatNode<IdT, T> extends Fragment {
         const child = $.nodes.get(id);
 
         if (child) {
-            // eslint-disable-next-line
-            // @ts-ignore
-            const $ : FragmentPrivate = child.$;
-
-            if ($.prev) {
-                // eslint-disable-next-line
-                // @ts-ignore
-                $.prev.$.next = $.next;
-            }
-            if ($.next) {
-                // eslint-disable-next-line
-                // @ts-ignore
-                $.next.$.prev = $.prev;
-            }
-            child.$destroy();
+            child.remove();
+            child.destroy();
             this.$.nodes.delete(id);
-            this.$children.splice(this.$children.indexOf(child), 1);
+            this.children.delete(child);
         }
     }
 }

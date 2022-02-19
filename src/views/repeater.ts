@@ -22,7 +22,7 @@ export class RepeaterPrivate<IdT> extends RepeatNodePrivate<IdT> {
 
     public constructor () {
         super ();
-        this.$seal();
+        this.seal();
     }
 }
 
@@ -42,7 +42,7 @@ export class Repeater extends RepeatNode<number, number> {
 
     public constructor ($ ?: RepeaterPrivate<number>) {
         super($ || new RepeaterPrivate);
-        this.$seal();
+        this.seal();
     }
 
     /**
@@ -64,23 +64,23 @@ export class Repeater extends RepeatNode<number, number> {
         $.currentCount = number;
     }
 
-    public $created () {
+    public created () {
         const $ : RepeaterPrivate<number> = this.$;
 
-        super.$created();
+        super.created();
 
         $.updateHandler = this.changeCount.bind(this);
         this.count.on($.updateHandler);
     }
 
-    public $ready () {
+    public ready () {
         this.changeCount(this.count.$);
     }
 
-    public $destroy () {
+    public destroy () {
         const $ : RepeaterPrivate<number> = this.$;
 
-        super.$destroy();
+        super.destroy();
         this.count.off($.updateHandler);
     }
 }

@@ -22,9 +22,9 @@ export declare class Reference<T> extends IValue<T> {
     constructor(value: T);
     get $(): T;
     set $(value: T);
-    enable(): this;
-    disable(): this;
-    on(handler: (value: T) => void): this;
-    off(handler: (value: T) => void): this;
-    $destroy(): void;
+    enable(): void;
+    disable(): void;
+    on(handler: (value: T) => void): void;
+    off(handler: (value: T) => void): void;
+    destroy(): void;
 }

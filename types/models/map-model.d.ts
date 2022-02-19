@@ -1,12 +1,12 @@
 import { Listener } from "./listener";
-import type { IModel } from "./model";
+import { ListenableModel } from "./model";
 /**
  * A Map based memory
  * @class MapModel
  * @extends Map
  * @implements IModel
  */
-export declare class MapModel<K, T> extends Map<K, T> implements IModel<K, T> {
+export declare class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
     listener: Listener<T, K>;
     /**
      * Constructs a map model

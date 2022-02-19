@@ -29,7 +29,7 @@ export declare class Mirror<T> extends Reference<T> {
     constructor(value: IValue<T>, forwardOnly?: boolean);
     get $(): T;
     set $(v: T);
-    enable(): this;
-    disable(): this;
-    $destroy(): void;
+    enable(): void;
+    disable(): void;
+    destroy(): void;
 }

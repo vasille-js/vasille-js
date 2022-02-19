@@ -1,10 +1,20 @@
 import { Destroyable } from "./destroyable.js";
+export declare class Switchable extends Destroyable {
+    /**
+     * Enable update handlers triggering
+     */
+    enable(): void;
+    /**
+     * disable update handlers triggering
+     */
+    disable(): void;
+}
 /**
  * Interface which describes a value
  * @class IValue
  * @extends Destroyable
  */
-export declare class IValue<T> extends Destroyable {
+export declare class IValue<T> extends Switchable {
     /**
      * Is enabled state flag
      * @protected
@@ -28,18 +38,10 @@ export declare class IValue<T> extends Destroyable {
      * Add a new handler to value change
      * @param handler {function(value : *)} the handler to add
      */
-    on(handler: (value: T) => void): this;
+    on(handler: (value: T) => void): void;
     /**
      * Removes a handler of value change
      * @param handler {function(value : *)} the handler to remove
      */
-    off(handler: (value: T) => void): this;
-    /**
-     * Enable update handlers triggering
-     */
-    enable(): this;
-    /**
-     * disable update handlers triggering
-     */
-    disable(): this;
+    off(handler: (value: T) => void): void;
 }

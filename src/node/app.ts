@@ -17,12 +17,12 @@ export class AppNode extends INode {
      * Executor is used to optimize the page creation/update
      * @type {Executor}
      */
-    $run : Executor;
+    run : Executor;
 
     /**
      * Enables debug comments
      */
-    $debugUi : boolean;
+    debugUi : boolean;
 
     /**
      * @param options {Object} Application options
@@ -30,8 +30,8 @@ export class AppNode extends INode {
     constructor (options ?: AppOptions) {
         super ();
 
-        this.$run = options?.executor || (options?.freezeUi === false ? timeoutExecutor : instantExecutor);
-        this.$debugUi = options?.debugUi || false;
+        this.run = options?.executor || (options?.freezeUi === false ? timeoutExecutor : instantExecutor);
+        this.debugUi = options?.debugUi || false;
     }
 }
 
@@ -50,14 +50,14 @@ export class App extends AppNode {
         super(options);
 
         this.$.node = node;
-        this.$preinit(this, this);
+        this.preinit(this, this);
 
-        this.$seal();
+        this.seal();
     }
 
-    public $$appendNode (node : Node) {
+    public appendNode (node : Node) {
         const $ : INodePrivate = this.$;
 
-        $.app.$run.appendChild($.node, node);
+        this.run.appendChild($.node, node);
     }
 }

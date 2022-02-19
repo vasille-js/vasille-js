@@ -37,7 +37,7 @@ export declare class FragmentPrivate extends ReactivePrivate {
     /**
      * Unlinks all bindings
      */
-    $destroy(): void;
+    destroy(): void;
 }
 /**
  * This class is symbolic
@@ -53,7 +53,8 @@ export declare class Fragment extends Reactive {
      * The children list
      * @type Array
      */
-    $children: Array<Fragment>;
+    children: Set<Fragment>;
+    lastChild: any;
     /**
      * Constructs a Vasille Node
      * @param $ {FragmentPrivate}
@@ -69,87 +70,85 @@ export declare class Fragment extends Reactive {
      * @param parent {Fragment} parent of node
      * @param data {*} additional data
      */
-    $preinit(app: AppNode, parent: Fragment, data?: unknown): void;
+    preinit(app: AppNode, parent: Fragment, data?: unknown): void;
     /**
      * Initialize node
      */
-    $init(): this;
+    init(): this;
     /** To be overloaded: created event handler */
-    $created(): void;
+    created(): void;
     /** To be overloaded: mounted event handler */
-    $mounted(): void;
+    mounted(): void;
     /** To be overloaded: ready event handler */
-    $ready(): void;
-    /** To be overloaded: signals creation milestone */
-    $createSignals(): void;
+    ready(): void;
     /** To be overloaded: watchers creation milestone */
-    $createWatchers(): void;
+    createWatchers(): void;
     /** To be overloaded: DOM creation milestone */
-    $compose(): void;
+    compose(): void;
     /**
      * Pushes a node to children immediately
      * @param node {Fragment} A node to push
      * @protected
      */
-    protected $$pushNode(node: Fragment): void;
+    protected pushNode(node: Fragment): void;
     /**
      * Find first node in element if so exists
      * @return {?Element}
      * @protected
      */
-    protected $$findFirstChild(): Node;
+    protected findFirstChild(): Node;
     /**
      * Append a node to end of element
      * @param node {Node} node to insert
      */
-    $$appendNode(node: Node): void;
+    appendNode(node: Node): void;
     /**
      * Insert a node as a sibling of this
      * @param node {Node} node to insert
      */
-    $$insertAdjacent(node: Node): void;
+    insertAdjacent(node: Node): void;
     /**
      * Defines a text fragment
      * @param text {String | IValue} A text fragment string
      * @param cb {function (TextNode)} Callback if previous is slot name
      */
-    $text(text: string | IValue<string>, cb?: (text: TextNode) => void): this;
-    $debug(text: IValue<string>): this;
+    text(text: string | IValue<string>, cb?: (text: TextNode) => void): void;
+    debug(text: IValue<string>): this;
     /**
      * Defines a tag element
      * @param tagName {String} the tag name
      * @param cb {function(Tag, *)} callback
      */
-    $tag<K extends keyof HTMLElementTagNameMap>(tagName: K, cb?: (node: Tag, element: HTMLElementTagNameMap[K]) => void): this;
-    $tag<K extends keyof SVGElementTagNameMap>(tagName: K, cb?: (node: Tag, element: SVGElementTagNameMap[K]) => void): this;
-    $tag(tagName: string, cb?: (node: Tag, element: Element) => void): this;
+    tag<K extends keyof HTMLElementTagNameMap>(tagName: K, cb?: (node: Tag, element: HTMLElementTagNameMap[K]) => void): void;
+    tag<K extends keyof SVGElementTagNameMap>(tagName: K, cb?: (node: Tag, element: SVGElementTagNameMap[K]) => void): void;
+    tag(tagName: string, cb?: (node: Tag, element: Element) => void): void;
     /**
      * Defines a custom element
      * @param node {Fragment} vasille element to insert
      * @param callback {function($ : *)}
      * @param callback1 {function($ : *)}
      */
-    $create<T extends Fragment>(node: T, callback?: ($: T) => void, callback1?: ($: T) => void): this;
+    create<T extends Fragment>(node: T, callback?: ($: T) => void, callback1?: ($: T) => void): void;
     /**
      * Defines an if node
      * @param cond {IValue} condition
      * @param cb {function(Fragment)} callback to run on true
      * @return {this}
      */
-    $if(cond: IValue<boolean>, cb: (node: Fragment) => void): this;
+    if(cond: IValue<boolean>, cb: (node: Fragment) => void): this;
     /**
      * Defines a if-else node
      * @param ifCond {IValue} `if` condition
      * @param ifCb {function(Fragment)} Call-back to create `if` child nodes
      * @param elseCb {function(Fragment)} Call-back to create `else` child nodes
      */
-    $if_else(ifCond: IValue<boolean>, ifCb: (node: Fragment) => void, elseCb: (node: Fragment) => void): this;
+    if_else(ifCond: IValue<boolean>, ifCb: (node: Fragment) => void, elseCb: (node: Fragment) => void): this;
     /**
      * Defines a switch nodes: Will break after first true condition
      * @param cases {...{ cond : IValue, cb : function(Fragment) }} cases
      * @return {INode}
      */
-    $switch(...cases: Array<{
+    switch(...cases: Array<{
         cond: IValue<boolean>;
         cb: (node: Fragment) => void;
     }>): this;
@@ -159,7 +158,7 @@ export declare class Fragment extends Reactive {
      * @param cb {function(Fragment) : void}
      * @return {{cond : IValue, cb : (function(Fragment) : void)}}
      */
-    $case(cond: IValue<boolean>, cb: (node: Fragment) => void): {
+    case(cond: IValue<boolean>, cb: (node: Fragment) => void): {
         cond: IValue<boolean>;
         cb: (node: Fragment) => void;
     };
@@ -167,11 +166,14 @@ export declare class Fragment extends Reactive {
      * @param cb {(function(Fragment) : void)}
      * @return {{cond : IValue, cb : (function(Fragment) : void)}}
      */
-    $default(cb: (node: Fragment) => void): {
+    default(cb: (node: Fragment) => void): {
         cond: IValue<boolean>;
         cb: (node: Fragment) => void;
     };
-    $destroy(): void;
+    insertBefore(node: Fragment): void;
+    insertAfter(node: Fragment): void;
+    remove(): void;
+    destroy(): void;
 }
 /**
  * The private part of a text node
@@ -190,7 +192,7 @@ export declare class TextNodePrivate extends FragmentPrivate {
     /**
      * Clear node data
      */
-    $destroy(): void;
+    destroy(): void;
 }
 /**
  * Represents a text node
@@ -199,10 +201,10 @@ export declare class TextNodePrivate extends FragmentPrivate {
  */
 export declare class TextNode extends Fragment {
     protected $: TextNodePrivate;
-    constructor();
-    $preinit(app: AppNode, parent: Fragment, text?: IValue<string>): void;
-    protected $$findFirstChild(): Node;
-    $destroy(): void;
+    constructor($?: TextNodePrivate);
+    preinit(app: AppNode, parent: Fragment, text?: IValue<string>): void;
+    protected findFirstChild(): Node;
+    destroy(): void;
 }
 /**
  * The private part of a base node
@@ -221,7 +223,7 @@ export declare class INodePrivate extends FragmentPrivate {
      */
     node: Element;
     constructor();
-    $destroy(): void;
+    destroy(): void;
 }
 /**
  * Vasille node which can manipulate an element node
@@ -242,17 +244,17 @@ export declare class INode extends Fragment {
     /**
      * Initialize node
      */
-    $init(): this;
+    init(): this;
     /** To be overloaded: attributes creation milestone */
-    $createAttrs(): void;
+    createAttrs(): void;
     /** To be overloaded: $style attributes creation milestone */
-    $createStyle(): void;
+    createStyle(): void;
     /**
      * Bind attribute value
      * @param name {String} name of attribute
      * @param value {IValue} value
      */
-    $attr(name: string, value: IValue<string>): this;
+    attr(name: string, value: IValue<string>): void;
     /**
      * Creates and binds a multivalued binding to attribute
      * @param name {String} The name of attribute
@@ -268,48 +270,48 @@ export declare class INode extends Fragment {
      * @param v9 {*} argument
      * @return {INode} A pointer to this
      */
-    $bindAttr<T1>(name: string, calculator: (a1: T1) => string, v1: IValue<T1>, v2?: IValue<void>, v3?: IValue<void>, v4?: IValue<void>, v5?: IValue<void>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
-    $bindAttr<T1, T2>(name: string, calculator: (a1: T1, a2: T2) => string, v1: IValue<T1>, v2: IValue<T2>, v3?: IValue<void>, v4?: IValue<void>, v5?: IValue<void>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
-    $bindAttr<T1, T2, T3>(name: string, calculator: (a1: T1, a2: T2, a3: T3) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4?: IValue<void>, v5?: IValue<void>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
-    $bindAttr<T1, T2, T3, T4>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5?: IValue<void>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
-    $bindAttr<T1, T2, T3, T4, T5>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
-    $bindAttr<T1, T2, T3, T4, T5, T6>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
-    $bindAttr<T1, T2, T3, T4, T5, T6, T7>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8?: IValue<void>, v9?: IValue<void>): this;
-    $bindAttr<T1, T2, T3, T4, T5, T6, T7, T8>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>, v9?: IValue<void>): this;
-    $bindAttr<T1, T2, T3, T4, T5, T6, T7, T8, T9>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8, a9: T9) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>, v9: IValue<T9>): this;
+    bindAttr<T1>(name: string, calculator: (a1: T1) => string, v1: IValue<T1>, v2?: IValue<void>, v3?: IValue<void>, v4?: IValue<void>, v5?: IValue<void>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
+    bindAttr<T1, T2>(name: string, calculator: (a1: T1, a2: T2) => string, v1: IValue<T1>, v2: IValue<T2>, v3?: IValue<void>, v4?: IValue<void>, v5?: IValue<void>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
+    bindAttr<T1, T2, T3>(name: string, calculator: (a1: T1, a2: T2, a3: T3) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4?: IValue<void>, v5?: IValue<void>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
+    bindAttr<T1, T2, T3, T4>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5?: IValue<void>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
+    bindAttr<T1, T2, T3, T4, T5>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
+    bindAttr<T1, T2, T3, T4, T5, T6>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
+    bindAttr<T1, T2, T3, T4, T5, T6, T7>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8?: IValue<void>, v9?: IValue<void>): this;
+    bindAttr<T1, T2, T3, T4, T5, T6, T7, T8>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>, v9?: IValue<void>): this;
+    bindAttr<T1, T2, T3, T4, T5, T6, T7, T8, T9>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8, a9: T9) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>, v9: IValue<T9>): this;
     /**
      * Set attribute value
      * @param name {string} name of attribute
      * @param value {string} value
      */
-    $setAttr(name: string, value: string): this;
+    setAttr(name: string, value: string): this;
     /**
      * Adds a CSS class
      * @param cl {string} Class name
      */
-    $addClass(cl: string): this;
+    addClass(cl: string): this;
     /**
      * Adds some CSS classes
      * @param cls {...string} classes names
      */
-    $addClasses(...cls: Array<string>): this;
+    addClasses(...cls: Array<string>): this;
     /**
      * Bind a CSS class
      * @param className {IValue}
      */
-    $bindClass(className: IValue<string>): this;
+    bindClass(className: IValue<string>): this;
     /**
      * Bind a floating class name
      * @param cond {IValue} condition
      * @param className {string} class name
      */
-    $floatingClass(cond: IValue<boolean>, className: string): this;
+    floatingClass(cond: IValue<boolean>, className: string): this;
     /**
      * Defines a style attribute
      * @param name {String} name of style attribute
      * @param value {IValue} value
      */
-    $style(name: string, value: IValue<string>): this;
+    style(name: string, value: IValue<string>): this;
     /**
      * Binds style property value
      * @param name {string} name of style attribute
@@ -324,309 +326,309 @@ export declare class INode extends Fragment {
      * @param v8 {*} argument
      * @param v9 {*} argument
      */
-    $bindStyle<T1>(name: string, calculator: (a1: T1) => string, v1: IValue<T1>): this;
-    $bindStyle<T1, T2>(name: string, calculator: (a1: T1, a2: T2) => string, v1: IValue<T1>, v2: IValue<T2>): this;
-    $bindStyle<T1, T2, T3>(name: string, calculator: (a1: T1, a2: T2, a3: T3) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>): this;
-    $bindStyle<T1, T2, T3, T4>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>): this;
-    $bindStyle<T1, T2, T3, T4, T5>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>): this;
-    $bindStyle<T1, T2, T3, T4, T5, T6>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>): this;
-    $bindStyle<T1, T2, T3, T4, T5, T6, T7>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>): this;
-    $bindStyle<T1, T2, T3, T4, T5, T6, T7, T8>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>): this;
-    $bindStyle<T1, T2, T3, T4, T5, T6, T7, T8, T9>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8, a9: T9) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>, v9: IValue<T9>): this;
+    bindStyle<T1>(name: string, calculator: (a1: T1) => string, v1: IValue<T1>): this;
+    bindStyle<T1, T2>(name: string, calculator: (a1: T1, a2: T2) => string, v1: IValue<T1>, v2: IValue<T2>): this;
+    bindStyle<T1, T2, T3>(name: string, calculator: (a1: T1, a2: T2, a3: T3) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>): this;
+    bindStyle<T1, T2, T3, T4>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>): this;
+    bindStyle<T1, T2, T3, T4, T5>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>): this;
+    bindStyle<T1, T2, T3, T4, T5, T6>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>): this;
+    bindStyle<T1, T2, T3, T4, T5, T6, T7>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>): this;
+    bindStyle<T1, T2, T3, T4, T5, T6, T7, T8>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>): this;
+    bindStyle<T1, T2, T3, T4, T5, T6, T7, T8, T9>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8, a9: T9) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>, v9: IValue<T9>): this;
     /**
      * Sets a style property value
      * @param prop {string} Property name
      * @param value {string} Property value
      */
-    $setStyle(prop: string, value: string): this;
+    setStyle(prop: string, value: string): this;
     /**
      * Add a listener for an event
      * @param name {string} Event name
      * @param handler {function (Event)} Event handler
      * @param options {Object | boolean} addEventListener options
      */
-    $listen(name: string, handler: (ev: Event) => void, options?: boolean | AddEventListenerOptions): this;
+    listen(name: string, handler: (ev: Event) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $oncontextmenu(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    oncontextmenu(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $onmousedown(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onmousedown(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $onmouseenter(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onmouseenter(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $onmouseleave(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onmouseleave(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $onmousemove(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onmousemove(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $onmouseout(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onmouseout(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $onmouseover(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onmouseover(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $onmouseup(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onmouseup(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $onclick(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onclick(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (MouseEvent)}
      * @param options {Object | boolean}
      */
-    $ondblclick(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ondblclick(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (FocusEvent)}
      * @param options {Object | boolean}
      */
-    $onblur(handler: (ev: FocusEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onblur(handler: (ev: FocusEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (FocusEvent)}
      * @param options {Object | boolean}
      */
-    $onfocus(handler: (ev: FocusEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onfocus(handler: (ev: FocusEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (FocusEvent)}
      * @param options {Object | boolean}
      */
-    $onfocusin(handler: (ev: FocusEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onfocusin(handler: (ev: FocusEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (FocusEvent)}
      * @param options {Object | boolean}
      */
-    $onfocusout(handler: (ev: FocusEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onfocusout(handler: (ev: FocusEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (KeyboardEvent)}
      * @param options {Object | boolean}
      */
-    $onkeydown(handler: (ev: KeyboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onkeydown(handler: (ev: KeyboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (KeyboardEvent)}
      * @param options {Object | boolean}
      */
-    $onkeyup(handler: (ev: KeyboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onkeyup(handler: (ev: KeyboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (KeyboardEvent)}
      * @param options {Object | boolean}
      */
-    $onkeypress(handler: (ev: KeyboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onkeypress(handler: (ev: KeyboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (TouchEvent)}
      * @param options {Object | boolean}
      */
-    $ontouchstart(handler: (ev: TouchEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ontouchstart(handler: (ev: TouchEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (TouchEvent)}
      * @param options {Object | boolean}
      */
-    $ontouchmove(handler: (ev: TouchEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ontouchmove(handler: (ev: TouchEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (TouchEvent)}
      * @param options {Object | boolean}
      */
-    $ontouchend(handler: (ev: TouchEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ontouchend(handler: (ev: TouchEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (TouchEvent)}
      * @param options {Object | boolean}
      */
-    $ontouchcancel(handler: (ev: TouchEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ontouchcancel(handler: (ev: TouchEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (WheelEvent)}
      * @param options {Object | boolean}
      */
-    $onwheel(handler: (ev: WheelEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onwheel(handler: (ev: WheelEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    $onabort(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onabort(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    $onerror(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onerror(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    $onload(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onload(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    $onloadend(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onloadend(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    $onloadstart(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onloadstart(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    $onprogress(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onprogress(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (ProgressEvent)}
      * @param options {Object | boolean}
      */
-    $ontimeout(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ontimeout(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $ondrag(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ondrag(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $ondragend(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ondragend(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $ondragenter(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ondragenter(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $ondragexit(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ondragexit(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $ondragleave(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ondragleave(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $ondragover(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ondragover(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $ondragstart(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ondragstart(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (DragEvent)}
      * @param options {Object | boolean}
      */
-    $ondrop(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ondrop(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $onpointerover(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onpointerover(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $onpointerenter(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onpointerenter(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $onpointerdown(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onpointerdown(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $onpointermove(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onpointermove(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $onpointerup(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onpointerup(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $onpointercancel(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onpointercancel(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $onpointerout(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onpointerout(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $onpointerleave(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onpointerleave(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $ongotpointercapture(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    ongotpointercapture(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (PointerEvent)}
      * @param options {Object | boolean}
      */
-    $onlostpointercapture(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onlostpointercapture(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (AnimationEvent)}
      * @param options {Object | boolean}
      */
-    $onanimationstart(handler: (ev: AnimationEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onanimationstart(handler: (ev: AnimationEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (AnimationEvent)}
      * @param options {Object | boolean}
      */
-    $onanimationend(handler: (ev: AnimationEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onanimationend(handler: (ev: AnimationEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (AnimationEvent)}
      * @param options {Object | boolean}
      */
-    $onanimationiteraton(handler: (ev: AnimationEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onanimationiteraton(handler: (ev: AnimationEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (ClipboardEvent)}
      * @param options {Object | boolean}
      */
-    $onclipboardchange(handler: (ev: ClipboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    onclipboardchange(handler: (ev: ClipboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (ClipboardEvent)}
      * @param options {Object | boolean}
      */
-    $oncut(handler: (ev: ClipboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    oncut(handler: (ev: ClipboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (ClipboardEvent)}
      * @param options {Object | boolean}
      */
-    $oncopy(handler: (ev: ClipboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    oncopy(handler: (ev: ClipboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
     /**
      * @param handler {function (ClipboardEvent)}
      * @param options {Object | boolean}
      */
-    $onpaste(handler: (ev: ClipboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    $$insertAdjacent(node: Node): void;
+    onpaste(handler: (ev: ClipboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
+    insertAdjacent(node: Node): void;
     /**
      * A v-show & ngShow alternative
      * @param cond {IValue} show condition
      */
-    $bindShow(cond: IValue<boolean>): this;
+    bindShow(cond: IValue<boolean>): this;
     /**
      * bind HTML
      * @param value {IValue}
      */
-    $html(value: IValue<string>): void;
+    html(value: IValue<string>): void;
 }
 /**
  * Represents an Vasille.js HTML element node
@@ -635,19 +637,19 @@ export declare class INode extends Fragment {
  */
 export declare class Tag extends INode {
     constructor();
-    $preinit(app: AppNode, parent: Fragment, tagName?: string): void;
-    protected $$findFirstChild(): Node;
-    $$insertAdjacent(node: Node): void;
-    $$appendNode(node: Node): void;
+    preinit(app: AppNode, parent: Fragment, tagName?: string): void;
+    protected findFirstChild(): Node;
+    insertAdjacent(node: Node): void;
+    appendNode(node: Node): void;
     /**
      * Mount/Unmount a node
      * @param cond {IValue} show condition
      */
-    $bindMount(cond: IValue<boolean>): this;
+    bindMount(cond: IValue<boolean>): void;
     /**
      * Runs GC
      */
-    $destroy(): void;
+    destroy(): void;
 }
 /**
  * Represents a vasille extension node
@@ -655,9 +657,9 @@ export declare class Tag extends INode {
  * @extends INode
  */
 export declare class Extension extends INode {
-    $preinit(app: AppNode, parent: Fragment): void;
+    preinit(app: AppNode, parent: Fragment): void;
     constructor($?: INodePrivate);
-    $destroy(): void;
+    destroy(): void;
 }
 /**
  * Node which cas has just a child
@@ -666,25 +668,20 @@ export declare class Extension extends INode {
  */
 export declare class Component extends Extension {
     constructor();
-    $mounted(): void;
-    $preinit(app: AppNode, parent: Fragment): void;
+    mounted(): void;
+    preinit(app: AppNode, parent: Fragment): void;
 }
 /**
  * Private part of switch node
  * @class SwitchedNodePrivate
  * @extends INodePrivate
  */
-export declare class SwitchedNodePrivate extends INodePrivate {
+export declare class SwitchedNodePrivate extends FragmentPrivate {
     /**
      * Index of current true condition
      * @type number
      */
     index: number;
-    /**
-     * The unique child which can be absent
-     * @type Extension
-     */
-    fragment?: Fragment;
     /**
      * Array of possible cases
      * @type {Array<{cond : IValue<boolean>, cb : function(Fragment)}>}
@@ -702,7 +699,7 @@ export declare class SwitchedNodePrivate extends INodePrivate {
     /**
      * Runs GC
      */
-    $destroy(): void;
+    destroy(): void;
 }
 /**
  * The private part of a text node
@@ -720,7 +717,7 @@ export declare class DebugPrivate extends FragmentPrivate {
     /**
      * Clear node data
      */
-    $destroy(): void;
+    destroy(): void;
 }
 /**
  * Represents a debug node
@@ -734,9 +731,9 @@ export declare class DebugNode extends Fragment {
      */
     protected $: DebugPrivate;
     constructor();
-    $preinit(app: AppNode, parent: Fragment, text?: IValue<string>): void;
+    preinit(app: AppNode, parent: Fragment, text?: IValue<string>): void;
     /**
      * Runs garbage collector
      */
-    $destroy(): void;
+    destroy(): void;
 }

@@ -2,7 +2,7 @@ import { Listener } from "./listener";
 /**
  * @interface IModel
  */
-export interface IModel<K, T> {
+export interface IModel {
     /**
      * Enable the reactivity of model
      */
@@ -11,6 +11,8 @@ export interface IModel<K, T> {
      * Disable the reactivity of model
      */
     disableReactivity(): void;
+}
+export interface ListenableModel<K, T> extends IModel {
     /**
      * The listener of model
      * @type Listener

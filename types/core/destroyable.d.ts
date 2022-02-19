@@ -7,9 +7,9 @@ export declare class Destroyable {
      * Make object fields non configurable
      * @protected
      */
-    protected $seal(): void;
+    protected seal(): void;
     /**
      * Garbage collector method
      */
-    $destroy(): void;
+    destroy(): void;
 }

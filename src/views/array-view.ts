@@ -19,11 +19,11 @@ export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
         super.createChild(item, item,before || this.$.nodes.get(id));
     }
 
-    public $ready () {
+    public ready () {
         this.model.forEach(item =>  {
             this.createChild(item, item);
         })
 
-        super.$ready();
+        super.ready();
     }
 }

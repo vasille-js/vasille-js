@@ -15,17 +15,17 @@ export class SetView<T> extends BaseView<T, T, SetModel<T>> {
         this.model = model;
     }
 
-    public $ready () {
+    public ready () {
         const $ : BaseViewPrivate<T, T> = this.$;
         const set : SetModel<T> = this.model;
 
         set.forEach(item => {
-            $.app.$run.callCallback(() => {
+            $.app.run.callCallback(() => {
                 this.createChild(item, item);
             });
         });
 
-        super.$ready();
+        super.ready();
     }
 }
 

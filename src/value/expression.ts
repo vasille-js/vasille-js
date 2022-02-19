@@ -161,7 +161,7 @@ export class Expression<
             handler ();
         }
 
-        this.$seal ();
+        this.seal ();
     }
 
     public get $ () : T {
@@ -204,12 +204,12 @@ export class Expression<
         return this;
     }
 
-    public $destroy () : void {
+    public destroy () : void {
         this.disable ();
         this.values.splice (0);
         this.valuesCache.splice (0);
         this.linkedFunc.splice (0);
 
-        super.$destroy();
+        super.destroy();
     }
 }

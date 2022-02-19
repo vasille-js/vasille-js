@@ -14,14 +14,14 @@ export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
         this.model = model;
     }
 
-    public $ready () {
+    public ready () {
         const obj : {[p : string] : T} = this.model as any;
 
         for (const key in obj) {
             this.createChild(key, obj[key]);
         }
 
-        super.$ready();
+        super.ready();
     }
 }
 

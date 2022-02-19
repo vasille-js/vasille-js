@@ -1,5 +1,5 @@
 import { Listener } from "./listener";
-import type { IModel } from "./model";
+import {ListenableModel} from "./model";
 
 
 
@@ -8,7 +8,7 @@ import type { IModel } from "./model";
  * @extends Array
  * @implements IModel
  */
-export class ArrayModel<T> extends Array<T> implements IModel<T, T> {
+export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
 
     public listener : Listener<T, T>;
 

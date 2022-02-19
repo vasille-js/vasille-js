@@ -53,8 +53,8 @@ Component properties (assets) must be typed:
 ```javascript
 import { asset } from 'vcc';
 
-let foo = asset(Number);
-let bar = asset(String, 'default value');
+let foo = ref(0);
+let bar = ref('default value');
 
 // non reactive property
 const nonReactive = asset(ObjectModel);

@@ -4,10 +4,10 @@ const alive : IValue<boolean> = new Reference(true);
 
 class CoreTest extends Reactive {
 
-    ref : IValue<number>;
-    mirror : IValue<number>;
-    forward : IValue<number>;
-    point : Pointer<number>;
+    ref0 : IValue<number>;
+    mirror0 : IValue<number>;
+    forward0 : IValue<number>;
+    point0 : Pointer<number>;
     ro_point : IValue<number>;
 
     predefined_point : IValue<number>;
@@ -15,7 +15,7 @@ class CoreTest extends Reactive {
     watch_test = 0;
     handler_test = 0;
     handler_ref : IValue<number>;
-    bind : IValue<number>;
+    bind0 : IValue<number>;
     bind_unlinked : IValue<number>;
 
     freeze_test : IValue<boolean>;
@@ -24,27 +24,27 @@ class CoreTest extends Reactive {
     constructor() {
         super();
 
-        this.ref = this.$ref(1);
-        this.mirror = this.$mirror(this.ref);
-        this.forward = this.$forward(this.ref);
-        this.point = this.$point(this.mirror);
-        this.ro_point = this.$point(this.point, true);
-        this.predefined_point = this.$point(23);
+        this.ref0 = super.ref(1);
+        this.mirror0 = super.mirror(this.ref0);
+        this.forward0 = super.forward(this.ref0);
+        this.point0 = super.point(this.mirror0);
+        this.ro_point = super.point(this.point0, true);
+        this.predefined_point = super.point(this.ref(23));
 
-        this.$watch((v) => {
+        super.watch((v) => {
             this.watch_test = v;
-        }, this.ref);
+        }, this.ref0);
 
-        this.bind = this.$bind((x, y) => {
+        this.bind0 = super.bind((x, y) => {
             return x + y;
-        }, this.ref, this.mirror);
+        }, this.ref0, this.mirror0);
 
         this.bind_unlinked = new Expression((x, y) => {
             return x + y;
-        }, false, this.ref, this.mirror);
+        }, false, this.ref0, this.mirror0);
 
-        this.freeze_test = this.$ref(false);
-        this.handler_ref = this.$ref(23);
+        this.freeze_test = super.ref(false);
+        this.handler_ref = super.ref(23);
 
         this.handler_ref.on((n) => {
             this.handler_test = n;
@@ -56,17 +56,17 @@ const coreTest = new CoreTest();
 
 it("Reactive", function () {
 
-    expect(() => coreTest.$bindAlive(coreTest.freeze_test)).toThrow("wrong-binding");
-    coreTest.$bindAlive(alive);
-    expect(() => coreTest.$bindAlive(alive)).toThrow("wrong-binding");
+    expect(() => coreTest.bindAlive(coreTest.freeze_test)).toThrow("wrong-binding");
+    coreTest.bindAlive(alive);
+    expect(() => coreTest.bindAlive(alive)).toThrow("wrong-binding");
 
-    expect(coreTest.ref.$).toBe(1);
-    expect(coreTest.mirror.$).toBe(1);
-    expect(coreTest.forward.$).toBe(1);
-    expect(coreTest.point.$).toBe(1);
+    expect(coreTest.ref0.$).toBe(1);
+    expect(coreTest.mirror0.$).toBe(1);
+    expect(coreTest.forward0.$).toBe(1);
+    expect(coreTest.point0.$).toBe(1);
     expect(coreTest.ro_point.$).toBe(1);
     expect(coreTest.predefined_point.$).toBe(23);
-    expect(coreTest.bind.$).toBe(2);
+    expect(coreTest.bind0.$).toBe(2);
     expect(coreTest.bind_unlinked.$).toBe(2);
 
     coreTest.handler_ref.$ = 12;
@@ -74,47 +74,47 @@ it("Reactive", function () {
 
     coreTest.ro_point.$ = 2;
     expect(coreTest.ro_point.$).toBe(2);
-    expect(coreTest.point.$).toBe(1);
+    expect(coreTest.point0.$).toBe(1);
 
-    coreTest.point.$ = 3;
-    expect(coreTest.ref.$).toBe(3);
-    expect(coreTest.mirror.$).toBe(3);
-    expect(coreTest.forward.$).toBe(3);
-    expect(coreTest.point.$).toBe(3);
+    coreTest.point0.$ = 3;
+    expect(coreTest.ref0.$).toBe(3);
+    expect(coreTest.mirror0.$).toBe(3);
+    expect(coreTest.forward0.$).toBe(3);
+    expect(coreTest.point0.$).toBe(3);
     expect(coreTest.ro_point.$).toBe(3);
     expect(coreTest.watch_test).toBe(3);
-    expect(coreTest.bind.$).toBe(6);
+    expect(coreTest.bind0.$).toBe(6);
     expect(coreTest.bind_unlinked.$).toBe(2);
 
-    coreTest.point.disable();
-    coreTest.mirror.$ = 4;
-    expect(coreTest.ref.$).toBe(4);
-    expect(coreTest.mirror.$).toBe(4);
-    expect(coreTest.point.$).toBe(3);
+    coreTest.point0.disable();
+    coreTest.mirror0.$ = 4;
+    expect(coreTest.ref0.$).toBe(4);
+    expect(coreTest.mirror0.$).toBe(4);
+    expect(coreTest.point0.$).toBe(3);
     expect(coreTest.ro_point.$).toBe(3);
 
-    coreTest.mirror.disable();
-    coreTest.ref.$ = 5;
-    expect(coreTest.ref.$).toBe(5);
-    expect(coreTest.mirror.$).toBe(4);
-    expect(coreTest.point.$).toBe(3);
+    coreTest.mirror0.disable();
+    coreTest.ref0.$ = 5;
+    expect(coreTest.ref0.$).toBe(5);
+    expect(coreTest.mirror0.$).toBe(4);
+    expect(coreTest.point0.$).toBe(3);
 
     alive.$ = false;
-    coreTest.ref.$ = 2;
-    expect(coreTest.bind.$).toBe(9);
+    coreTest.ref0.$ = 2;
+    expect(coreTest.bind0.$).toBe(9);
 
     alive.$ = true;
-    expect(coreTest.ref.$).toBe(2);
-    expect(coreTest.mirror.$).toBe(2);
-    expect(coreTest.point.$).toBe(2);
+    expect(coreTest.ref0.$).toBe(2);
+    expect(coreTest.mirror0.$).toBe(2);
+    expect(coreTest.point0.$).toBe(2);
     expect(coreTest.ro_point.$).toBe(2);
     expect(coreTest.watch_test).toBe(2);
-    expect(coreTest.bind.$).toBe(4);
+    expect(coreTest.bind0.$).toBe(4);
 
-    coreTest.point.point(coreTest.bind);
-    expect(coreTest.point.$).toBe(4);
+    coreTest.point0.point(coreTest.bind0);
+    expect(coreTest.point0.$).toBe(4);
     expect(coreTest.ro_point.$).toBe(4);
 
-    coreTest.$destroy();
+    coreTest.destroy();
 });
 

@@ -18,6 +18,6 @@ export declare class Watch<T> extends Fragment {
      */
     model: IValue<T>;
     constructor();
-    $createWatchers(): void;
-    $compose(): void;
+    createWatchers(): void;
+    compose(): void;
 }

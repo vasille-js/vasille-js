@@ -1,5 +1,5 @@
 import { Listener } from "./listener";
-import type { IModel } from "./model";
+import { ListenableModel } from "./model";
 
 /**
  * A Set based model
@@ -7,7 +7,7 @@ import type { IModel } from "./model";
  * @extends Set
  * @implements IModel
  */
-export class SetModel<T> extends Set<T> implements IModel<T, T> {
+export class SetModel<T> extends Set<T> implements ListenableModel<T, T> {
     public listener : Listener<T, T>;
 
     /**

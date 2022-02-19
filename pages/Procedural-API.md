@@ -384,7 +384,7 @@ Example (it is recursively, don't try to run this code):
 import {App, $} from 'vcc';
 
 const template = new App;
-let slot1 = $.slot(); //< first declared slot is always the default
+let slot1 = $.slot();
 let slot2 = $.slot<number, number>();
 
 

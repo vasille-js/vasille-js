@@ -22,21 +22,21 @@ export class Watch<T> extends Fragment {
     public constructor () {
         super ();
         this.slot = new Slot;
-        this.model = this.$ref(null);
-        this.$seal ();
+        this.model = this.ref(null);
+        this.seal ();
     }
 
-    public $createWatchers () {
-        this.$watch((value) => {
-            this.$children.forEach(child => {
-                child.$destroy();
+    public createWatchers () {
+        this.watch((value) => {
+            this.children.forEach(child => {
+                child.destroy();
             });
-            this.$children.splice(0);
+            this.children.clear();
             this.slot.release(this, value);
         }, this.model);
     }
 
-    public $compose () {
+    public compose () {
         this.slot.release(this, this.model.$);
     }
 }

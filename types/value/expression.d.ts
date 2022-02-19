@@ -56,5 +56,5 @@ export declare class Expression<T, T1 = void, T2 = void, T3 = void, T4 = void, T
     off(handler: (value: T) => void): this;
     enable(): this;
     disable(): this;
-    $destroy(): void;
+    destroy(): void;
 }

@@ -1,10 +1,10 @@
 import { Listener } from "./listener";
-import type { IModel } from "./model";
+import { ListenableModel } from "./model";
 /**
  * Object based model
  * @extends Object
  */
-export declare class ObjectModel<T> extends Object implements IModel<string, T> {
+export declare class ObjectModel<T> extends Object implements ListenableModel<string, T> {
     listener: Listener<T, string>;
     /**
      * Constructs a object model

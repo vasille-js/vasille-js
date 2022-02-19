@@ -21,22 +21,16 @@ export class AttributeBinding extends Binding<string> {
         name : string,
         value : IValue<string>
     ) {
-        super(node, name, value);
-    }
+        super(value);
 
-    /**
-     * Generates a function which updates the attribute value
-     * @param name {String} The name of attribute
-     * @returns {Function} a function which will update attribute value
-     */
-    protected bound (name : string) : (node : INode, value : string) => void {
-        return function (node : INode, value : string) {
+        this.init((value : string) => {
             if (value) {
-                node.app.$run.setAttribute(node.node, name, value);
+                node.app.run.setAttribute(node.node, name, value);
             }
             else {
-                node.app.$run.removeAttribute(node.node, name);
+                node.app.run.removeAttribute(node.node, name);
             }
-        };
+        });
+        this.seal();
     }
 }

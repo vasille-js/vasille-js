@@ -1,7 +1,5 @@
 import { RepeatNode, RepeatNodePrivate } from "./repeat-node";
-import { IValue } from "../core/ivalue";
-import { Fragment } from "../node/node";
-import {IModel} from "../models/model";
+import { ListenableModel } from "../models/model";
 
 
 
@@ -25,7 +23,7 @@ export class BaseViewPrivate<K, T> extends RepeatNodePrivate<K> {
 
     public constructor () {
         super ();
-        this.$seal();
+        this.seal();
     }
 }
 
@@ -35,7 +33,7 @@ export class BaseViewPrivate<K, T> extends RepeatNodePrivate<K> {
  * @extends RepeatNode
  * @implements IModel
  */
-export class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNode<K, T> {
+export class BaseView<K, T, Model extends ListenableModel<K, T>> extends RepeatNode<K, T> {
 
     protected $ : BaseViewPrivate<K, T>;
 
@@ -56,29 +54,29 @@ export class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNode<K, T>
             this.destroyChild(id, item);
         };
 
-        this.$seal();
+        this.seal();
     }
 
 
     /**
      * Handle ready event
      */
-    public $ready () {
+    public ready () {
         const $ : BaseViewPrivate<K, T> = this.$;
 
         this.model.listener.onAdd($.addHandler);
         this.model.listener.onRemove($.removeHandler);
-        super.$ready();
+        super.ready();
     }
 
     /**
      * Handles destroy event
      */
-    public $destroy () {
+    public destroy () {
         const $ : BaseViewPrivate<K, T> = this.$;
 
         this.model.listener.offAdd($.addHandler);
         this.model.listener.offRemove($.removeHandler);
-        super.$destroy();
+        super.destroy();
     }
 }

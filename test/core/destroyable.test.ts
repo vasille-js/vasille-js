@@ -27,7 +27,7 @@ class DestroyableTest extends Destroyable {
         // eslint-disable-next-line no-self-assign
         this.test2 = this.test2;
         
-        this.$seal();
+        this.seal();
     }
 }
 
@@ -38,5 +38,5 @@ it('make field non-configurable', function () {
     expect(Object.getOwnPropertyDescriptors(destroyableTest).test2.configurable).toBe(false);
     expect(Object.getOwnPropertyDescriptors(destroyableTest).test3.configurable).toBe(false);
 
-    destroyableTest.$destroy();
+    destroyableTest.destroy();
 });

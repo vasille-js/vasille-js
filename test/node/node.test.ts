@@ -15,96 +15,90 @@ import {DebugNode, TextNode} from "../../src/node/node";
 let created = false;
 let mounted = false;
 let ready = false;
-let createSignals = false;
 let createWatchers = false;
 let compose = false;
 
 class FragmentTest extends Fragment {
-    $created() {
-        super.$created();
+    created() {
+        super.created();
         created = true;
     }
-    $mounted() {
-        super.$mounted();
+    mounted() {
+        super.mounted();
         mounted = true;
     }
-    $ready() {
-        super.$ready();
+    ready() {
+        super.ready();
         ready = true;
     }
-    $createSignals() {
-        super.$createSignals();
-        createSignals = true;
-    }
-    $createWatchers() {
-        super.$createWatchers();
+    createWatchers() {
+        super.createWatchers();
         createWatchers = true;
     }
-    $compose() {
-        super.$compose();
+    compose() {
+        super.compose();
         compose = true;
     }
 }
 
 it('Fragment', function () {
-    const root = new App(page.window.document.body).$init();
+    const root = new App(page.window.document.body).init();
 
-    root.$create(new FragmentTest, frag => {
+    root.create(new FragmentTest, frag => {
         void(frag);
     });
-    expect(root.$children.length).toBe(1);
+    expect(root.children.size).toBe(1);
     expect(created).toBe(true);
     expect(mounted).toBe(true);
     expect(ready).toBe(true);
-    expect(createSignals).toBe(true);
     expect(createWatchers).toBe(true);
     expect(compose).toBe(true);
 
-    root.$destroy();
+    root.destroy();
 });
 
 it('Tag', function () {
-    const root = new App(page.window.document.body, { debugUi: true }).$init();
+    const root = new App(page.window.document.body, { debugUi: true }).init();
     const text = new Reference("test");
 
-    root.$tag("div", div => {
-        div.$text(text, () => {
+    root.tag("div", div => {
+        div.text(text, () => {
             expect(div.node.childNodes.length).toBe(1);
             expect(div.node.innerHTML.trim()).toBe("test");
             text.$ = "new";
             expect(div.node.innerHTML.trim()).toBe("new");
         });
-        div.$text("test");
-        div.$debug(new Reference<string>("debug"));
+        div.text("test");
+        div.debug(new Reference<string>("debug"));
         expect(div.node.childNodes.length).toBe(3);
         expect(div.node.childNodes[2] instanceof page.window.Comment).toBe(true);
     });
 
-    root.$destroy();
+    root.destroy();
 });
 
 it('if', function () {
-    const root = new App(page.window.document.body).$init();
+    const root = new App(page.window.document.body).init();
     let check1 = false;
     let check2 = true;
 
-    root.$if(new Reference(true), () => check1 = true);
-    root.$if(new Reference(false), () => check2 = false);
+    root.if(new Reference(true), () => check1 = true);
+    root.if(new Reference(false), () => check2 = false);
 
     expect(check1).toBe(true);
     expect(check2).toBe(true);
-    root.$destroy();
+    root.destroy();
 });
 
 it('if else', function () {
-    const root = new App(page.window.document.body).$init();
+    const root = new App(page.window.document.body).init();
     const iv1 = new Reference(true);
     const iv2 = new Reference(false);
 
     let check1 = 1, check2 = 1;
 
-    root.$if_else(iv1, () => check1 = 1, () => check1 = 2);
-    root.$if_else(iv2, () => check2 = 1, () => check2 = 2);
+    root.if_else(iv1, () => check1 = 1, () => check1 = 2);
+    root.if_else(iv2, () => check2 = 1, () => check2 = 2);
 
     expect(check1).toBe(1);
     expect(check2).toBe(2);
@@ -115,21 +109,21 @@ it('if else', function () {
     expect(check1).toBe(2);
     expect(check2).toBe(1);
 
-    root.$destroy();
+    root.destroy();
 });
 
 it('switch', function () {
-    const root = new App(page.window.document.body).$init();
+    const root = new App(page.window.document.body).init();
     const v = new Reference(1);
     const v2 = new Reference(false);
     let check = 0;
 
-    root.$switch(
-        root.$case(new Expression(v => v == 1, true, v), () => check = 1),
-        root.$case(new Expression(v => v == 2, true, v), () => check = 2),
-        root.$case(new Expression(v => v == 3, true, v), () => check = 3),
-        root.$case(v2, () => check = -2),
-        root.$default(() => check = 4)
+    root.switch(
+        root.case(new Expression(v => v == 1, true, v), () => check = 1),
+        root.case(new Expression(v => v == 2, true, v), () => check = 2),
+        root.case(new Expression(v => v == 3, true, v), () => check = 3),
+        root.case(v2, () => check = -2),
+        root.default(() => check = 4)
     );
 
     v2.$ = true;
@@ -145,35 +139,35 @@ it('switch', function () {
     v2.$ = false;
     expect(check).toBe(4);
 
-    root.$destroy();
+    root.destroy();
 });
 
 let createAttrs = false;
 let createStyle = false;
 
 class INodeTest extends Extension {
-    $createAttrs() {
-        super.$createAttrs();
+    createAttrs() {
+        super.createAttrs();
         createAttrs = true;
     }
-    $createStyle() {
-        super.$createStyle();
+    createStyle() {
+        super.createStyle();
         createStyle = true;
     }
 }
 
 it('INode', function () {
-    const root = new App(page.window.document.body).$init();
+    const root = new App(page.window.document.body).init();
 
-    root.$create(new INodeTest, test => {
+    root.create(new INodeTest, test => {
         // attr
-        test.$tag("div", (div, el) => {
+        test.tag("div", (div, el) => {
             const attrName = "data-attr";
             const attrValue = new Reference("test");
 
-            div.$setAttr("data-set", "test");
-            div.$attr(attrName, attrValue);
-            div.$bindAttr("data-bind", str => {
+            div.setAttr("data-set", "test");
+            div.attr(attrName, attrValue);
+            div.bindAttr("data-bind", str => {
                 return str.length > 1 ? str : "alternative";
             }, attrValue);
 
@@ -190,14 +184,14 @@ it('INode', function () {
         });
 
         // class
-        test.$tag("div", (div, el) => {
+        test.tag("div", (div, el) => {
             const dyn = new Reference("dyn");
             const cond = new Reference(false);
 
-            div.$addClass('c1');
-            div.$addClasses('c2', 'c3');
-            div.$bindClass(dyn);
-            div.$floatingClass(cond, 'float');
+            div.addClass('c1');
+            div.addClasses('c2', 'c3');
+            div.bindClass(dyn);
+            div.floatingClass(cond, 'float');
 
             expect(el.className).toBe("c1 c2 c3 dyn");
 
@@ -212,12 +206,12 @@ it('INode', function () {
         });
 
         //style
-        test.$tag("div", (div, el) => {
+        test.tag("div", (div, el) => {
             const dyn = new Reference("0px");
 
-            div.$setStyle('display', 'none');
-            div.$style('margin', dyn);
-            div.$bindStyle('padding', margin => {
+            div.setStyle('display', 'none');
+            div.style('margin', dyn);
+            div.bindStyle('padding', margin => {
                 return parseFloat(margin) + 10 + 'px';
             }, dyn);
 
@@ -231,95 +225,91 @@ it('INode', function () {
 
             const error = "non-html-element";
 
-            div.$tag('circle', (nonHTML) => {
+            div.tag('circle', (nonHTML) => {
                 // eslint-disable-next-line
                 // @ts-ignore
                 nonHTML.$.node = document.createComment('test');
                 expect(() => {
-                    nonHTML.$setStyle('display', 'none');
+                    nonHTML.setStyle('display', 'none');
                 }).toThrow(error);
                 expect(() => {
-                    nonHTML.$style('--p', dyn);
+                    nonHTML.style('--p', dyn);
                 }).toThrow(error);
                 expect(() => {
-                    nonHTML.$bindStyle('--p', () => 'trsy', dyn);
+                    nonHTML.bindStyle('--p', () => 'trsy', dyn);
                 }).toThrow(error);
             });
         });
-
-        // binding
-        expect(() => new Binding(root, "test", new Reference("str")))
-            .toThrow("not-overwritten");
     });
 
     expect(createAttrs).toBe(true);
     expect(createStyle).toBe(true);
 
-    root.$destroy();
+    root.destroy();
 });
 
 
 it('INode Events', function () {
     let test = false;
-    const root = new App(page.window.document.body).$init();
+    const root = new App(page.window.document.body).init();
     const handler = () => test = true;
 
 
-    root.$tag('button', (node, element) => {
-        node.$oncontextmenu(handler);
-        node.$onmousedown(handler);
-        node.$onmouseenter(handler);
-        node.$onmouseleave(handler);
-        node.$onmousemove(handler);
-        node.$onmouseout(handler);
-        node.$onmouseover(handler);
-        node.$onmouseup(handler);
-        node.$onclick(handler);
-        node.$ondblclick(handler);
-        node.$onblur(handler);
-        node.$onfocus(handler);
-        node.$onfocusin(handler);
-        node.$onfocusout(handler);
-        node.$onkeydown(handler);
-        node.$onkeyup(handler);
-        node.$onkeypress(handler);
-        node.$ontouchstart(handler);
-        node.$ontouchmove(handler);
-        node.$ontouchend(handler);
-        node.$ontouchcancel(handler);
-        node.$onwheel(handler);
-        node.$onabort(handler);
-        node.$onerror(handler);
-        node.$onload(handler);
-        node.$onloadend(handler);
-        node.$onloadstart(handler);
-        node.$onprogress(handler);
-        node.$ontimeout(handler);
-        node.$ondrag(handler);
-        node.$ondragend(handler);
-        node.$ondragenter(handler);
-        node.$ondragexit(handler);
-        node.$ondragleave(handler);
-        node.$ondragover(handler);
-        node.$ondragstart(handler);
-        node.$ondrop(handler);
-        node.$onpointerover(handler);
-        node.$onpointerenter(handler);
-        node.$onpointerdown(handler);
-        node.$onpointermove(handler);
-        node.$onpointerup(handler);
-        node.$onpointercancel(handler);
-        node.$onpointerout(handler);
-        node.$onpointerleave(handler);
-        node.$ongotpointercapture(handler);
-        node.$onlostpointercapture(handler);
-        node.$onanimationstart(handler);
-        node.$onanimationend(handler);
-        node.$onanimationiteraton(handler);
-        node.$onclipboardchange(handler);
-        node.$oncut(handler);
-        node.$oncopy(handler);
-        node.$onpaste(handler);
+    root.tag('button', (node, element) => {
+        node.oncontextmenu(handler);
+        node.onmousedown(handler);
+        node.onmouseenter(handler);
+        node.onmouseleave(handler);
+        node.onmousemove(handler);
+        node.onmouseout(handler);
+        node.onmouseover(handler);
+        node.onmouseup(handler);
+        node.onclick(handler);
+        node.ondblclick(handler);
+        node.onblur(handler);
+        node.onfocus(handler);
+        node.onfocusin(handler);
+        node.onfocusout(handler);
+        node.onkeydown(handler);
+        node.onkeyup(handler);
+        node.onkeypress(handler);
+        node.ontouchstart(handler);
+        node.ontouchmove(handler);
+        node.ontouchend(handler);
+        node.ontouchcancel(handler);
+        node.onwheel(handler);
+        node.onabort(handler);
+        node.onerror(handler);
+        node.onload(handler);
+        node.onloadend(handler);
+        node.onloadstart(handler);
+        node.onprogress(handler);
+        node.ontimeout(handler);
+        node.ondrag(handler);
+        node.ondragend(handler);
+        node.ondragenter(handler);
+        node.ondragexit(handler);
+        node.ondragleave(handler);
+        node.ondragover(handler);
+        node.ondragstart(handler);
+        node.ondrop(handler);
+        node.onpointerover(handler);
+        node.onpointerenter(handler);
+        node.onpointerdown(handler);
+        node.onpointermove(handler);
+        node.onpointerup(handler);
+        node.onpointercancel(handler);
+        node.onpointerout(handler);
+        node.onpointerleave(handler);
+        node.ongotpointercapture(handler);
+        node.onlostpointercapture(handler);
+        node.onanimationstart(handler);
+        node.onanimationend(handler);
+        node.onanimationiteraton(handler);
+        node.onclipboardchange(handler);
+        node.oncut(handler);
+        node.oncopy(handler);
+        node.onpaste(handler);
 
         element.click();
         expect(test).toBe(true);
@@ -329,10 +319,10 @@ it('INode Events', function () {
 it('Freeze test', function () {
     const show = new Reference(true);
     const mount = new Reference(true);
-    const root = new App(page.window.document.body).$init();
+    const root = new App(page.window.document.body).init();
 
-    root.$tag("div", (showTag, showEl) => {
-        showTag.$bindShow(show);
+    root.tag("div", (showTag, showEl) => {
+        showTag.bindShow(show);
 
         show.$ = false;
         expect(showEl.style.display).toBe("none");
@@ -340,8 +330,8 @@ it('Freeze test', function () {
         show.$ = true;
         expect(showEl.style.display).toBe("");
 
-        showTag.$tag("div", mountTag => {
-            mountTag.$bindMount(mount);
+        showTag.tag("div", mountTag => {
+            mountTag.bindMount(mount);
 
             mount.$ = false;
             expect(showEl.childNodes.length).toBe(0);
@@ -350,8 +340,8 @@ it('Freeze test', function () {
             expect(showEl.childNodes.length).toBe(1);
         });
 
-        showTag.$tag("div", (div) => {
-            div.$addClass('second');
+        showTag.tag("div", (div) => {
+            div.addClass('second');
 
             expect(showEl.innerHTML).toBe(`<div></div><div class="second"></div>`);
 
@@ -369,11 +359,11 @@ it('Freeze test', function () {
 });
 
 it('raw HTML test', function () {
-    const root = new App(page.window.document.body).$init();
+    const root = new App(page.window.document.body).init();
     const html = new Reference("test me now");
 
-    root.$tag('div', (node, el) => {
-        node.$html(html);
+    root.tag('div', (node, el) => {
+        node.html(html);
         expect(el.innerHTML).toBe("test me now");
 
         html.$ = '<b>b</b><i>i</i>';
@@ -382,7 +372,7 @@ it('raw HTML test', function () {
 });
 
 it('Error threading', function () {
-    const root = new App(page.window.document.body).$init();
+    const root = new App(page.window.document.body).init();
     const bool = new Reference(true);
     const text = new Reference('text');
     const frag = new Fragment();
@@ -390,16 +380,16 @@ it('Error threading', function () {
     const debug = new DebugNode();
     const textNode = new TextNode();
 
-    root.$tag('div', test => {
+    root.tag('div', test => {
         // eslint-disable-next-line
         // @ts-ignore
         test.$.node = null;
-        expect(() => test.$bindShow(bool)).toThrow("bind-show");
-        expect(() => test.$html(text)).toThrow("dom-error");
-        expect(() => test.$preinit(root, root, null)).toThrow("internal-error");
-        expect(() => ext.$preinit(root, frag)).toThrow("virtual-dom");
-        expect(() => debug.$preinit(root, frag, null)).toThrow("internal-error");
-        expect(() => textNode.$preinit(root, frag, null)).toThrow("internal-error");
+        expect(() => test.bindShow(bool)).toThrow("bind-show");
+        expect(() => test.html(text)).toThrow("dom-error");
+        expect(() => test.preinit(root, root, null)).toThrow("internal-error");
+        expect(() => ext.preinit(root, frag)).toThrow("virtual-dom");
+        expect(() => debug.preinit(root, frag, null)).toThrow("internal-error");
+        expect(() => textNode.preinit(root, frag, null)).toThrow("internal-error");
     });
 });
 
@@ -407,59 +397,59 @@ class ZeroChildrenComponent extends Component {
 }
 
 class OneChildComponent extends Component {
-    $compose() {
-        this.$create(new Fragment());
+    compose() {
+        this.create(new Fragment());
     }
 }
 
 class MultiChildrenComponent extends Component {
-    $compose() {
-        this.$tag('div');
-        this.$tag('div');
+    compose() {
+        this.tag('div');
+        this.tag('div');
     }
 }
 
 class CorrectComponent extends Component {
-    $compose() {
-        this.$tag('div');
+    compose() {
+        this.tag('div');
     }
 }
 
 it('Component test', function () {
-    const root = new App(page.window.document.body).$init();
+    const root = new App(page.window.document.body).init();
 
-    expect(() => root.$create(new ZeroChildrenComponent)).toThrow("dom-error");
-    expect(() => root.$create(new OneChildComponent)).toThrow("dom-error");
-    expect(() => root.$create(new MultiChildrenComponent)).toThrow("dom-error");
+    expect(() => root.create(new ZeroChildrenComponent)).toThrow("dom-error");
+    expect(() => root.create(new OneChildComponent)).toThrow("dom-error");
+    expect(() => root.create(new MultiChildrenComponent)).toThrow("dom-error");
 
-    root.$create(new CorrectComponent);
+    root.create(new CorrectComponent);
 });
 
 it('INode unmount/mount advanced', function () {
-    const root = new App(page.window.document.body).$init();
+    const root = new App(page.window.document.body).init();
     const mount = new Reference(true);
 
-    root.$tag('div', (main, body) => {
-        main.$create(new Fragment, l1 => {
-            l1.$create(new Fragment, l2 => {
-                l2.$create(new Fragment, l3 => {
-                    l3.$tag("div", div => {
-                        div.$bindMount(mount);
-                        div.$addClass('0');
+    root.tag('div', (main, body) => {
+        main.create(new Fragment, l1 => {
+            l1.create(new Fragment, l2 => {
+                l2.create(new Fragment, l3 => {
+                    l3.tag("div", div => {
+                        div.bindMount(mount);
+                        div.addClass('0');
                     });
                 });
-                l2.$create(new Fragment);
+                l2.create(new Fragment);
             });
-            l1.$create(new Fragment);
-            l1.$create(new Fragment, l2 => {
-                l2.$create(new Fragment, l3 => {
-                    l3.$create(new Fragment);
-                    l3.$tag('div', div => {
-                        div.$bindMount(mount);
-                        div.$addClass('1');
+            l1.create(new Fragment);
+            l1.create(new Fragment, l2 => {
+                l2.create(new Fragment, l3 => {
+                    l3.create(new Fragment);
+                    l3.tag('div', div => {
+                        div.bindMount(mount);
+                        div.addClass('1');
                     });
-                    l3.$create(new Fragment, l4 => {
-                        l4.$tag('div', div => div.$addClass('2'));
+                    l3.create(new Fragment, l4 => {
+                        l4.tag('div', div => div.addClass('2'));
                     });
                 });
             });
@@ -481,28 +471,28 @@ it('INode unmount/mount advanced', function () {
 });
 
 it('INode unmount/mount advanced 2', function () {
-    const root = new App(page.window.document.body).$init();
+    const root = new App(page.window.document.body).init();
     const mount = new Reference(true);
 
-    root.$tag('div', (main, body) => {
-        main.$create(new Fragment, l1 => {
-            l1.$create(new Fragment, l2 => {
-                l2.$tag("div", div => {
-                    div.$bindMount(mount);
-                    div.$addClass('0');
+    root.tag('div', (main, body) => {
+        main.create(new Fragment, l1 => {
+            l1.create(new Fragment, l2 => {
+                l2.tag("div", div => {
+                    div.bindMount(mount);
+                    div.addClass('0');
                 });
-                l2.$tag("div", div => {
-                    div.$bindMount(mount);
-                    div.$addClass('1');
+                l2.tag("div", div => {
+                    div.bindMount(mount);
+                    div.addClass('1');
                 });
-                l2.$tag("div", div => {
-                    div.$bindMount(mount);
-                    div.$addClass('2');
+                l2.tag("div", div => {
+                    div.bindMount(mount);
+                    div.addClass('2');
                 });
             });
-            l1.$create(new Fragment, l2 => {
-                l2.$tag("div", div => {
-                    div.$addClass('3');
+            l1.create(new Fragment, l2 => {
+                l2.tag("div", div => {
+                    div.addClass('3');
                 });
             });
         });
@@ -534,19 +524,19 @@ class Receiver extends Fragment {
 class Emitter extends Fragment {
     signal = new Signal<number>();
 
-    $ready() {
-        super.$ready();
+    ready() {
+        super.ready();
         this.signal.emit(23);
     }
 }
 
 it('Interceptor Node', function () {
-    const root = new App(page.window.document.body).$init();
+    const root = new App(page.window.document.body).init();
 
-    root.$create(new InterceptorNode<number>(), node => node.slot.insert((node, interceptor) => {
+    root.create(new InterceptorNode<number>(), node => node.slot.insert((node, interceptor) => {
 
-        node.$create(new Receiver(), receiver => interceptor.connect(receiver.receive));
-        node.$create(new Emitter(), emitter => interceptor.connect(emitter.signal));
+        node.create(new Receiver(), receiver => interceptor.connect(receiver.receive));
+        node.create(new Emitter(), emitter => interceptor.connect(emitter.signal));
 
         expect(interceptTest).toBe(23);
     }));

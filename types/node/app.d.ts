@@ -15,11 +15,11 @@ export declare class AppNode extends INode {
      * Executor is used to optimize the page creation/update
      * @type {Executor}
      */
-    $run: Executor;
+    run: Executor;
     /**
      * Enables debug comments
      */
-    $debugUi: boolean;
+    debugUi: boolean;
     /**
      * @param options {Object} Application options
      */
@@ -37,6 +37,6 @@ export declare class App extends AppNode {
      * @param options {Object} Application options
      */
     constructor(node: Element, options?: AppOptions);
-    $$appendNode(node: Node): void;
+    appendNode(node: Node): void;
 }
 export {};

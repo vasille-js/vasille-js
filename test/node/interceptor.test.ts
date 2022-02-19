@@ -24,5 +24,5 @@ it("Interceptor", function () {
     expect(test).toBe(1);
 
     interceptor.connect(handler);
-    interceptor.$destroy();
+    interceptor.destroy();
 })

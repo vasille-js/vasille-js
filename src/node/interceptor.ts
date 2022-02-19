@@ -59,8 +59,8 @@ export class Interceptor<
         });
     }
 
-    $destroy () {
-        super.$destroy ();
+    destroy () {
+        super.destroy ();
 
         this.signals.forEach(signal => {
             this.handlers.forEach(handler => {
@@ -91,7 +91,7 @@ export class InterceptorNode<
      */
     slot : Slot<Fragment, Interceptor<t1, t2, t3, t4, t5, t6, t7, t8, t9>> = new Slot;
 
-    $compose () {
+    compose () {
         this.slot.release(this, this.interceptor);
     }
 }

@@ -32,7 +32,7 @@ export declare class Repeater extends RepeatNode<number, number> {
      * Changes the children count
      */
     changeCount(number: number): void;
-    $created(): void;
-    $ready(): void;
-    $destroy(): void;
+    created(): void;
+    ready(): void;
+    destroy(): void;
 }

@@ -28,7 +28,7 @@ export declare class Interceptor<t1 = void, t2 = void, t3 = void, t4 = void, t5 
      * @param handler {function}
      */
     disconnect(handler: (a1: t1, a2: t2, a3: t3, a4: t4, a5: t5, a6: t6, a7: t7, a8: t8, a9: t9) => void): void;
-    $destroy(): void;
+    destroy(): void;
 }
 /**
  * Interceptor node to implement directly to vasille DOM
@@ -46,5 +46,5 @@ export declare class InterceptorNode<t1 = void, t2 = void, t3 = void, t4 = void,
      * @type Slot
      */
     slot: Slot<Fragment, Interceptor<t1, t2, t3, t4, t5, t6, t7, t8, t9>>;
-    $compose(): void;
+    compose(): void;
 }

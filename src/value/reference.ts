@@ -28,7 +28,7 @@ export class Reference<T> extends IValue<T> {
         super (true);
         this.value = value;
         this.onchange = new Set;
-        this.$seal ();
+        this.seal ();
     }
 
     public get $ () : T {
@@ -47,33 +47,29 @@ export class Reference<T> extends IValue<T> {
         }
     }
 
-    public enable () : this {
+    public enable () : void {
         if (!this.isEnabled) {
             this.onchange.forEach(handler => {
                 handler (this.value);
             });
             this.isEnabled = true;
         }
-        return this;
     }
 
-    public disable () : this {
+    public disable () : void {
         this.isEnabled = false;
-        return this;
     }
 
-    public on (handler : (value : T) => void) : this {
+    public on (handler : (value : T) => void) : void {
         this.onchange.add (handler);
-        return this;
     }
 
-    public off (handler : (value : T) => void) : this {
+    public off (handler : (value : T) => void) : void {
         this.onchange.delete (handler);
-        return this;
     }
 
-    public $destroy () {
-        super.$destroy ();
+    public destroy () {
+        super.destroy ();
         this.onchange.clear ();
     }
 }

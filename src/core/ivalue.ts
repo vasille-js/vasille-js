@@ -2,12 +2,29 @@ import { Destroyable } from "./destroyable.js";
 import { notOverwritten } from "./errors";
 
 
+export class Switchable extends Destroyable {
+
+    /**
+     * Enable update handlers triggering
+     */
+    public enable () : void {
+        throw notOverwritten();
+    }
+
+    /**
+     * disable update handlers triggering
+     */
+    public disable () : void {
+        throw notOverwritten();
+    }
+}
+
 /**
  * Interface which describes a value
  * @class IValue
  * @extends Destroyable
  */
-export class IValue<T> extends Destroyable {
+export class IValue<T> extends Switchable {
 
     /**
      * Is enabled state flag
@@ -43,7 +60,7 @@ export class IValue<T> extends Destroyable {
      * Add a new handler to value change
      * @param handler {function(value : *)} the handler to add
      */
-    public on (handler : (value : T) => void) : this {
+    public on (handler : (value : T) => void) : void {
         throw notOverwritten ();
     }
 
@@ -51,21 +68,7 @@ export class IValue<T> extends Destroyable {
      * Removes a handler of value change
      * @param handler {function(value : *)} the handler to remove
      */
-    public off (handler : (value : T) => void) : this {
+    public off (handler : (value : T) => void) : void {
         throw notOverwritten ();
-    }
-
-    /**
-     * Enable update handlers triggering
-     */
-    public enable () : this {
-        throw notOverwritten();
-    }
-
-    /**
-     * disable update handlers triggering
-     */
-    public disable () : this {
-        throw notOverwritten();
     }
 }

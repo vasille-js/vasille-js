@@ -1,5 +1,5 @@
 import { Listener } from "./listener";
-import type { IModel } from "./model";
+import {ListenableModel} from "./model";
 
 
 
@@ -9,7 +9,7 @@ import type { IModel } from "./model";
  * @extends Map
  * @implements IModel
  */
-export class MapModel<K, T> extends Map<K, T> implements IModel<K, T> {
+export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
 
     public listener : Listener<T, K>;
 

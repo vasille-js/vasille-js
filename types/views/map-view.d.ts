@@ -7,5 +7,5 @@ import { MapModel } from "../models/map-model";
  */
 export declare class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
     constructor(model: MapModel<K, T>);
-    $ready(): void;
+    ready(): void;
 }

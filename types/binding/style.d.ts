@@ -14,10 +14,4 @@ export declare class StyleBinding extends Binding<string> {
      * @param value {IValue} the value to bind
      */
     constructor(node: INode, name: string, value: IValue<string>);
-    /**
-     * Generates a function to update style property value
-     * @param name {string}
-     * @returns {Function} a function to update style property
-     */
-    protected bound(name: string): (node: INode, value: string) => void;
 }

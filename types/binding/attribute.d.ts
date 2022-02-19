@@ -14,10 +14,4 @@ export declare class AttributeBinding extends Binding<string> {
      * @param value {IValue} value to bind
      */
     constructor(node: INode, name: string, value: IValue<string>);
-    /**
-     * Generates a function which updates the attribute value
-     * @param name {String} The name of attribute
-     * @returns {Function} a function which will update attribute value
-     */
-    protected bound(name: string): (node: INode, value: string) => void;
 }

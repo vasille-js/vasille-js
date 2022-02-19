@@ -21,19 +21,12 @@ export class StyleBinding extends Binding<string> {
         name : string,
         value : IValue<string>
     ) {
-        super(node, name, value);
-    }
-
-    /**
-     * Generates a function to update style property value
-     * @param name {string}
-     * @returns {Function} a function to update style property
-     */
-    protected bound (name : string) : (node : INode, value : string) => void {
-        return function (node : INode, value : string) {
+        super(value);
+        this.init((value : string) => {
             if (node.node instanceof HTMLElement) {
-                node.app.$run.setStyle(node.node, name, value);
+                node.app.run.setStyle(node.node, name, value);
             }
-        };
+        });
+        this.seal();
     }
 }

@@ -1,5 +1,5 @@
 import { RepeatNode, RepeatNodePrivate } from "./repeat-node";
-import { IModel } from "../models/model";
+import { ListenableModel } from "../models/model";
 /**
  * Private part of BaseView
  * @class BaseViewPrivate
@@ -24,7 +24,7 @@ export declare class BaseViewPrivate<K, T> extends RepeatNodePrivate<K> {
  * @extends RepeatNode
  * @implements IModel
  */
-export declare class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNode<K, T> {
+export declare class BaseView<K, T, Model extends ListenableModel<K, T>> extends RepeatNode<K, T> {
     protected $: BaseViewPrivate<K, T>;
     /**
      * Property which will contain a model
@@ -35,9 +35,9 @@ export declare class BaseView<K, T, Model extends IModel<K, T>> extends RepeatNo
     /**
      * Handle ready event
      */
-    $ready(): void;
+    ready(): void;
     /**
      * Handles destroy event
      */
-    $destroy(): void;
+    destroy(): void;
 }

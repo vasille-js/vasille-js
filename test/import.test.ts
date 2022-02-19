@@ -55,6 +55,6 @@ it('import test', function () {
     const interceptor = new Interceptor();
     const interceptorNode = new InterceptorNode();
     const expr = new Expression(v => v, false, ref);
-    const binding = new BindingTest(inode, '', ref);
+    const binding = new BindingTest(ref);
     const reactive = new Reactive();
 });

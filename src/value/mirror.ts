@@ -41,7 +41,7 @@ export class Mirror<T> extends Reference<T> {
         this.forwardOnly = forwardOnly;
 
         value.on (this.handler);
-        this.$seal ();
+        this.seal ();
     }
 
     public get $ () : T {
@@ -52,34 +52,32 @@ export class Mirror<T> extends Reference<T> {
     }
 
     public set $ (v : T) {
+        if (!this.forwardOnly) {
+            this.pointedValue.$ = v;
+        }
         // this is a ts bug
         // eslint-disable-next-line
         // @ts-ignore
         super.$ = v;
-        if (!this.forwardOnly) {
-            this.pointedValue.$ = v;
-        }
     }
 
-    public enable () : this {
+    public enable () : void {
         if (!this.isEnabled) {
             this.isEnabled = true;
             this.pointedValue.on(this.handler);
             this.$ = this.pointedValue.$;
         }
-        return this;
     }
 
-    public disable () : this {
+    public disable () : void {
         if (this.isEnabled) {
             this.pointedValue.off(this.handler);
             this.isEnabled = false;
         }
-        return this;
     }
 
-    public $destroy () {
+    public destroy () {
         this.disable();
-        super.$destroy();
+        super.destroy();
     }
 }

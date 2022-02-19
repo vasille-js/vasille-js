@@ -4,63 +4,50 @@ import type { IValue } from "../core/ivalue";
 
 
 
-/**
- * Represents a HTML class binding description
- * @class ClassBinding
- * @extends Binding
- */
-export class ClassBinding extends Binding<string | boolean> {
-    /**
-     * Constructs an HTML class binding description
-     * @param node {INode} the vasille node
-     * @param name {String} the name of class
-     * @param value {IValue} the value to bind
-     */
-    public constructor (
-        node : INode,
-        name : string,
-        value : IValue<string | boolean>
-    ) {
-        super(node, name, value);
-        this.$seal();
+function addClass (node : INode, cl : string) {
+    node.app.run.addClass(node.node, cl);
+}
+
+function removeClass (node : INode, cl : string) {
+    node.app.run.removeClass(node.node, cl);
+}
+
+export class StaticClassBinding extends Binding<boolean> {
+    private current = false;
+
+    constructor(node : INode, name : string, value : IValue<boolean>) {
+        super(value);
+        this.init((value : boolean) => {
+            if (value !== this.current) {
+                if (value) {
+                    addClass(node, name);
+                }
+                else {
+                    removeClass(node, name);
+                }
+                this.current = value;
+            }
+        });
+        this.seal();
     }
+}
 
-    /**
-     * Generates a function which updates the html class value
-     * @param name {String} The name of attribute
-     * @returns {Function} a function which will update attribute value
-     */
-    protected bound (name : string) : (node : INode, value : string | boolean) => void {
+export class DynamicalClassBinding extends Binding<string> {
+    private current = "";
 
-        let current : string | boolean = null;
-
-        function addClass (node : INode, cl : string) {
-            node.app.$run.addClass(node.node, cl);
-        }
-
-        function removeClass (node : INode, cl : string) {
-            node.app.$run.removeClass(node.node, cl);
-        }
-
-        return (node : INode, value : string | boolean) => {
-
-            if (value !== current) {
-                if (typeof current === "string" && current !== "") {
-                    removeClass(node, current);
+    constructor(node : INode, value : IValue<string>) {
+        super(value);
+        this.init((value : string) => {
+            if (this.current != value) {
+                if (this.current.length) {
+                    removeClass(node, this.current);
                 }
-                if (typeof value === "boolean") {
-                    if (value) {
-                        addClass(node, name);
-                    }
-                    else {
-                        removeClass(node, name);
-                    }
-                }
-                else if (typeof value === "string" && value !== "") {
+                if (value.length) {
                     addClass(node, value);
                 }
-                current = value;
+                this.current = value;
             }
-        };
+        });
+        this.seal();
     }
 }
