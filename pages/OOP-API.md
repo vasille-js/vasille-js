@@ -18,7 +18,7 @@ class MyComponent extends App {
 A `App` is a root of a Vasille.js application, it will be bounded to
 an existing DOM node. `Component` defines a typical component, which root
 is an HTML node created by Vasille.js. `Fragment` can contain any number of
-nodes at top level.
+nodes at top level. `Extension` are used to extend a component.
 
 ## Table of content
 [[_TOC_]]
@@ -32,7 +32,7 @@ fields and methods.
 ### Component data/state
 
 Component state is composed of private class fields, created by a call
-to `$ref<T>(initialValue: T): Reference<T>` method:
+to `ref<T>(initialValue: T): Reference<T>` method:
 
 ```javascript
 import { App } from 'vasille';
@@ -41,8 +41,8 @@ class MyComponent extends App {
     constructor() {
         super();
         
-        this.foo = this.$ref(2);
-        this.bar = this.$ref('bar');
+        this.foo = this.ref(2);
+        this.bar = this.ref('bar');
         
         // non reactive data
         this.data = 3;
@@ -56,7 +56,7 @@ const pi = 3.14;
 ### Component properties
 
 Component properties are created by a call to 
-`$prop<T>(initialValue?: T): Reference<T>` method:
+`prop<T>(initialValue?: T): Reference<T>` method:
 
 ```typescript
 import { App } from 'vasille';
@@ -65,8 +65,8 @@ class MyComponent extends App {
     constructor() {
         super();
         
-        this.foo = this.$ref<number>(0);
-        this.bar = this.$ref<string>('default value');
+        this.foo = this.ref<number>(0);
+        this.bar = this.ref<string>('default value');
     }
 }
 ```
@@ -74,7 +74,7 @@ class MyComponent extends App {
 ### Computed properties (expressions)
 
 An expression is a state variable which is created by a call to
-`$bind<T, ...Args>(expr: (args: ...Args) => T, ...args: IValue<...Args>): Expression<T>` method:
+`bind<T, ...Args>(expr: (args: ...Args) => T, ...args: IValue<...Args>): Expression<T>` method:
 
 ```javascript
 import { App } from 'vasille';
@@ -83,12 +83,12 @@ class MyComponent extends App {
     constructor() {
         super();
         
-        this.x = this.$ref(2);
-        this.y = this.$ref(3);
-        this.z = this.$bind((x, y) => x + y, this.x, this.y);
+        this.x = this.ref(2);
+        this.y = this.ref(3);
+        this.z = this.bind((x, y) => x + y, this.x, this.y);
         
         // multiline computed expression
-        this.multilineExpression = this.$bind((x, y, visible) => {
+        this.multilineExpression = this.bind((x, y, visible) => {
             let result;
             
             switch (x) {
@@ -109,8 +109,8 @@ class MyComponent extends App {
         }, this.x, this.y, this.visible);
         
         // partial bind expression
-        this.z1 = this.$bind(x => x + this.y.$, this.x);
-        this.z2 = this.$bind(y => this.x.$ + y, this.y);
+        this.z1 = this.bind(x => x + this.y.$, this.x);
+        this.z2 = this.bind(y => this.x.$ + y, this.y);
     }
 }
 ```
@@ -133,12 +133,12 @@ Any method is available outside of component.
 
 ### Components hooks
 
-The Vasille.js components has 4 hooks and some milestones. The `$created`
+The Vasille.js components has 4 hooks and some milestones. The `created`
 hook is called when the component is created and properties are 
-initialized. The `$mounted` hook is called when all elements defined in
-component are mounted. The `$ready` hook is called when all elements 
+initialized. The `mounted` hook is called when all elements defined in
+component are mounted. The `ready` hook is called when all elements 
 declared is component and installed to its slots are mounted. The
-`$destroy` hook is called when component is destroyed.
+`destroy` hook is called when component is destroyed.
 
 To define a hook just overwrite the method with its name.
 
@@ -146,21 +146,21 @@ To define a hook just overwrite the method with its name.
 import { App } from 'vasille';
 
 class MyComponent extends App {
-    $created () {
-        super.$created();
+    created () {
+        super.created();
         // created hook
     }
-    $mounted () {
-        super.$mounted();
+    mounted () {
+        super.mounted();
         // mounted hook
     }
-    $ready () {
-        super.$ready();
+    ready () {
+        super.ready();
         // ready hook
     }
-    $destroy () {
+    destroy () {
         // before destroy hook
-        super.$destroy();
+        super.destroy();
         // after destroy hook
     }
 }
@@ -181,7 +181,7 @@ import { App } from 'vasille';
 class MyComponent extends App {
     myEvent = new Signal<number, number>;
     
-    $mounted () {
+    mounted () {
         // emit a event
         this.myEvent.emit(1, 2);
     }
@@ -192,8 +192,8 @@ class MyComponent extends App {
 
 A watcher is an anonymous function which will be called each time when a 
 bound variable get changed. Call 
-`$watch<...Args>(expr: (args: ...Args), ...args: IValue<...Args>)` method
-to define a watcher in `$createWatchers` milestone.
+`watch<...Args>(expr: (args: ...Args), ...args: IValue<...Args>)` method
+to define a watcher in `createWatchers` milestone.
 
 Example:
 
@@ -204,13 +204,13 @@ class MyComponent extends App {
     constructor() {
         super();
         
-        this.x = this.$ref(0);
-        this.y = this.$ref(0);
-        this.visible = this.$ref(false);
+        this.x = this.ref(0);
+        this.y = this.ref(0);
+        this.visible = this.ref(false);
     }
     
-    $createWatchers () {
-        this.$watch((x, y) => {
+    createWatchers () {
+        this.watch((x, y) => {
             if (x < 0 && y < 0) {
                 this.visible.$ = true;
             } else {
@@ -229,16 +229,16 @@ HTML part is used to define the HTML nodes and subcomponents.
 ### HTML node/tag
 
 An HTML tag is defined by 
-`$tag(tagName: string, callback: (createdNode: TagNode) => void)`
-method in `$compose` milestone:
+`tag(tagName: string, callback: (createdNode: TagNode) => void)`
+method in `compose` milestone:
 ```javascript
 import { App } from 'vasille';
 
 class MyComponent extends App {
-    $compose () {
-        this.$tag("div", div => {
-            div.$tag("p", p => {
-                p.$text("some text here");
+    compose () {
+        this.tag("div", div => {
+            div.tag("p", p => {
+                p.text("some text here");
             });
         });
     }
@@ -248,15 +248,15 @@ class MyComponent extends App {
 ### Subcomponents
 
 Subcomponents must be imported, after are defined by a call to
-`$create<T>(component: T, props: (T) => void, defaultSlot?: (T) => void`
+`create<T>(component: T, callback?: (T) => void, callback?: (T) => void`
 method. `props` handler is used to set up component properties.
 ```javascript
 import { App } from 'vasille';
 import {Component} from './Component';
 
 class MyComponent extends App {
-    $compose () {
-        this.$create(new Component, $ => {});
+    compose () {
+        this.create(new Component, $ => {});
     }
 }
 ```
@@ -265,28 +265,28 @@ class MyComponent extends App {
 
 Properties of components are set upped in `props` handler.
 Attributes are set upped by calls next methods:
-* `$bindAttr<...Args> (name: string, expr: (args: ...Args) => string, ...values: IValue<...Args>)`.
-* `$defAttr (name: string, value: IValue<string>)`.
-* `$setAttr (name: string, value: string)`.
+* `bindAttr<...Args> (name: string, expr: (args: ...Args) => string, ...values: IValue<...Args>)`.
+* `defAttr (name: string, value: IValue<string>)`.
+* `setAttr (name: string, value: string)`.
 
-`$set*` methods are used to set up static values.
-`$def*` methods are used to set up dynamical values.
-`$bind*` methods are used to bind expressions.
+`set*` methods are used to set up static values.
+`*` methods are used to set up dynamical values.
+`bind*` methods are used to bind expressions.
 
 Example:
 ```javascript
 import { App } from 'vasille';
 
 class MyComponent extends App {
-    $compose () {
-        this.$tag("div", div => {
-            div.$setAttr("id", "id1");
-            div.$setAttr("class", "class1 class2");
-            div.$bindAttr("data-sum", (a, b) => {
+    compose () {
+        this.tag("div", div => {
+            div.setAttr("id", "id1");
+            div.setAttr("class", "class1 class2");
+            div.bindAttr("data-sum", (a, b) => {
                 return this.sum(a, b);
             }, this.a, this.b);
         });
-        this.$create(new Component, $ => {
+        this.create(new Component, $ => {
             $.prop1 = "string value";
             $.prop2 = $.bind((x, y) => x + y, this.x, this.y);
         });
@@ -298,20 +298,20 @@ class MyComponent extends App {
 
 Class directives are used to define dynamical and conditional classes.
 The next methods is used to set up classes:
-* `$addClass (cl: string)`.
-* `$addClasses (...cl: string)`.
-* `$bindClass (cl: IValue<string>)`.
-* `$floatingClass (value: IValue<boolean>, cl: string)`.
+* `addClass (cl: string)`.
+* `addClasses (...cl: string)`.
+* `bindClass (cl: IValue<string>)`.
+* `floatingClass (value: IValue<boolean>, cl: string)`.
 
 ```javascript
 import { App } from 'vasille';
 
 class MyComponent extends App {
-    $compose () {
-        this.$tag("div", div => {
-            div.$addClass("static class");
-            div.$bindClass(this.$ref('dynamical class'));
-            div.$floatingClass(this.condition, "conditionalClass");
+    compose () {
+        this.tag("div", div => {
+            div.addClass("static class");
+            div.bindClass(this.ref('dynamical class'));
+            div.floatingClass(this.condition, "conditionalClass");
         });
     }
 }
@@ -321,19 +321,19 @@ class MyComponent extends App {
 
 Style can be defined static and dynamical. The next methods are used to
 set up style:
-* `$defStyle (name: string, value: string | IValue<string>)`.
-* `$bindStyle<...Args> (name: string, calculator: (args: ...Args), ...values: IValue<...Args>)`.
-* `$setStyle (prop: string, value: string)`.
+* `defStyle (name: string, value: string | IValue<string>)`.
+* `bindStyle<...Args> (name: string, calculator: (args: ...Args), ...values: IValue<...Args>)`.
+* `setStyle (prop: string, value: string)`.
 
 Example:
 ```javascript
 import { App } from 'vasille';
 
 class MyComponent extends App {
-    $compose () {
-        this.$tag("div", div => {
-            div.$setStyle("width", "3px");
-            div.$bindStyle("width", (w) => w + 'px', this.width);
+    compose () {
+        this.tag("div", div => {
+            div.setStyle("width", "3px");
+            div.bindStyle("width", (w) => w + 'px', this.width);
         });
     }
 }
@@ -341,8 +341,8 @@ class MyComponent extends App {
 
 ### Listen for events
 
-To listen for default DOM events, use `$listen` method or one of `$on*`
-methods. To listen to component events use `$on` method.
+To listen for default DOM events, use `listen` method or one of `on*`
+methods. To listen to component events use `on` method.
 
 Examples:
 ```javascript
@@ -350,12 +350,12 @@ import { App } from 'vasille';
 import {Component} from './Component'; 
 
 class MyComponent extends App {
-    $compose () {
-        this.$tag("div", div => {
-            div.$onmousedown(() => { /* code here */ });
-            div.$onmousemove(ev => this.x.$ = ev.clientX);
+    compose () {
+        this.tag("div", div => {
+            div.onmousedown(() => { /* code here */ });
+            div.onmousemove(ev => this.x.$ = ev.clientX);
         });
-        this.$defElement(new Component, component => {
+        this.defElement(new Component, component => {
             component.eventName.subscribe(() => { /* code here */ });
             component.hover.subscribe(() => this.hover.$ = true);
         });
@@ -365,14 +365,14 @@ class MyComponent extends App {
 
 ### Setting inner HTML
 
-Use `$html` method to set inner HTML:
+Use `html` method to set inner HTML:
 ```javascript
 import { App } from 'vasille';
 
 class MyComponent extends App {
-    $compose () {
-        this.$tag("p", p => {
-            p.$html(htmlCode);
+    compose () {
+        this.tag("p", p => {
+            p.html(htmlCode);
         });
     }
 }
@@ -381,9 +381,9 @@ class MyComponent extends App {
 ### Reference to node or subcomponents
 
 Use field to define a reference, assign value to it make a reference
-available outside of `$compose` milestone.
+available outside of `compose` milestone.
 
-References are available in `$mounted` hook.
+References are available in `mounted` hook.
 
 Examples:
 ```typescript
@@ -395,17 +395,17 @@ class MyComponent extends App {
     sub: MyComponent;
     items: Set<HTMLElement> = new Set();
     
-    $compose () {
-        this.$tag("div", (vElement, element) => {
+    compose () {
+        this.tag("div", (vElement, element) => {
             this.div = element;
         });
-        this.$create(new MyComponent, $ => {
+        this.create(new MyComponent, $ => {
             this.sub = $;
             
             $.slot.insert(node => {
-                node.$tag("p", (v, p) => this.items.add(p));
-                node.$tag("p", (v, p) => this.items.add(p));
-                node.$tag("p", (v, p) => this.items.add(p));
+                node.tag("p", (v, p) => this.items.add(p));
+                node.tag("p", (v, p) => this.items.add(p));
+                node.tag("p", (v, p) => this.items.add(p));
             })
         });
     }
@@ -419,43 +419,43 @@ slot content. To insert data to child slot use `insert` method.
 
 Example (it is recursively, don't try to run this code):
 ```typescript
-import {App, Fragment} from 'vasille';
+import {App, Fragment, Slot} from 'vasille';
 
 class MyComponent extends App {
     // The first declared slot is a default one
-    slot1 = this.$makeSlot<>();
-    slot2 = this.$makeSlot<number, number>();
+    slot1 = new Slot<>();
+    slot2 = new Slot<number, number>();
     
-    $compose () {
+    compose () {
         // You can predefine slot content
         // Predefined content will be overritten
         // Create the content of first slot
         this.slot1.predefine(node => {
-            node.$tag("div");
+            node.tag("div");
         }, this);
         
-        this.$create(new MyComponent, $ => $.slot.insert((node) => {
+        this.create(new MyComponent, $ => $.slot.insert((node) => {
             // Create the content of second slot in a children node
             this.slot2.release(node, 1, 2);
         }));
         
-        this.$create(new MyComponent, $ => {
+        this.create(new MyComponent, $ => {
             $.slot1.insert(slot => {
                 // Insert into slot1
-                slot.$tag("div");
+                slot.tag("div");
             });
             
             $.slot2.insert((slot, arg1, arg2) => {
                 // Insert into slot2
-                slot.$tag("div");
+                slot.tag("div");
                 // Prints: 1 2
                 console.log(arg1, arg2);
             });
         });
 
         // The easy way
-        this.$create(new MyComponent, $ => $.slot.insert((node) => {
-            node.$tag("div");
+        this.create(new MyComponent, $ => $.slot.insert((node) => {
+            node.tag("div");
         }));
     }
 }
@@ -464,55 +464,55 @@ class MyComponent extends App {
 ## Flow control
 
 Flow can be controlled using methods:
-* `$if (cond: IValue<boolean>, cb: (node: RepeatNodeItem) => void)`.
-* `$if_else ( ifCond: IValue<boolean>,
+* `if (cond: IValue<boolean>, cb: (node: RepeatNodeItem) => void)`.
+* `if_else ( ifCond: IValue<boolean>,
     ifCb: (node: RepeatNodeItem) => void, 
     elseCb: (node : RepeatNodeItem) => void)`.
-* `$switch (...cases : Array<{ cond: IValue<boolean> | boolean, 
+* `switch (...cases : Array<{ cond: IValue<boolean> | boolean, 
   cb: (node: RepeatNodeItem) => void }>)`.
-* `$create<T> ( nodeT : T, props : ($ : T) => void)`
+* `create<T> ( nodeT : T, props : ($ : T) => void)`
   
 
-### `$if`
+### `if`
 
 The `if` has one condition, and one callback which get executed when the condition
 is true:
 ```javascript
-this.$if(booleanCondition, (node) => {
+this.if(booleanCondition, (node) => {
     // ..
 });
 ```
 
-### `$if_else`
+### `if_else`
 
 If-else has a condition and 2 callbacks, the first will be released when the
 condition is true, the second will be released when the condition is false.
 ```javascript
-this.$if_else(condition, trueNode => {
+this.if_else(condition, trueNode => {
     // ..
 }, falseNode => {
     // ..
 });
 ```
 
-### `$switch`
+### `switch`
 
 A switch accepts pairs of conditions and callback.
 ```javascript
-this.$switch(
-    this.$case(condition, fragment => {
+this.switch(
+    this.case(condition, fragment => {
         // create DOM here
     }),
-    this.$case(condition, fragment => {
+    this.case(condition, fragment => {
         // create DOM here
     }),
-    this.$default(fragment => {
+    this.default(fragment => {
         // create DOM here
     })
 );
 ```
 
-### `$create`
+### `create`
 
 A repeater will repeat a fragment, by a special rule. List of predefined repeaters:
 * `RepeatNode` - repeat a fragment x times.
@@ -522,7 +522,7 @@ A repeater will repeat a fragment, by a special rule. List of predefined repeate
 * `MapView` - use `MapModel` as model.
  
 ```typescript
-this.$create(new MapView, $ => {
+this.create(new MapView, $ => {
     $.model = new MapModel<int, string>;
     $.slot.insert((node: Fragment, item: string, index: number) => {
         // create items here
@@ -532,9 +532,9 @@ this.$create(new MapView, $ => {
 
 ### Debugging comments
 
-Use `$debug` tag to define debug comments:
+Use `debug` tag to define debug comments:
 ```html
-this.$debug(stringValueOrBind);
+this.debug(stringValueOrBind);
 ```
 
 ## Advanced
@@ -559,8 +559,8 @@ class MyComponent extends App {
         });
     }
     
-    $compose() {
-        this.$create(new ArrayView, $ => {
+    compose() {
+        this.create(new ArrayView, $ => {
             $.freezeUi = false;
             $.slot.insert((node, value, index) => {
                 //
@@ -572,18 +572,18 @@ class MyComponent extends App {
 
 ### Pointers
 
-A pointer can be defined using a `$point` method.
+A pointer can be defined using a `point` method.
 
 ```javascript
 import { App } from 'vasille';
 
 class MyComponent extends App {
     constructor() {
-        this.pointer = this.$point<string>('');
+        this.pointer = this.point<string>('');
         this.pointer = 'default-value';
 
-        this.x = this.$ref('x');
-        this.y = this.$ref('y');
+        this.x = this.ref('x');
+        this.y = this.ref('y');
 
         // prints `x y default-value`
         console.log(this.x.$, this.y.$, this.pointer.$);
@@ -613,7 +613,7 @@ requested in special cases only.
 
 Example:
 ```javascript
-this.$create(new Watch, $ => {
+this.create(new Watch, $ => {
     $.model = variable;
     $.slot.insert(node => {
         // defines some node here

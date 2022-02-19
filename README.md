@@ -25,6 +25,10 @@
 npm install vasille --save
 ```
 
+### How to create the first project step by step
+
+[Read instruction here](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/GetStarted.md).
+
 ### CDN
 
 ```html
