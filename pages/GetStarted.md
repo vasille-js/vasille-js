@@ -27,7 +27,7 @@ npm init;
 All terminal commands:
 ```shell
 npm install --save vasille;
-npm install --save-dev webpack webpack-cli webpack-dev-server
+npm install --save-dev webpack webpack-cli webpack-dev-server;
 ```
 
 ### Step 3: Configure WebPack
@@ -348,77 +348,6 @@ class MyApp extends App {
         this.create(new Page, $ => $.slot.insert((node) => {
             // this text will be inserted in div node
             node.text('Welcome to Vasille demo');
-        }));
-    }
-}
-```
-
-### Predefined slot content
-
-The slot content can be predefined and replaced just in time. To predefine a lost content,
-is required to change the child component:
-```javascript
-import { Component, Slot } from "vasille";
-
-export class Page extends Component {
-    constructor() {
-        super();
-        // declare a slot
-        this.slot = new Slot;
-    }
-    
-    compose () {
-        this.tag("div", div => {
-            // insert the slot content here
-            slot.predefine(node => {
-                node.text("Predefined text");
-            }, div);
-        });
-    }
-}
-```
-
-## Sending data from child to parent using slots
-
-Use `release` or `predefine` methods to send data to parent slot handler, or predefined handler.
-
-```javascript
-import { Component, Slot } from "vasille";
-
-export class Page extends Component {
-    constructor() {
-        super();
-        // declare a slot
-        this.slot = new Slot;
-    }
-    
-    compose () {
-        this.tag("div", div => {
-            // sending data to parent here
-            slot.release(div, 'data1', 'data2', 123);
-        });
-    }
-}
-```
-
-<hr>
-
-Receiving data in parent node:
-```javascript
-import { App } from "vasille";
-import { Page } from "./Page.js";
-
-class MyApp extends App {
-
-    constructor () {
-        super(document.body);
-    }
-
-    compose () {
-        // add additional parameters to lambda function
-        this.create(new Page, $ => $.slot.insert((node, arg1, arg2, arg3) => {
-            // will print data1 data2 123
-            console.log(arg1, arg2, arg3);
         }));
     }
 }
