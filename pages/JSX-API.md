@@ -1,14 +1,38 @@
 # Vassile - High Level Procedural Composition Documentation
 
-To create a Vassile.js component, create a file with extension `.vc.js` or `.vc.ts` and 
+To create a Vasille.js component, create a file with extension `.vc.js` or `.vc.ts` and 
 define a template based on `App`, `Component`, `Fragment` or `Reactive`.
 
-Example:
+Example of app:
 
 ```typescript jsx
 import {App} from 'vcc';
 
-export default <App />;
+<App />;
+```
+
+Example of component:
+
+```typescript jsx
+import {Component} from 'vcc';
+
+<Component />;
+```
+
+Example of fragment:
+
+```typescript jsx
+import {Fragment} from 'vcc';
+
+<Fragment />;
+```
+
+Example of Reactive:
+
+```typescript jsx
+import {ref} from 'vcc';
+
+let field = ref(0);
 ```
 
 A `App` is a root of a Vasille application, it will be bounded to
@@ -42,7 +66,7 @@ let data = 3;
 // const data
 const pi = 3.14;
 
-export default <App />;
+<App />;
 ```
 
 ### Component properties
@@ -59,7 +83,7 @@ let bar = asset('default value');
 // A property with content value until component lifetime
 const foo2 = asset<number>();
 
-export default <App />;
+<App />;
 ```
 
 ### Computed properties (expressions)
@@ -96,10 +120,10 @@ let multilineExpression = expr<number>(() => {
 });
 
 // partial bind expression
-let z1 = expr<number>((x : number) => x + y); //< update only on x change
-let z2 = expr<number>((y : number) => x + y); //< update only on y change
+let z1 = expr<number>(() => x + y, [x]); //< update only on x change
+let z2 = expr<number>(() => x + y, [y]); //< update only on y change
 
-export default <App />;
+<App />;
 ```
 
 ### Methods (functions)
@@ -119,7 +143,7 @@ export function diff(a : number, b : number) : number {
     return a - b;
 }
 
-export default <App />;
+<App />;
 ```
 
 Any method is available outside of component.
@@ -129,32 +153,23 @@ Any method is available outside of component.
 The Vasille components has 4 hooks. The `created`
 hook is called when the component is created and properties are 
 initialized. The `mounted` hook is called when all elements defined in
-component are mounted. The `ready` hook is called when all elements 
-declared is component and installed to its slots are mounted. The
-`destroy` hook is called when component is destroyed.
+component are mounted. The`destroy` hook is called when component is destroyed.
 
 To define a hook just overwrite the method with its name.
 
 ```typescript jsx
 import {App} from 'vcc';
 
-function created() {
-    // write code here
-}
+// created hook
 
-function mounted() {
-    // write code here
-}
+<App />
 
-function ready() {
-    // write code here
-}
+// mounted hook
 
-function destroy() {
-    // write code here
-}
+<></>
 
-export default <App />;
+// destroy hook
+
 ```
 
 ### Events
@@ -169,11 +184,9 @@ import {App} from 'vcc';
 // declare event
 declare function myEvent(x: number, y: number);
 
-function mounted() {
-    myEvent(2, 3);
-}
+myEvent(2, 3);
 
-export default <App/>;
+<App/>;
 ```
 
 ### Watchers
@@ -202,15 +215,15 @@ watch(() => {
 });
 
 // Force partial watch
-watch((x: number) => {
+watch(() => {
     if (x < 0 && y < 0) {
         visible = false;
     } else {
         visible = true;
     }
-});
+}, [x]);
 
-export default <App />;
+<App />;
 ```
 
 ## HTML
@@ -223,7 +236,7 @@ Use JSX to define composition function:
 ```javascript
 import {App} from 'vcc';
 
-export default <App>
+<App>
     <div>
         <p>Some text here</p>
     </div>
@@ -237,7 +250,7 @@ Subcomponents must be imported.
 import {App} from 'vcc';
 import {MyComponent} from './MyComponent';
 
-export default <App>
+<App>
     <MyComponent />
 </App>;
 ```
@@ -250,7 +263,7 @@ Example:
 ```javascript
 import {App} from 'vcc';
 
-export default <App>
+<App>
     <div id="id" data-xcode="xcode1" expr-example={a + b}>
         <MyComponent prop1={"string value"} prop2={x + y} />
     </div>
@@ -262,11 +275,11 @@ export default <App>
 ```typescript jsx
 import {App} from 'vcc';
 
-export default <App>
+<App>
     <div 
         class="static-class" 
-        class={dynamicalClass} 
-        class={{ "conditionalClass": condition }} />
+        bind:class={dynamicalClass} 
+        class:conditionalClass={condition} />
 </App>;
 ```
 
@@ -279,11 +292,11 @@ import {App} from 'vcc';
 
 let h = 23;
 
-export default <App>
-    <div style={{
-        width: '3px',
-        height: h + 'px'
-    }}></div>
+<App>
+    <div 
+        style:width="3px" 
+        style:heigth.px={h}
+    ></div>
 </App>;
 ```
 
@@ -297,7 +310,7 @@ Examples:
 import {App} from 'vcc';
 import {MyComponent} from './MyComponent';
 
-export default <App>
+<App>
     <div 
         onmousedown={() => { /* code here */ }}
         onmousemove={ev => x = ev.clientX}
@@ -319,8 +332,8 @@ import {App} from 'vcc';
 
 let code = ref('<html>code</html>');
 
-export default <App>
-    <p bind:innerHTML={code}></p>
+<App>
+    <p bind:html={code}></p>
 </App>;
 ```
 
@@ -336,22 +349,22 @@ Examples:
 import {App} from 'vcc';
 import {MyComponent} from './MyComponent';
 
-let div!: HTMLElement;
-let sub!: MyComponent;
-let items!: Set<HTMLElement> = new Set;
+let div !: HTMLElement;
+let sub !: MyComponent;
+let items : Set<HTMLElement> = new Set;
 
-function mounted() {
-    console.log(div, sub, items);
-}
+console.log(div, sub); // All undefined, items.size == 0
 
-export default <App>
+<App>
     <div ref:set={div}></div>
-    <MyComponent ref:set={div}>
-        <p ref:add={items}></p>
-        <p ref:add={items}></p>
-        <p ref:add={items}></p>
+    <MyComponent ref:set={sub}>
+        <p ref.add={items}></p>
+        <p ref.add={items}></p>
+        <p ref.add={items}></p>
     </MyComponent>
-</App>;
+</App>
+
+console.log(div, sub); // All defined, items.size == 3
 ```
 
 ### Slots
@@ -362,11 +375,7 @@ Example:
 ```typescript jsx
 import {App} from 'vcc';
 
-const template = new App;
-let slot1 = $.slot();
-let slot2 = $.slot<number, number>();
-
-export default <App>
+<App>
     // defines some slots
     <slot>
         <div></div>
@@ -374,8 +383,8 @@ export default <App>
     <slot name="slot2" from={2} to={2}></slot>
     // example of using
     <Self 
-        slot:default={() => <div></div> /* inserts content to first slot */}
-        slot:slot2={(from, to) => `from: ${from}, to: ${to}` /* inserts content to second slot */}
+        default={<div></div> /* inserts content to first slot */}
+        slot2={(from, to) => `from: ${from}, to: ${to}` /* inserts content to second slot */}
     >
     </Self>
     // The short form
@@ -410,10 +419,10 @@ If-else has a condition and 2 callbacks, the first will be released when the
 condition is true, the second will be released when the condition is false.
 ```javascript
 if (condition) {
-    // ..
+    <div>{'this is a div'}</div>
 }
 else {
-    // ..
+    <span>{'this is a span'}</span>
 }
 ```
 
@@ -447,7 +456,7 @@ import {App, ArrayView, ArrayModel} from 'vcc';
 const model = new ArrayModel<string>();
 
 <App>
-    <ArrayView model={model} slot:item={(item: string, index: number) => {
+    <ArrayView model={model} item={(item: string, index: number) => {
         <li>{item}</li>
     }}></ArrayView>
 </App>;

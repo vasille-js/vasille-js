@@ -1486,8 +1486,8 @@ export class Component extends Extension {
         this.seal();
     }
 
-    public mounted () {
-        super.mounted();
+    public ready () {
+        super.ready();
 
         if (this.children.size !== 1) {
             throw userError("Component must have a child only", "dom-error");
