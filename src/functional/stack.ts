@@ -86,6 +86,7 @@ export function reactive<In, Out>(renderer: (opts : In) => Out, destroyed ?: (o 
         return out;
     }
 }
+
 export function tag<K extends keyof HTMLElementTagNameMap>(
     name : K,
     opts : TagOptionsWithSlot<HTMLElementTagNameMap[K]>,
