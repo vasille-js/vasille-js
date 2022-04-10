@@ -10,6 +10,7 @@ import { ListenableModel } from "./model";
 export class ObjectModel<T> extends Object implements ListenableModel<string, T> {
 
     public listener : Listener<T, string>;
+    public container : Record<string, T> = Object.create(null);
 
     /**
      * Constructs a object model
@@ -25,7 +26,7 @@ export class ObjectModel<T> extends Object implements ListenableModel<string, T>
         });
 
         for (const i in obj) {
-            Object.defineProperty(this, i, {
+            Object.defineProperty(this.container, i, {
                 value: obj[i],
                 configurable: true,
                 writable: true,
@@ -41,9 +42,7 @@ export class ObjectModel<T> extends Object implements ListenableModel<string, T>
      * @return {*}
      */
     public get (key : string) : T {
-        const ts = this as never as { [key : string] : T };
-
-        return ts[key];
+        return this.container[key];
     }
 
     /**
@@ -53,22 +52,19 @@ export class ObjectModel<T> extends Object implements ListenableModel<string, T>
      * @return {ObjectModel} a pointer to this
      */
     public set (key : string, v : T) : this {
-        const ts = this as never as { [key : string] : T };
-
-        // eslint-disable-next-line no-prototype-builtins
-        if (ts.hasOwnProperty(key)) {
-            this.listener.emitRemoved(key, ts[key]);
-            ts[key] = v;
+        if (Reflect.has(this.container, key)) {
+            this.listener.emitRemoved(key, this.container[key]);
+            this.container[key] = v;
         }
         else {
-            Object.defineProperty(ts, key, {
+            Object.defineProperty(this.container, key, {
                 value: v,
                 configurable: true,
                 writable: true,
                 enumerable: true
             });
         }
-        this.listener.emitAdded(key, ts[key]);
+        this.listener.emitAdded(key, this.container[key]);
 
         return this;
     }
@@ -78,12 +74,29 @@ export class ObjectModel<T> extends Object implements ListenableModel<string, T>
      * @param key {string} property name
      */
     public delete (key : string) {
-        const ts = this as never as { [key : string] : T };
-
-        if (ts[key]) {
-            this.listener.emitRemoved(key, ts[key]);
-            delete ts[key];
+        if (this.container[key]) {
+            this.listener.emitRemoved(key, this.container[key]);
+            delete this.container[key];
         }
+    }
+
+    public proxy() {
+        return new Proxy(this, {
+            get(target: ObjectModel<T>, p: string): T {
+                return target.get(p);
+            },
+            set(target: ObjectModel<T>, p: string, value: T): boolean {
+                target.set(p, value);
+                return true;
+            },
+            deleteProperty(target: ObjectModel<T>, p: string): boolean {
+                target.delete(p);
+                return true;
+            },
+            ownKeys(target: ObjectModel<T>): ArrayLike<string | symbol> {
+                return Reflect.ownKeys(target.container);
+            }
+        });
     }
 
     public enableReactivity () {

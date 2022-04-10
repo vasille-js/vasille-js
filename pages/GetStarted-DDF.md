@@ -63,7 +63,7 @@ export default app(() => {
     // компонент готов, запланируем изменения данных через 10 секунд
     setTimeout(() => {
         setValue(helloText, "The world say hello to you too.")
-    });
+    }, 10 * 1000);
 })
 ```
 
@@ -256,11 +256,11 @@ export default app(() => {
 А теперь создадим список на основе массива данных:
 
 ```typescript
-import {ArrayModel, tag, v} from "vasille";
+import {arrayModel, tag, v} from "vasille";
 
 export default app(() => {
     // тут объязательно нужны не просто данные, а именно модели: ArrayModel, SetModel, MapModel, ObjectModel
-    const arr = new ArrayModel(["one", "two", "three"]);
+    const arr = new arrayModel(["one", "two", "three"]);
 
     tag("ul", {}, () => {
         v.for(arr, value => {

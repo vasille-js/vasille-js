@@ -252,6 +252,7 @@ export class Fragment<T extends Options = Options> extends Reactive {
     /**
      * Defines a custom element
      * @param node {Fragment} vasille element to insert
+     * @param input
      * @param callback {function($ : *)}
      */
     public create<T extends Fragment> (
@@ -515,97 +516,6 @@ export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
         const attr = new AttributeBinding(this, name, value);
 
         $.bindings.add(attr);
-    }
-
-    /**
-     * Creates and binds a multivalued binding to attribute
-     * @param name {String} The name of attribute
-     * @param calculator {Function} Binding calculator (must return a value)
-     * @param v1 {*} argument
-     * @param v2 {*} argument
-     * @param v3 {*} argument
-     * @param v4 {*} argument
-     * @param v5 {*} argument
-     * @param v6 {*} argument
-     * @param v7 {*} argument
-     * @param v8 {*} argument
-     * @param v9 {*} argument
-     * @return {INode} A pointer to this
-     */
-    public bindAttr<T1> (
-        name : string,
-        calculator : (a1 : T1) => string,
-        v1 : IValue<T1>, v2 ?: IValue<void>, v3 ?: IValue<void>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : void
-    public bindAttr<T1, T2> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 ?: IValue<void>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : void
-    public bindAttr<T1, T2, T3> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : void
-    public bindAttr<T1, T2, T3, T4> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3, a4 : T4) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : void
-    public bindAttr<T1, T2, T3, T4, T5> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : void
-    public bindAttr<T1, T2, T3, T4, T5, T6> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : void
-    public bindAttr<T1, T2, T3, T4, T5, T6, T7> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : void
-    public bindAttr<T1, T2, T3, T4, T5, T6, T7, T8> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 ?: IValue<void>,
-    ) : void
-    public bindAttr<T1, T2, T3, T4, T5, T6, T7, T8, T9> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8, a9 : T9) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
-    ) : void
-    public bindAttr<T1, T2, T3, T4, T5, T6, T7, T8, T9> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8, a9 : T9) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
-    ) : void {
-        const $ : INodePrivate = this.$;
-        const expr = this.expr(calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
-
-        $.bindings.add(new AttributeBinding(this, name, expr));
     }
 
     /**
