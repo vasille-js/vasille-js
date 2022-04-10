@@ -1,13 +1,26 @@
 import { Destroyable } from "./destroyable.js";
 import { wrongBinding } from "./errors";
 import { IValue, Switchable } from "./ivalue.js";
-import { Expression } from "../value/expression";
+import { Expression, KindOfIValue } from "../value/expression";
 import { Reference } from "../value/reference";
 import { Pointer } from "../value/pointer";
 import { Mirror } from "../value/mirror";
 import { IModel } from "../models/model";
+import { Options } from "../functional/options";
 
 
+
+export let current : Reactive | null = null;
+const currentStack : (Reactive | null)[] = [];
+
+function stack(node : Reactive) {
+    currentStack.push(current);
+    current = node;
+}
+
+function unstack() {
+    current = currentStack.pop();
+}
 
 /**
  * Private stuff of a reactive object
@@ -48,7 +61,15 @@ export class ReactivePrivate extends Destroyable {
      * An expression which will freeze/unfreeze the object
      * @type {IValue<void>}
      */
-    public freezeExpr : Expression<void, boolean>;
+    public freezeExpr : Expression<void, [boolean]>;
+
+    /**
+     * Parent node
+     * @type {Reactive}
+     */
+    public parent : Reactive;
+
+    public onDestroy ?: () => void;
 
     constructor () {
         super ();
@@ -65,7 +86,8 @@ export class ReactivePrivate extends Destroyable {
         this.models.forEach(model => model.disableReactivity());
         this.models.clear();
 
-        this.freezeExpr?.destroy();
+        this.freezeExpr && this.freezeExpr.destroy();
+        this.onDestroy && this.onDestroy();
         super.destroy ();
     }
 }
@@ -75,16 +97,26 @@ export class ReactivePrivate extends Destroyable {
  * @class Reactive
  * @extends Destroyable
  */
-export class Reactive extends Destroyable {
+export class Reactive<T extends Options = Options> extends Destroyable {
     /**
      * Private stuff
      * @protected
      */
     protected $ : ReactivePrivate;
 
+    input !: T;
+
     public constructor ($ ?: ReactivePrivate) {
         super ();
         this.$ = $ || new ReactivePrivate;
+        this.seal();
+    }
+
+    /**
+     * Get parent node
+     */
+    get parent () : Reactive {
+        return this.$.parent;
     }
 
     /**
@@ -142,158 +174,34 @@ export class Reactive extends Destroyable {
         return model;
     }
 
+    public autodestroy(data : Destroyable) {
+        this.$.bindings.add(data);
+    }
+
     /**
      * Creates a watcher
      * @param func {function} function to run on any argument change
-     * @param v1 {IValue} argument
-     * @param v2 {IValue} argument
-     * @param v3 {IValue} argument
-     * @param v4 {IValue} argument
-     * @param v5 {IValue} argument
-     * @param v6 {IValue} argument
-     * @param v7 {IValue} argument
-     * @param v8 {IValue} argument
-     * @param v9 {IValue} argument
+     * @param values
      */
-    public watch<T1> (
-        func : (a1 : T1) => void,
-        v1 : IValue<T1>, v2 ?: IValue<void>, v3 ?: IValue<void>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
-    public watch<T1, T2> (
-        func : (a1 : T1, a2 : T2) => void,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 ?: IValue<void>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
-    public watch<T1, T2, T3> (
-        func : (a1 : T1, a2 : T2, a3 : T3) => void,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
-    public watch<T1, T2, T3, T4> (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4) => void,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
-    public watch<T1, T2, T3, T4, T5> (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5) => void,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
-    public watch<T1, T2, T3, T4, T5, T6> (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6) => void,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
-    public watch<T1, T2, T3, T4, T5, T6, T7> (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7) => void,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
-    public watch<T1, T2, T3, T4, T5, T6, T7 , T8> (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8) => void,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 ?: IValue<void>,
-    )
-    public watch<T1, T2, T3, T4, T5, T6, T7 , T8, T9> (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8, a9 : T9) => void,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
-    )
-    public watch<T1, T2, T3, T4, T5, T6, T7 , T8, T9> (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8, a9 : T9) => void,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
+    public watch<Args extends unknown[]> (
+        func : (...args : Args) => void,
+        ...values : KindOfIValue<Args>
     ) {
         const $ : ReactivePrivate = this.$;
-        $.watch.add (new Expression (func, !this.$.frozen, v1, v2, v3, v4, v5, v6, v7, v8, v9));
+        $.watch.add (new Expression (func, !this.$.frozen, ...values));
     }
 
     /**
      * Creates a computed value
      * @param func {function} function to run on any argument change
-     * @param v1 {IValue} argument
-     * @param v2 {IValue} argument
-     * @param v3 {IValue} argument
-     * @param v4 {IValue} argument
-     * @param v5 {IValue} argument
-     * @param v6 {IValue} argument
-     * @param v7 {IValue} argument
-     * @param v8 {IValue} argument
-     * @param v9 {IValue} argument
+     * @param values
      * @return {IValue} the created ivalue
      */
-    public bind<T, T1> (
-        func : (a1 : T1) => T,
-        v1 : IValue<T1>, v2 ?: IValue<void>, v3 ?: IValue<void>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : IValue<T>
-    public bind<T, T1, T2> (
-        func : (a1 : T1, a2 : T2) => T,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 ?: IValue<void>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : IValue<T>
-    public bind<T, T1, T2, T3> (
-        func : (a1 : T1, a2 : T2, a3 : T3) => T,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : IValue<T>
-    public bind<T, T1, T2, T3, T4> (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4) => T,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : IValue<T>
-    public bind<T, T1, T2, T3, T4, T5> (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5) => T,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : IValue<T>
-    public bind<T, T1, T2, T3, T4, T5, T6> (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6) => T,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : IValue<T>
-    public bind<T, T1, T2, T3, T4, T5, T6, T7> (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7) => T,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : IValue<T>
-    public bind<T, T1, T2, T3, T4, T5, T6, T7 , T8> (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8) => T,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 ?: IValue<void>,
-    ) : IValue<T>
-    public bind<T, T1, T2, T3, T4, T5, T6, T7 , T8, T9> (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8, a9 : T9) => T,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
-    ) : IValue<T>
-    public bind<T, T1, T2, T3, T4, T5, T6, T7 , T8, T9> (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8, a9 : T9) => T,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
+    public expr<T, Args extends unknown[]> (
+        func : (...args: Args) => T,
+        ...values : KindOfIValue<Args>
     ) : IValue<T> {
-        const res : IValue<T> = new Expression (func, !this.$.frozen, v1, v2, v3, v4, v5, v6, v7, v8, v9);
+        const res : IValue<T> = new Expression (func, !this.$.frozen, ...values);
         const $ : ReactivePrivate = this.$;
 
         $.watch.add (res);
@@ -364,6 +272,34 @@ export class Reactive extends Destroyable {
         }, true, cond);
 
         return this;
+    }
+
+    public init(input : T) {
+        this.applyOptions(input);
+        this.compose(input);
+    }
+
+    protected applyOptions(input : T) {
+        // empty
+    }
+
+    protected compose (input : T) {
+        // empty
+    }
+
+    public runFunctional<F extends (...args : any) => any>(f : F, ...args : Parameters<F>) : ReturnType<F> {
+        stack(this);
+        // yet another ts bug
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const result = f(...args);
+        unstack();
+
+        return result;
+    }
+
+    public runOnDestroy(func : () => void) {
+        this.$.onDestroy = func;
     }
 
     public destroy () {

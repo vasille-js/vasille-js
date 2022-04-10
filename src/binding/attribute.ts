@@ -25,10 +25,10 @@ export class AttributeBinding extends Binding<string> {
 
         this.init((value : string) => {
             if (value) {
-                node.app.run.setAttribute(node.node, name, value);
+                node.node.setAttribute(name, value);
             }
             else {
-                node.app.run.removeAttribute(node.node, name);
+                node.node.removeAttribute(name);
             }
         });
         this.seal();

@@ -1,4 +1,4 @@
-import { RepeatNode, RepeatNodePrivate } from "./repeat-node";
+import { RepeatNode, RepeatNodePrivate, RNO } from "./repeat-node";
 import { ListenableModel } from "../models/model";
 
 
@@ -27,56 +27,43 @@ export class BaseViewPrivate<K, T> extends RepeatNodePrivate<K> {
     }
 }
 
+export interface BSO<K, T, Model extends ListenableModel<K, T>> extends RNO<T, K> {
+    model : Model;
+}
+
 /**
  * Base class of default views
  * @class BaseView
  * @extends RepeatNode
  * @implements IModel
  */
-export class BaseView<K, T, Model extends ListenableModel<K, T>> extends RepeatNode<K, T> {
+export class BaseView<K, T, Model extends ListenableModel<K, T>> extends RepeatNode<K, T, BSO<K, T, Model>> {
 
     protected $ : BaseViewPrivate<K, T>;
 
-    /**
-     * Property which will contain a model
-     * @type {IModel}
-     */
-    public model : Model;
+    input !: BSO<K, T, Model>;
 
-    public constructor ($1 ?: BaseViewPrivate<K, T>) {
-        super($1 || new BaseViewPrivate);
+    public constructor ($ ?: BaseViewPrivate<K, T>) {
+        super($ || new BaseViewPrivate);
+    }
+
+    protected compose(input: BSO<K, T, Model>) {
+        super.compose(input);
 
         const $ : BaseViewPrivate<K, T> = this.$;
         $.addHandler = (id, item) => {
-            this.createChild(id, item);
+            this.createChild(input, id, item);
         };
         $.removeHandler = (id, item) => {
             this.destroyChild(id, item);
         };
 
-        this.seal();
-    }
+        input.model.listener.onAdd($.addHandler);
+        input.model.listener.onRemove($.removeHandler);
 
-
-    /**
-     * Handle ready event
-     */
-    public ready () {
-        const $ : BaseViewPrivate<K, T> = this.$;
-
-        this.model.listener.onAdd($.addHandler);
-        this.model.listener.onRemove($.removeHandler);
-        super.ready();
-    }
-
-    /**
-     * Handles destroy event
-     */
-    public destroy () {
-        const $ : BaseViewPrivate<K, T> = this.$;
-
-        this.model.listener.offAdd($.addHandler);
-        this.model.listener.offRemove($.removeHandler);
-        super.destroy();
+        this.runOnDestroy(() => {
+            input.model.listener.offAdd($.addHandler);
+            input.model.listener.offRemove($.removeHandler);
+        });
     }
 }

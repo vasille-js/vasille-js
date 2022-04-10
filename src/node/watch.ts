@@ -1,42 +1,29 @@
 import { Fragment } from "./node";
-import { Slot } from "../core/slot";
 import { IValue } from "../core/ivalue";
+import { Options } from "../functional/options";
 
+interface WatchOptions<T> extends Options {
+    model : IValue<T>
+    slot ?: (node : Fragment, value : T) => void;
+}
 /**
  * Watch Node
  * @class Watch
  * @extends Fragment
  */
-export class Watch<T> extends Fragment {
-    /**
-     * Default slot
-     * @type Slot
-     */
-    public slot : Slot<Fragment, T>;
-    /**
-     * iValue to watch
-     * @type IValue
-     */
-    public model : IValue<T>;
+export class Watch<T> extends Fragment<WatchOptions<T>> {
 
-    public constructor () {
-        super ();
-        this.slot = new Slot;
-        this.model = this.ref(null);
-        this.seal ();
-    }
+    input !: WatchOptions<T>
 
-    public createWatchers () {
+    public compose (input : WatchOptions<T>) {
         this.watch((value) => {
             this.children.forEach(child => {
                 child.destroy();
             });
             this.children.clear();
-            this.slot.release(this, value);
-        }, this.model);
-    }
+            input.slot && input.slot(this, value);
+        }, input.model);
 
-    public compose () {
-        this.slot.release(this, this.model.$);
+        input.slot(this, input.model.$);
     }
 }

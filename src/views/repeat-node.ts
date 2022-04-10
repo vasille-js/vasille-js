@@ -1,6 +1,5 @@
-import { Fragment, FragmentPrivate, INodePrivate } from "../node/node";
-import { Slot } from "../core/slot";
-import { timeoutExecutor } from "../core/executor";
+import { Fragment, INodePrivate } from "../node/node";
+import { Options } from "../functional/options";
 
 
 
@@ -27,18 +26,18 @@ export class RepeatNodePrivate<IdT> extends INodePrivate {
     }
 }
 
+// RNO = RepeatNodeOptions
+export interface RNO<T, IdT> extends Options {
+    slot ?: (node : Fragment, value : T, index : IdT) => void
+}
+
 /**
  * Repeat node repeats its children
  * @class RepeatNode
  * @extends Fragment
  */
-export class RepeatNode<IdT, T> extends Fragment {
+export class RepeatNode<IdT, T, Opts extends RNO<T, IdT> = RNO<T, IdT>> extends Fragment<Opts> {
     protected $ : RepeatNodePrivate<IdT>;
-
-    /**
-     * Default slot
-     */
-    public slot : Slot<Fragment, T, IdT>;
 
     /**
      * If false will use timeout executor, otherwise the app executor
@@ -47,12 +46,9 @@ export class RepeatNode<IdT, T> extends Fragment {
 
     public constructor ($ ?: RepeatNodePrivate<IdT>) {
         super($ || new RepeatNodePrivate);
-
-        this.slot = new Slot;
     }
 
-    public createChild (id : IdT, item : T, before ?: Fragment) : any {
-        // TODO: Refactor: remove @ts-ignore
+    public createChild (opts : Opts, id : IdT, item : T, before ?: Fragment) : any {
 
         const node = new Fragment();
 
@@ -73,19 +69,10 @@ export class RepeatNode<IdT, T> extends Fragment {
 
         this.lastChild = node;
         node.preinit(this.$.app, this);
-        node.init();
+        node.init({});
 
-        const callback = () => {
-            this.slot.release(node, item, id);
-            node.ready();
-        };
-
-        if (this.freezeUi) {
-            this.$.app.run.callCallback(callback);
-        }
-        else {
-            timeoutExecutor.callCallback(callback);
-        }
+        opts.slot && opts.slot(node, item, id);
+        node.ready();
 
         this.$.nodes.set(id, node);
     }

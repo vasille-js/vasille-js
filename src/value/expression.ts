@@ -2,35 +2,26 @@ import { Reference } from "./reference.js";
 import { IValue } from "../core/ivalue";
 
 
+
+export type KindOfIValue<T extends unknown[]> = { [K in keyof T]: IValue<T[K]> };
+
 /**
  * Bind some values to one expression
  * @class Expression
  * @extends IValue
  */
-export class Expression<
-    T, T1 = void, T2 = void, T3 = void, T4 = void, T5 = void, T6 = void, T7 = void, T8 = void, T9 = void
-> extends IValue<T> {
+export class Expression<T, Args extends unknown[]> extends IValue<T> {
     /**
      * The array of value which will trigger recalculation
      * @type {Array}
      */
-    private values : [
-        IValue<T1>,
-        IValue<T2>,
-        IValue<T3>,
-        IValue<T4>,
-        IValue<T5>,
-        IValue<T6>,
-        IValue<T7>,
-        IValue<T8>,
-        IValue<T9>
-    ];
+    private values : KindOfIValue<Args>;
 
     /**
      * Cache the values of expression variables
      * @type {Array}
      */
-    private readonly valuesCache : [T1, T2, T3, T4, T5, T6, T7, T8, T9];
+    private readonly valuesCache : Args;
 
     /**
      * The function which will be executed on recalculation
@@ -50,89 +41,15 @@ export class Expression<
     /**
      * Creates a function bounded to N values
      * @param func {Function} the function to bound
+     * @param values
      * @param link {Boolean} links immediately if true
-     * @param v1 {*} argument
-     * @param v2 {*} argument
-     * @param v3 {*} argument
-     * @param v4 {*} argument
-     * @param v5 {*} argument
-     * @param v6 {*} argument
-     * @param v7 {*} argument
-     * @param v8 {*} argument
-     * @param v9 {*} argument
      */
     public constructor (
-        func : (a1 : T1) => T,
+        func : (...args: Args) => T,
         link : boolean,
-        v1 : IValue<T1>, v2 ?: IValue<void>, v3 ?: IValue<void>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
-    public constructor (
-        func : (a1 : T1, a2 : T2) => T,
-        link : boolean,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 ?: IValue<void>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
-    public constructor (
-        func : (a1 : T1, a2 : T2, a3 : T3) => T,
-        link : boolean,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
-    public constructor (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4) => T,
-        link : boolean,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
-    public constructor (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5) => T,
-        link : boolean,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
-    public constructor (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6) => T,
-        link : boolean,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
-    public constructor (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7) => T,
-        link : boolean,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    )
-    public constructor (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8) => T,
-        link : boolean,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 ?: IValue<void>,
-    )
-    public constructor (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8, a9 : T9) => T,
-        link : boolean,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
-    )
-    public constructor (
-        func : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8, a9 : T9) => T,
-        link : boolean,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
+        ...values : KindOfIValue<Args>
     ) {
         super (false);
-        const values = [v1, v2, v3, v4, v5, v6, v7, v8, v9].filter(v => v instanceof IValue);
         const handler = (i ? : number) => {
             if (i != null) {
                 this.valuesCache[i] = this.values[i].$;
@@ -140,9 +57,10 @@ export class Expression<
             this.sync.$ = func.apply (this, this.valuesCache);
         };
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this.valuesCache = values.map (iValue => iValue.$);
+        for (let i = 0; i < values.length; i++) {
+            this.valuesCache[i] = values[i].$;
+        }
+
         this.sync = new Reference(func.apply (this, this.valuesCache));
 
         let i = 0;
@@ -150,8 +68,6 @@ export class Expression<
             this.linkedFunc.push (handler.bind (this, Number (i++)));
         });
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         this.values = values;
         this.func = handler;
 

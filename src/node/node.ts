@@ -1,12 +1,13 @@
 import { Reactive, ReactivePrivate } from "../core/core";
 import { IValue } from "../core/ivalue";
 import { Reference } from "../value/reference";
-import { Expression } from "../value/expression";
+import { Expression, KindOfIValue } from "../value/expression";
 import { AttributeBinding } from "../binding/attribute";
 import { StaticClassBinding, DynamicalClassBinding } from "../binding/class";
 import { StyleBinding } from "../binding/style";
 import { internalError, userError } from "../core/errors";
 import type { AppNode } from "./app";
+import { Options, TagOptions } from "../functional/options";
 
 
 
@@ -70,7 +71,7 @@ export class FragmentPrivate extends ReactivePrivate {
  * This class is symbolic
  * @extends Reactive
  */
-export class Fragment extends Reactive {
+export class Fragment<T extends Options = Options> extends Reactive {
 
     /**
      * Private part
@@ -83,7 +84,7 @@ export class Fragment extends Reactive {
      * @type Array
      */
     public children : Set<Fragment> = new Set;
-    public lastChild = null;
+    public lastChild : Fragment | null = null;
 
     /**
      * Constructs a Vasille Node
@@ -112,42 +113,8 @@ export class Fragment extends Reactive {
         $.preinit(app, parent);
     }
 
-    /**
-     * Initialize node
-     */
-    public init () : this {
-
-        this.createWatchers();
-
-        this.created();
-        this.compose();
-        this.mounted();
-
-        return this;
-    }
-
-    /** To be overloaded: created event handler */
-    public created () {
-        // empty
-    }
-
-    /** To be overloaded: mounted event handler */
-    public mounted () {
-        // empty
-    }
-
     /** To be overloaded: ready event handler */
     public ready () {
-        // empty
-    }
-
-    /** To be overloaded: watchers creation milestone */
-    public createWatchers () {
-        // empty
-    }
-
-    /** To be overloaded: DOM creation milestone */
-    public compose () {
         // empty
     }
 
@@ -205,7 +172,7 @@ export class Fragment extends Reactive {
         const $ : FragmentPrivate = this.$;
 
         if (child) {
-            $.app.run.insertBefore(child, node);
+            child.parentElement.insertBefore(node, child);
         }
         else if ($.next) {
             $.next.insertAdjacent(node);
@@ -231,11 +198,7 @@ export class Fragment extends Reactive {
         node.preinit($.app, this, textValue);
         this.pushNode(node);
 
-        if (cb) {
-            $.app.run.callCallback(() => {
-                cb(node);
-            });
-        }
+        cb && cb(node);
     }
 
     public debug(text : IValue<string>) : this {
@@ -251,64 +214,60 @@ export class Fragment extends Reactive {
     /**
      * Defines a tag element
      * @param tagName {String} the tag name
+     * @param input
      * @param cb {function(Tag, *)} callback
      */
     public tag<K extends keyof HTMLElementTagNameMap>(
         tagName : K,
-        cb ?: (node : Tag, element : HTMLElementTagNameMap[K]) => void
-    ) : void
+        input : TagOptionsWithSlot<HTMLElementTagNameMap[K]>,
+        cb ?: TagOptionsWithSlot<HTMLElementTagNameMap[K]>['slot']
+    ) : HTMLElementTagNameMap[K]
     public tag<K extends keyof SVGElementTagNameMap>(
         tagName : K,
-        cb ?: (node : Tag, element : SVGElementTagNameMap[K]) => void
-    ) : void
+        input : TagOptionsWithSlot<SVGElementTagNameMap[K]>,
+        cb ?: TagOptionsWithSlot<SVGElementTagNameMap[K]>['slot']
+    ) : SVGElementTagNameMap[K]
     public tag(
         tagName : string,
-        cb ?: (node : Tag, element : Element) => void
-    ) : void
+        input : TagOptionsWithSlot<Element>,
+        cb ?: TagOptionsWithSlot<Element>['slot']
+    ) : Element
     public tag<T extends Element>(
         tagName : string,
-        cb ?: (node : Tag, element : T) => void
-    ) : void {
+        input : TagOptionsWithSlot<T>,
+        cb ?: TagOptionsWithSlot<T>['slot']
+    ) : T {
         const $ : FragmentPrivate = this.$;
         const node = new Tag();
 
+        input.slot = cb;
         node.preinit($.app, this, tagName);
-        node.init();
+        node.init(input);
         this.pushNode(node);
+        node.ready();
 
-        $.app.run.callCallback(() => {
-            if (cb) {
-                cb(node, node.node as T);
-            }
-            node.ready();
-        });
+        return node.node as T;
     }
 
     /**
      * Defines a custom element
      * @param node {Fragment} vasille element to insert
      * @param callback {function($ : *)}
-     * @param callback1 {function($ : *)}
      */
     public create<T extends Fragment> (
         node : T,
-        callback ?: ($ : T) => void,
-        callback1 ?: ($ : T) => void
+        input : T['input'],
+        callback ?: T['input']['slot']
     ) : void {
         const $ : FragmentPrivate = this.$;
 
+
         node.$.parent = this;
         node.preinit($.app, this);
-
-        if (callback) {
-            callback(node);
-        }
-        if (callback1) {
-            callback1(node);
-        }
-
+        if (callback) input.slot = callback;
         this.pushNode(node);
-        node.init().ready();
+        node.init(input);
+        node.ready();
     }
 
     /**
@@ -320,42 +279,35 @@ export class Fragment extends Reactive {
     public if (
         cond : IValue<boolean>,
         cb : (node : Fragment) => void
-    ) : this {
-        return this.switch({ cond, cb });
-    }
-
-    /**
-     * Defines a if-else node
-     * @param ifCond {IValue} `if` condition
-     * @param ifCb {function(Fragment)} Call-back to create `if` child nodes
-     * @param elseCb {function(Fragment)} Call-back to create `else` child nodes
-     */
-    public if_else (
-        ifCond : IValue<boolean>,
-        ifCb : (node : Fragment) => void,
-        elseCb : (node : Fragment) => void
-    ) : this {
-        return this.switch({ cond : ifCond, cb : ifCb }, { cond : trueIValue, cb : elseCb });
-    }
-
-    /**
-     * Defines a switch nodes: Will break after first true condition
-     * @param cases {...{ cond : IValue, cb : function(Fragment) }} cases
-     * @return {INode}
-     */
-    public switch (
-        ...cases : Array<{ cond : IValue<boolean>, cb : (node : Fragment) => void }>
-    ) : this {
-        const $ : FragmentPrivate = this.$;
+    ) {
         const node = new SwitchedNode();
 
-        node.preinit($.app, this);
-        node.init();
+        node.preinit(this.$.app, this);
+        node.init({});
         this.pushNode(node);
-        node.setCases(cases);
+        node.addCase(this.case(cond, cb));
         node.ready();
+    }
 
-        return this;
+    public else (cb : (node : Fragment) => void) {
+        if (this.lastChild instanceof SwitchedNode) {
+            this.lastChild.addCase(this.default(cb));
+        }
+        else {
+            throw 'wrong `else` function use';
+        }
+    }
+
+    public elif (
+        cond : IValue<boolean>,
+        cb : (node : Fragment) => void
+    ) {
+        if (this.lastChild instanceof SwitchedNode) {
+            this.lastChild.addCase(this.case(cond, cb));
+        }
+        else {
+            throw 'wrong `elif` function use';
+        }
     }
 
     /**
@@ -441,6 +393,7 @@ export class TextNodePrivate extends FragmentPrivate {
     /**
      * Pre-initializes a text node
      * @param app {AppNode} the app node
+     * @param parent
      * @param text {IValue}
      */
     public preinitText (
@@ -533,7 +486,7 @@ export class INodePrivate extends FragmentPrivate {
  * @class INode
  * @extends Fragment
  */
-export class INode extends Fragment {
+export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
     protected $ : INodePrivate;
 
     /**
@@ -550,32 +503,6 @@ export class INode extends Fragment {
      */
     get node () : Element {
         return this.$.node;
-    }
-
-    /**
-     * Initialize node
-     */
-    public init () : this {
-
-        this.createWatchers();
-        this.createAttrs();
-        this.createStyle();
-
-        this.created();
-        this.compose();
-        this.mounted();
-
-        return this;
-    }
-
-    /** To be overloaded: attributes creation milestone */
-    public createAttrs () {
-        // empty
-    }
-
-    /** To be overloaded: $style attributes creation milestone */
-    public createStyle () {
-        // empty
     }
 
     /**
@@ -676,7 +603,7 @@ export class INode extends Fragment {
         v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
     ) : void {
         const $ : INodePrivate = this.$;
-        const expr = this.bind(calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
+        const expr = this.expr(calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
 
         $.bindings.add(new AttributeBinding(this, name, expr));
     }
@@ -687,7 +614,7 @@ export class INode extends Fragment {
      * @param value {string} value
      */
     public setAttr (name : string, value : string) : this {
-        this.$.app.run.setAttribute(this.$.node, name, value);
+        this.$.node.setAttribute(name, value);
         return this;
     }
 
@@ -696,7 +623,7 @@ export class INode extends Fragment {
      * @param cl {string} Class name
      */
     public addClass (cl : string) : this {
-        this.$.app.run.addClass(this.$.node, cl);
+        this.$.node.classList.add(cl);
         return this;
     }
 
@@ -705,9 +632,7 @@ export class INode extends Fragment {
      * @param cls {...string} classes names
      */
     public addClasses (...cls : Array<string>) : this {
-        cls.forEach(cl => {
-            this.$.app.run.addClass(this.$.node, cl);
-        });
+        this.$.node.classList.add(...cls);
         return this;
     }
 
@@ -755,89 +680,16 @@ export class INode extends Fragment {
      * Binds style property value
      * @param name {string} name of style attribute
      * @param calculator {function} calculator for style value
-     * @param v1 {*} argument
-     * @param v2 {*} argument
-     * @param v3 {*} argument
-     * @param v4 {*} argument
-     * @param v5 {*} argument
-     * @param v6 {*} argument
-     * @param v7 {*} argument
-     * @param v8 {*} argument
-     * @param v9 {*} argument
+     * @param values
      */
-    public bindStyle<T1> (
+    public bindStyle<T, Args extends unknown[]> (
         name : string,
-        calculator : (a1 : T1) => string,
-        v1 : IValue<T1>, v2 ?: IValue<void>, v3 ?: IValue<void>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : this
-    public bindStyle<T1, T2> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 ?: IValue<void>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : this
-    public bindStyle<T1, T2, T3> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 ?: IValue<void>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : this
-    public bindStyle<T1, T2, T3, T4> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3, a4 : T4) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 ?: IValue<void>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : this
-    public bindStyle<T1, T2, T3, T4, T5> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 ?: IValue<void>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : this
-    public bindStyle<T1, T2, T3, T4, T5, T6> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 ?: IValue<void>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : this
-    public bindStyle<T1, T2, T3, T4, T5, T6, T7> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 ?: IValue<void>, v9 ?: IValue<void>,
-    ) : this
-    public bindStyle<T1, T2, T3, T4, T5, T6, T7, T8> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 ?: IValue<void>,
-    ) : this
-    public bindStyle<T1, T2, T3, T4, T5, T6, T7, T8, T9> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8, a9 : T9) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
-    ) : this
-    public bindStyle<T1, T2, T3, T4, T5, T6, T7, T8, T9> (
-        name : string,
-        calculator : (a1 : T1, a2 : T2, a3 : T3, a4 : T4, a5 : T5, a6 : T6, a7 : T7, a8 : T8, a9 : T9) => string,
-        v1 : IValue<T1>, v2 : IValue<T2>, v3 : IValue<T3>,
-        v4 : IValue<T4>, v5 : IValue<T5>, v6 : IValue<T6>,
-        v7 : IValue<T7>, v8 : IValue<T8>, v9 : IValue<T9>,
+        calculator : (...args : Args) => string,
+        ...values : KindOfIValue<Args>
     ) : this {
         const $ : INodePrivate = this.$;
-        const expr = this.bind<string, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
-            calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
+        const expr = this.expr<string, Args>(
+            calculator, ...values);
 
         if ($.node instanceof HTMLElement) {
             $.bindings.add(new StyleBinding(this, name, expr));
@@ -858,10 +710,10 @@ export class INode extends Fragment {
         value : string
     ) : this {
         if (this.$.node instanceof HTMLElement) {
-            this.$.app.run.setStyle(this.$.node, prop, value);
+            this.$.node.style.setProperty(prop, value);
         }
         else {
-            throw userError("Style can be setted for HTML elements only", "non-html-element");
+            throw userError("Style can be set for HTML elements only", "non-html-element");
         }
         return this;
     }
@@ -881,442 +733,8 @@ export class INode extends Fragment {
         return this;
     }
 
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    public oncontextmenu (handler : (ev : MouseEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("contextmenu", handler, options);
-    }
-
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    public onmousedown (handler : (ev : MouseEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("mousedown", handler, options);
-    }
-
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    public onmouseenter (handler : (ev : MouseEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("mouseenter", handler, options);
-    }
-
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    public onmouseleave (handler : (ev : MouseEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("mouseleave", handler, options);
-    }
-
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    public onmousemove (handler : (ev : MouseEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("mousemove", handler, options);
-    }
-
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    public onmouseout (handler : (ev : MouseEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("mouseout", handler, options);
-    }
-
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    public onmouseover (handler : (ev : MouseEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("mouseover", handler, options);
-    }
-
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    public onmouseup (handler : (ev : MouseEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("mouseup", handler, options);
-    }
-
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    public onclick (handler : (ev : MouseEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("click", handler, options);
-    }
-
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    public ondblclick (handler : (ev : MouseEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("dblclick", handler, options);
-    }
-
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    public onblur (handler : (ev : FocusEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("blur", handler, options);
-    }
-
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    public onfocus (handler : (ev : FocusEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("focus", handler, options);
-    }
-
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    public onfocusin (handler : (ev : FocusEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("focusin", handler, options);
-    }
-
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    public onfocusout (handler : (ev : FocusEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("focusout", handler, options);
-    }
-
-    /**
-     * @param handler {function (KeyboardEvent)}
-     * @param options {Object | boolean}
-     */
-    public onkeydown (handler : (ev : KeyboardEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("keydown", handler, options);
-    }
-
-    /**
-     * @param handler {function (KeyboardEvent)}
-     * @param options {Object | boolean}
-     */
-    public onkeyup (handler : (ev : KeyboardEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("keyup", handler, options);
-    }
-
-    /**
-     * @param handler {function (KeyboardEvent)}
-     * @param options {Object | boolean}
-     */
-    public onkeypress (handler : (ev : KeyboardEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("keypress", handler, options);
-    }
-
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    public ontouchstart (handler : (ev : TouchEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("touchstart", handler, options);
-    }
-
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    public ontouchmove (handler : (ev : TouchEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("touchmove", handler, options);
-    }
-
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    public ontouchend (handler : (ev : TouchEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("touchend", handler, options);
-    }
-
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    public ontouchcancel (handler : (ev : TouchEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("touchcancel", handler, options);
-    }
-
-    /**
-     * @param handler {function (WheelEvent)}
-     * @param options {Object | boolean}
-     */
-    public onwheel (handler : (ev : WheelEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("wheel", handler, options);
-    }
-
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    public onabort (handler : (ev : ProgressEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("abort", handler, options);
-    }
-
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    public onerror (handler : (ev : ProgressEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("error", handler, options);
-    }
-
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    public onload (handler : (ev : ProgressEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("load", handler, options);
-    }
-
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    public onloadend (handler : (ev : ProgressEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("loadend", handler, options);
-    }
-
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    public onloadstart (handler : (ev : ProgressEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("loadstart", handler, options);
-    }
-
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    public onprogress (handler : (ev : ProgressEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("progress", handler, options);
-    }
-
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    public ontimeout (handler : (ev : ProgressEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("timeout", handler, options);
-    }
-
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    public ondrag (handler : (ev : DragEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("drag", handler, options);
-    }
-
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    public ondragend (handler : (ev : DragEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("dragend", handler, options);
-    }
-
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    public ondragenter (handler : (ev : DragEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("dragenter", handler, options);
-    }
-
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    public ondragexit (handler : (ev : DragEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("dragexit", handler, options);
-    }
-
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    public ondragleave (handler : (ev : DragEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("dragleave", handler, options);
-    }
-
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    public ondragover (handler : (ev : DragEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("dragover", handler, options);
-    }
-
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    public ondragstart (handler : (ev : DragEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("dragstart", handler, options);
-    }
-
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    public ondrop (handler : (ev : DragEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("drop", handler, options);
-    }
-
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    public onpointerover (handler : (ev : PointerEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("pointerover", handler, options);
-    }
-
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    public onpointerenter (handler : (ev : PointerEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("pointerenter", handler, options);
-    }
-
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    public onpointerdown (handler : (ev : PointerEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("pointerdown", handler, options);
-    }
-
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    public onpointermove (handler : (ev : PointerEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("pointermove", handler, options);
-    }
-
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    public onpointerup (handler : (ev : PointerEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("pointerup", handler, options);
-    }
-
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    public onpointercancel (handler : (ev : PointerEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("pointercancel", handler, options);
-    }
-
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    public onpointerout (handler : (ev : PointerEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("pointerout", handler, options);
-    }
-
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    public onpointerleave (handler : (ev : PointerEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("pointerleave", handler, options);
-    }
-
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    public ongotpointercapture (handler : (ev : PointerEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("gotpointercapture", handler, options);
-    }
-
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    public onlostpointercapture (handler : (ev : PointerEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("lostpointercapture", handler, options);
-    }
-
-    /**
-     * @param handler {function (AnimationEvent)}
-     * @param options {Object | boolean}
-     */
-    public onanimationstart (handler : (ev : AnimationEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("animationstart", handler, options);
-    }
-
-    /**
-     * @param handler {function (AnimationEvent)}
-     * @param options {Object | boolean}
-     */
-    public onanimationend (handler : (ev : AnimationEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("animationend", handler, options);
-    }
-
-    /**
-     * @param handler {function (AnimationEvent)}
-     * @param options {Object | boolean}
-     */
-    public onanimationiteraton (handler : (ev : AnimationEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("animationiteration", handler, options);
-    }
-
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    public onclipboardchange (handler : (ev : ClipboardEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("clipboardchange", handler, options);
-    }
-
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    public oncut (handler : (ev : ClipboardEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("cut", handler, options);
-    }
-
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    public oncopy (handler : (ev : ClipboardEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("copy", handler, options);
-    }
-
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    public onpaste (handler : (ev : ClipboardEvent) => void, options ?: boolean | AddEventListenerOptions) : this {
-        return this.listen("paste", handler, options);
-    }
-
     public insertAdjacent (node : Node) {
-        const $ : INodePrivate = this.$;
-
-        $.app.run.insertBefore($.node, node);
+        this.$.node.parentNode.insertBefore(node, this.$.node);
     }
 
     /**
@@ -1361,6 +779,83 @@ export class INode extends Fragment {
             throw userError("HTML can be bound for HTML nodes only", "dom-error");
         }
     }
+
+    protected applyOptions(options: T) {
+        super.applyOptions(options);
+
+        options.attr && Object.keys(options.attr).forEach(name => {
+            const value = options.attr[name];
+
+            if (value instanceof IValue) {
+                this.attr(name, value);
+            }
+            else {
+                this.setAttr(name, value);
+            }
+        });
+
+        options.class && options.class.forEach(item => {
+            if (item instanceof IValue) {
+                this.bindClass(item);
+            }
+            else if (typeof item == "string") {
+                this.addClass(item);
+            }
+            else {
+                Object.keys(item).forEach(name => {
+                    this.floatingClass(item[name], name);
+                });
+            }
+        });
+
+        options.style && Object.keys(options.style).forEach(name => {
+            const value = options.style[name];
+
+            if (value instanceof IValue) {
+                this.style(name, value);
+            }
+            else if (typeof value === "string") {
+                this.setStyle(name, value);
+            }
+            else {
+                if (value[0] instanceof IValue) {
+                    this.bindStyle(name, (v) => v + value[1], value[0]);
+                }
+                else {
+                    this.setStyle(name, value[0] + value[1]);
+                }
+            }
+        });
+
+        options.events && Object.keys(options.events).forEach(name => {
+            this.listen(name, options.events[name]);
+        });
+
+        if (options.bind) {
+            options.bind.html && this.html(options.bind.html);
+
+            const inode = this.node;
+
+            if (inode instanceof HTMLInputElement || inode instanceof  HTMLTextAreaElement) {
+                if (options.bind.value) {
+                    this.watch(v => inode.value = v, options.bind.value);
+                    inode.oninput = () => options.bind.value.$ = inode.value;
+                }
+                if (options.bind.checked && inode instanceof HTMLInputElement) {
+                    this.watch(v => inode.checked = v, options.bind.checked);
+                    inode.oninput = () => options.bind.checked.$ = inode.checked;
+                }
+            }
+        }
+
+        options.set && Object.keys(options.set).forEach(key => {
+            this.node[key] = options.set[key];
+        });
+    }
+}
+
+export interface TagOptionsWithSlot<T extends Element> extends TagOptions {
+    slot ?: (tag : Fragment, element : T) => void
 }
 
 /**
@@ -1368,7 +863,7 @@ export class INode extends Fragment {
  * @class Tag
  * @extends INode
  */
-export class Tag extends INode {
+export class Tag<T extends Element> extends INode<TagOptionsWithSlot<T>> {
 
     public constructor () {
         super ();
@@ -1393,6 +888,11 @@ export class Tag extends INode {
         $.parent.appendNode(node);
     }
 
+    protected compose(input: TagOptionsWithSlot<T>) {
+        super.compose(input);
+        input.slot && input.slot(this, this.node as T);
+    }
+
     protected findFirstChild(): Node {
         return this.$.unmounted ? null : this.$.node;
     }
@@ -1412,9 +912,7 @@ export class Tag extends INode {
     }
 
     public appendNode (node : Node) {
-        const $ : INodePrivate = this.$;
-
-        $.app.run.appendChild($.node, node);
+        this.$.node.appendChild(node);
     }
 
     /**
@@ -1449,7 +947,7 @@ export class Tag extends INode {
  * @class Extension
  * @extends INode
  */
-export class Extension extends INode {
+export class Extension<T extends TagOptions> extends INode<T> {
 
     public preinit (app : AppNode, parent : Fragment) {
 
@@ -1479,11 +977,10 @@ export class Extension extends INode {
  * @class Component
  * @extends Extension
  */
-export class Component extends Extension {
+export class Component<T extends TagOptions> extends Extension<T> {
 
     public constructor () {
         super ();
-        this.seal();
     }
 
     public ready () {
@@ -1525,7 +1022,7 @@ export class SwitchedNodePrivate extends FragmentPrivate {
      * Array of possible cases
      * @type {Array<{cond : IValue<boolean>, cb : function(Fragment)}>}
      */
-    public cases : { cond : IValue<boolean>, cb : (node : Fragment) => void }[];
+    public cases : { cond : IValue<boolean>, cb : (node : Fragment) => void }[] = [];
 
     /**
      * A function which sync index and content, will be bounded to each condition
@@ -1555,7 +1052,7 @@ export class SwitchedNodePrivate extends FragmentPrivate {
 /**
  * Defines a node witch can switch its children conditionally
  */
-class SwitchedNode extends Fragment {
+export class SwitchedNode extends Fragment {
     protected $ : SwitchedNodePrivate;
 
     /**
@@ -1596,13 +1093,10 @@ class SwitchedNode extends Fragment {
         this.seal();
     }
 
-    /**
-     * Set up switch cases
-     * @param cases {{ cond : IValue, cb : function(Fragment) }}
-     */
-    public setCases (cases : Array<{ cond : IValue<boolean>, cb : (node : Fragment) => void }>) {
-        const $ = this.$;
-        $.cases = [...cases];
+    public addCase(case_ : { cond : IValue<boolean>, cb : (node : Fragment) => void }) {
+        this.$.cases.push(case_);
+        case_.cond.on(this.$.sync);
+        this.$.sync();
     }
 
     /**
@@ -1613,7 +1107,7 @@ class SwitchedNode extends Fragment {
         const node = new Fragment();
 
         node.preinit(this.$.app, this);
-        node.init();
+        node.init({});
 
         this.lastChild = node;
         this.children.add(node);

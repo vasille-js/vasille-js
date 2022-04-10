@@ -1,16 +1,12 @@
 import { Destroyable } from "./core/destroyable";
-import { Executor, InstantExecutor, TimeoutExecutor } from "./core/executor";
 import { Reactive } from "./core/core";
 import { IValue } from "./core/ivalue";
-import { Signal } from "./core/signal";
-import { Slot } from "./core/slot";
 import { ArrayModel } from "./models/array-model";
 import { Listener } from "./models/listener";
 import { MapModel } from "./models/map-model";
 import { ObjectModel } from "./models/object-model";
 import { SetModel } from "./models/set-model";
 import { App, AppNode } from "./node/app";
-import { Interceptor, InterceptorNode } from "./node/interceptor";
 import { Component, Extension, Fragment, INode, Tag } from "./node/node";
 import { Expression } from "./value/expression";
 import { Mirror } from "./value/mirror";
@@ -21,7 +17,6 @@ import { BaseView } from "./views/base-view";
 import { MapView } from "./views/map-view";
 import { ObjectView } from "./views/object-view";
 import { RepeatNode } from "./views/repeat-node";
-import { Repeater } from "./views/repeater";
 import { SetView } from "./views/set-view";
 import { Binding } from "./binding/binding";
 
@@ -38,7 +33,6 @@ export {
     ObjectModel,
     SetModel,
     RepeatNode,
-    Repeater,
     BaseView,
     Listener,
     ArrayView,
@@ -52,13 +46,6 @@ export {
     Extension,
     AppNode,
     App,
-    Executor,
-    InstantExecutor,
-    TimeoutExecutor,
-    Signal,
-    Slot,
-    Interceptor,
-    InterceptorNode,
     Expression,
     Binding,
     Reactive,

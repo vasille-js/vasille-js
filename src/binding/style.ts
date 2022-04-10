@@ -24,7 +24,7 @@ export class StyleBinding extends Binding<string> {
         super(value);
         this.init((value : string) => {
             if (node.node instanceof HTMLElement) {
-                node.app.run.setStyle(node.node, name, value);
+                node.node.style.setProperty(name, value);
             }
         });
         this.seal();

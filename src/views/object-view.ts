@@ -1,4 +1,4 @@
-import { BaseView } from "./base-view";
+import { BaseView, BSO } from "./base-view";
 import { ObjectModel } from "../models/object-model";
 
 
@@ -9,19 +9,21 @@ import { ObjectModel } from "../models/object-model";
  * @extends BaseView
  */
 export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
-    public constructor (model : ObjectModel<T>) {
+    public constructor () {
         super();
-        this.model = model;
     }
 
-    public ready () {
-        const obj : {[p : string] : T} = this.model as any;
+    protected compose(input: BSO<string, T, ObjectModel<T>>) {
+        super.compose(input);
+
+        const obj : {[p : string] : T} = input.model as any;
 
         for (const key in obj) {
-            this.createChild(key, obj[key]);
+            this.createChild(input, key, obj[key]);
         }
 
         super.ready();
+
     }
 }
 

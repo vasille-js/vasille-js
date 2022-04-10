@@ -1,4 +1,4 @@
-import { BaseView, BaseViewPrivate } from "./base-view";
+import { BaseView, BSO } from "./base-view";
 import { ArrayModel } from "../models/array-model";
 import { Fragment } from "../node/node";
 
@@ -10,20 +10,18 @@ import { Fragment } from "../node/node";
  * @extends BaseView
  */
 export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
-    public constructor (model : ArrayModel<T>) {
+    public constructor () {
         super();
-        this.model = model;
     }
 
-    public createChild (id : T, item : T, before ?: Fragment) : any {
-        super.createChild(item, item,before || this.$.nodes.get(id));
+    public createChild (input : BSO<T, T, ArrayModel<T>>, id : T, item : T, before ?: Fragment) : any {
+        super.createChild(input, item, item,before || this.$.nodes.get(id));
     }
 
-    public ready () {
-        this.model.forEach(item =>  {
-            this.createChild(item, item);
-        })
-
-        super.ready();
+    protected compose(input: BSO<T, T, ArrayModel<T>>) {
+        super.compose(input);
+        input.model.forEach(item => {
+            this.createChild(input, item, item);
+        });
     }
 }

@@ -1,4 +1,4 @@
-import { BaseView, BaseViewPrivate } from "./base-view";
+import { BaseView, BaseViewPrivate, BSO } from "./base-view";
 import { SetModel } from "../models/set-model";
 
 
@@ -10,22 +10,18 @@ import { SetModel } from "../models/set-model";
  */
 export class SetView<T> extends BaseView<T, T, SetModel<T>> {
 
-    public constructor (model : SetModel<T>) {
+    public constructor () {
         super();
-        this.model = model;
     }
 
-    public ready () {
-        const $ : BaseViewPrivate<T, T> = this.$;
-        const set : SetModel<T> = this.model;
+    protected compose(input: BSO<T, T, SetModel<T>>) {
+        super.compose(input);
+
+        const set : SetModel<T> = input.model;
 
         set.forEach(item => {
-            $.app.run.callCallback(() => {
-                this.createChild(item, item);
-            });
+            this.createChild(input, item, item);
         });
-
-        super.ready();
     }
 }
 

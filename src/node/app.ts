@@ -1,11 +1,8 @@
-import { Executor, instantExecutor, timeoutExecutor } from "../core/executor";
-import {INode, INodePrivate} from "./node";
+import { INode } from "./node";
 
-type AppOptions = {
-    debugUi ?: boolean,
-    freezeUi ?: boolean,
-    executor ?: Executor
-};
+interface AppOptions {
+    debugUi ?: boolean
+}
 
 /**
  * Application Node
@@ -13,12 +10,6 @@ type AppOptions = {
  * @extends INode
  */
 export class AppNode extends INode {
-    /**
-     * Executor is used to optimize the page creation/update
-     * @type {Executor}
-     */
-    run : Executor;
-
     /**
      * Enables debug comments
      */
@@ -28,10 +19,9 @@ export class AppNode extends INode {
      * @param options {Object} Application options
      */
     constructor (options ?: AppOptions) {
-        super ();
-
-        this.run = options?.executor || (options?.freezeUi === false ? timeoutExecutor : instantExecutor);
+        super();
         this.debugUi = options?.debugUi || false;
+        this.seal();
     }
 }
 
@@ -56,8 +46,6 @@ export class App extends AppNode {
     }
 
     public appendNode (node : Node) {
-        const $ : INodePrivate = this.$;
-
-        this.run.appendChild($.node, node);
+        node.appendChild(this.$.node);
     }
 }

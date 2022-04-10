@@ -238,7 +238,27 @@ import {App} from 'vcc';
 
 <App>
     <div>
-        <p>Some text here</p>
+        <p>{ "Some text here" }</p>
+    </div>
+</App>;
+```
+
+### Render functions
+
+Use JSX to define composition function:
+```typescript jsx
+import {App} from 'vcc';
+
+function renderFunction(x : number) {
+    <span>{x}</span>
+}
+
+<App>
+    <div>
+        <!-- Call render function example 1 -->
+        <renderFunction x={23} />
+        <!-- Call render function example 2 -->
+        {void renderFunction(23)}
     </div>
 </App>;
 ```
@@ -267,7 +287,7 @@ import {App} from 'vcc';
     <div id="id" data-xcode="xcode1" expr-example={a + b}>
         <MyComponent prop1={"string value"} prop2={x + y} />
     </div>
-</App>;
+</App>
 ```
 
 ### Class directives
@@ -384,7 +404,7 @@ import {App} from 'vcc';
     // example of using
     <Self 
         default={<div></div> /* inserts content to first slot */}
-        slot2={(from, to) => `from: ${from}, to: ${to}` /* inserts content to second slot */}
+        slot2={({from, to}) => `from: ${from}, to: ${to}` /* inserts content to second slot */}
     >
     </Self>
     // The short form

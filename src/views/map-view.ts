@@ -1,4 +1,4 @@
-import { BaseView, BaseViewPrivate } from "./base-view";
+import { BaseView, BSO } from "./base-view";
 import { MapModel } from "../models/map-model";
 
 
@@ -10,19 +10,15 @@ import { MapModel } from "../models/map-model";
  */
 export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
 
-    public constructor (model : MapModel<K, T>) {
+    public constructor () {
         super();
-        this.model = model;
     }
 
-    public ready () {
-        const map : MapModel<K, T> = this.model;
-
-        map.forEach((value, key) => {
-            this.createChild(key, value);
+    protected compose(input: BSO<K, T, MapModel<K, T>>) {
+        super.compose(input);
+        input.model.forEach((value, key) => {
+            this.createChild(input, key, value);
         });
-
-        super.ready();
     }
 }
 

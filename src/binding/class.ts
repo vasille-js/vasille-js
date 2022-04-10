@@ -5,11 +5,11 @@ import type { IValue } from "../core/ivalue";
 
 
 function addClass (node : INode, cl : string) {
-    node.app.run.addClass(node.node, cl);
+    node.node.classList.add(cl);
 }
 
 function removeClass (node : INode, cl : string) {
-    node.app.run.removeClass(node.node, cl);
+    node.node.classList.remove(cl);
 }
 
 export class StaticClassBinding extends Binding<boolean> {

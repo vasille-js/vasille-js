@@ -1,5 +1,5 @@
 import { Listener } from "./listener";
-import {ListenableModel} from "./model";
+import { ListenableModel } from "./model";
 
 
 
