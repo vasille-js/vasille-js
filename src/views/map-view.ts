@@ -10,10 +10,6 @@ import { MapModel } from "../models/map-model";
  */
 export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
 
-    public constructor () {
-        super();
-    }
-
     protected compose(input: BSO<K, T, MapModel<K, T>>) {
         super.compose(input);
         input.model.forEach((value, key) => {

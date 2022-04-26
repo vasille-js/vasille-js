@@ -1,26 +1,31 @@
-import {Fragment, Slot} from "../../src";
+import {page} from "../page";
+import {App, Options} from "../../src";
+import {v} from "../../src/v";
 
-const slot = new Slot<Fragment, number>();
-const fragment = new Fragment();
+interface MyOpts extends Options {
+    slot ?: (node : App, x : number) => void
+}
 
 let test = 1;
 
-const handler = (f : Fragment, x : number) => {
+const fragment = v.app<MyOpts>(opts => {
+    opts.slot = opts.slot || ((node, x : number) => {
+        test = x * 2;
+    });
+
+    (opts.slot ? opts.slot : ((node, x) => {
+        test = x * 2;
+    }))(this, 1);
+})
+
+const handler = (node : App, x : number) => {
     test = x;
 }
 
 it('Slot', function () {
-    slot.predefine((f, x) => {
-        test = x * 2;
-    }, fragment, 1);
+    fragment(page.window.document.body, {});
     expect(test).toBe(2);
 
-    slot.insert(handler);
-    slot.release(fragment, 1);
-    expect(test).toBe(1);
-
-    slot.predefine((f, x) => {
-        test = x * 3;
-    }, fragment, 1);
+    fragment(page.window.document.body, {slot: handler});
     expect(test).toBe(1);
 });

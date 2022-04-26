@@ -43,13 +43,11 @@ export class BaseView<K, T, Model extends ListenableModel<K, T>> extends RepeatN
 
     input !: BSO<K, T, Model>;
 
-    public constructor ($ ?: BaseViewPrivate<K, T>) {
-        super($ || new BaseViewPrivate);
+    public constructor (input : BSO<K, T, Model>, $ ?: BaseViewPrivate<K, T>) {
+        super(input, $ || new BaseViewPrivate);
     }
 
     protected compose(input: BSO<K, T, Model>) {
-        super.compose(input);
-
         const $ : BaseViewPrivate<K, T> = this.$;
         $.addHandler = (id, item) => {
             this.createChild(input, id, item);

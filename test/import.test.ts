@@ -2,15 +2,15 @@ import {
     App,
     AppNode,
     ArrayModel, ArrayView, BaseView, Binding, Component,
-    Destroyable, Executor, Expression, Extension, Fragment, INode, InstantExecutor, Interceptor, InterceptorNode,
+    Destroyable, Expression, Extension, Fragment, INode,
     IValue, Listener,
     MapModel, MapView,
     Mirror,
     ObjectModel, ObjectView,
     Pointer, Reactive,
-    Reference, Repeater,
+    Reference,
     RepeatNode,
-    SetModel, SetView, Signal, Slot, Tag, TimeoutExecutor
+    SetModel, SetView, Tag,
 } from "../src";
 import {page} from "./page";
 
@@ -32,29 +32,19 @@ it('import test', function () {
     const map = new MapModel();
     const obj = new ObjectModel();
     const set = new SetModel();
-    const repeatNode = new RepeatNode();
-    const repeater = new Repeater();
-    const baseView = new BaseView();
     const listener = new Listener();
-    const arrayView = new ArrayView(array);
-    const mapView = new MapView(map);
-    const objectView = new ObjectView(obj);
-    const setView = new SetView(set);
-    const fragment = new Fragment();
-    const inode = new INode();
-    const tag = new Tag();
-    const component = new Component();
-    const ext = new Extension();
-    const appNode = new AppNode();
+    const arrayView = new ArrayView({ model: array });
+    const mapView = new MapView({ model: map });
+    const objectView = new ObjectView({ model: obj });
+    const setView = new SetView({ model: set });
+    const fragment = new Fragment({});
+    const inode = new INode({});
+    const tag = new Tag({});
+    const component = new Component({});
+    const ext = new Extension({});
+    const appNode = new AppNode({});
     const app = new App(page.window.document.body);
-    const executor = new Executor();
-    const iExecutor = new InstantExecutor();
-    const tExecutor = new TimeoutExecutor();
-    const signal = new Signal();
-    const slot = new Slot();
-    const interceptor = new Interceptor();
-    const interceptorNode = new InterceptorNode();
     const expr = new Expression(v => v, false, ref);
     const binding = new BindingTest(ref);
-    const reactive = new Reactive();
+    const reactive = new Reactive({});
 });

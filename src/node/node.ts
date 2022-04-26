@@ -8,6 +8,7 @@ import { StyleBinding } from "../binding/style";
 import { internalError, userError } from "../core/errors";
 import type { AppNode } from "./app";
 import { Options, TagOptions } from "../functional/options";
+import {AcceptedTagsMap} from "../spec/react";
 
 
 
@@ -88,10 +89,11 @@ export class Fragment<T extends Options = Options> extends Reactive {
 
     /**
      * Constructs a Vasille Node
+     * @param input
      * @param $ {FragmentPrivate}
      */
-    public constructor ($ ?: FragmentPrivate) {
-        super ($ || new FragmentPrivate);
+    public constructor (input : T, $ ?: FragmentPrivate) {
+        super (input, $ || new FragmentPrivate);
     }
 
     /**
@@ -111,6 +113,11 @@ export class Fragment<T extends Options = Options> extends Reactive {
         const $ : FragmentPrivate = this.$;
 
         $.preinit(app, parent);
+    }
+
+    protected compose(input: Options) {
+        super.compose(input);
+        input.slot && input.slot(this);
     }
 
     /** To be overloaded: ready event handler */
@@ -193,9 +200,8 @@ export class Fragment<T extends Options = Options> extends Reactive {
     ) : void {
         const $ = this.$;
         const node = new TextNode();
-        const textValue = text instanceof IValue ? text : this.ref(text);
 
-        node.preinit($.app, this, textValue);
+        node.preinit($.app, this, text);
         this.pushNode(node);
 
         cb && cb(node);
@@ -217,47 +223,30 @@ export class Fragment<T extends Options = Options> extends Reactive {
      * @param input
      * @param cb {function(Tag, *)} callback
      */
-    public tag<K extends keyof HTMLElementTagNameMap>(
-        tagName : K,
-        input : TagOptionsWithSlot<HTMLElementTagNameMap[K]>,
-        cb ?: TagOptionsWithSlot<HTMLElementTagNameMap[K]>['slot']
-    ) : HTMLElementTagNameMap[K]
-    public tag<K extends keyof SVGElementTagNameMap>(
-        tagName : K,
-        input : TagOptionsWithSlot<SVGElementTagNameMap[K]>,
-        cb ?: TagOptionsWithSlot<SVGElementTagNameMap[K]>['slot']
-    ) : SVGElementTagNameMap[K]
-    public tag(
+    public tag<K extends keyof AcceptedTagsMap>(
         tagName : string,
-        input : TagOptionsWithSlot<Element>,
-        cb ?: TagOptionsWithSlot<Element>['slot']
-    ) : Element
-    public tag<T extends Element>(
-        tagName : string,
-        input : TagOptionsWithSlot<T>,
-        cb ?: TagOptionsWithSlot<T>['slot']
-    ) : T {
+        input : TagOptionsWithSlot<K>,
+        cb ?: (node : Tag<K>) => void
+    ) : (HTMLElementTagNameMap & SVGElementTagNameMap)[K] {
         const $ : FragmentPrivate = this.$;
-        const node = new Tag();
+        const node = new Tag(input);
 
-        input.slot = cb;
+        input.slot = cb || input.slot;
         node.preinit($.app, this, tagName);
-        node.init(input);
+        node.init();
         this.pushNode(node);
         node.ready();
 
-        return node.node as T;
+        return node.node as (HTMLElementTagNameMap & SVGElementTagNameMap)[K];
     }
 
     /**
      * Defines a custom element
      * @param node {Fragment} vasille element to insert
-     * @param input
      * @param callback {function($ : *)}
      */
     public create<T extends Fragment> (
         node : T,
-        input : T['input'],
         callback ?: T['input']['slot']
     ) : void {
         const $ : FragmentPrivate = this.$;
@@ -265,9 +254,9 @@ export class Fragment<T extends Options = Options> extends Reactive {
 
         node.$.parent = this;
         node.preinit($.app, this);
-        if (callback) input.slot = callback;
+        node.input.slot = callback || node.input.slot;
         this.pushNode(node);
-        node.init(input);
+        node.init();
         node.ready();
     }
 
@@ -284,7 +273,7 @@ export class Fragment<T extends Options = Options> extends Reactive {
         const node = new SwitchedNode();
 
         node.preinit(this.$.app, this);
-        node.init({});
+        node.init();
         this.pushNode(node);
         node.addCase(this.case(cond, cb));
         node.ready();
@@ -400,14 +389,16 @@ export class TextNodePrivate extends FragmentPrivate {
     public preinitText (
         app : AppNode,
         parent : Fragment,
-        text : IValue<string>
+        text : IValue<string> | string
     ) {
         super.preinit(app, parent);
-        this.node = document.createTextNode(text.$);
+        this.node = document.createTextNode(text instanceof IValue ? text.$ : text);
 
-        this.bindings.add(new Expression((v : string) => {
-            this.node.replaceData(0, -1, v);
-        }, true, text));
+        if (text instanceof IValue) {
+            this.bindings.add(new Expression((v : string) => {
+                this.node.replaceData(0, -1, v);
+            }, true, text));
+        }
     }
 
     /**
@@ -428,11 +419,11 @@ export class TextNode extends Fragment {
     protected $ : TextNodePrivate;
 
     public constructor ($ = new TextNodePrivate()) {
-        super($);
+        super({}, $);
         this.seal();
     }
 
-    public preinit (app : AppNode, parent : Fragment, text ?: IValue<string>) {
+    public preinit (app : AppNode, parent : Fragment, text ?: IValue<string> | string) {
         const $ : TextNodePrivate = this.$;
 
         if (!text) {
@@ -487,15 +478,16 @@ export class INodePrivate extends FragmentPrivate {
  * @class INode
  * @extends Fragment
  */
-export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
+export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment<T> {
     protected $ : INodePrivate;
 
     /**
      * Constructs a base node
+     * @param input
      * @param $ {?INodePrivate}
      */
-    constructor ($ ?: INodePrivate) {
-        super($ || new INodePrivate);
+    constructor (input : T, $ ?: INodePrivate) {
+        super(input, $ || new INodePrivate);
         this.seal();
     }
 
@@ -511,7 +503,7 @@ export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
      * @param name {String} name of attribute
      * @param value {IValue} value
      */
-    public attr (name : string, value : IValue<string>) : void {
+    public attr (name : string, value : IValue<string | number | boolean>) : void {
         const $ : INodePrivate = this.$;
         const attr = new AttributeBinding(this, name, value);
 
@@ -523,8 +515,15 @@ export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
      * @param name {string} name of attribute
      * @param value {string} value
      */
-    public setAttr (name : string, value : string) : this {
-        this.$.node.setAttribute(name, value);
+    public setAttr (name : string, value : string | number | boolean) : this {
+        if (typeof value === 'boolean') {
+            if (value) {
+                this.$.node.setAttribute(name, "");
+            }
+        }
+        else {
+            this.$.node.setAttribute(name, `${value}`);
+        }
         return this;
     }
 
@@ -579,30 +578,6 @@ export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
 
         if ($.node instanceof HTMLElement) {
             $.bindings.add(new StyleBinding(this, name, value));
-        }
-        else {
-            throw userError('style can be applied to HTML elements only', 'non-html-element');
-        }
-        return this;
-    }
-
-    /**
-     * Binds style property value
-     * @param name {string} name of style attribute
-     * @param calculator {function} calculator for style value
-     * @param values
-     */
-    public bindStyle<T, Args extends unknown[]> (
-        name : string,
-        calculator : (...args : Args) => string,
-        ...values : KindOfIValue<Args>
-    ) : this {
-        const $ : INodePrivate = this.$;
-        const expr = this.expr<string, Args>(
-            calculator, ...values);
-
-        if ($.node instanceof HTMLElement) {
-            $.bindings.add(new StyleBinding(this, name, expr));
         }
         else {
             throw userError('style can be applied to HTML elements only', 'non-html-element');
@@ -690,11 +665,10 @@ export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
         }
     }
 
-    protected applyOptions(options: T) {
-        super.applyOptions(options);
+    protected applyOptions(options : T) {
 
-        options.attr && Object.keys(options.attr).forEach(name => {
-            const value = options.attr[name];
+        options["v:attr"] && Object.keys(options["v:attr"]).forEach(name => {
+            const value = options["v:attr"][name];
 
             if (value instanceof IValue) {
                 this.attr(name, value);
@@ -704,19 +678,45 @@ export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
             }
         });
 
-        options.class && options.class.forEach(item => {
-            if (item instanceof IValue) {
-                this.bindClass(item);
-            }
-            else if (typeof item == "string") {
-                this.addClass(item);
-            }
-            else {
-                Object.keys(item).forEach(name => {
-                    this.floatingClass(item[name], name);
+        if (options.class) {
+            if (Array.isArray(options.class)) {
+                options.class.forEach(item => {
+                    if (item instanceof IValue) {
+                        this.bindClass(item);
+                    }
+                    else if (typeof item == "string") {
+                        this.addClass(item);
+                    }
+                    else {
+                        Reflect.ownKeys(item).forEach((name : string) => {
+                            const value = item[name];
+
+                            if (value instanceof IValue) {
+                                this.floatingClass(value, name);
+                            }
+                            else if (value) {
+                                this.addClass(name);
+                            }
+                        });
+                    }
                 });
             }
-        });
+            else {
+                options.class.$.forEach(item => {
+                    this.bindClass(item);
+                });
+                Reflect.ownKeys(options.class).forEach((name : string) => {
+                    const value = options.class[name];
+
+                    if (value instanceof IValue) {
+                        this.floatingClass(value, name);
+                    }
+                    else if (value && name !== '$') {
+                        this.addClass(name);
+                    }
+                });
+            }
+        }
 
         options.style && Object.keys(options.style).forEach(name => {
             const value = options.style[name];
@@ -729,7 +729,7 @@ export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
             }
             else {
                 if (value[0] instanceof IValue) {
-                    this.bindStyle(name, (v) => v + value[1], value[0]);
+                    this.style(name, this.expr((v) => v + value[1], value[0]));
                 }
                 else {
                     this.setStyle(name, value[0] + value[1]);
@@ -737,35 +737,42 @@ export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
             }
         });
 
-        options.events && Object.keys(options.events).forEach(name => {
-            this.listen(name, options.events[name]);
+        options["v:events"] && Object.keys(options["v:events"]).forEach(name => {
+            this.listen(name, options["v:events"][name]);
         });
 
-        if (options.bind) {
-            options.bind.html && this.html(options.bind.html);
-
+        if (options["v:bind"]) {
             const inode = this.node;
 
-            if (inode instanceof HTMLInputElement || inode instanceof  HTMLTextAreaElement) {
-                if (options.bind.value) {
-                    this.watch(v => inode.value = v, options.bind.value);
-                    inode.oninput = () => options.bind.value.$ = inode.value;
+            Reflect.ownKeys(options["v:bind"]).forEach((k : string) => {
+                const value = options["v:bind"][k];
+
+                if (k === 'value' && (inode instanceof HTMLInputElement || inode instanceof  HTMLTextAreaElement)) {
+                    this.watch((v : string) => inode.value = v, value);
+                    inode.oninput = () => value.$ = inode.value;
                 }
-                if (options.bind.checked && inode instanceof HTMLInputElement) {
-                    this.watch(v => inode.checked = v, options.bind.checked);
-                    inode.oninput = () => options.bind.checked.$ = inode.checked;
+                else if (k === 'checked' && inode instanceof HTMLInputElement) {
+                    this.watch((v : boolean) => inode.checked = v, value);
+                    inode.oninput = () => value.$ = inode.checked;
                 }
-            }
+                else if (k === 'volume' && inode instanceof HTMLMediaElement) {
+                    this.watch((v : number) => inode.volume = v, value);
+                    inode.onvolumechange = () => value.$ = inode.volume;
+                }
+                else {
+                    this.watch((v : any) => inode[k] = v, value);
+                }
+            });
         }
 
-        options.set && Object.keys(options.set).forEach(key => {
-            this.node[key] = options.set[key];
+        options["v:set"] && Object.keys(options["v:set"]).forEach(key => {
+            this.node[key] = options["v:set"][key];
         });
     }
 }
 
-export interface TagOptionsWithSlot<T extends Element> extends TagOptions {
-    slot ?: (tag : Fragment, element : T) => void
+export interface TagOptionsWithSlot<K extends keyof AcceptedTagsMap> extends TagOptions<K> {
+    slot ?: (tag : Tag<K>) => void
 }
 
 /**
@@ -773,10 +780,10 @@ export interface TagOptionsWithSlot<T extends Element> extends TagOptions {
  * @class Tag
  * @extends INode
  */
-export class Tag<T extends Element> extends INode<TagOptionsWithSlot<T>> {
+export class Tag<K extends keyof AcceptedTagsMap> extends INode<TagOptionsWithSlot<K>> {
 
-    public constructor () {
-        super ();
+    public constructor (input : TagOptionsWithSlot<K>) {
+        super (input);
         this.seal();
     }
 
@@ -798,9 +805,8 @@ export class Tag<T extends Element> extends INode<TagOptionsWithSlot<T>> {
         $.parent.appendNode(node);
     }
 
-    protected compose(input: TagOptionsWithSlot<T>) {
-        super.compose(input);
-        input.slot && input.slot(this, this.node as T);
+    protected compose(input: TagOptionsWithSlot<K>) {
+        input.slot && input.slot(this);
     }
 
     protected findFirstChild(): Node {
@@ -857,7 +863,7 @@ export class Tag<T extends Element> extends INode<TagOptionsWithSlot<T>> {
  * @class Extension
  * @extends INode
  */
-export class Extension<T extends TagOptions> extends INode<T> {
+export class Extension<T extends TagOptions<any>> extends INode<T> {
 
     public preinit (app : AppNode, parent : Fragment) {
 
@@ -872,11 +878,6 @@ export class Extension<T extends TagOptions> extends INode<T> {
         }
     }
 
-    public constructor ($ ?: INodePrivate) {
-        super ($);
-        this.seal();
-    }
-
     public destroy () {
         super.destroy();
     }
@@ -887,11 +888,7 @@ export class Extension<T extends TagOptions> extends INode<T> {
  * @class Component
  * @extends Extension
  */
-export class Component<T extends TagOptions> extends Extension<T> {
-
-    public constructor () {
-        super ();
-    }
+export class Component<T extends TagOptions<any>> extends Extension<T> {
 
     public ready () {
         super.ready();
@@ -969,7 +966,7 @@ export class SwitchedNode extends Fragment {
      * Constructs a switch node and define a sync function
      */
     public constructor () {
-        super(new SwitchedNodePrivate);
+        super({}, new SwitchedNodePrivate);
 
         this.$.sync = () => {
             const $ : SwitchedNodePrivate = this.$;
@@ -1014,10 +1011,10 @@ export class SwitchedNode extends Fragment {
      * @param cb {function(Fragment)} Call-back
      */
     public createChild (cb : (node : Fragment) => void) {
-        const node = new Fragment();
+        const node = new Fragment({});
 
         node.preinit(this.$.app, this);
-        node.init({});
+        node.init();
 
         this.lastChild = node;
         this.children.add(node);
@@ -1100,7 +1097,7 @@ export class DebugNode extends Fragment {
     protected $ : DebugPrivate = new DebugPrivate();
 
     public constructor () {
-        super();
+        super({});
         this.seal();
     }
 

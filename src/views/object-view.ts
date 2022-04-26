@@ -9,14 +9,11 @@ import { ObjectModel } from "../models/object-model";
  * @extends BaseView
  */
 export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
-    public constructor () {
-        super();
-    }
 
     protected compose(input: BSO<string, T, ObjectModel<T>>) {
         super.compose(input);
 
-        const obj : {[p : string] : T} = input.model as any;
+        const obj : {[p : string] : T} = input.model.container as any;
 
         for (const key in obj) {
             this.createChild(input, key, obj[key]);

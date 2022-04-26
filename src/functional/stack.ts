@@ -13,117 +13,78 @@ import { SetView } from "../views/set-view";
 import { ObjectModel } from "../models/object-model";
 import { ObjectView } from "../views/object-view";
 import { Watch } from "../node/watch";
+import {AcceptedTagsMap} from "../spec/react";
 
-export function app<In extends Options, Out = void>(renderer: (opts : In) => Out, destroyed ?: (o : Out) => Out)
+export function app<In extends Options>(renderer: (opts : In) => In["return"])
     : (node: Element, opts : In) => void {
     return (node, opts) => {
-        const app = new App(node);
-        const out = app.runFunctional(renderer, opts);
-
-        destroyed && app.runOnDestroy(() => destroyed(out));
+        new App(node).runFunctional(renderer, opts);
     }
 }
 
-type HasElement = { node: Element };
-
-export function component<In extends TagOptions, Out = void>
-    (renderer: (opts : In) => Out, destroyed ?: (o : Out) => void)
-    : (opts : In, callback : In['slot']) => Out & HasElement {
+export function component<In extends TagOptions<any>>
+    (renderer: (opts : In) => In["return"])
+    : (opts : In, callback : In['slot']) => In["return"] {
     return (opts, callback ?: In['slot']) => {
-        const component = new Component();
+        const component = new Component(opts);
         if (!(current instanceof Fragment)) throw 'missing parent node';
 
         if (callback) opts.slot = callback;
-        current.create(component, opts);
-        const out = {
-            ...component.runFunctional(renderer, opts),
-            node: component.node
-        };
-        destroyed && component.runOnDestroy(() => destroyed(out));
+        current.create(component);
 
-        return out;
+        return component.runFunctional(renderer, opts);
     }
 }
 
-export function fragment<In extends Options, Out = void>
-    (renderer: (opts : In) => Out, destroyed ?: (o : Out) => void) : (opts : In, callback : In['slot']) => Out {
+export function fragment<In extends Options>
+    (renderer: (opts : In) => In["return"]) : (opts : In, callback : In['slot']) => In["return"] {
     return (opts, callback : In['slot']) => {
-        const frag = new Fragment;
+        const frag = new Fragment(opts);
         if (!(current instanceof Fragment)) throw 'missing parent node';
 
         if (callback) opts.slot = callback;
-        current.create(frag, opts);
-        const out = frag.runFunctional(renderer, opts);
-        destroyed && frag.runOnDestroy(() => destroyed(out));
+        current.create(frag);
 
-        return out;
+        return frag.runFunctional(renderer, opts);
     }
 }
 
-export function extension<In extends TagOptions, Out = void>
-(renderer: (opts : In) => Out, destroyed ?: (o : Out) => void) : (opts : In, callback : In['slot']) => Out {
+export function extension<In extends TagOptions<any>>
+(renderer: (opts : In) => In["return"]) : (opts : In, callback : In['slot']) => In["return"] {
     return (opts, callback ?: In['slot']) => {
-        const ext = new Extension();
+        const ext = new Extension(opts);
         if (!(current instanceof Fragment)) throw 'missing parent node';
 
         if (callback) opts.slot = callback;
-        current.create(ext, opts);
-        const out = ext.runFunctional(renderer, opts);
-        destroyed && ext.runOnDestroy(() => destroyed(out));
+        current.create(ext);
 
-        return out;
+        return ext.runFunctional(renderer, opts);
     }
 }
 
-export function reactive<In, Out>(renderer: (opts : In) => Out, destroyed ?: (o : Out) => void) : (opts : In) => Out {
-    return opts => {
-        const obj = new Reactive();
-        current.autodestroy(obj);
-
-        const out = obj.runFunctional(renderer, opts);
-        destroyed && obj.runOnDestroy(() => destroyed(out));
-
-        return out;
-    }
-}
-
-export function tag<K extends keyof HTMLElementTagNameMap>(
-    name : K,
-    opts : TagOptionsWithSlot<HTMLElementTagNameMap[K]>,
-    callback ?: (element : HTMLElementTagNameMap[K]) => void
-) : HTMLElementTagNameMap[K]
-export function tag<K extends keyof SVGElementTagNameMap>(
-    name : K,
-    opts : TagOptionsWithSlot<SVGElementTagNameMap[K]>,
-    callback ?: (element : SVGElementTagNameMap[K]) => void
-) : SVGElementTagNameMap[K]
-export function tag(
+export function tag<K extends keyof AcceptedTagsMap>(
     name : string,
-    opts : TagOptionsWithSlot<Element>,
-    callback ?: (element : Element) => void
-) : Element
-export function tag<T extends Element>(
-    name : string,
-    opts : TagOptionsWithSlot<T>,
-    callback ?: (element : T) => void
-) : T {
+    opts : TagOptionsWithSlot<K>,
+    callback : () => void
+) : { node : (HTMLElementTagNameMap & SVGElementTagNameMap)[K] } {
     if (!(current instanceof Fragment)) throw 'missing current node';
 
-    return current.tag(name, opts,(node: Fragment, element : T) => {
-        node.runFunctional(callback, element);
-    }) as T;
+    return {
+        node : current.tag(name, opts, (node: Fragment) => {
+            node.runFunctional(callback);
+        }) as (HTMLElementTagNameMap & SVGElementTagNameMap)[K]
+    };
 }
 
 type ExtractParams<T> = T extends ((node : Fragment, ...args: infer P) => any) ? P : never
 
 export function create<T extends Fragment>(
     node : T,
-    input : T['input'],
     callback ?: (...args: ExtractParams<T['input']['slot']>) => void
 ) : T {
     if (!(current instanceof Fragment)) throw 'missing current node';
 
-    current.create(node, input, (node : Fragment, ...args : ExtractParams<T['input']['slot']>) => {
+    current.create(node, (node : Fragment, ...args : ExtractParams<T['input']['slot']>) => {
         node.runFunctional(callback, ...args);
     });
 
@@ -158,27 +119,29 @@ export const v = {
         }
     },
     for<T, K>(model : ListenableModel<K, T>, callback : (value : T, index : K) => void) {
+
         if (model instanceof ArrayModel) {
             // for arrays T & K are the same type
-            create(new ArrayView<T>(), { model }, callback as any as (value : T, index : T) => void);
+            create(new ArrayView<T>({ model }), callback as any as (value : T, index : T) => void);
         }
         else if (model instanceof MapModel) {
-            create(new MapView<K, T>(), { model }, callback);
+            create(new MapView<K, T>({ model }), callback);
         }
         else if (model instanceof SetModel) {
             // for sets T & K are the same type
-            create(new SetView<T>(), { model }, callback as any as (value : T, index : T) => void);
+            create(new SetView<T>({ model }), callback as any as (value : T, index : T) => void);
         }
         else if (model instanceof ObjectModel) {
             // for objects K is always string
-            create(new ObjectView<T>(), { model }, callback as any as (value : T, index : string) => void);
+            create(new ObjectView<T>({ model }), callback as any as (value : T, index : string) => void);
         }
         else {
             throw "wrong use of `v.for` function";
         }
     },
     watch<T>(model: IValue<T>, callback: (value : T) => void) {
-        create(new Watch<T>(), { model }, callback);
+        const opts = {model};
+        create(new Watch<T>(opts), callback);
     },
     nextTick(callback: () => void) {
         const node = current;

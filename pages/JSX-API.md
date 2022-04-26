@@ -298,7 +298,7 @@ import {App} from 'vcc';
 <App>
     <div 
         class="static-class" 
-        bind:class={dynamicalClass} 
+        class={dynamicalClass} 
         class:conditionalClass={condition} />
 </App>;
 ```
@@ -315,7 +315,7 @@ let h = 23;
 <App>
     <div 
         style:width="3px" 
-        style:heigth.px={h}
+        style:heigth_px={h}
     ></div>
 </App>;
 ```

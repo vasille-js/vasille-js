@@ -22,7 +22,7 @@ class CoreTest extends Reactive {
 
 
     constructor() {
-        super();
+        super({});
 
         this.ref0 = super.ref(1);
         this.mirror0 = super.mirror(this.ref0);
@@ -35,7 +35,7 @@ class CoreTest extends Reactive {
             this.watch_test = v;
         }, this.ref0);
 
-        this.bind0 = super.bind((x, y) => {
+        this.bind0 = super.expr((x, y) => {
             return x + y;
         }, this.ref0, this.mirror0);
 

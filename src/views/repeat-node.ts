@@ -44,13 +44,13 @@ export class RepeatNode<IdT, T, Opts extends RNO<T, IdT> = RNO<T, IdT>> extends 
      */
     public freezeUi = true;
 
-    public constructor ($ ?: RepeatNodePrivate<IdT>) {
-        super($ || new RepeatNodePrivate);
+    public constructor (input : Opts, $ : RepeatNodePrivate<IdT>) {
+        super(input, $);
     }
 
     public createChild (opts : Opts, id : IdT, item : T, before ?: Fragment) : any {
 
-        const node = new Fragment();
+        const node = new Fragment({});
 
         this.destroyChild(id, item);
 
@@ -69,7 +69,7 @@ export class RepeatNode<IdT, T, Opts extends RNO<T, IdT> = RNO<T, IdT>> extends 
 
         this.lastChild = node;
         node.preinit(this.$.app, this);
-        node.init({});
+        node.init();
 
         opts.slot && opts.slot(node, item, id);
         node.ready();

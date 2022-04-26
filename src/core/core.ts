@@ -106,8 +106,9 @@ export class Reactive<T extends Options = Options> extends Destroyable {
 
     input !: T;
 
-    public constructor ($ ?: ReactivePrivate) {
+    public constructor (input : T, $ ?: ReactivePrivate) {
         super ();
+        this.input = input;
         this.$ = $ || new ReactivePrivate;
         this.seal();
     }
@@ -274,9 +275,9 @@ export class Reactive<T extends Options = Options> extends Destroyable {
         return this;
     }
 
-    public init(input : T) {
-        this.applyOptions(input);
-        this.compose(input);
+    public init() {
+        this.applyOptions(this.input);
+        this.compose(this.input);
     }
 
     protected applyOptions(input : T) {

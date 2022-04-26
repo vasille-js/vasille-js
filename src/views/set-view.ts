@@ -10,10 +10,6 @@ import { SetModel } from "../models/set-model";
  */
 export class SetView<T> extends BaseView<T, T, SetModel<T>> {
 
-    public constructor () {
-        super();
-    }
-
     protected compose(input: BSO<T, T, SetModel<T>>) {
         super.compose(input);
 

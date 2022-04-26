@@ -1,4 +1,5 @@
-import { INode } from "./node";
+import {Fragment, INode} from "./node";
+import {TagOptions} from "../functional/options";
 
 interface AppOptions {
     debugUi ?: boolean
@@ -9,17 +10,18 @@ interface AppOptions {
  * @class AppNode
  * @extends INode
  */
-export class AppNode extends INode {
+export class AppNode<T extends TagOptions<any> = TagOptions<any>> extends INode<T> {
     /**
      * Enables debug comments
      */
     debugUi : boolean;
 
     /**
+     * @param input
      * @param options {Object} Application options
      */
-    constructor (options ?: AppOptions) {
-        super();
+    constructor (input : T, options ?: AppOptions) {
+        super(input);
         this.debugUi = options?.debugUi || false;
         this.seal();
     }
@@ -37,15 +39,39 @@ export class App extends AppNode {
      * @param options {Object} Application options
      */
     constructor (node : Element, options ?: AppOptions) {
-        super(options);
+        super({}, options);
 
         this.$.node = node;
         this.preinit(this, this);
+        this.init();
 
         this.seal();
     }
 
     public appendNode (node : Node) {
-        node.appendChild(this.$.node);
+        this.$.node.appendChild(node);
+    }
+}
+
+interface PortalOptions extends TagOptions<'div'> {
+    node : Element
+    slot : (node : Fragment) => void
+}
+
+export class Portal extends AppNode<PortalOptions> {
+    constructor (input : PortalOptions) {
+        super(input, {});
+
+        this.$.node = input.node;
+
+        this.seal();
+    }
+
+    public appendNode (node : Node) {
+        this.$.node.appendChild(node);
+    }
+
+    protected compose(input: PortalOptions) {
+        input.slot(this);
     }
 }

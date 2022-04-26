@@ -57,9 +57,9 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
             this.sync.$ = func.apply (this, this.valuesCache);
         };
 
-        for (let i = 0; i < values.length; i++) {
-            this.valuesCache[i] = values[i].$;
-        }
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this.valuesCache = values.map(item => item.$);
 
         this.sync = new Reference(func.apply (this, this.valuesCache));
 

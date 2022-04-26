@@ -3,8 +3,10 @@ import { Pointer } from "../value/pointer";
 import { current } from "../core/core";
 import { KindOfIValue } from "../value/expression";
 
-export function ref<T>(value : T) : IValue<T> {
-    return current.ref(value);
+export function ref<T>(value : T) : [IValue<T>, (value : T) => void] {
+    const ref = current.ref(value);
+
+    return [ref, (value : T) => ref.$ = value];
 }
 
 export function mirror<T>(value : IValue<T>) {
@@ -33,16 +35,8 @@ export function watch<Args extends unknown[]> (
     current.watch(func, ...values);
 }
 
-export function valueOf<T>(value : IValue<IValue<T>>) : T
-export function valueOf<T>(value : IValue<T>) : T
-export function valueOf<T, V>(value : IValue<T>) : V {
-    let current : any = value;
-
-    while (current instanceof IValue) {
-        current = current.$;
-    }
-
-    return current;
+export function valueOf<T>(value : IValue<T>) : T {
+    return value.$;
 }
 
 export function setValue<T>(ref : IValue<T>, value : IValue<T> | T) {

@@ -19,12 +19,8 @@ import { ObjectView } from "./views/object-view";
 import { RepeatNode } from "./views/repeat-node";
 import { SetView } from "./views/set-view";
 import { Binding } from "./binding/binding";
-import { debug, predefine, text } from "./functional/components";
 import { Options, TagOptions } from "./functional/options";
-import { expr, forward, mirror, point, ref, setValue, valueOf, watch } from "./functional/reactivity";
-import { app, component, create, extension, fragment, reactive, tag, v } from "./functional/stack";
-import { arrayModel, mapModel, objectModel, setModel } from "./functional/models";
-
+import * as libV from "./v/index";
 
 
 
@@ -55,29 +51,7 @@ export {
     Expression,
     Binding,
     Reactive,
-    debug,
-    predefine,
-    text,
     Options,
     TagOptions,
-    expr,
-    forward,
-    mirror,
-    point,
-    ref,
-    setValue,
-    valueOf,
-    watch,
-    app,
-    component,
-    create,
-    extension,
-    fragment,
-    reactive,
-    tag,
-    arrayModel,
-    setModel,
-    mapModel,
-    objectModel,
-    v
+    libV
 };
