@@ -98,7 +98,7 @@ export function create<T extends Fragment>(
 
 
 
-export const v = {
+export const vx = {
     if(condition: IValue<boolean>, callback: () => void) {
         if (current instanceof Fragment) {
             current.if(condition, node => node.runFunctional(callback));

@@ -13,7 +13,7 @@ export declare function tag<K extends keyof AcceptedTagsMap>(name: K, opts: TagO
 };
 declare type ExtractParams<T> = T extends ((node: Fragment, ...args: infer P) => any) ? P : never;
 export declare function create<T extends Fragment>(node: T, callback?: (...args: ExtractParams<T['input']['slot']>) => void): T;
-export declare const v: {
+export declare const vx: {
     if(condition: IValue<boolean>, callback: () => void): void;
     else(callback: () => void): void;
     elif(condition: IValue<boolean>, callback: () => void): void;

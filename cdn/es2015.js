@@ -1,4 +1,24 @@
 (function(){
+// ./lib/v/index.js
+
+const v = Object.assign(Object.assign({ ref(value) {
+        return current.ref(value);
+    }, expr: expr, of: valueOf, sv: setValue, alwaysFalse: new Reference(false), app,
+    component,
+    fragment,
+    extension,
+    text,
+    tag,
+    create }, vx), { merge,
+    destructor() {
+        return current.destroy.bind(current);
+    },
+    runOnDestroy(callback) {
+        current.runOnDestroy(callback);
+    } });
+
+window.v = v;
+
 // ./lib/models/model.js
 
 
@@ -149,13 +169,14 @@ class ObjectModel extends Object {
      */
     constructor(obj = {}) {
         super();
+        this.container = Object.create(null);
         Object.defineProperty(this, 'listener', {
             value: new Listener,
             writable: false,
             configurable: false
         });
         for (const i in obj) {
-            Object.defineProperty(this, i, {
+            Object.defineProperty(this.container, i, {
                 value: obj[i],
                 configurable: true,
                 writable: true,
@@ -170,8 +191,7 @@ class ObjectModel extends Object {
      * @return {*}
      */
     get(key) {
-        const ts = this;
-        return ts[key];
+        return this.container[key];
     }
     /**
      * Sets an object property value
@@ -180,21 +200,19 @@ class ObjectModel extends Object {
      * @return {ObjectModel} a pointer to this
      */
     set(key, v) {
-        const ts = this;
-        // eslint-disable-next-line no-prototype-builtins
-        if (ts.hasOwnProperty(key)) {
-            this.listener.emitRemoved(key, ts[key]);
-            ts[key] = v;
+        if (Reflect.has(this.container, key)) {
+            this.listener.emitRemoved(key, this.container[key]);
+            this.container[key] = v;
         }
         else {
-            Object.defineProperty(ts, key, {
+            Object.defineProperty(this.container, key, {
                 value: v,
                 configurable: true,
                 writable: true,
                 enumerable: true
             });
         }
-        this.listener.emitAdded(key, ts[key]);
+        this.listener.emitAdded(key, this.container[key]);
         return this;
     }
     /**
@@ -202,11 +220,27 @@ class ObjectModel extends Object {
      * @param key {string} property name
      */
     delete(key) {
-        const ts = this;
-        if (ts[key]) {
-            this.listener.emitRemoved(key, ts[key]);
-            delete ts[key];
+        if (this.container[key]) {
+            this.listener.emitRemoved(key, this.container[key]);
+            delete this.container[key];
         }
+    }
+    proxy() {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const ts = this;
+        return new Proxy(this.container, {
+            get(target, p) {
+                return ts.get(p);
+            },
+            set(target, p, value) {
+                ts.set(p, value);
+                return true;
+            },
+            deleteProperty(target, p) {
+                ts.delete(p);
+                return true;
+            }
+        });
     }
     enableReactivity() {
         this.listener.enableReactivity();
@@ -372,6 +406,15 @@ class ArrayModel extends Array {
         for (let i = 0; i < data.length; i++) {
             super.push(data[i]);
         }
+    }
+    // proxy
+    proxy() {
+        return new Proxy(this, {
+            set(target, p, value) {
+                target.splice(parseInt(p), 1, value);
+                return true;
+            }
+        });
     }
     /* Array members */
     /**
@@ -562,6 +605,266 @@ class ArrayModel extends Array {
 }
 
 window.ArrayModel = ArrayModel;
+
+// ./lib/functional/merge.js
+function merge(main, ...targets) {
+    function refactorClass(obj) {
+        if (Array.isArray(obj.class)) {
+            const out = {
+                $: []
+            };
+            obj.class.forEach(item => {
+                if (item instanceof IValue) {
+                    out.$.push(item);
+                }
+                else if (typeof item === 'string') {
+                    out[item] = true;
+                }
+                else if (typeof item === 'object') {
+                    Object.assign(out, item);
+                }
+            });
+            obj.class = out;
+        }
+    }
+    refactorClass(main);
+    targets.forEach(target => {
+        Reflect.ownKeys(target).forEach((prop) => {
+            if (!Reflect.has(main, prop)) {
+                main[prop] = target[prop];
+            }
+            else if (typeof main[prop] === 'object' && typeof target[prop] === 'object') {
+                if (prop === 'class') {
+                    refactorClass(target);
+                }
+                if (prop === '$' && Array.isArray(main[prop]) && Array.isArray(target[prop])) {
+                    main.$.push(...target.$);
+                }
+                else {
+                    merge(main[prop], target[prop]);
+                }
+            }
+        });
+    });
+}
+
+window.merge = merge;
+
+// ./lib/functional/stack.js
+function app(renderer) {
+    return (node, opts) => {
+        return new App(node, opts).runFunctional(renderer, opts);
+    };
+}
+function component(renderer) {
+    return (opts, callback) => {
+        const component = new Component(opts);
+        if (!(current instanceof Fragment))
+            throw userError('missing parent node', 'out-of-context');
+        let ret;
+        if (callback)
+            opts.slot = callback;
+        current.create(component, node => {
+            ret = node.runFunctional(renderer, opts);
+        });
+        return ret;
+    };
+}
+function fragment(renderer) {
+    return (opts, callback) => {
+        const frag = new Fragment(opts);
+        if (!(current instanceof Fragment))
+            throw userError('missing parent node', 'out-of-context');
+        if (callback)
+            opts.slot = callback;
+        current.create(frag);
+        return frag.runFunctional(renderer, opts);
+    };
+}
+function extension(renderer) {
+    return (opts, callback) => {
+        const ext = new Extension(opts);
+        if (!(current instanceof Fragment))
+            throw userError('missing parent node', 'out-of-context');
+        if (callback)
+            opts.slot = callback;
+        current.create(ext);
+        return ext.runFunctional(renderer, opts);
+    };
+}
+function tag(name, opts, callback) {
+    if (!(current instanceof Fragment))
+        throw userError('missing parent node', 'out-of-context');
+    return {
+        node: current.tag(name, opts, (node) => {
+            callback && node.runFunctional(callback);
+        })
+    };
+}
+function create(node, callback) {
+    if (!(current instanceof Fragment))
+        throw userError('missing current node', 'out-of-context');
+    current.create(node, (node, ...args) => {
+        callback && node.runFunctional(callback, ...args);
+    });
+    return node;
+}
+const vx = {
+    if(condition, callback) {
+        if (current instanceof Fragment) {
+            current.if(condition, node => node.runFunctional(callback));
+        }
+        else {
+            throw userError("wrong use of `v.if` function", "logic-error");
+        }
+    },
+    else(callback) {
+        if (current instanceof Fragment) {
+            current.else(node => node.runFunctional(callback));
+        }
+        else {
+            throw userError("wrong use of `v.else` function", "logic-error");
+        }
+    },
+    elif(condition, callback) {
+        if (current instanceof Fragment) {
+            current.elif(condition, node => node.runFunctional(callback));
+        }
+        else {
+            throw userError("wrong use of `v.elif` function", "logic-error");
+        }
+    },
+    for(model, callback) {
+        if (model instanceof ArrayModel) {
+            // for arrays T & K are the same type
+            create(new ArrayView({ model }), callback);
+        }
+        else if (model instanceof MapModel) {
+            create(new MapView({ model }), callback);
+        }
+        else if (model instanceof SetModel) {
+            // for sets T & K are the same type
+            create(new SetView({ model }), callback);
+        }
+        else if (model instanceof ObjectModel) {
+            // for objects K is always string
+            create(new ObjectView({ model }), callback);
+        }
+        else {
+            throw userError("wrong use of `v.for` function", 'wrong-model');
+        }
+    },
+    watch(model, callback) {
+        const opts = { model };
+        create(new Watch(opts), callback);
+    },
+    nextTick(callback) {
+        const node = current;
+        window.setTimeout(() => {
+            node.runFunctional(callback);
+        }, 0);
+    }
+};
+
+window.app = app;
+window.component = component;
+window.fragment = fragment;
+window.extension = extension;
+window.tag = tag;
+window.create = create;
+window.vx = vx;
+
+// ./lib/functional/models.js
+function arrayModel(arr = []) {
+    if (!current)
+        throw userError('missing parent node', 'out-of-context');
+    return current.register(new ArrayModel(arr)).proxy();
+}
+function mapModel(map = []) {
+    if (!current)
+        throw userError('missing parent node', 'out-of-context');
+    return current.register(new MapModel(map));
+}
+function setModel(arr = []) {
+    if (!current)
+        throw userError('missing parent node', 'out-of-context');
+    return current.register(new SetModel(arr));
+}
+function objectModel(obj = {}) {
+    if (!current)
+        throw userError('missing parent node', 'out-of-context');
+    return current.register(new ObjectModel(obj));
+}
+
+window.arrayModel = arrayModel;
+window.mapModel = mapModel;
+window.setModel = setModel;
+window.objectModel = objectModel;
+
+// ./lib/functional/options.js
+
+
+
+// ./lib/functional/reactivity.js
+function ref(value) {
+    const ref = current.ref(value);
+    return [ref, (value) => ref.$ = value];
+}
+function mirror(value) {
+    return current.mirror(value);
+}
+function forward(value) {
+    return current.forward(value);
+}
+function point(value) {
+    return current.point(value);
+}
+function expr(func, ...values) {
+    return current.expr(func, ...values);
+}
+function watch(func, ...values) {
+    current.watch(func, ...values);
+}
+function valueOf(value) {
+    return value.$;
+}
+function setValue(ref, value) {
+    if (ref instanceof Pointer && value instanceof IValue) {
+        ref.point(value);
+    }
+    else {
+        ref.$ = value instanceof IValue ? value.$ : value;
+    }
+}
+
+window.ref = ref;
+window.mirror = mirror;
+window.forward = forward;
+window.point = point;
+window.expr = expr;
+window.watch = watch;
+window.valueOf = valueOf;
+window.setValue = setValue;
+
+// ./lib/functional/components.js
+function text(text) {
+    if (!(current instanceof Fragment))
+        throw userError('missing parent node', 'out-of-context');
+    ;
+    current.text(text);
+}
+function debug(text) {
+    if (!(current instanceof Fragment))
+        throw userError('missing parent node', 'out-of-context');
+    current.debug(text);
+}
+function predefine(slot, predefined) {
+    return slot || predefined;
+}
+
+window.text = text;
+window.debug = debug;
+window.predefine = predefine;
 
 // ./lib/core/signal.js
 /**
@@ -966,6 +1269,18 @@ window.IValue = IValue;
 
 
 
+// ./lib/spec/svg.js
+
+
+
+// ./lib/spec/react.js
+
+
+
+// ./lib/spec/html.js
+
+
+
 // ./lib/value/expression.js
 /**
  * Bind some values to one expression
@@ -973,13 +1288,18 @@ window.IValue = IValue;
  * @extends IValue
  */
 class Expression extends IValue {
-    constructor(func, link, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
+    /**
+     * Creates a function bounded to N values
+     * @param func {Function} the function to bound
+     * @param values
+     * @param link {Boolean} links immediately if true
+     */
+    constructor(func, link, ...values) {
         super(false);
         /**
          * Expression will link different handler for each value of list
          */
         this.linkedFunc = [];
-        const values = [v1, v2, v3, v4, v5, v6, v7, v8, v9].filter(v => v instanceof IValue);
         const handler = (i) => {
             if (i != null) {
                 this.valuesCache[i] = this.values[i].$;
@@ -988,14 +1308,12 @@ class Expression extends IValue {
         };
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        this.valuesCache = values.map(iValue => iValue.$);
+        this.valuesCache = values.map(item => item.$);
         this.sync = new Reference(func.apply(this, this.valuesCache));
         let i = 0;
         values.forEach(() => {
             this.linkedFunc.push(handler.bind(this, Number(i++)));
         });
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         this.values = values;
         this.func = handler;
         if (link) {
@@ -1226,6 +1544,15 @@ class Binding extends Destroyable {
 window.Binding = Binding;
 
 // ./lib/core/core.js
+
+const currentStack = [];
+function stack(node) {
+    currentStack.push(current);
+    current = node;
+}
+function unstack() {
+    current = currentStack.pop();
+}
 /**
  * Private stuff of a reactive object
  * @class ReactivePrivate
@@ -1261,14 +1588,14 @@ class ReactivePrivate extends Destroyable {
         this.seal();
     }
     destroy() {
-        var _a;
         this.watch.forEach(value => value.destroy());
         this.watch.clear();
         this.bindings.forEach(binding => binding.destroy());
         this.bindings.clear();
         this.models.forEach(model => model.disableReactivity());
         this.models.clear();
-        (_a = this.freezeExpr) === null || _a === void 0 ? void 0 : _a.destroy();
+        this.freezeExpr && this.freezeExpr.destroy();
+        this.onDestroy && this.onDestroy();
         super.destroy();
     }
 }
@@ -1278,9 +1605,17 @@ class ReactivePrivate extends Destroyable {
  * @extends Destroyable
  */
 class Reactive extends Destroyable {
-    constructor($) {
+    constructor(input, $) {
         super();
+        this.input = input;
         this.$ = $ || new ReactivePrivate;
+        this.seal();
+    }
+    /**
+     * Get parent node
+     */
+    get parent() {
+        return this.$.parent;
     }
     /**
      * Create a reference
@@ -1329,12 +1664,23 @@ class Reactive extends Destroyable {
         this.$.models.add(model);
         return model;
     }
-    watch(func, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
+    /**
+     * Creates a watcher
+     * @param func {function} function to run on any argument change
+     * @param values
+     */
+    watch(func, ...values) {
         const $ = this.$;
-        $.watch.add(new Expression(func, !this.$.frozen, v1, v2, v3, v4, v5, v6, v7, v8, v9));
+        $.watch.add(new Expression(func, !this.$.frozen, ...values));
     }
-    bind(func, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
-        const res = new Expression(func, !this.$.frozen, v1, v2, v3, v4, v5, v6, v7, v8, v9);
+    /**
+     * Creates a computed value
+     * @param func {function} function to run on any argument change
+     * @param values
+     * @return {IValue} the created ivalue
+     */
+    expr(func, ...values) {
+        const res = new Expression(func, !this.$.frozen, ...values);
         const $ = this.$;
         $.watch.add(res);
         return res;
@@ -1396,6 +1742,28 @@ class Reactive extends Destroyable {
         }, true, cond);
         return this;
     }
+    init() {
+        this.applyOptions(this.input);
+        this.compose(this.input);
+    }
+    applyOptions(input) {
+        // empty
+    }
+    compose(input) {
+        // empty
+    }
+    runFunctional(f, ...args) {
+        stack(this);
+        // yet another ts bug
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const result = f(...args);
+        unstack();
+        return result;
+    }
+    runOnDestroy(func) {
+        this.$.onDestroy = func;
+    }
     destroy() {
         super.destroy();
         this.$.destroy();
@@ -1442,10 +1810,11 @@ class FragmentPrivate extends ReactivePrivate {
 class Fragment extends Reactive {
     /**
      * Constructs a Vasille Node
+     * @param input
      * @param $ {FragmentPrivate}
      */
-    constructor($) {
-        super($ || new FragmentPrivate);
+    constructor(input, $) {
+        super(input, $ || new FragmentPrivate);
         /**
          * The children list
          * @type Array
@@ -1469,34 +1838,12 @@ class Fragment extends Reactive {
         const $ = this.$;
         $.preinit(app, parent);
     }
-    /**
-     * Initialize node
-     */
-    init() {
-        this.createWatchers();
-        this.created();
-        this.compose();
-        this.mounted();
-        return this;
-    }
-    /** To be overloaded: created event handler */
-    created() {
-        // empty
-    }
-    /** To be overloaded: mounted event handler */
-    mounted() {
-        // empty
+    compose(input) {
+        super.compose(input);
+        input.slot && input.slot(this);
     }
     /** To be overloaded: ready event handler */
     ready() {
-        // empty
-    }
-    /** To be overloaded: watchers creation milestone */
-    createWatchers() {
-        // empty
-    }
-    /** To be overloaded: DOM creation milestone */
-    compose() {
         // empty
     }
     /**
@@ -1545,7 +1892,7 @@ class Fragment extends Reactive {
         const child = this.findFirstChild();
         const $ = this.$;
         if (child) {
-            $.app.run.insertBefore(child, node);
+            child.parentElement.insertBefore(node, child);
         }
         else if ($.next) {
             $.next.insertAdjacent(node);
@@ -1562,14 +1909,9 @@ class Fragment extends Reactive {
     text(text, cb) {
         const $ = this.$;
         const node = new TextNode();
-        const textValue = text instanceof IValue ? text : this.ref(text);
-        node.preinit($.app, this, textValue);
+        node.preinit($.app, this, text);
         this.pushNode(node);
-        if (cb) {
-            $.app.run.callCallback(() => {
-                cb(node);
-            });
-        }
+        cb && cb(node);
     }
     debug(text) {
         if (this.$.app.debugUi) {
@@ -1577,39 +1919,36 @@ class Fragment extends Reactive {
             node.preinit(this.$.app, this, text);
             this.pushNode(node);
         }
-        return this;
     }
-    tag(tagName, cb) {
+    /**
+     * Defines a tag element
+     * @param tagName {String} the tag name
+     * @param input
+     * @param cb {function(Tag, *)} callback
+     */
+    tag(tagName, input, cb) {
         const $ = this.$;
-        const node = new Tag();
+        const node = new Tag(input);
+        input.slot = cb || input.slot;
         node.preinit($.app, this, tagName);
         node.init();
         this.pushNode(node);
-        $.app.run.callCallback(() => {
-            if (cb) {
-                cb(node, node.node);
-            }
-            node.ready();
-        });
+        node.ready();
+        return node.node;
     }
     /**
      * Defines a custom element
      * @param node {Fragment} vasille element to insert
      * @param callback {function($ : *)}
-     * @param callback1 {function($ : *)}
      */
-    create(node, callback, callback1) {
+    create(node, callback) {
         const $ = this.$;
         node.$.parent = this;
         node.preinit($.app, this);
-        if (callback) {
-            callback(node);
-        }
-        if (callback1) {
-            callback1(node);
-        }
+        node.input.slot = callback || node.input.slot;
         this.pushNode(node);
-        node.init().ready();
+        node.init();
+        node.ready();
     }
     /**
      * Defines an if node
@@ -1618,31 +1957,28 @@ class Fragment extends Reactive {
      * @return {this}
      */
     if(cond, cb) {
-        return this.switch({ cond, cb });
-    }
-    /**
-     * Defines a if-else node
-     * @param ifCond {IValue} `if` condition
-     * @param ifCb {function(Fragment)} Call-back to create `if` child nodes
-     * @param elseCb {function(Fragment)} Call-back to create `else` child nodes
-     */
-    if_else(ifCond, ifCb, elseCb) {
-        return this.switch({ cond: ifCond, cb: ifCb }, { cond: trueIValue, cb: elseCb });
-    }
-    /**
-     * Defines a switch nodes: Will break after first true condition
-     * @param cases {...{ cond : IValue, cb : function(Fragment) }} cases
-     * @return {INode}
-     */
-    switch(...cases) {
-        const $ = this.$;
         const node = new SwitchedNode();
-        node.preinit($.app, this);
+        node.preinit(this.$.app, this);
         node.init();
         this.pushNode(node);
-        node.setCases(cases);
+        node.addCase(this.case(cond, cb));
         node.ready();
-        return this;
+    }
+    else(cb) {
+        if (this.lastChild instanceof SwitchedNode) {
+            this.lastChild.addCase(this.default(cb));
+        }
+        else {
+            throw userError('wrong `else` function use', 'logic-error');
+        }
+    }
+    elif(cond, cb) {
+        if (this.lastChild instanceof SwitchedNode) {
+            this.lastChild.addCase(this.case(cond, cb));
+        }
+        else {
+            throw userError('wrong `elif` function use', 'logic-error');
+        }
     }
     /**
      * Create a case for switch
@@ -1708,14 +2044,17 @@ class TextNodePrivate extends FragmentPrivate {
     /**
      * Pre-initializes a text node
      * @param app {AppNode} the app node
+     * @param parent
      * @param text {IValue}
      */
     preinitText(app, parent, text) {
         super.preinit(app, parent);
-        this.node = document.createTextNode(text.$);
-        this.bindings.add(new Expression((v) => {
-            this.node.replaceData(0, -1, v);
-        }, true, text));
+        this.node = document.createTextNode(text instanceof IValue ? text.$ : text);
+        if (text instanceof IValue) {
+            this.bindings.add(new Expression((v) => {
+                this.node.replaceData(0, -1, v);
+            }, true, text));
+        }
     }
     /**
      * Clear node data
@@ -1731,7 +2070,7 @@ class TextNodePrivate extends FragmentPrivate {
  */
 class TextNode extends Fragment {
     constructor($ = new TextNodePrivate()) {
-        super($);
+        super({}, $);
         this.seal();
     }
     preinit(app, parent, text) {
@@ -1778,10 +2117,11 @@ class INodePrivate extends FragmentPrivate {
 class INode extends Fragment {
     /**
      * Constructs a base node
+     * @param input
      * @param $ {?INodePrivate}
      */
-    constructor($) {
-        super($ || new INodePrivate);
+    constructor(input, $) {
+        super(input, $ || new INodePrivate);
         this.seal();
     }
     /**
@@ -1789,26 +2129,6 @@ class INode extends Fragment {
      */
     get node() {
         return this.$.node;
-    }
-    /**
-     * Initialize node
-     */
-    init() {
-        this.createWatchers();
-        this.createAttrs();
-        this.createStyle();
-        this.created();
-        this.compose();
-        this.mounted();
-        return this;
-    }
-    /** To be overloaded: attributes creation milestone */
-    createAttrs() {
-        // empty
-    }
-    /** To be overloaded: $style attributes creation milestone */
-    createStyle() {
-        // empty
     }
     /**
      * Bind attribute value
@@ -1820,18 +2140,20 @@ class INode extends Fragment {
         const attr = new AttributeBinding(this, name, value);
         $.bindings.add(attr);
     }
-    bindAttr(name, calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
-        const $ = this.$;
-        const expr = this.bind(calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
-        $.bindings.add(new AttributeBinding(this, name, expr));
-    }
     /**
      * Set attribute value
      * @param name {string} name of attribute
      * @param value {string} value
      */
     setAttr(name, value) {
-        this.$.app.run.setAttribute(this.$.node, name, value);
+        if (typeof value === 'boolean') {
+            if (value) {
+                this.$.node.setAttribute(name, "");
+            }
+        }
+        else {
+            this.$.node.setAttribute(name, `${value}`);
+        }
         return this;
     }
     /**
@@ -1839,17 +2161,15 @@ class INode extends Fragment {
      * @param cl {string} Class name
      */
     addClass(cl) {
-        this.$.app.run.addClass(this.$.node, cl);
+        this.$.node.classList.add(cl);
         return this;
     }
     /**
      * Adds some CSS classes
      * @param cls {...string} classes names
      */
-    addClasses(...cls) {
-        cls.forEach(cl => {
-            this.$.app.run.addClass(this.$.node, cl);
-        });
+    removeClasse(cl) {
+        this.$.node.classList.remove(cl);
         return this;
     }
     /**
@@ -1885,17 +2205,6 @@ class INode extends Fragment {
         }
         return this;
     }
-    bindStyle(name, calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
-        const $ = this.$;
-        const expr = this.bind(calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
-        if ($.node instanceof HTMLElement) {
-            $.bindings.add(new StyleBinding(this, name, expr));
-        }
-        else {
-            throw userError('style can be applied to HTML elements only', 'non-html-element');
-        }
-        return this;
-    }
     /**
      * Sets a style property value
      * @param prop {string} Property name
@@ -1903,10 +2212,10 @@ class INode extends Fragment {
      */
     setStyle(prop, value) {
         if (this.$.node instanceof HTMLElement) {
-            this.$.app.run.setStyle(this.$.node, prop, value);
+            this.$.node.style.setProperty(prop, value);
         }
         else {
-            throw userError("Style can be setted for HTML elements only", "non-html-element");
+            throw userError("Style can be set for HTML elements only", "non-html-element");
         }
         return this;
     }
@@ -1920,387 +2229,8 @@ class INode extends Fragment {
         this.$.node.addEventListener(name, handler, options);
         return this;
     }
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    oncontextmenu(handler, options) {
-        return this.listen("contextmenu", handler, options);
-    }
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onmousedown(handler, options) {
-        return this.listen("mousedown", handler, options);
-    }
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onmouseenter(handler, options) {
-        return this.listen("mouseenter", handler, options);
-    }
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onmouseleave(handler, options) {
-        return this.listen("mouseleave", handler, options);
-    }
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onmousemove(handler, options) {
-        return this.listen("mousemove", handler, options);
-    }
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onmouseout(handler, options) {
-        return this.listen("mouseout", handler, options);
-    }
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onmouseover(handler, options) {
-        return this.listen("mouseover", handler, options);
-    }
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onmouseup(handler, options) {
-        return this.listen("mouseup", handler, options);
-    }
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onclick(handler, options) {
-        return this.listen("click", handler, options);
-    }
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    ondblclick(handler, options) {
-        return this.listen("dblclick", handler, options);
-    }
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    onblur(handler, options) {
-        return this.listen("blur", handler, options);
-    }
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    onfocus(handler, options) {
-        return this.listen("focus", handler, options);
-    }
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    onfocusin(handler, options) {
-        return this.listen("focusin", handler, options);
-    }
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    onfocusout(handler, options) {
-        return this.listen("focusout", handler, options);
-    }
-    /**
-     * @param handler {function (KeyboardEvent)}
-     * @param options {Object | boolean}
-     */
-    onkeydown(handler, options) {
-        return this.listen("keydown", handler, options);
-    }
-    /**
-     * @param handler {function (KeyboardEvent)}
-     * @param options {Object | boolean}
-     */
-    onkeyup(handler, options) {
-        return this.listen("keyup", handler, options);
-    }
-    /**
-     * @param handler {function (KeyboardEvent)}
-     * @param options {Object | boolean}
-     */
-    onkeypress(handler, options) {
-        return this.listen("keypress", handler, options);
-    }
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    ontouchstart(handler, options) {
-        return this.listen("touchstart", handler, options);
-    }
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    ontouchmove(handler, options) {
-        return this.listen("touchmove", handler, options);
-    }
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    ontouchend(handler, options) {
-        return this.listen("touchend", handler, options);
-    }
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    ontouchcancel(handler, options) {
-        return this.listen("touchcancel", handler, options);
-    }
-    /**
-     * @param handler {function (WheelEvent)}
-     * @param options {Object | boolean}
-     */
-    onwheel(handler, options) {
-        return this.listen("wheel", handler, options);
-    }
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    onabort(handler, options) {
-        return this.listen("abort", handler, options);
-    }
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    onerror(handler, options) {
-        return this.listen("error", handler, options);
-    }
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    onload(handler, options) {
-        return this.listen("load", handler, options);
-    }
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    onloadend(handler, options) {
-        return this.listen("loadend", handler, options);
-    }
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    onloadstart(handler, options) {
-        return this.listen("loadstart", handler, options);
-    }
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    onprogress(handler, options) {
-        return this.listen("progress", handler, options);
-    }
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    ontimeout(handler, options) {
-        return this.listen("timeout", handler, options);
-    }
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondrag(handler, options) {
-        return this.listen("drag", handler, options);
-    }
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondragend(handler, options) {
-        return this.listen("dragend", handler, options);
-    }
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondragenter(handler, options) {
-        return this.listen("dragenter", handler, options);
-    }
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondragexit(handler, options) {
-        return this.listen("dragexit", handler, options);
-    }
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondragleave(handler, options) {
-        return this.listen("dragleave", handler, options);
-    }
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondragover(handler, options) {
-        return this.listen("dragover", handler, options);
-    }
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondragstart(handler, options) {
-        return this.listen("dragstart", handler, options);
-    }
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondrop(handler, options) {
-        return this.listen("drop", handler, options);
-    }
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointerover(handler, options) {
-        return this.listen("pointerover", handler, options);
-    }
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointerenter(handler, options) {
-        return this.listen("pointerenter", handler, options);
-    }
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointerdown(handler, options) {
-        return this.listen("pointerdown", handler, options);
-    }
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointermove(handler, options) {
-        return this.listen("pointermove", handler, options);
-    }
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointerup(handler, options) {
-        return this.listen("pointerup", handler, options);
-    }
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointercancel(handler, options) {
-        return this.listen("pointercancel", handler, options);
-    }
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointerout(handler, options) {
-        return this.listen("pointerout", handler, options);
-    }
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointerleave(handler, options) {
-        return this.listen("pointerleave", handler, options);
-    }
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    ongotpointercapture(handler, options) {
-        return this.listen("gotpointercapture", handler, options);
-    }
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onlostpointercapture(handler, options) {
-        return this.listen("lostpointercapture", handler, options);
-    }
-    /**
-     * @param handler {function (AnimationEvent)}
-     * @param options {Object | boolean}
-     */
-    onanimationstart(handler, options) {
-        return this.listen("animationstart", handler, options);
-    }
-    /**
-     * @param handler {function (AnimationEvent)}
-     * @param options {Object | boolean}
-     */
-    onanimationend(handler, options) {
-        return this.listen("animationend", handler, options);
-    }
-    /**
-     * @param handler {function (AnimationEvent)}
-     * @param options {Object | boolean}
-     */
-    onanimationiteraton(handler, options) {
-        return this.listen("animationiteration", handler, options);
-    }
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    onclipboardchange(handler, options) {
-        return this.listen("clipboardchange", handler, options);
-    }
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    oncut(handler, options) {
-        return this.listen("cut", handler, options);
-    }
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    oncopy(handler, options) {
-        return this.listen("copy", handler, options);
-    }
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    onpaste(handler, options) {
-        return this.listen("paste", handler, options);
-    }
     insertAdjacent(node) {
-        const $ = this.$;
-        $.app.run.insertBefore($.node, node);
+        this.$.node.parentNode.insertBefore(node, this.$.node);
     }
     /**
      * A v-show & ngShow alternative
@@ -2327,18 +2257,104 @@ class INode extends Fragment {
      * bind HTML
      * @param value {IValue}
      */
-    html(value) {
+    bindDomApi(name, value) {
         const $ = this.$;
         const node = $.node;
         if (node instanceof HTMLElement) {
-            node.innerHTML = value.$;
+            node[name] = value.$;
             this.watch((v) => {
-                node.innerHTML = v;
+                node[name] = v;
             }, value);
         }
         else {
             throw userError("HTML can be bound for HTML nodes only", "dom-error");
         }
+    }
+    applyOptions(options) {
+        options["v:attr"] && Object.keys(options["v:attr"]).forEach(name => {
+            const value = options["v:attr"][name];
+            if (value instanceof IValue) {
+                this.attr(name, value);
+            }
+            else {
+                this.setAttr(name, value);
+            }
+        });
+        if (options.class) {
+            const handleClass = (name, value) => {
+                if (value instanceof IValue) {
+                    this.floatingClass(value, name);
+                }
+                else if (value && name !== '$') {
+                    this.addClass(name);
+                }
+                else {
+                    this.removeClasse(name);
+                }
+            };
+            if (Array.isArray(options.class)) {
+                options.class.forEach(item => {
+                    if (item instanceof IValue) {
+                        this.bindClass(item);
+                    }
+                    else if (typeof item == "string") {
+                        this.addClass(item);
+                    }
+                    else {
+                        Reflect.ownKeys(item).forEach((name) => {
+                            handleClass(name, item[name]);
+                        });
+                    }
+                });
+            }
+            else {
+                options.class.$.forEach(item => {
+                    this.bindClass(item);
+                });
+                Reflect.ownKeys(options.class).forEach((name) => {
+                    handleClass(name, options.class[name]);
+                });
+            }
+        }
+        options.style && Object.keys(options.style).forEach(name => {
+            const value = options.style[name];
+            if (value instanceof IValue) {
+                this.style(name, value);
+            }
+            else if (typeof value === "string") {
+                this.setStyle(name, value);
+            }
+            else {
+                if (value[0] instanceof IValue) {
+                    this.style(name, this.expr((v) => v + value[1], value[0]));
+                }
+                else {
+                    this.setStyle(name, value[0] + value[1]);
+                }
+            }
+        });
+        options["v:events"] && Object.keys(options["v:events"]).forEach(name => {
+            this.listen(name, options["v:events"][name]);
+        });
+        if (options["v:bind"]) {
+            const inode = this.node;
+            Reflect.ownKeys(options["v:bind"]).forEach((k) => {
+                const value = options["v:bind"][k];
+                if (k === 'value' && (inode instanceof HTMLInputElement || inode instanceof HTMLTextAreaElement)) {
+                    inode.oninput = () => value.$ = inode.value;
+                }
+                else if (k === 'checked' && inode instanceof HTMLInputElement) {
+                    inode.oninput = () => value.$ = inode.checked;
+                }
+                else if (k === 'volume' && inode instanceof HTMLMediaElement) {
+                    inode.onvolumechange = () => value.$ = inode.volume;
+                }
+                this.bindDomApi(k, value);
+            });
+        }
+        options["v:set"] && Object.keys(options["v:set"]).forEach(key => {
+            this.node[key] = options["v:set"][key];
+        });
     }
 }
 /**
@@ -2347,8 +2363,8 @@ class INode extends Fragment {
  * @extends INode
  */
 class Tag extends INode {
-    constructor() {
-        super();
+    constructor(input) {
+        super(input);
         this.seal();
     }
     preinit(app, parent, tagName) {
@@ -2360,6 +2376,9 @@ class Tag extends INode {
         $.preinit(app, parent);
         $.node = node;
         $.parent.appendNode(node);
+    }
+    compose(input) {
+        input.slot && input.slot(this);
     }
     findFirstChild() {
         return this.$.unmounted ? null : this.$.node;
@@ -2378,8 +2397,7 @@ class Tag extends INode {
         }
     }
     appendNode(node) {
-        const $ = this.$;
-        $.app.run.appendChild($.node, node);
+        this.$.node.appendChild(node);
     }
     /**
      * Mount/Unmount a node
@@ -2412,18 +2430,18 @@ class Tag extends INode {
  */
 class Extension extends INode {
     preinit(app, parent) {
-        if (parent instanceof INode) {
-            const $ = this.$;
-            $.preinit(app, parent);
-            $.node = parent.node;
+        const $ = this.$;
+        let it = parent;
+        while (it && !(it instanceof INode)) {
+            it = it.parent;
         }
-        else {
+        if (it && it instanceof INode) {
+            $.node = it.node;
+        }
+        $.preinit(app, parent);
+        if (!it) {
             throw userError("A extension node can be encapsulated only in a tag/extension/component", "virtual-dom");
         }
-    }
-    constructor($) {
-        super($);
-        this.seal();
     }
     destroy() {
         super.destroy();
@@ -2435,12 +2453,8 @@ class Extension extends INode {
  * @extends Extension
  */
 class Component extends Extension {
-    constructor() {
-        super();
-        this.seal();
-    }
-    mounted() {
-        super.mounted();
+    ready() {
+        super.ready();
         if (this.children.size !== 1) {
             throw userError("Component must have a child only", "dom-error");
         }
@@ -2465,6 +2479,11 @@ class Component extends Extension {
 class SwitchedNodePrivate extends FragmentPrivate {
     constructor() {
         super();
+        /**
+         * Array of possible cases
+         * @type {Array<{cond : IValue<boolean>, cb : function(Fragment)}>}
+         */
+        this.cases = [];
         this.seal();
     }
     /**
@@ -2487,7 +2506,7 @@ class SwitchedNode extends Fragment {
      * Constructs a switch node and define a sync function
      */
     constructor() {
-        super(new SwitchedNodePrivate);
+        super({}, new SwitchedNodePrivate);
         this.$.sync = () => {
             const $ = this.$;
             let i = 0;
@@ -2514,20 +2533,17 @@ class SwitchedNode extends Fragment {
         };
         this.seal();
     }
-    /**
-     * Set up switch cases
-     * @param cases {{ cond : IValue, cb : function(Fragment) }}
-     */
-    setCases(cases) {
-        const $ = this.$;
-        $.cases = [...cases];
+    addCase(case_) {
+        this.$.cases.push(case_);
+        case_.cond.on(this.$.sync);
+        this.$.sync();
     }
     /**
      * Creates a child node
      * @param cb {function(Fragment)} Call-back
      */
     createChild(cb) {
-        const node = new Fragment();
+        const node = new Fragment({});
         node.preinit(this.$.app, this);
         node.init();
         this.lastChild = node;
@@ -2586,7 +2602,7 @@ class DebugPrivate extends FragmentPrivate {
  */
 class DebugNode extends Fragment {
     constructor() {
-        super();
+        super({});
         /**
          * private data
          * @type {DebugNode}
@@ -2620,6 +2636,7 @@ window.Tag = Tag;
 window.Extension = Extension;
 window.Component = Component;
 window.SwitchedNodePrivate = SwitchedNodePrivate;
+window.SwitchedNode = SwitchedNode;
 window.DebugPrivate = DebugPrivate;
 window.DebugNode = DebugNode;
 
@@ -2631,12 +2648,12 @@ window.DebugNode = DebugNode;
  */
 class AppNode extends INode {
     /**
-     * @param options {Object} Application options
+     * @param input
      */
-    constructor(options) {
-        super();
-        this.run = (options === null || options === void 0 ? void 0 : options.executor) || ((options === null || options === void 0 ? void 0 : options.freezeUi) === false ? timeoutExecutor : instantExecutor);
-        this.debugUi = (options === null || options === void 0 ? void 0 : options.debugUi) || false;
+    constructor(input) {
+        super(input);
+        this.debugUi = input.debugUi || false;
+        this.seal();
     }
 }
 /**
@@ -2648,22 +2665,33 @@ class App extends AppNode {
     /**
      * Constructs an app node
      * @param node {Element} The root of application
-     * @param options {Object} Application options
+     * @param input
      */
-    constructor(node, options) {
-        super(options);
+    constructor(node, input) {
+        super(input);
         this.$.node = node;
         this.preinit(this, this);
+        this.init();
         this.seal();
     }
     appendNode(node) {
-        const $ = this.$;
-        this.run.appendChild($.node, node);
+        this.$.node.appendChild(node);
+    }
+}
+class Portal extends AppNode {
+    constructor(input) {
+        super(input);
+        this.$.node = input.node;
+        this.seal();
+    }
+    appendNode(node) {
+        this.$.node.appendChild(node);
     }
 }
 
 window.AppNode = AppNode;
 window.App = App;
+window.Portal = Portal;
 
 // ./lib/node/interceptor.js
 /**
@@ -2766,10 +2794,15 @@ class AttributeBinding extends Binding {
         super(value);
         this.init((value) => {
             if (value) {
-                node.app.run.setAttribute(node.node, name, value);
+                if (typeof value === 'boolean') {
+                    node.node.setAttribute(name, "");
+                }
+                else {
+                    node.node.setAttribute(name, `${value}`);
+                }
             }
             else {
-                node.app.run.removeAttribute(node.node, name);
+                node.node.removeAttribute(name);
             }
         });
         this.seal();
@@ -2795,7 +2828,7 @@ class StyleBinding extends Binding {
         super(value);
         this.init((value) => {
             if (node.node instanceof HTMLElement) {
-                node.app.run.setStyle(node.node, name, value);
+                node.node.style.setProperty(name, value);
             }
         });
         this.seal();
@@ -2806,10 +2839,10 @@ window.StyleBinding = StyleBinding;
 
 // ./lib/binding/class.js
 function addClass(node, cl) {
-    node.app.run.addClass(node.node, cl);
+    node.node.classList.add(cl);
 }
 function removeClass(node, cl) {
-    node.app.run.removeClass(node.node, cl);
+    node.node.classList.remove(cl);
 }
 class StaticClassBinding extends Binding {
     constructor(node, name, value) {
@@ -2878,17 +2911,15 @@ class RepeatNodePrivate extends INodePrivate {
  * @extends Fragment
  */
 class RepeatNode extends Fragment {
-    constructor($) {
-        super($ || new RepeatNodePrivate);
+    constructor(input, $) {
+        super(input, $);
         /**
          * If false will use timeout executor, otherwise the app executor
          */
         this.freezeUi = true;
-        this.slot = new Slot;
     }
-    createChild(id, item, before) {
-        // TODO: Refactor: remove @ts-ignore
-        const node = new Fragment();
+    createChild(opts, id, item, before) {
+        const node = new Fragment({});
         this.destroyChild(id, item);
         if (before) {
             this.children.add(node);
@@ -2904,16 +2935,8 @@ class RepeatNode extends Fragment {
         this.lastChild = node;
         node.preinit(this.$.app, this);
         node.init();
-        const callback = () => {
-            this.slot.release(node, item, id);
-            node.ready();
-        };
-        if (this.freezeUi) {
-            this.$.app.run.callCallback(callback);
-        }
-        else {
-            timeoutExecutor.callCallback(callback);
-        }
+        opts.slot && opts.slot(node, item, id);
+        node.ready();
         this.$.nodes.set(id, node);
     }
     destroyChild(id, item) {
@@ -3016,34 +3039,23 @@ class BaseViewPrivate extends RepeatNodePrivate {
  * @implements IModel
  */
 class BaseView extends RepeatNode {
-    constructor($1) {
-        super($1 || new BaseViewPrivate);
+    constructor(input, $) {
+        super(input, $ || new BaseViewPrivate);
+    }
+    compose(input) {
         const $ = this.$;
         $.addHandler = (id, item) => {
-            this.createChild(id, item);
+            this.createChild(input, id, item);
         };
         $.removeHandler = (id, item) => {
             this.destroyChild(id, item);
         };
-        this.seal();
-    }
-    /**
-     * Handle ready event
-     */
-    ready() {
-        const $ = this.$;
-        this.model.listener.onAdd($.addHandler);
-        this.model.listener.onRemove($.removeHandler);
-        super.ready();
-    }
-    /**
-     * Handles destroy event
-     */
-    destroy() {
-        const $ = this.$;
-        this.model.listener.offAdd($.addHandler);
-        this.model.listener.offRemove($.removeHandler);
-        super.destroy();
+        input.model.listener.onAdd($.addHandler);
+        input.model.listener.onRemove($.removeHandler);
+        this.runOnDestroy(() => {
+            input.model.listener.offAdd($.addHandler);
+            input.model.listener.offRemove($.removeHandler);
+        });
     }
 }
 
@@ -3057,18 +3069,14 @@ window.BaseView = BaseView;
  * @extends BaseView
  */
 class ArrayView extends BaseView {
-    constructor(model) {
-        super();
-        this.model = model;
+    createChild(input, id, item, before) {
+        super.createChild(input, item, item, before || this.$.nodes.get(id));
     }
-    createChild(id, item, before) {
-        super.createChild(item, item, before || this.$.nodes.get(id));
-    }
-    ready() {
-        this.model.forEach(item => {
-            this.createChild(item, item);
+    compose(input) {
+        super.compose(input);
+        input.model.forEach(item => {
+            this.createChild(input, item, item);
         });
-        super.ready();
     }
 }
 
@@ -3081,23 +3089,16 @@ window.ArrayView = ArrayView;
  * @extends Fragment
  */
 class Watch extends Fragment {
-    constructor() {
-        super();
-        this.slot = new Slot;
-        this.model = this.ref(null);
-        this.seal();
-    }
-    createWatchers() {
+    compose(input) {
         this.watch((value) => {
             this.children.forEach(child => {
                 child.destroy();
             });
             this.children.clear();
-            this.slot.release(this, value);
-        }, this.model);
-    }
-    compose() {
-        this.slot.release(this, this.model.$);
+            this.lastChild = null;
+            input.slot && input.slot(this, value);
+        }, input.model);
+        input.slot(this, input.model.$);
     }
 }
 
@@ -3110,14 +3111,11 @@ window.Watch = Watch;
  * @extends BaseView
  */
 class ObjectView extends BaseView {
-    constructor(model) {
-        super();
-        this.model = model;
-    }
-    ready() {
-        const obj = this.model;
+    compose(input) {
+        super.compose(input);
+        const obj = input.model.proxy();
         for (const key in obj) {
-            this.createChild(key, obj[key]);
+            this.createChild(input, key, obj[key]);
         }
         super.ready();
     }
@@ -3132,16 +3130,11 @@ window.ObjectView = ObjectView;
  * @extends BaseView
  */
 class MapView extends BaseView {
-    constructor(model) {
-        super();
-        this.model = model;
-    }
-    ready() {
-        const map = this.model;
-        map.forEach((value, key) => {
-            this.createChild(key, value);
+    compose(input) {
+        super.compose(input);
+        input.model.forEach((value, key) => {
+            this.createChild(input, key, value);
         });
-        super.ready();
     }
 }
 
@@ -3154,19 +3147,12 @@ window.MapView = MapView;
  * @extends BaseView
  */
 class SetView extends BaseView {
-    constructor(model) {
-        super();
-        this.model = model;
-    }
-    ready() {
-        const $ = this.$;
-        const set = this.model;
+    compose(input) {
+        super.compose(input);
+        const set = input.model;
         set.forEach(item => {
-            $.app.run.callCallback(() => {
-                this.createChild(item, item);
-            });
+            this.createChild(input, item, item);
         });
-        super.ready();
     }
 }
 

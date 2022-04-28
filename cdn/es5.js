@@ -12,6 +12,14 @@ var __spreadArray = function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 
+var __assign = function(o1, o2) {
+    for (let i in o2) {
+        o1[i] = o2[i];
+    }
+
+    return o1;
+}
+
 var Set = window.Set || /** @class */ (function (_super) {
     __extends(Set, _super);
     function Set(set) {
@@ -165,6 +173,40 @@ var Map = window.Map || /** @class */ (function (_super) {
 
     return Map;
 }(Array));
+
+window.Reflect = window.Reflect || {
+    has: function (obj, p) {
+        for (var i in obj) {
+            if (i == p) return true;
+        }
+        return false;
+    },
+    ownKeys: function (obj) {
+        let ret = [];
+
+        for (var i in obj) {
+            if (obj.hasOwnProperty(i)) {
+                ret.push(i);
+            }
+        }
+
+        return ret;
+    }
+}
+
+window.Proxy = window.Proxy || function () {};
+// ./lib-es5/v/index.js
+
+var v = __assign(__assign({ ref: function (value) {
+        return current.ref(value);
+    }, expr: expr, of: valueOf, sv: setValue, alwaysFalse: new Reference(false), app: app, component: component, fragment: fragment, extension: extension, text: text, tag: tag, create: create }, vx), { merge: merge, destructor: function () {
+        return current.destroy.bind(current);
+    }, runOnDestroy: function (callback) {
+        current.runOnDestroy(callback);
+    } });
+
+window.v = v;
+
 // ./lib-es5/models/model.js
 
 
@@ -321,13 +363,14 @@ var ObjectModel = /** @class */ (function (_super) {
     function ObjectModel(obj) {
         if (obj === void 0) { obj = {}; }
         var _this = this; _super.call(this);
+        _this.container = Object.create(null);
         Object.defineProperty(_this, 'listener', {
             value: new Listener,
             writable: false,
             configurable: false
         });
         for (var i in obj) {
-            Object.defineProperty(_this, i, {
+            Object.defineProperty(_this.container, i, {
                 value: obj[i],
                 configurable: true,
                 writable: true,
@@ -343,8 +386,7 @@ var ObjectModel = /** @class */ (function (_super) {
      * @return {*}
      */
     ObjectModel.prototype.get = function (key) {
-        var ts = this;
-        return ts[key];
+        return this.container[key];
     };
     /**
      * Sets an object property value
@@ -353,21 +395,19 @@ var ObjectModel = /** @class */ (function (_super) {
      * @return {ObjectModel} a pointer to this
      */
     ObjectModel.prototype.set = function (key, v) {
-        var ts = this;
-        // eslint-disable-next-line no-prototype-builtins
-        if (ts.hasOwnProperty(key)) {
-            this.listener.emitRemoved(key, ts[key]);
-            ts[key] = v;
+        if (Reflect.has(this.container, key)) {
+            this.listener.emitRemoved(key, this.container[key]);
+            this.container[key] = v;
         }
         else {
-            Object.defineProperty(ts, key, {
+            Object.defineProperty(this.container, key, {
                 value: v,
                 configurable: true,
                 writable: true,
                 enumerable: true
             });
         }
-        this.listener.emitAdded(key, ts[key]);
+        this.listener.emitAdded(key, this.container[key]);
         return this;
     };
     /**
@@ -375,11 +415,27 @@ var ObjectModel = /** @class */ (function (_super) {
      * @param key {string} property name
      */
     ObjectModel.prototype.delete = function (key) {
-        var ts = this;
-        if (ts[key]) {
-            this.listener.emitRemoved(key, ts[key]);
-            delete ts[key];
+        if (this.container[key]) {
+            this.listener.emitRemoved(key, this.container[key]);
+            delete this.container[key];
         }
+    };
+    ObjectModel.prototype.proxy = function () {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        var ts = this;
+        return new Proxy(this.container, {
+            get: function (target, p) {
+                return ts.get(p);
+            },
+            set: function (target, p, value) {
+                ts.set(p, value);
+                return true;
+            },
+            deleteProperty: function (target, p) {
+                ts.delete(p);
+                return true;
+            }
+        });
     };
     ObjectModel.prototype.enableReactivity = function () {
         this.listener.enableReactivity();
@@ -564,6 +620,15 @@ var ArrayModel = /** @class */ (function (_super) {
         }
         return _this;
     }
+    // proxy
+    ArrayModel.prototype.proxy = function () {
+        return new Proxy(this, {
+            set: function (target, p, value) {
+                target.splice(parseInt(p), 1, value);
+                return true;
+            }
+        });
+    };
     Object.defineProperty(ArrayModel.prototype, "last", {
         /* Array members */
         /**
@@ -773,6 +838,287 @@ var ArrayModel = /** @class */ (function (_super) {
 
 
 window.ArrayModel = ArrayModel;
+
+// ./lib-es5/functional/merge.js
+function merge(main) {
+    var targets = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        targets[_i - 1] = arguments[_i];
+    }
+    function refactorClass(obj) {
+        if (Array.isArray(obj.class)) {
+            var out_1 = {
+                $: []
+            };
+            obj.class.forEach(function (item) {
+                if (item instanceof IValue) {
+                    out_1.$.push(item);
+                }
+                else if (typeof item === 'string') {
+                    out_1[item] = true;
+                }
+                else if (typeof item === 'object') {
+                    Object.assign(out_1, item);
+                }
+            });
+            obj.class = out_1;
+        }
+    }
+    refactorClass(main);
+    targets.forEach(function (target) {
+        Reflect.ownKeys(target).forEach(function (prop) {
+            var _a;
+            if (!Reflect.has(main, prop)) {
+                main[prop] = target[prop];
+            }
+            else if (typeof main[prop] === 'object' && typeof target[prop] === 'object') {
+                if (prop === 'class') {
+                    refactorClass(target);
+                }
+                if (prop === '$' && Array.isArray(main[prop]) && Array.isArray(target[prop])) {
+                    (_a = main.$).push.apply(_a, target.$);
+                }
+                else {
+                    merge(main[prop], target[prop]);
+                }
+            }
+        });
+    });
+}
+
+window.merge = merge;
+
+// ./lib-es5/functional/stack.js
+function app(renderer) {
+    return function (node, opts) {
+        return new App(node, opts).runFunctional(renderer, opts);
+    };
+}
+function component(renderer) {
+    return function (opts, callback) {
+        var component = new Component(opts);
+        if (!(current instanceof Fragment))
+            throw userError('missing parent node', 'out-of-context');
+        var ret;
+        if (callback)
+            opts.slot = callback;
+        current.create(component, function (node) {
+            ret = node.runFunctional(renderer, opts);
+        });
+        return ret;
+    };
+}
+function fragment(renderer) {
+    return function (opts, callback) {
+        var frag = new Fragment(opts);
+        if (!(current instanceof Fragment))
+            throw userError('missing parent node', 'out-of-context');
+        if (callback)
+            opts.slot = callback;
+        current.create(frag);
+        return frag.runFunctional(renderer, opts);
+    };
+}
+function extension(renderer) {
+    return function (opts, callback) {
+        var ext = new Extension(opts);
+        if (!(current instanceof Fragment))
+            throw userError('missing parent node', 'out-of-context');
+        if (callback)
+            opts.slot = callback;
+        current.create(ext);
+        return ext.runFunctional(renderer, opts);
+    };
+}
+function tag(name, opts, callback) {
+    if (!(current instanceof Fragment))
+        throw userError('missing parent node', 'out-of-context');
+    return {
+        node: current.tag(name, opts, function (node) {
+            callback && node.runFunctional(callback);
+        })
+    };
+}
+function create(node, callback) {
+    if (!(current instanceof Fragment))
+        throw userError('missing current node', 'out-of-context');
+    current.create(node, function (node) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        callback && node.runFunctional.apply(node, __spreadArray([callback], args, false));
+    });
+    return node;
+}
+var vx = {
+    if: function (condition, callback) {
+        if (current instanceof Fragment) {
+            current.if(condition, function (node) { return node.runFunctional(callback); });
+        }
+        else {
+            throw userError("wrong use of `v.if` function", "logic-error");
+        }
+    },
+    else: function (callback) {
+        if (current instanceof Fragment) {
+            current.else(function (node) { return node.runFunctional(callback); });
+        }
+        else {
+            throw userError("wrong use of `v.else` function", "logic-error");
+        }
+    },
+    elif: function (condition, callback) {
+        if (current instanceof Fragment) {
+            current.elif(condition, function (node) { return node.runFunctional(callback); });
+        }
+        else {
+            throw userError("wrong use of `v.elif` function", "logic-error");
+        }
+    },
+    for: function (model, callback) {
+        if (model instanceof ArrayModel) {
+            // for arrays T & K are the same type
+            create(new ArrayView({ model: model }), callback);
+        }
+        else if (model instanceof MapModel) {
+            create(new MapView({ model: model }), callback);
+        }
+        else if (model instanceof SetModel) {
+            // for sets T & K are the same type
+            create(new SetView({ model: model }), callback);
+        }
+        else if (model instanceof ObjectModel) {
+            // for objects K is always string
+            create(new ObjectView({ model: model }), callback);
+        }
+        else {
+            throw userError("wrong use of `v.for` function", 'wrong-model');
+        }
+    },
+    watch: function (model, callback) {
+        var opts = { model: model };
+        create(new Watch(opts), callback);
+    },
+    nextTick: function (callback) {
+        var node = current;
+        window.setTimeout(function () {
+            node.runFunctional(callback);
+        }, 0);
+    }
+};
+
+window.app = app;
+window.component = component;
+window.fragment = fragment;
+window.extension = extension;
+window.tag = tag;
+window.create = create;
+window.vx = vx;
+
+// ./lib-es5/functional/models.js
+function arrayModel(arr) {
+    if (arr === void 0) { arr = []; }
+    if (!current)
+        throw userError('missing parent node', 'out-of-context');
+    return current.register(new ArrayModel(arr)).proxy();
+}
+function mapModel(map) {
+    if (map === void 0) { map = []; }
+    if (!current)
+        throw userError('missing parent node', 'out-of-context');
+    return current.register(new MapModel(map));
+}
+function setModel(arr) {
+    if (arr === void 0) { arr = []; }
+    if (!current)
+        throw userError('missing parent node', 'out-of-context');
+    return current.register(new SetModel(arr));
+}
+function objectModel(obj) {
+    if (obj === void 0) { obj = {}; }
+    if (!current)
+        throw userError('missing parent node', 'out-of-context');
+    return current.register(new ObjectModel(obj));
+}
+
+window.arrayModel = arrayModel;
+window.mapModel = mapModel;
+window.setModel = setModel;
+window.objectModel = objectModel;
+
+// ./lib-es5/functional/options.js
+
+
+
+// ./lib-es5/functional/reactivity.js
+function ref(value) {
+    var ref = current.ref(value);
+    return [ref, function (value) { return ref.$ = value; }];
+}
+function mirror(value) {
+    return current.mirror(value);
+}
+function forward(value) {
+    return current.forward(value);
+}
+function point(value) {
+    return current.point(value);
+}
+function expr(func) {
+    var values = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        values[_i - 1] = arguments[_i];
+    }
+    return current.expr.apply(current, __spreadArray([func], values, false));
+}
+function watch(func) {
+    var values = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        values[_i - 1] = arguments[_i];
+    }
+    current.watch.apply(current, __spreadArray([func], values, false));
+}
+function valueOf(value) {
+    return value.$;
+}
+function setValue(ref, value) {
+    if (ref instanceof Pointer && value instanceof IValue) {
+        ref.point(value);
+    }
+    else {
+        ref.$ = value instanceof IValue ? value.$ : value;
+    }
+}
+
+window.ref = ref;
+window.mirror = mirror;
+window.forward = forward;
+window.point = point;
+window.expr = expr;
+window.watch = watch;
+window.valueOf = valueOf;
+window.setValue = setValue;
+
+// ./lib-es5/functional/components.js
+function text(text) {
+    if (!(current instanceof Fragment))
+        throw userError('missing parent node', 'out-of-context');
+    ;
+    current.text(text);
+}
+function debug(text) {
+    if (!(current instanceof Fragment))
+        throw userError('missing parent node', 'out-of-context');
+    current.debug(text);
+}
+function predefine(slot, predefined) {
+    return slot || predefined;
+}
+
+window.text = text;
+window.debug = debug;
+window.predefine = predefine;
 
 // ./lib-es5/core/signal.js
 /**
@@ -1225,6 +1571,18 @@ window.IValue = IValue;
 
 
 
+// ./lib-es5/spec/svg.js
+
+
+
+// ./lib-es5/spec/react.js
+
+
+
+// ./lib-es5/spec/html.js
+
+
+
 // ./lib-es5/value/expression.js
 /**
  * Bind some values to one expression
@@ -1233,13 +1591,22 @@ window.IValue = IValue;
  */
 var Expression = /** @class */ (function (_super) {
     __extends(Expression, _super);
-    function Expression(func, link, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
+    /**
+     * Creates a function bounded to N values
+     * @param func {Function} the function to bound
+     * @param values
+     * @param link {Boolean} links immediately if true
+     */
+    function Expression(func, link) {
+        var values = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            values[_i - 2] = arguments[_i];
+        }
         var _this = _super.call(this, false) || this;
         /**
          * Expression will link different handler for each value of list
          */
         _this.linkedFunc = [];
-        var values = [v1, v2, v3, v4, v5, v6, v7, v8, v9].filter(function (v) { return v instanceof IValue; });
         var handler = function (i) {
             if (i != null) {
                 _this.valuesCache[i] = _this.values[i].$;
@@ -1248,14 +1615,12 @@ var Expression = /** @class */ (function (_super) {
         };
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        _this.valuesCache = values.map(function (iValue) { return iValue.$; });
+        _this.valuesCache = values.map(function (item) { return item.$; });
         _this.sync = new Reference(func.apply(_this, _this.valuesCache));
         var i = 0;
         values.forEach(function () {
             _this.linkedFunc.push(handler.bind(_this, Number(i++)));
         });
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         _this.values = values;
         _this.func = handler;
         if (link) {
@@ -1519,6 +1884,15 @@ var Binding = /** @class */ (function (_super) {
 window.Binding = Binding;
 
 // ./lib-es5/core/core.js
+var current = null;
+var currentStack = [];
+function stack(node) {
+    currentStack.push(current);
+    current = node;
+}
+function unstack() {
+    current = currentStack.pop();
+}
 /**
  * Private stuff of a reactive object
  * @class ReactivePrivate
@@ -1556,14 +1930,14 @@ var ReactivePrivate = /** @class */ (function (_super) {
         return _this;
     }
     ReactivePrivate.prototype.destroy = function () {
-        var _a;
         this.watch.forEach(function (value) { return value.destroy(); });
         this.watch.clear();
         this.bindings.forEach(function (binding) { return binding.destroy(); });
         this.bindings.clear();
         this.models.forEach(function (model) { return model.disableReactivity(); });
         this.models.clear();
-        (_a = this.freezeExpr) === null || _a === void 0 ? void 0 : _a.destroy();
+        this.freezeExpr && this.freezeExpr.destroy();
+        this.onDestroy && this.onDestroy();
         _super.prototype.destroy.call(this);
     };
     return ReactivePrivate;
@@ -1576,11 +1950,23 @@ var ReactivePrivate = /** @class */ (function (_super) {
  */
 var Reactive = /** @class */ (function (_super) {
     __extends(Reactive, _super);
-    function Reactive($) {
+    function Reactive(input, $) {
         var _this = this; _super.call(this);
+        _this.input = input;
         _this.$ = $ || new ReactivePrivate;
+        _this.seal();
         return _this;
     }
+    Object.defineProperty(Reactive.prototype, "parent", {
+        /**
+         * Get parent node
+         */
+        get: function () {
+            return this.$.parent;
+        },
+        enumerable: false,
+        configurable: true
+    });
     /**
      * Create a reference
      * @param value {*} value to reference
@@ -1629,12 +2015,31 @@ var Reactive = /** @class */ (function (_super) {
         this.$.models.add(model);
         return model;
     };
-    Reactive.prototype.watch = function (func, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
+    /**
+     * Creates a watcher
+     * @param func {function} function to run on any argument change
+     * @param values
+     */
+    Reactive.prototype.watch = function (func) {
+        var values = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            values[_i - 1] = arguments[_i];
+        }
         var $ = this.$;
-        $.watch.add(new Expression(func, !this.$.frozen, v1, v2, v3, v4, v5, v6, v7, v8, v9));
+        $.watch.add(new (Expression.bind.apply(Expression, __spreadArray([void 0, func, !this.$.frozen], values, false)))());
     };
-    Reactive.prototype.bind = function (func, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
-        var res = new Expression(func, !this.$.frozen, v1, v2, v3, v4, v5, v6, v7, v8, v9);
+    /**
+     * Creates a computed value
+     * @param func {function} function to run on any argument change
+     * @param values
+     * @return {IValue} the created ivalue
+     */
+    Reactive.prototype.expr = function (func) {
+        var values = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            values[_i - 1] = arguments[_i];
+        }
+        var res = new (Expression.bind.apply(Expression, __spreadArray([void 0, func, !this.$.frozen], values, false)))();
         var $ = this.$;
         $.watch.add(res);
         return res;
@@ -1697,6 +2102,32 @@ var Reactive = /** @class */ (function (_super) {
         }, true, cond);
         return this;
     };
+    Reactive.prototype.init = function () {
+        this.applyOptions(this.input);
+        this.compose(this.input);
+    };
+    Reactive.prototype.applyOptions = function (input) {
+        // empty
+    };
+    Reactive.prototype.compose = function (input) {
+        // empty
+    };
+    Reactive.prototype.runFunctional = function (f) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        stack(this);
+        // yet another ts bug
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        var result = f.apply(void 0, args);
+        unstack();
+        return result;
+    };
+    Reactive.prototype.runOnDestroy = function (func) {
+        this.$.onDestroy = func;
+    };
     Reactive.prototype.destroy = function () {
         _super.prototype.destroy.call(this);
         this.$.destroy();
@@ -1706,6 +2137,7 @@ var Reactive = /** @class */ (function (_super) {
 }(Destroyable));
 
 
+window.current = current;
 window.ReactivePrivate = ReactivePrivate;
 window.Reactive = Reactive;
 
@@ -1750,10 +2182,11 @@ var Fragment = /** @class */ (function (_super) {
     __extends(Fragment, _super);
     /**
      * Constructs a Vasille Node
+     * @param input
      * @param $ {FragmentPrivate}
      */
-    function Fragment($) {
-        var _this = _super.call(this, $ || new FragmentPrivate) || this;
+    function Fragment(input, $) {
+        var _this = _super.call(this, input, $ || new FragmentPrivate) || this;
         /**
          * The children list
          * @type Array
@@ -1782,34 +2215,12 @@ var Fragment = /** @class */ (function (_super) {
         var $ = this.$;
         $.preinit(app, parent);
     };
-    /**
-     * Initialize node
-     */
-    Fragment.prototype.init = function () {
-        this.createWatchers();
-        this.created();
-        this.compose();
-        this.mounted();
-        return this;
-    };
-    /** To be overloaded: created event handler */
-    Fragment.prototype.created = function () {
-        // empty
-    };
-    /** To be overloaded: mounted event handler */
-    Fragment.prototype.mounted = function () {
-        // empty
+    Fragment.prototype.compose = function (input) {
+        _super.prototype.compose.call(this, input);
+        input.slot && input.slot(this);
     };
     /** To be overloaded: ready event handler */
     Fragment.prototype.ready = function () {
-        // empty
-    };
-    /** To be overloaded: watchers creation milestone */
-    Fragment.prototype.createWatchers = function () {
-        // empty
-    };
-    /** To be overloaded: DOM creation milestone */
-    Fragment.prototype.compose = function () {
         // empty
     };
     /**
@@ -1858,7 +2269,7 @@ var Fragment = /** @class */ (function (_super) {
         var child = this.findFirstChild();
         var $ = this.$;
         if (child) {
-            $.app.run.insertBefore(child, node);
+            child.parentElement.insertBefore(node, child);
         }
         else if ($.next) {
             $.next.insertAdjacent(node);
@@ -1875,14 +2286,9 @@ var Fragment = /** @class */ (function (_super) {
     Fragment.prototype.text = function (text, cb) {
         var $ = this.$;
         var node = new TextNode();
-        var textValue = text instanceof IValue ? text : this.ref(text);
-        node.preinit($.app, this, textValue);
+        node.preinit($.app, this, text);
         this.pushNode(node);
-        if (cb) {
-            $.app.run.callCallback(function () {
-                cb(node);
-            });
-        }
+        cb && cb(node);
     };
     Fragment.prototype.debug = function (text) {
         if (this.$.app.debugUi) {
@@ -1890,39 +2296,36 @@ var Fragment = /** @class */ (function (_super) {
             node.preinit(this.$.app, this, text);
             this.pushNode(node);
         }
-        return this;
     };
-    Fragment.prototype.tag = function (tagName, cb) {
+    /**
+     * Defines a tag element
+     * @param tagName {String} the tag name
+     * @param input
+     * @param cb {function(Tag, *)} callback
+     */
+    Fragment.prototype.tag = function (tagName, input, cb) {
         var $ = this.$;
-        var node = new Tag();
+        var node = new Tag(input);
+        input.slot = cb || input.slot;
         node.preinit($.app, this, tagName);
         node.init();
         this.pushNode(node);
-        $.app.run.callCallback(function () {
-            if (cb) {
-                cb(node, node.node);
-            }
-            node.ready();
-        });
+        node.ready();
+        return node.node;
     };
     /**
      * Defines a custom element
      * @param node {Fragment} vasille element to insert
      * @param callback {function($ : *)}
-     * @param callback1 {function($ : *)}
      */
-    Fragment.prototype.create = function (node, callback, callback1) {
+    Fragment.prototype.create = function (node, callback) {
         var $ = this.$;
         node.$.parent = this;
         node.preinit($.app, this);
-        if (callback) {
-            callback(node);
-        }
-        if (callback1) {
-            callback1(node);
-        }
+        node.input.slot = callback || node.input.slot;
         this.pushNode(node);
-        node.init().ready();
+        node.init();
+        node.ready();
     };
     /**
      * Defines an if node
@@ -1931,35 +2334,28 @@ var Fragment = /** @class */ (function (_super) {
      * @return {this}
      */
     Fragment.prototype.if = function (cond, cb) {
-        return this.switch({ cond: cond, cb: cb });
-    };
-    /**
-     * Defines a if-else node
-     * @param ifCond {IValue} `if` condition
-     * @param ifCb {function(Fragment)} Call-back to create `if` child nodes
-     * @param elseCb {function(Fragment)} Call-back to create `else` child nodes
-     */
-    Fragment.prototype.if_else = function (ifCond, ifCb, elseCb) {
-        return this.switch({ cond: ifCond, cb: ifCb }, { cond: trueIValue, cb: elseCb });
-    };
-    /**
-     * Defines a switch nodes: Will break after first true condition
-     * @param cases {...{ cond : IValue, cb : function(Fragment) }} cases
-     * @return {INode}
-     */
-    Fragment.prototype.switch = function () {
-        var cases = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            cases[_i] = arguments[_i];
-        }
-        var $ = this.$;
         var node = new SwitchedNode();
-        node.preinit($.app, this);
+        node.preinit(this.$.app, this);
         node.init();
         this.pushNode(node);
-        node.setCases(cases);
+        node.addCase(this.case(cond, cb));
         node.ready();
-        return this;
+    };
+    Fragment.prototype.else = function (cb) {
+        if (this.lastChild instanceof SwitchedNode) {
+            this.lastChild.addCase(this.default(cb));
+        }
+        else {
+            throw userError('wrong `else` function use', 'logic-error');
+        }
+    };
+    Fragment.prototype.elif = function (cond, cb) {
+        if (this.lastChild instanceof SwitchedNode) {
+            this.lastChild.addCase(this.case(cond, cb));
+        }
+        else {
+            throw userError('wrong `elif` function use', 'logic-error');
+        }
     };
     /**
      * Create a case for switch
@@ -2029,15 +2425,18 @@ var TextNodePrivate = /** @class */ (function (_super) {
     /**
      * Pre-initializes a text node
      * @param app {AppNode} the app node
+     * @param parent
      * @param text {IValue}
      */
     TextNodePrivate.prototype.preinitText = function (app, parent, text) {
         var _this = this;
         _super.prototype.preinit.call(this, app, parent);
-        this.node = document.createTextNode(text.$);
-        this.bindings.add(new Expression(function (v) {
-            _this.node.replaceData(0, -1, v);
-        }, true, text));
+        this.node = document.createTextNode(text instanceof IValue ? text.$ : text);
+        if (text instanceof IValue) {
+            this.bindings.add(new Expression(function (v) {
+                _this.node.replaceData(0, -1, v);
+            }, true, text));
+        }
     };
     /**
      * Clear node data
@@ -2057,7 +2456,7 @@ var TextNode = /** @class */ (function (_super) {
     __extends(TextNode, _super);
     function TextNode($) {
         if ($ === void 0) { $ = new TextNodePrivate(); }
-        var _this = _super.call(this, $) || this;
+        var _this = _super.call(this, {}, $) || this;
         _this.seal();
         return _this;
     }
@@ -2112,10 +2511,11 @@ var INode = /** @class */ (function (_super) {
     __extends(INode, _super);
     /**
      * Constructs a base node
+     * @param input
      * @param $ {?INodePrivate}
      */
-    function INode($) {
-        var _this = _super.call(this, $ || new INodePrivate) || this;
+    function INode(input, $) {
+        var _this = _super.call(this, input, $ || new INodePrivate) || this;
         _this.seal();
         return _this;
     }
@@ -2130,26 +2530,6 @@ var INode = /** @class */ (function (_super) {
         configurable: true
     });
     /**
-     * Initialize node
-     */
-    INode.prototype.init = function () {
-        this.createWatchers();
-        this.createAttrs();
-        this.createStyle();
-        this.created();
-        this.compose();
-        this.mounted();
-        return this;
-    };
-    /** To be overloaded: attributes creation milestone */
-    INode.prototype.createAttrs = function () {
-        // empty
-    };
-    /** To be overloaded: $style attributes creation milestone */
-    INode.prototype.createStyle = function () {
-        // empty
-    };
-    /**
      * Bind attribute value
      * @param name {String} name of attribute
      * @param value {IValue} value
@@ -2159,18 +2539,20 @@ var INode = /** @class */ (function (_super) {
         var attr = new AttributeBinding(this, name, value);
         $.bindings.add(attr);
     };
-    INode.prototype.bindAttr = function (name, calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
-        var $ = this.$;
-        var expr = this.bind(calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
-        $.bindings.add(new AttributeBinding(this, name, expr));
-    };
     /**
      * Set attribute value
      * @param name {string} name of attribute
      * @param value {string} value
      */
     INode.prototype.setAttr = function (name, value) {
-        this.$.app.run.setAttribute(this.$.node, name, value);
+        if (typeof value === 'boolean') {
+            if (value) {
+                this.$.node.setAttribute(name, "");
+            }
+        }
+        else {
+            this.$.node.setAttribute(name, "".concat(value));
+        }
         return this;
     };
     /**
@@ -2178,22 +2560,15 @@ var INode = /** @class */ (function (_super) {
      * @param cl {string} Class name
      */
     INode.prototype.addClass = function (cl) {
-        this.$.app.run.addClass(this.$.node, cl);
+        this.$.node.classList.add(cl);
         return this;
     };
     /**
      * Adds some CSS classes
      * @param cls {...string} classes names
      */
-    INode.prototype.addClasses = function () {
-        var _this = this;
-        var cls = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            cls[_i] = arguments[_i];
-        }
-        cls.forEach(function (cl) {
-            _this.$.app.run.addClass(_this.$.node, cl);
-        });
+    INode.prototype.removeClasse = function (cl) {
+        this.$.node.classList.remove(cl);
         return this;
     };
     /**
@@ -2229,17 +2604,6 @@ var INode = /** @class */ (function (_super) {
         }
         return this;
     };
-    INode.prototype.bindStyle = function (name, calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9) {
-        var $ = this.$;
-        var expr = this.bind(calculator, v1, v2, v3, v4, v5, v6, v7, v8, v9);
-        if ($.node instanceof HTMLElement) {
-            $.bindings.add(new StyleBinding(this, name, expr));
-        }
-        else {
-            throw userError('style can be applied to HTML elements only', 'non-html-element');
-        }
-        return this;
-    };
     /**
      * Sets a style property value
      * @param prop {string} Property name
@@ -2247,10 +2611,10 @@ var INode = /** @class */ (function (_super) {
      */
     INode.prototype.setStyle = function (prop, value) {
         if (this.$.node instanceof HTMLElement) {
-            this.$.app.run.setStyle(this.$.node, prop, value);
+            this.$.node.style.setProperty(prop, value);
         }
         else {
-            throw userError("Style can be setted for HTML elements only", "non-html-element");
+            throw userError("Style can be set for HTML elements only", "non-html-element");
         }
         return this;
     };
@@ -2264,387 +2628,8 @@ var INode = /** @class */ (function (_super) {
         this.$.node.addEventListener(name, handler, options);
         return this;
     };
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.oncontextmenu = function (handler, options) {
-        return this.listen("contextmenu", handler, options);
-    };
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onmousedown = function (handler, options) {
-        return this.listen("mousedown", handler, options);
-    };
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onmouseenter = function (handler, options) {
-        return this.listen("mouseenter", handler, options);
-    };
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onmouseleave = function (handler, options) {
-        return this.listen("mouseleave", handler, options);
-    };
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onmousemove = function (handler, options) {
-        return this.listen("mousemove", handler, options);
-    };
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onmouseout = function (handler, options) {
-        return this.listen("mouseout", handler, options);
-    };
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onmouseover = function (handler, options) {
-        return this.listen("mouseover", handler, options);
-    };
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onmouseup = function (handler, options) {
-        return this.listen("mouseup", handler, options);
-    };
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onclick = function (handler, options) {
-        return this.listen("click", handler, options);
-    };
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ondblclick = function (handler, options) {
-        return this.listen("dblclick", handler, options);
-    };
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onblur = function (handler, options) {
-        return this.listen("blur", handler, options);
-    };
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onfocus = function (handler, options) {
-        return this.listen("focus", handler, options);
-    };
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onfocusin = function (handler, options) {
-        return this.listen("focusin", handler, options);
-    };
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onfocusout = function (handler, options) {
-        return this.listen("focusout", handler, options);
-    };
-    /**
-     * @param handler {function (KeyboardEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onkeydown = function (handler, options) {
-        return this.listen("keydown", handler, options);
-    };
-    /**
-     * @param handler {function (KeyboardEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onkeyup = function (handler, options) {
-        return this.listen("keyup", handler, options);
-    };
-    /**
-     * @param handler {function (KeyboardEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onkeypress = function (handler, options) {
-        return this.listen("keypress", handler, options);
-    };
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ontouchstart = function (handler, options) {
-        return this.listen("touchstart", handler, options);
-    };
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ontouchmove = function (handler, options) {
-        return this.listen("touchmove", handler, options);
-    };
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ontouchend = function (handler, options) {
-        return this.listen("touchend", handler, options);
-    };
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ontouchcancel = function (handler, options) {
-        return this.listen("touchcancel", handler, options);
-    };
-    /**
-     * @param handler {function (WheelEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onwheel = function (handler, options) {
-        return this.listen("wheel", handler, options);
-    };
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onabort = function (handler, options) {
-        return this.listen("abort", handler, options);
-    };
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onerror = function (handler, options) {
-        return this.listen("error", handler, options);
-    };
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onload = function (handler, options) {
-        return this.listen("load", handler, options);
-    };
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onloadend = function (handler, options) {
-        return this.listen("loadend", handler, options);
-    };
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onloadstart = function (handler, options) {
-        return this.listen("loadstart", handler, options);
-    };
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onprogress = function (handler, options) {
-        return this.listen("progress", handler, options);
-    };
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ontimeout = function (handler, options) {
-        return this.listen("timeout", handler, options);
-    };
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ondrag = function (handler, options) {
-        return this.listen("drag", handler, options);
-    };
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ondragend = function (handler, options) {
-        return this.listen("dragend", handler, options);
-    };
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ondragenter = function (handler, options) {
-        return this.listen("dragenter", handler, options);
-    };
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ondragexit = function (handler, options) {
-        return this.listen("dragexit", handler, options);
-    };
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ondragleave = function (handler, options) {
-        return this.listen("dragleave", handler, options);
-    };
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ondragover = function (handler, options) {
-        return this.listen("dragover", handler, options);
-    };
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ondragstart = function (handler, options) {
-        return this.listen("dragstart", handler, options);
-    };
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ondrop = function (handler, options) {
-        return this.listen("drop", handler, options);
-    };
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onpointerover = function (handler, options) {
-        return this.listen("pointerover", handler, options);
-    };
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onpointerenter = function (handler, options) {
-        return this.listen("pointerenter", handler, options);
-    };
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onpointerdown = function (handler, options) {
-        return this.listen("pointerdown", handler, options);
-    };
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onpointermove = function (handler, options) {
-        return this.listen("pointermove", handler, options);
-    };
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onpointerup = function (handler, options) {
-        return this.listen("pointerup", handler, options);
-    };
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onpointercancel = function (handler, options) {
-        return this.listen("pointercancel", handler, options);
-    };
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onpointerout = function (handler, options) {
-        return this.listen("pointerout", handler, options);
-    };
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onpointerleave = function (handler, options) {
-        return this.listen("pointerleave", handler, options);
-    };
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.ongotpointercapture = function (handler, options) {
-        return this.listen("gotpointercapture", handler, options);
-    };
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onlostpointercapture = function (handler, options) {
-        return this.listen("lostpointercapture", handler, options);
-    };
-    /**
-     * @param handler {function (AnimationEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onanimationstart = function (handler, options) {
-        return this.listen("animationstart", handler, options);
-    };
-    /**
-     * @param handler {function (AnimationEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onanimationend = function (handler, options) {
-        return this.listen("animationend", handler, options);
-    };
-    /**
-     * @param handler {function (AnimationEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onanimationiteraton = function (handler, options) {
-        return this.listen("animationiteration", handler, options);
-    };
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onclipboardchange = function (handler, options) {
-        return this.listen("clipboardchange", handler, options);
-    };
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.oncut = function (handler, options) {
-        return this.listen("cut", handler, options);
-    };
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.oncopy = function (handler, options) {
-        return this.listen("copy", handler, options);
-    };
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    INode.prototype.onpaste = function (handler, options) {
-        return this.listen("paste", handler, options);
-    };
     INode.prototype.insertAdjacent = function (node) {
-        var $ = this.$;
-        $.app.run.insertBefore($.node, node);
+        this.$.node.parentNode.insertBefore(node, this.$.node);
     };
     /**
      * A v-show & ngShow alternative
@@ -2671,18 +2656,105 @@ var INode = /** @class */ (function (_super) {
      * bind HTML
      * @param value {IValue}
      */
-    INode.prototype.html = function (value) {
+    INode.prototype.bindDomApi = function (name, value) {
         var $ = this.$;
         var node = $.node;
         if (node instanceof HTMLElement) {
-            node.innerHTML = value.$;
+            node[name] = value.$;
             this.watch(function (v) {
-                node.innerHTML = v;
+                node[name] = v;
             }, value);
         }
         else {
             throw userError("HTML can be bound for HTML nodes only", "dom-error");
         }
+    };
+    INode.prototype.applyOptions = function (options) {
+        var _this = this;
+        options["v:attr"] && Object.keys(options["v:attr"]).forEach(function (name) {
+            var value = options["v:attr"][name];
+            if (value instanceof IValue) {
+                _this.attr(name, value);
+            }
+            else {
+                _this.setAttr(name, value);
+            }
+        });
+        if (options.class) {
+            var handleClass_1 = function (name, value) {
+                if (value instanceof IValue) {
+                    _this.floatingClass(value, name);
+                }
+                else if (value && name !== '$') {
+                    _this.addClass(name);
+                }
+                else {
+                    _this.removeClasse(name);
+                }
+            };
+            if (Array.isArray(options.class)) {
+                options.class.forEach(function (item) {
+                    if (item instanceof IValue) {
+                        _this.bindClass(item);
+                    }
+                    else if (typeof item == "string") {
+                        _this.addClass(item);
+                    }
+                    else {
+                        Reflect.ownKeys(item).forEach(function (name) {
+                            handleClass_1(name, item[name]);
+                        });
+                    }
+                });
+            }
+            else {
+                options.class.$.forEach(function (item) {
+                    _this.bindClass(item);
+                });
+                Reflect.ownKeys(options.class).forEach(function (name) {
+                    handleClass_1(name, options.class[name]);
+                });
+            }
+        }
+        options.style && Object.keys(options.style).forEach(function (name) {
+            var value = options.style[name];
+            if (value instanceof IValue) {
+                _this.style(name, value);
+            }
+            else if (typeof value === "string") {
+                _this.setStyle(name, value);
+            }
+            else {
+                if (value[0] instanceof IValue) {
+                    _this.style(name, _this.expr(function (v) { return v + value[1]; }, value[0]));
+                }
+                else {
+                    _this.setStyle(name, value[0] + value[1]);
+                }
+            }
+        });
+        options["v:events"] && Object.keys(options["v:events"]).forEach(function (name) {
+            _this.listen(name, options["v:events"][name]);
+        });
+        if (options["v:bind"]) {
+            var inode_1 = this.node;
+            Reflect.ownKeys(options["v:bind"]).forEach(function (k) {
+                var value = options["v:bind"][k];
+                if (k === 'value' && (inode_1 instanceof HTMLInputElement || inode_1 instanceof HTMLTextAreaElement)) {
+                    inode_1.oninput = function () { return value.$ = inode_1.value; };
+                }
+                else if (k === 'checked' && inode_1 instanceof HTMLInputElement) {
+                    inode_1.oninput = function () { return value.$ = inode_1.checked; };
+                }
+                else if (k === 'volume' && inode_1 instanceof HTMLMediaElement) {
+                    inode_1.onvolumechange = function () { return value.$ = inode_1.volume; };
+                }
+                _this.bindDomApi(k, value);
+            });
+        }
+        options["v:set"] && Object.keys(options["v:set"]).forEach(function (key) {
+            _this.node[key] = options["v:set"][key];
+        });
     };
     return INode;
 }(Fragment));
@@ -2694,8 +2766,8 @@ var INode = /** @class */ (function (_super) {
  */
 var Tag = /** @class */ (function (_super) {
     __extends(Tag, _super);
-    function Tag() {
-        var _this = this; _super.call(this);
+    function Tag(input) {
+        var _this = _super.call(this, input) || this;
         _this.seal();
         return _this;
     }
@@ -2708,6 +2780,9 @@ var Tag = /** @class */ (function (_super) {
         $.preinit(app, parent);
         $.node = node;
         $.parent.appendNode(node);
+    };
+    Tag.prototype.compose = function (input) {
+        input.slot && input.slot(this);
     };
     Tag.prototype.findFirstChild = function () {
         return this.$.unmounted ? null : this.$.node;
@@ -2726,8 +2801,7 @@ var Tag = /** @class */ (function (_super) {
         }
     };
     Tag.prototype.appendNode = function (node) {
-        var $ = this.$;
-        $.app.run.appendChild($.node, node);
+        this.$.node.appendChild(node);
     };
     /**
      * Mount/Unmount a node
@@ -2763,18 +2837,20 @@ var Tag = /** @class */ (function (_super) {
  */
 var Extension = /** @class */ (function (_super) {
     __extends(Extension, _super);
-    function Extension($) {
-        var _this = _super.call(this, $) || this;
-        _this.seal();
-        return _this;
+    function Extension() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
     Extension.prototype.preinit = function (app, parent) {
-        if (parent instanceof INode) {
-            var $ = this.$;
-            $.preinit(app, parent);
-            $.node = parent.node;
+        var $ = this.$;
+        var it = parent;
+        while (it && !(it instanceof INode)) {
+            it = it.parent;
         }
-        else {
+        if (it && it instanceof INode) {
+            $.node = it.node;
+        }
+        $.preinit(app, parent);
+        if (!it) {
             throw userError("A extension node can be encapsulated only in a tag/extension/component", "virtual-dom");
         }
     };
@@ -2792,12 +2868,10 @@ var Extension = /** @class */ (function (_super) {
 var Component = /** @class */ (function (_super) {
     __extends(Component, _super);
     function Component() {
-        var _this = this; _super.call(this);
-        _this.seal();
-        return _this;
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-    Component.prototype.mounted = function () {
-        _super.prototype.mounted.call(this);
+    Component.prototype.ready = function () {
+        _super.prototype.ready.call(this);
         if (this.children.size !== 1) {
             throw userError("Component must have a child only", "dom-error");
         }
@@ -2825,6 +2899,11 @@ var SwitchedNodePrivate = /** @class */ (function (_super) {
     __extends(SwitchedNodePrivate, _super);
     function SwitchedNodePrivate() {
         var _this = this; _super.call(this);
+        /**
+         * Array of possible cases
+         * @type {Array<{cond : IValue<boolean>, cb : function(Fragment)}>}
+         */
+        _this.cases = [];
         _this.seal();
         return _this;
     }
@@ -2851,7 +2930,7 @@ var SwitchedNode = /** @class */ (function (_super) {
      * Constructs a switch node and define a sync function
      */
     function SwitchedNode() {
-        var _this = _super.call(this, new SwitchedNodePrivate) || this;
+        var _this = _super.call(this, {}, new SwitchedNodePrivate) || this;
         _this.$.sync = function () {
             var $ = _this.$;
             var i = 0;
@@ -2879,20 +2958,17 @@ var SwitchedNode = /** @class */ (function (_super) {
         _this.seal();
         return _this;
     }
-    /**
-     * Set up switch cases
-     * @param cases {{ cond : IValue, cb : function(Fragment) }}
-     */
-    SwitchedNode.prototype.setCases = function (cases) {
-        var $ = this.$;
-        $.cases = __spreadArray([], cases, true);
+    SwitchedNode.prototype.addCase = function (case_) {
+        this.$.cases.push(case_);
+        case_.cond.on(this.$.sync);
+        this.$.sync();
     };
     /**
      * Creates a child node
      * @param cb {function(Fragment)} Call-back
      */
     SwitchedNode.prototype.createChild = function (cb) {
-        var node = new Fragment();
+        var node = new Fragment({});
         node.preinit(this.$.app, this);
         node.init();
         this.lastChild = node;
@@ -2915,6 +2991,7 @@ var SwitchedNode = /** @class */ (function (_super) {
     };
     return SwitchedNode;
 }(Fragment));
+
 /**
  * The private part of a text node
  */
@@ -2958,7 +3035,7 @@ var DebugPrivate = /** @class */ (function (_super) {
 var DebugNode = /** @class */ (function (_super) {
     __extends(DebugNode, _super);
     function DebugNode() {
-        var _this = this; _super.call(this);
+        var _this = _super.call(this, {}) || this;
         /**
          * private data
          * @type {DebugNode}
@@ -2995,6 +3072,7 @@ window.Tag = Tag;
 window.Extension = Extension;
 window.Component = Component;
 window.SwitchedNodePrivate = SwitchedNodePrivate;
+window.SwitchedNode = SwitchedNode;
 window.DebugPrivate = DebugPrivate;
 window.DebugNode = DebugNode;
 
@@ -3007,12 +3085,12 @@ window.DebugNode = DebugNode;
 var AppNode = /** @class */ (function (_super) {
     __extends(AppNode, _super);
     /**
-     * @param options {Object} Application options
+     * @param input
      */
-    function AppNode(options) {
-        var _this = this; _super.call(this);
-        _this.run = (options === null || options === void 0 ? void 0 : options.executor) || ((options === null || options === void 0 ? void 0 : options.freezeUi) === false ? timeoutExecutor : instantExecutor);
-        _this.debugUi = (options === null || options === void 0 ? void 0 : options.debugUi) || false;
+    function AppNode(input) {
+        var _this = _super.call(this, input) || this;
+        _this.debugUi = input.debugUi || false;
+        _this.seal();
         return _this;
     }
     return AppNode;
@@ -3028,25 +3106,40 @@ var App = /** @class */ (function (_super) {
     /**
      * Constructs an app node
      * @param node {Element} The root of application
-     * @param options {Object} Application options
+     * @param input
      */
-    function App(node, options) {
-        var _this = _super.call(this, options) || this;
+    function App(node, input) {
+        var _this = _super.call(this, input) || this;
         _this.$.node = node;
         _this.preinit(_this, _this);
+        _this.init();
         _this.seal();
         return _this;
     }
     App.prototype.appendNode = function (node) {
-        var $ = this.$;
-        this.run.appendChild($.node, node);
+        this.$.node.appendChild(node);
     };
     return App;
+}(AppNode));
+
+var Portal = /** @class */ (function (_super) {
+    __extends(Portal, _super);
+    function Portal(input) {
+        var _this = _super.call(this, input) || this;
+        _this.$.node = input.node;
+        _this.seal();
+        return _this;
+    }
+    Portal.prototype.appendNode = function (node) {
+        this.$.node.appendChild(node);
+    };
+    return Portal;
 }(AppNode));
 
 
 window.AppNode = AppNode;
 window.App = App;
+window.Portal = Portal;
 
 // ./lib-es5/node/interceptor.js
 /**
@@ -3159,10 +3252,15 @@ var AttributeBinding = /** @class */ (function (_super) {
         var _this = _super.call(this, value) || this;
         _this.init(function (value) {
             if (value) {
-                node.app.run.setAttribute(node.node, name, value);
+                if (typeof value === 'boolean') {
+                    node.node.setAttribute(name, "");
+                }
+                else {
+                    node.node.setAttribute(name, "".concat(value));
+                }
             }
             else {
-                node.app.run.removeAttribute(node.node, name);
+                node.node.removeAttribute(name);
             }
         });
         _this.seal();
@@ -3192,7 +3290,7 @@ var StyleBinding = /** @class */ (function (_super) {
         var _this = _super.call(this, value) || this;
         _this.init(function (value) {
             if (node.node instanceof HTMLElement) {
-                node.app.run.setStyle(node.node, name, value);
+                node.node.style.setProperty(name, value);
             }
         });
         _this.seal();
@@ -3206,10 +3304,10 @@ window.StyleBinding = StyleBinding;
 
 // ./lib-es5/binding/class.js
 function addClass(node, cl) {
-    node.app.run.addClass(node.node, cl);
+    node.node.classList.add(cl);
 }
 function removeClass(node, cl) {
-    node.app.run.removeClass(node.node, cl);
+    node.node.classList.remove(cl);
 }
 var StaticClassBinding = /** @class */ (function (_super) {
     __extends(StaticClassBinding, _super);
@@ -3291,19 +3389,16 @@ var RepeatNodePrivate = /** @class */ (function (_super) {
  */
 var RepeatNode = /** @class */ (function (_super) {
     __extends(RepeatNode, _super);
-    function RepeatNode($) {
-        var _this = _super.call(this, $ || new RepeatNodePrivate) || this;
+    function RepeatNode(input, $) {
+        var _this = _super.call(this, input, $) || this;
         /**
          * If false will use timeout executor, otherwise the app executor
          */
         _this.freezeUi = true;
-        _this.slot = new Slot;
         return _this;
     }
-    RepeatNode.prototype.createChild = function (id, item, before) {
-        // TODO: Refactor: remove @ts-ignore
-        var _this = this;
-        var node = new Fragment();
+    RepeatNode.prototype.createChild = function (opts, id, item, before) {
+        var node = new Fragment({});
         this.destroyChild(id, item);
         if (before) {
             this.children.add(node);
@@ -3319,16 +3414,8 @@ var RepeatNode = /** @class */ (function (_super) {
         this.lastChild = node;
         node.preinit(this.$.app, this);
         node.init();
-        var callback = function () {
-            _this.slot.release(node, item, id);
-            node.ready();
-        };
-        if (this.freezeUi) {
-            this.$.app.run.callCallback(callback);
-        }
-        else {
-            timeoutExecutor.callCallback(callback);
-        }
+        opts.slot && opts.slot(node, item, id);
+        node.ready();
         this.$.nodes.set(id, node);
     };
     RepeatNode.prototype.destroyChild = function (id, item) {
@@ -3446,35 +3533,24 @@ var BaseViewPrivate = /** @class */ (function (_super) {
  */
 var BaseView = /** @class */ (function (_super) {
     __extends(BaseView, _super);
-    function BaseView($1) {
-        var _this = _super.call(this, $1 || new BaseViewPrivate) || this;
-        var $ = _this.$;
+    function BaseView(input, $) {
+        return _super.call(this, input, $ || new BaseViewPrivate) || this;
+    }
+    BaseView.prototype.compose = function (input) {
+        var _this = this;
+        var $ = this.$;
         $.addHandler = function (id, item) {
-            _this.createChild(id, item);
+            _this.createChild(input, id, item);
         };
         $.removeHandler = function (id, item) {
             _this.destroyChild(id, item);
         };
-        _this.seal();
-        return _this;
-    }
-    /**
-     * Handle ready event
-     */
-    BaseView.prototype.ready = function () {
-        var $ = this.$;
-        this.model.listener.onAdd($.addHandler);
-        this.model.listener.onRemove($.removeHandler);
-        _super.prototype.ready.call(this);
-    };
-    /**
-     * Handles destroy event
-     */
-    BaseView.prototype.destroy = function () {
-        var $ = this.$;
-        this.model.listener.offAdd($.addHandler);
-        this.model.listener.offRemove($.removeHandler);
-        _super.prototype.destroy.call(this);
+        input.model.listener.onAdd($.addHandler);
+        input.model.listener.onRemove($.removeHandler);
+        this.runOnDestroy(function () {
+            input.model.listener.offAdd($.addHandler);
+            input.model.listener.offRemove($.removeHandler);
+        });
     };
     return BaseView;
 }(RepeatNode));
@@ -3491,20 +3567,18 @@ window.BaseView = BaseView;
  */
 var ArrayView = /** @class */ (function (_super) {
     __extends(ArrayView, _super);
-    function ArrayView(model) {
-        var _this = this; _super.call(this);
-        _this.model = model;
-        return _this;
+    function ArrayView() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-    ArrayView.prototype.createChild = function (id, item, before) {
-        _super.prototype.createChild.call(this, item, item, before || this.$.nodes.get(id));
+    ArrayView.prototype.createChild = function (input, id, item, before) {
+        _super.prototype.createChild.call(this, input, item, item, before || this.$.nodes.get(id));
     };
-    ArrayView.prototype.ready = function () {
+    ArrayView.prototype.compose = function (input) {
         var _this = this;
-        this.model.forEach(function (item) {
-            _this.createChild(item, item);
+        _super.prototype.compose.call(this, input);
+        input.model.forEach(function (item) {
+            _this.createChild(input, item, item);
         });
-        _super.prototype.ready.call(this);
     };
     return ArrayView;
 }(BaseView));
@@ -3521,24 +3595,19 @@ window.ArrayView = ArrayView;
 var Watch = /** @class */ (function (_super) {
     __extends(Watch, _super);
     function Watch() {
-        var _this = this; _super.call(this);
-        _this.slot = new Slot;
-        _this.model = _this.ref(null);
-        _this.seal();
-        return _this;
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-    Watch.prototype.createWatchers = function () {
+    Watch.prototype.compose = function (input) {
         var _this = this;
         this.watch(function (value) {
             _this.children.forEach(function (child) {
                 child.destroy();
             });
             _this.children.clear();
-            _this.slot.release(_this, value);
-        }, this.model);
-    };
-    Watch.prototype.compose = function () {
-        this.slot.release(this, this.model.$);
+            _this.lastChild = null;
+            input.slot && input.slot(_this, value);
+        }, input.model);
+        input.slot(this, input.model.$);
     };
     return Watch;
 }(Fragment));
@@ -3554,15 +3623,14 @@ window.Watch = Watch;
  */
 var ObjectView = /** @class */ (function (_super) {
     __extends(ObjectView, _super);
-    function ObjectView(model) {
-        var _this = this; _super.call(this);
-        _this.model = model;
-        return _this;
+    function ObjectView() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-    ObjectView.prototype.ready = function () {
-        var obj = this.model;
+    ObjectView.prototype.compose = function (input) {
+        _super.prototype.compose.call(this, input);
+        var obj = input.model.proxy();
         for (var key in obj) {
-            this.createChild(key, obj[key]);
+            this.createChild(input, key, obj[key]);
         }
         _super.prototype.ready.call(this);
     };
@@ -3580,18 +3648,15 @@ window.ObjectView = ObjectView;
  */
 var MapView = /** @class */ (function (_super) {
     __extends(MapView, _super);
-    function MapView(model) {
-        var _this = this; _super.call(this);
-        _this.model = model;
-        return _this;
+    function MapView() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-    MapView.prototype.ready = function () {
+    MapView.prototype.compose = function (input) {
         var _this = this;
-        var map = this.model;
-        map.forEach(function (value, key) {
-            _this.createChild(key, value);
+        _super.prototype.compose.call(this, input);
+        input.model.forEach(function (value, key) {
+            _this.createChild(input, key, value);
         });
-        _super.prototype.ready.call(this);
     };
     return MapView;
 }(BaseView));
@@ -3607,21 +3672,16 @@ window.MapView = MapView;
  */
 var SetView = /** @class */ (function (_super) {
     __extends(SetView, _super);
-    function SetView(model) {
-        var _this = this; _super.call(this);
-        _this.model = model;
-        return _this;
+    function SetView() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-    SetView.prototype.ready = function () {
+    SetView.prototype.compose = function (input) {
         var _this = this;
-        var $ = this.$;
-        var set = this.model;
+        _super.prototype.compose.call(this, input);
+        var set = input.model;
         set.forEach(function (item) {
-            $.app.run.callCallback(function () {
-                _this.createChild(item, item);
-            });
+            _this.createChild(input, item, item);
         });
-        _super.prototype.ready.call(this);
     };
     return SetView;
 }(BaseView));

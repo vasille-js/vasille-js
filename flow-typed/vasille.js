@@ -1112,7 +1112,7 @@ declare function tag<K>(name: K, opts: TagOptionsWithSlot<K>, callback?: () => v
 };
 declare type ExtractParams = any[];
 declare function create<T>(node: T, callback?: (...args: ExtractParams<T['input']['slot']>) => void): T;
-declare var v: {
+declare var vx: {
     if(condition: IValue<boolean>, callback: () => void): void;
     else(callback: () => void): void;
     elif(condition: IValue<boolean>, callback: () => void): void;

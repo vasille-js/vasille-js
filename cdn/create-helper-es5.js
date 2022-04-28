@@ -11,6 +11,14 @@ var __spreadArray = function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 
+var __assign = function(o1, o2) {
+    for (let i in o2) {
+        o1[i] = o2[i];
+    }
+
+    return o1;
+}
+
 var Set = window.Set || /** @class */ (function (_super) {
     __extends(Set, _super);
     function Set(set) {
@@ -164,3 +172,25 @@ var Map = window.Map || /** @class */ (function (_super) {
 
     return Map;
 }(Array));
+
+window.Reflect = window.Reflect || {
+    has: function (obj, p) {
+        for (var i in obj) {
+            if (i == p) return true;
+        }
+        return false;
+    },
+    ownKeys: function (obj) {
+        let ret = [];
+
+        for (var i in obj) {
+            if (obj.hasOwnProperty(i)) {
+                ret.push(i);
+            }
+        }
+
+        return ret;
+    }
+}
+
+window.Proxy = window.Proxy || function () {};

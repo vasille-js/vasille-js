@@ -1,7 +1,7 @@
 import {debug, text} from "../functional/components";
 import {arrayModel, mapModel, objectModel, setModel} from "../functional/models";
 import {expr, forward, mirror, point, ref, setValue, valueOf, watch} from "../functional/reactivity";
-import {app, component, create, extension, fragment, tag, v as v0} from "../functional/stack";
+import {app, component, create, extension, fragment, tag, vx} from "../functional/stack";
 import { Options, TagOptions } from "../functional/options";
 import {AppOptions} from "../node/app";
 
@@ -48,7 +48,7 @@ export const v = {
     text,
     tag,
     create,
-    ...v0,
+    ...vx,
 
     merge,
 
