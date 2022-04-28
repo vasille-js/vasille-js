@@ -11,6 +11,7 @@ export declare class ArrayModel<T> extends Array<T> implements ListenableModel<T
      * @param data {Array} input data
      */
     constructor(data?: Array<T>);
+    proxy(): ArrayModel<T>;
     /**
      * Gets the last item of array
      * @return {*} the last item of array

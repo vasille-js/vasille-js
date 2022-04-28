@@ -9,7 +9,7 @@ import type { IValue } from "../core/ivalue";
  * @class AttributeBinding
  * @extends Binding
  */
-export class AttributeBinding extends Binding<string | number | boolean> {
+export class AttributeBinding extends Binding<string | number | boolean | null> {
     /**
      * Constructs an attribute binding description
      * @param node {INode} the vasille node
@@ -19,11 +19,11 @@ export class AttributeBinding extends Binding<string | number | boolean> {
     public constructor (
         node : INode,
         name : string,
-        value : IValue<string | number | boolean>
+        value : IValue<string | number | boolean | null>
     ) {
         super(value);
 
-        this.init((value : string | number | boolean) => {
+        this.init((value : string | number | boolean | null) => {
             if (value) {
                 if (typeof value === 'boolean') {
                     node.node.setAttribute(name, "");

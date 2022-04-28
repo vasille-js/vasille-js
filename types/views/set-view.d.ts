@@ -6,6 +6,5 @@ import { SetModel } from "../models/set-model";
  * @extends BaseView
  */
 export declare class SetView<T> extends BaseView<T, T, SetModel<T>> {
-    constructor();
     protected compose(input: BSO<T, T, SetModel<T>>): void;
 }

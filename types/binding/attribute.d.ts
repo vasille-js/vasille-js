@@ -6,12 +6,12 @@ import type { IValue } from "../core/ivalue";
  * @class AttributeBinding
  * @extends Binding
  */
-export declare class AttributeBinding extends Binding<string> {
+export declare class AttributeBinding extends Binding<string | number | boolean | null> {
     /**
      * Constructs an attribute binding description
      * @param node {INode} the vasille node
      * @param name {String} the name of attribute
      * @param value {IValue} value to bind
      */
-    constructor(node: INode, name: string, value: IValue<string>);
+    constructor(node: INode, name: string, value: IValue<string | number | boolean | null>);
 }

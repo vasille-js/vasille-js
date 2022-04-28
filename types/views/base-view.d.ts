@@ -30,6 +30,6 @@ export interface BSO<K, T, Model extends ListenableModel<K, T>> extends RNO<T, K
 export declare class BaseView<K, T, Model extends ListenableModel<K, T>> extends RepeatNode<K, T, BSO<K, T, Model>> {
     protected $: BaseViewPrivate<K, T>;
     input: BSO<K, T, Model>;
-    constructor($?: BaseViewPrivate<K, T>);
+    constructor(input: BSO<K, T, Model>, $?: BaseViewPrivate<K, T>);
     protected compose(input: BSO<K, T, Model>): void;
 }

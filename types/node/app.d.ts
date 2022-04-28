@@ -1,5 +1,7 @@
-import { INode } from "./node";
-interface AppOptions {
+import { Fragment, INode } from "./node";
+import { TagOptions } from "../functional/options";
+import { AcceptedTagsMap } from "../spec/react";
+export interface AppOptions<K extends keyof AcceptedTagsMap> extends TagOptions<K> {
     debugUi?: boolean;
 }
 /**
@@ -7,28 +9,36 @@ interface AppOptions {
  * @class AppNode
  * @extends INode
  */
-export declare class AppNode extends INode {
+export declare class AppNode<T extends AppOptions<any> = AppOptions<any>> extends INode<T> {
     /**
      * Enables debug comments
      */
     debugUi: boolean;
     /**
-     * @param options {Object} Application options
+     * @param input
      */
-    constructor(options?: AppOptions);
+    constructor(input: T);
 }
 /**
  * Represents a Vasille.js application
  * @class App
  * @extends AppNode
  */
-export declare class App extends AppNode {
+export declare class App<T extends AppOptions<any> = AppOptions<any>> extends AppNode<T> {
     /**
      * Constructs an app node
      * @param node {Element} The root of application
-     * @param options {Object} Application options
+     * @param input
      */
-    constructor(node: Element, options?: AppOptions);
+    constructor(node: Element, input: T);
+    appendNode(node: Node): void;
+}
+interface PortalOptions extends AppOptions<'div'> {
+    node: Element;
+    slot?: (node: Fragment) => void;
+}
+export declare class Portal extends AppNode<PortalOptions> {
+    constructor(input: PortalOptions);
     appendNode(node: Node): void;
 }
 export {};

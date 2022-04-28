@@ -28,7 +28,7 @@ export declare class RepeatNode<IdT, T, Opts extends RNO<T, IdT> = RNO<T, IdT>> 
      * If false will use timeout executor, otherwise the app executor
      */
     freezeUi: boolean;
-    constructor($?: RepeatNodePrivate<IdT>);
+    constructor(input: Opts, $: RepeatNodePrivate<IdT>);
     createChild(opts: Opts, id: IdT, item: T, before?: Fragment): any;
     destroyChild(id: IdT, item: T): void;
 }

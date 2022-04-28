@@ -1,6 +1,6 @@
-import {IValue} from "../core/ivalue";
+import type {IValue} from "../core/ivalue";
 import {AcceptedTagsMap, AcceptedTagsSpec} from "../spec/react";
-import {Fragment} from "../node/node";
+import type {Fragment} from "../node/node";
 
 export interface Options {
     "v:is" ?: Record<string, IValue<any>>;

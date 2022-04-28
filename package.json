@@ -15,6 +15,7 @@
     "test": "jest",
     "test-coverage": "jest --coverage",
     "update-types": "tsc --build tsconfig-types.json",
+    "update-flowjs": "node flow-typed/create.js",
     "cdn-create": "node cdn/create.js",
     "es5-check": "es-check es5 cdn/*es5.js"
   },
@@ -45,6 +46,7 @@
     "@typescript-eslint/parser": "latest",
     "es-check": "latest",
     "eslint": "latest",
+    "flow-bin": "latest",
     "jest": "latest",
     "jsdom": "latest",
     "ts-jest": "latest",

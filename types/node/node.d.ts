@@ -1,8 +1,8 @@
 import { Reactive, ReactivePrivate } from "../core/core";
 import { IValue } from "../core/ivalue";
-import { KindOfIValue } from "../value/expression";
 import type { AppNode } from "./app";
 import { Options, TagOptions } from "../functional/options";
+import { AcceptedTagsMap } from "../spec/react";
 /**
  * Represents a Vasille.js node
  * @class FragmentPrivate
@@ -59,9 +59,10 @@ export declare class Fragment<T extends Options = Options> extends Reactive {
     lastChild: Fragment | null;
     /**
      * Constructs a Vasille Node
+     * @param input
      * @param $ {FragmentPrivate}
      */
-    constructor($?: FragmentPrivate);
+    constructor(input: T, $?: FragmentPrivate);
     /**
      * Gets the app of node
      */
@@ -73,6 +74,7 @@ export declare class Fragment<T extends Options = Options> extends Reactive {
      * @param data {*} additional data
      */
     preinit(app: AppNode, parent: Fragment, data?: unknown): void;
+    protected compose(input: Options): void;
     /** To be overloaded: ready event handler */
     ready(): void;
     /**
@@ -103,23 +105,20 @@ export declare class Fragment<T extends Options = Options> extends Reactive {
      * @param cb {function (TextNode)} Callback if previous is slot name
      */
     text(text: string | IValue<string>, cb?: (text: TextNode) => void): void;
-    debug(text: IValue<string>): this;
+    debug(text: IValue<string>): void;
     /**
      * Defines a tag element
      * @param tagName {String} the tag name
      * @param input
      * @param cb {function(Tag, *)} callback
      */
-    tag<K extends keyof HTMLElementTagNameMap>(tagName: K, input: TagOptionsWithSlot<HTMLElementTagNameMap[K]>, cb?: TagOptionsWithSlot<HTMLElementTagNameMap[K]>['slot']): HTMLElementTagNameMap[K];
-    tag<K extends keyof SVGElementTagNameMap>(tagName: K, input: TagOptionsWithSlot<SVGElementTagNameMap[K]>, cb?: TagOptionsWithSlot<SVGElementTagNameMap[K]>['slot']): SVGElementTagNameMap[K];
-    tag(tagName: string, input: TagOptionsWithSlot<Element>, cb?: TagOptionsWithSlot<Element>['slot']): Element;
+    tag<K extends keyof AcceptedTagsMap>(tagName: K, input: TagOptionsWithSlot<K>, cb?: (node: Tag<K>) => void): (HTMLElementTagNameMap & SVGElementTagNameMap)[K];
     /**
      * Defines a custom element
      * @param node {Fragment} vasille element to insert
-     * @param input
      * @param callback {function($ : *)}
      */
-    create<T extends Fragment>(node: T, input: T['input'], callback?: T['input']['slot']): void;
+    create<T extends Fragment>(node: T, callback?: T['input']['slot']): void;
     /**
      * Defines an if node
      * @param cond {IValue} condition
@@ -166,7 +165,7 @@ export declare class TextNodePrivate extends FragmentPrivate {
      * @param parent
      * @param text {IValue}
      */
-    preinitText(app: AppNode, parent: Fragment, text: IValue<string>): void;
+    preinitText(app: AppNode, parent: Fragment, text: IValue<string> | string): void;
     /**
      * Clear node data
      */
@@ -180,7 +179,7 @@ export declare class TextNodePrivate extends FragmentPrivate {
 export declare class TextNode extends Fragment {
     protected $: TextNodePrivate;
     constructor($?: TextNodePrivate);
-    preinit(app: AppNode, parent: Fragment, text?: IValue<string>): void;
+    preinit(app: AppNode, parent: Fragment, text?: IValue<string> | string): void;
     protected findFirstChild(): Node;
     destroy(): void;
 }
@@ -208,13 +207,14 @@ export declare class INodePrivate extends FragmentPrivate {
  * @class INode
  * @extends Fragment
  */
-export declare class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
+export declare class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment<T> {
     protected $: INodePrivate;
     /**
      * Constructs a base node
+     * @param input
      * @param $ {?INodePrivate}
      */
-    constructor($?: INodePrivate);
+    constructor(input: T, $?: INodePrivate);
     /**
      * Get the bound node
      */
@@ -224,13 +224,13 @@ export declare class INode<T extends TagOptions = TagOptions> extends Fragment<T
      * @param name {String} name of attribute
      * @param value {IValue} value
      */
-    attr(name: string, value: IValue<string>): void;
+    attr(name: string, value: IValue<string | number | boolean>): void;
     /**
      * Set attribute value
      * @param name {string} name of attribute
      * @param value {string} value
      */
-    setAttr(name: string, value: string): this;
+    setAttr(name: string, value: string | number | boolean): this;
     /**
      * Adds a CSS class
      * @param cl {string} Class name
@@ -240,7 +240,7 @@ export declare class INode<T extends TagOptions = TagOptions> extends Fragment<T
      * Adds some CSS classes
      * @param cls {...string} classes names
      */
-    addClasses(...cls: Array<string>): this;
+    removeClasse(cl: string): this;
     /**
      * Bind a CSS class
      * @param className {IValue}
@@ -258,13 +258,6 @@ export declare class INode<T extends TagOptions = TagOptions> extends Fragment<T
      * @param value {IValue} value
      */
     style(name: string, value: IValue<string>): this;
-    /**
-     * Binds style property value
-     * @param name {string} name of style attribute
-     * @param calculator {function} calculator for style value
-     * @param values
-     */
-    bindStyle<T, Args extends unknown[]>(name: string, calculator: (...args: Args) => string, ...values: KindOfIValue<Args>): this;
     /**
      * Sets a style property value
      * @param prop {string} Property name
@@ -288,21 +281,21 @@ export declare class INode<T extends TagOptions = TagOptions> extends Fragment<T
      * bind HTML
      * @param value {IValue}
      */
-    html(value: IValue<string>): void;
+    bindDomApi(name: string, value: IValue<string>): void;
     protected applyOptions(options: T): void;
 }
-export interface TagOptionsWithSlot<T extends Element> extends TagOptions {
-    slot?: (tag: Fragment, element: T) => void;
+export interface TagOptionsWithSlot<K extends keyof AcceptedTagsMap> extends TagOptions<K> {
+    slot?: (tag: Tag<K>) => void;
 }
 /**
  * Represents an Vasille.js HTML element node
  * @class Tag
  * @extends INode
  */
-export declare class Tag<T extends Element> extends INode<TagOptionsWithSlot<T>> {
-    constructor();
+export declare class Tag<K extends keyof AcceptedTagsMap> extends INode<TagOptionsWithSlot<K>> {
+    constructor(input: TagOptionsWithSlot<K>);
     preinit(app: AppNode, parent: Fragment, tagName?: string): void;
-    protected compose(input: TagOptionsWithSlot<T>): void;
+    protected compose(input: TagOptionsWithSlot<K>): void;
     protected findFirstChild(): Node;
     insertAdjacent(node: Node): void;
     appendNode(node: Node): void;
@@ -321,9 +314,8 @@ export declare class Tag<T extends Element> extends INode<TagOptionsWithSlot<T>>
  * @class Extension
  * @extends INode
  */
-export declare class Extension<T extends TagOptions> extends INode<T> {
+export declare class Extension<T extends TagOptions<any> = TagOptions<any>> extends INode<T> {
     preinit(app: AppNode, parent: Fragment): void;
-    constructor($?: INodePrivate);
     destroy(): void;
 }
 /**
@@ -331,8 +323,7 @@ export declare class Extension<T extends TagOptions> extends INode<T> {
  * @class Component
  * @extends Extension
  */
-export declare class Component<T extends TagOptions> extends Extension<T> {
-    constructor();
+export declare class Component<T extends TagOptions<any>> extends Extension<T> {
     ready(): void;
     preinit(app: AppNode, parent: Fragment): void;
 }

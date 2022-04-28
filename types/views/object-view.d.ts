@@ -6,6 +6,5 @@ import { ObjectModel } from "../models/object-model";
  * @extends BaseView
  */
 export declare class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
-    constructor();
     protected compose(input: BSO<string, T, ObjectModel<T>>): void;
 }

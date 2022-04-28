@@ -62,7 +62,7 @@ export declare class Reactive<T extends Options = Options> extends Destroyable {
      */
     protected $: ReactivePrivate;
     input: T;
-    constructor($?: ReactivePrivate);
+    constructor(input: T, $?: ReactivePrivate);
     /**
      * Get parent node
      */
@@ -93,7 +93,6 @@ export declare class Reactive<T extends Options = Options> extends Destroyable {
      * @param model
      */
     register<T extends IModel>(model: T): T;
-    autodestroy(data: Destroyable): void;
     /**
      * Creates a watcher
      * @param func {function} function to run on any argument change
@@ -122,7 +121,7 @@ export declare class Reactive<T extends Options = Options> extends Destroyable {
      * @param onOn {function} on hide feedback
      */
     bindAlive(cond: IValue<boolean>, onOff?: () => void, onOn?: () => void): this;
-    init(input: T): void;
+    init(): void;
     protected applyOptions(input: T): void;
     protected compose(input: T): void;
     runFunctional<F extends (...args: any) => any>(f: F, ...args: Parameters<F>): ReturnType<F>;
