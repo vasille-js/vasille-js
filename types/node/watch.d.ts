@@ -1,23 +1,17 @@
 import { Fragment } from "./node";
-import { Slot } from "../core/slot";
 import { IValue } from "../core/ivalue";
+import { Options } from "../functional/options";
+interface WatchOptions<T> extends Options {
+    model: IValue<T>;
+    slot?: (node: Fragment, value: T) => void;
+}
 /**
  * Watch Node
  * @class Watch
  * @extends Fragment
  */
-export declare class Watch<T> extends Fragment {
-    /**
-     * Default slot
-     * @type Slot
-     */
-    slot: Slot<Fragment, T>;
-    /**
-     * iValue to watch
-     * @type IValue
-     */
-    model: IValue<T>;
-    constructor();
-    createWatchers(): void;
-    compose(): void;
+export declare class Watch<T> extends Fragment<WatchOptions<T>> {
+    input: WatchOptions<T>;
+    compose(input: WatchOptions<T>): void;
 }
+export {};

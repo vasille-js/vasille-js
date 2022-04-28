@@ -21,6 +21,7 @@ export class Watch<T> extends Fragment<WatchOptions<T>> {
                 child.destroy();
             });
             this.children.clear();
+            this.lastChild = null;
             input.slot && input.slot(this, value);
         }, input.model);
 

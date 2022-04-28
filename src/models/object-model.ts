@@ -10,7 +10,7 @@ import { ListenableModel } from "./model";
 export class ObjectModel<T> extends Object implements ListenableModel<string, T> {
 
     public listener : Listener<T, string>;
-    public container : Record<string, T> = Object.create(null);
+    private container : Record<string, T> = Object.create(null);
 
     /**
      * Constructs a object model
@@ -80,21 +80,21 @@ export class ObjectModel<T> extends Object implements ListenableModel<string, T>
         }
     }
 
-    public proxy() {
-        return new Proxy(this, {
-            get(target: ObjectModel<T>, p: string): T {
-                return target.get(p);
+    public proxy() : Record<string, T> {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const ts = this;
+
+        return new Proxy(this.container, {
+            get(target, p: string): T {
+                return ts.get(p);
             },
-            set(target: ObjectModel<T>, p: string, value: T): boolean {
-                target.set(p, value);
+            set(target, p: string, value: T): boolean {
+                ts.set(p, value);
                 return true;
             },
-            deleteProperty(target: ObjectModel<T>, p: string): boolean {
-                target.delete(p);
+            deleteProperty(target, p: string): boolean {
+                ts.delete(p);
                 return true;
-            },
-            ownKeys(target: ObjectModel<T>): ArrayLike<string | symbol> {
-                return Reflect.ownKeys(target.container);
             }
         });
     }

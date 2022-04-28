@@ -1,7 +1,7 @@
 import {
     App,
     AppNode,
-    ArrayModel, ArrayView, BaseView, Binding, Component,
+    ArrayModel, ArrayView, Binding, Component,
     Destroyable, Expression, Extension, Fragment, INode,
     IValue, Listener,
     MapModel, MapView,
@@ -9,8 +9,8 @@ import {
     ObjectModel, ObjectView,
     Pointer, Reactive,
     Reference,
-    RepeatNode,
     SetModel, SetView, Tag,
+    libV, BaseView
 } from "../src";
 import {page} from "./page";
 
@@ -33,6 +33,7 @@ it('import test', function () {
     const obj = new ObjectModel();
     const set = new SetModel();
     const listener = new Listener();
+    const baseView = new BaseView({ model: array });
     const arrayView = new ArrayView({ model: array });
     const mapView = new MapView({ model: map });
     const objectView = new ObjectView({ model: obj });
@@ -43,8 +44,10 @@ it('import test', function () {
     const component = new Component({});
     const ext = new Extension({});
     const appNode = new AppNode({});
-    const app = new App(page.window.document.body);
+    const app = new App(page.window.document.body, {});
     const expr = new Expression(v => v, false, ref);
     const binding = new BindingTest(ref);
     const reactive = new Reactive({});
+
+    expect(libV.v.alwaysFalse.$).toBe(false);
 });

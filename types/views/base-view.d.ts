@@ -1,4 +1,4 @@
-import { RepeatNode, RepeatNodePrivate } from "./repeat-node";
+import { RepeatNode, RepeatNodePrivate, RNO } from "./repeat-node";
 import { ListenableModel } from "../models/model";
 /**
  * Private part of BaseView
@@ -18,26 +18,18 @@ export declare class BaseViewPrivate<K, T> extends RepeatNodePrivate<K> {
     removeHandler: (index: K, value: T) => void;
     constructor();
 }
+export interface BSO<K, T, Model extends ListenableModel<K, T>> extends RNO<T, K> {
+    model: Model;
+}
 /**
  * Base class of default views
  * @class BaseView
  * @extends RepeatNode
  * @implements IModel
  */
-export declare class BaseView<K, T, Model extends ListenableModel<K, T>> extends RepeatNode<K, T> {
+export declare class BaseView<K, T, Model extends ListenableModel<K, T>> extends RepeatNode<K, T, BSO<K, T, Model>> {
     protected $: BaseViewPrivate<K, T>;
-    /**
-     * Property which will contain a model
-     * @type {IModel}
-     */
-    model: Model;
-    constructor($1?: BaseViewPrivate<K, T>);
-    /**
-     * Handle ready event
-     */
-    ready(): void;
-    /**
-     * Handles destroy event
-     */
-    destroy(): void;
+    input: BSO<K, T, Model>;
+    constructor($?: BaseViewPrivate<K, T>);
+    protected compose(input: BSO<K, T, Model>): void;
 }

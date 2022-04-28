@@ -8,7 +8,6 @@ import {
 } from "../../src";
 import {page} from "../page";
 import {DebugNode, TextNode} from "../../src/node/node";
-import {expr} from "../../src/functional/reactivity";
 
 let ready = false;
 let compose = false;
@@ -25,7 +24,7 @@ class FragmentTest extends Fragment {
 }
 
 it('Fragment', function () {
-    const root = new App(page.window.document.body);
+    const root = new App(page.window.document.body, {});
 
     root.init();
 
@@ -60,7 +59,7 @@ it('Tag', function () {
 });
 
 it('if', function () {
-    const root = new App(page.window.document.body);
+    const root = new App(page.window.document.body, {});
     let check1 = false;
     let check2 = true;
 
@@ -75,7 +74,7 @@ it('if', function () {
 });
 
 it('if else', function () {
-    const root = new App(page.window.document.body);
+    const root = new App(page.window.document.body, {});
     const iv1 = new Reference(true);
     const iv2 = new Reference(false);
 
@@ -102,7 +101,7 @@ it('if else', function () {
 });
 
 it('switch', function () {
-    const root = new App(page.window.document.body);
+    const root = new App(page.window.document.body, {});
     const v = new Reference(1);
     const v2 = new Reference(false);
     let check = 0;
@@ -132,9 +131,7 @@ it('switch', function () {
 });
 
 it('INode', function () {
-    const root = new App(page.window.document.body);
-
-    root.init();
+    const root = new App(page.window.document.body, {});
 
     root.create(new Fragment({}), (test : Fragment) => {
         // attr
@@ -143,6 +140,8 @@ it('INode', function () {
             const attrValue = new Reference("test");
             const el = test.tag("div", {
                 "v:attr": {
+                    "data-checked": true,
+                    "data-checked2": root.ref(true),
                     "data-set": "test",
                     [attrName]: attrValue,
                     "data-bind": root.expr((str : string) => {
@@ -161,6 +160,8 @@ it('INode', function () {
 
             expect(data.attr).toBeUndefined();
             expect(data.bind).toBe("alternative");
+            expect(test.parent).toBe(root);
+            expect(test.app).toBe(root);
         })();
 
         // class
@@ -191,13 +192,13 @@ it('INode', function () {
         //style
         (function () {
             const dyn = new Reference("0px");
+            const num = new Expression(x => parseFloat(x) + 10, true, dyn);
             const el = test.tag("div", {
                 style: {
                     display: 'none',
                     margin: dyn,
-                    padding: test.expr(margin => {
-                        return parseFloat(margin) + 10 + 'px';
-                    }, dyn)
+                    padding: [num, 'px'],
+                    width: [300, 'px']
                 }
             }, (div) => {
                 const error = "non-html-element";
@@ -218,6 +219,7 @@ it('INode', function () {
             expect(el.style.display).toBe('none');
             expect(el.style.margin).toBe('0px');
             expect(el.style.padding).toBe('10px');
+            expect(el.style.width).toBe('300px');
 
             dyn.$ = '100px';
             expect(el.style.margin).toBe('100px');
@@ -228,10 +230,37 @@ it('INode', function () {
     root.destroy();
 });
 
+it('Extension test', function () {
+    const root = new App(page.window.document.body, {});
+
+    const div = root.tag("div", {
+        style: { display: 'block' },
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        class: { $: [], 'xxx': true }
+    }, node => {
+        node.create(new Fragment({}), node1 => {
+            const yyy = new Reference('yyy');
+
+            node1.create(new Extension<TagOptions<any>>({
+                style: { display: 'none' },
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                class: { $: [yyy], 'xxx': false }
+            }));
+        });
+    });
+
+    expect(div.style.display).toBe('none');
+    expect(div.className).toBe('yyy');
+
+    root.destroy();
+})
+
 
 it('INode Events', function () {
     let test = false;
-    const root = new App(page.window.document.body);
+    const root = new App(page.window.document.body, {});
     const handler = () => test = true;
 
     root.init();
@@ -239,12 +268,14 @@ it('INode Events', function () {
     const element = root.tag<'button'>('button', { "v:events": { click: handler } });
     element.click();
     expect(test).toBe(true);
+
+    root.destroy();
 });
 
 it('Freeze test', function () {
     const show = new Reference(true);
     const mount = new Reference(true);
-    const root = new App(page.window.document.body);
+    const root = new App(page.window.document.body, {});
 
     const showEl = root.tag("div", {}, (showTag : Tag<'div'>) => {
         showTag.bindShow(show);
@@ -281,24 +312,61 @@ it('Freeze test', function () {
     mount.$ = true;
     expect(showEl.childNodes.length).toBe(2);
     expect(showEl.innerHTML).toBe(`<div></div><div class="second"></div>`);
+
+    root.destroy();
 });
 
-it('raw HTML test', function () {
-    const root = new App(page.window.document.body);
+it('bind DON api test', function () {
+    const root = new App(page.window.document.body, {});
     const html = new Reference("test me now");
+    const bool = new Reference(true);
+    const num = new Reference(0.1);
 
-    const el = root.tag('div', {}, (node) => {
-        node.html(html);
+    global.HTMLInputElement = page.window.HTMLInputElement;
+    global.HTMLTextAreaElement = page.window.HTMLTextAreaElement;
+    global.HTMLInputElement = page.window.HTMLInputElement;
+    global.HTMLMediaElement = page.window.HTMLMediaElement;
+
+    const el = root.tag('div', {
+        "v:bind": {
+            'innerHTML': html
+        }
     });
+
+    const input = root.tag('textarea', { "v:bind": { value: html } }) as HTMLTextAreaElement;
+    const checkbox = root.tag('input', { "v:attr": { type: 'checkbox' }, "v:bind": { checked: bool } } ) as HTMLInputElement;
+    const media = root.tag('audio', { "v:bind": { volume: num } }) as HTMLAudioElement;
+    const media2 = root.tag('audio', { "v:set": { volume: 0.75 } }) as HTMLAudioElement;
 
     expect(el.innerHTML).toBe("test me now");
 
     html.$ = '<b>b</b><i>i</i>';
     expect(el.innerHTML).toBe("<b>b</b><i>i</i>");
+
+    html.$ = '1';
+    expect(input.value).toBe('1');
+    input.value = '2';
+    input.oninput(1 as any);
+    expect(html.$).toBe('2');
+
+    bool.$ = false;
+    expect(checkbox.checked).toBe(false);
+    checkbox.checked = true;
+    checkbox.oninput(2 as any);
+    expect(bool.$).toBe(true);
+
+    num.$ = 1;
+    expect(media.volume).toBe(1);
+    media.volume = 0.5;
+    expect(num.$).toBe(0.5);
+
+    expect(media2.volume).toBe(0.75);
+
+    root.destroy();
 });
 
 it('Error threading', function () {
-    const root = new App(page.window.document.body);
+    const root = new App(page.window.document.body, {});
     const bool = new Reference(true);
     const text = new Reference('text');
     const frag = new Fragment({});
@@ -311,11 +379,13 @@ it('Error threading', function () {
         // @ts-ignore
         test.$.node = null;
         expect(() => test.bindShow(bool)).toThrow("bind-show");
-        expect(() => test.html(text)).toThrow("dom-error");
+        expect(() => test.bindDomApi('innerHtml', text)).toThrow("dom-error");
         expect(() => test.preinit(root, root, null)).toThrow("internal-error");
         expect(() => ext.preinit(root, frag)).toThrow("virtual-dom");
         expect(() => debug.preinit(root, frag, null)).toThrow("internal-error");
         expect(() => textNode.preinit(root, frag, null)).toThrow("internal-error");
+        expect(() => root.else(() => 0)).toThrow('logic-error');
+        expect(() => root.elif(bool, () => 0)).toThrow("logic-error");
     });
 });
 
@@ -342,7 +412,7 @@ class CorrectComponent extends Component<TagOptions<any>> {
 }
 
 it('Component test', function () {
-    const root = new App(page.window.document.body);
+    const root = new App(page.window.document.body, {});
 
     expect(() => root.create(new ZeroChildrenComponent({}))).toThrow("dom-error");
     expect(() => root.create(new OneChildComponent({}))).toThrow("dom-error");
@@ -352,7 +422,7 @@ it('Component test', function () {
 });
 
 it('INode unmount/mount advanced', function () {
-    const root = new App(page.window.document.body);
+    const root = new App(page.window.document.body, {});
     const mount = new Reference(true);
 
     const body = root.tag('div', {}, (main) => {
@@ -395,7 +465,7 @@ it('INode unmount/mount advanced', function () {
 });
 
 it('INode unmount/mount advanced 2', function () {
-    const root = new App(page.window.document.body);
+    const root = new App(page.window.document.body, {});
     const mount = new Reference(true);
 
     const body = root.tag('div', {}, (main) => {

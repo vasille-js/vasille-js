@@ -1,6 +1,7 @@
 import {page} from "../page";
 import {App, Options} from "../../src";
 import {v} from "../../src/v";
+import {predefine} from "../../src/functional/components";
 
 interface MyOpts extends Options {
     slot ?: (node : App, x : number) => void
@@ -9,13 +10,11 @@ interface MyOpts extends Options {
 let test = 1;
 
 const fragment = v.app<MyOpts>(opts => {
-    opts.slot = opts.slot || ((node, x : number) => {
+    opts.slot = predefine(opts.slot, (node, x) => {
         test = x * 2;
-    });
+    })
 
-    (opts.slot ? opts.slot : ((node, x) => {
-        test = x * 2;
-    }))(this, 1);
+    opts.slot(this, 1);
 })
 
 const handler = (node : App, x : number) => {

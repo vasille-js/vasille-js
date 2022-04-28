@@ -1,9 +1,11 @@
 import { Destroyable } from "./destroyable.js";
 import { IValue, Switchable } from "./ivalue.js";
-import { Expression } from "../value/expression";
+import { Expression, KindOfIValue } from "../value/expression";
 import { Pointer } from "../value/pointer";
 import { Mirror } from "../value/mirror";
 import { IModel } from "../models/model";
+import { Options } from "../functional/options";
+export declare let current: Reactive | null;
 /**
  * Private stuff of a reactive object
  * @class ReactivePrivate
@@ -38,7 +40,13 @@ export declare class ReactivePrivate extends Destroyable {
      * An expression which will freeze/unfreeze the object
      * @type {IValue<void>}
      */
-    freezeExpr: Expression<void, boolean>;
+    freezeExpr: Expression<void, [boolean]>;
+    /**
+     * Parent node
+     * @type {Reactive}
+     */
+    parent: Reactive;
+    onDestroy?: () => void;
     constructor();
     destroy(): void;
 }
@@ -47,13 +55,18 @@ export declare class ReactivePrivate extends Destroyable {
  * @class Reactive
  * @extends Destroyable
  */
-export declare class Reactive extends Destroyable {
+export declare class Reactive<T extends Options = Options> extends Destroyable {
     /**
      * Private stuff
      * @protected
      */
     protected $: ReactivePrivate;
+    input: T;
     constructor($?: ReactivePrivate);
+    /**
+     * Get parent node
+     */
+    get parent(): Reactive;
     /**
      * Create a reference
      * @param value {*} value to reference
@@ -80,51 +93,20 @@ export declare class Reactive extends Destroyable {
      * @param model
      */
     register<T extends IModel>(model: T): T;
+    autodestroy(data: Destroyable): void;
     /**
      * Creates a watcher
      * @param func {function} function to run on any argument change
-     * @param v1 {IValue} argument
-     * @param v2 {IValue} argument
-     * @param v3 {IValue} argument
-     * @param v4 {IValue} argument
-     * @param v5 {IValue} argument
-     * @param v6 {IValue} argument
-     * @param v7 {IValue} argument
-     * @param v8 {IValue} argument
-     * @param v9 {IValue} argument
+     * @param values
      */
-    watch<T1>(func: (a1: T1) => void, v1: IValue<T1>): any;
-    watch<T1, T2>(func: (a1: T1, a2: T2) => void, v1: IValue<T1>, v2: IValue<T2>): any;
-    watch<T1, T2, T3>(func: (a1: T1, a2: T2, a3: T3) => void, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>): any;
-    watch<T1, T2, T3, T4>(func: (a1: T1, a2: T2, a3: T3, a4: T4) => void, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>): any;
-    watch<T1, T2, T3, T4, T5>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => void, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>): any;
-    watch<T1, T2, T3, T4, T5, T6>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => void, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>): any;
-    watch<T1, T2, T3, T4, T5, T6, T7>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7) => void, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>): any;
-    watch<T1, T2, T3, T4, T5, T6, T7, T8>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8) => void, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>): any;
-    watch<T1, T2, T3, T4, T5, T6, T7, T8, T9>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8, a9: T9) => void, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>, v9: IValue<T9>): any;
+    watch<Args extends unknown[]>(func: (...args: Args) => void, ...values: KindOfIValue<Args>): void;
     /**
      * Creates a computed value
      * @param func {function} function to run on any argument change
-     * @param v1 {IValue} argument
-     * @param v2 {IValue} argument
-     * @param v3 {IValue} argument
-     * @param v4 {IValue} argument
-     * @param v5 {IValue} argument
-     * @param v6 {IValue} argument
-     * @param v7 {IValue} argument
-     * @param v8 {IValue} argument
-     * @param v9 {IValue} argument
+     * @param values
      * @return {IValue} the created ivalue
      */
-    bind<T, T1>(func: (a1: T1) => T, v1: IValue<T1>): IValue<T>;
-    bind<T, T1, T2>(func: (a1: T1, a2: T2) => T, v1: IValue<T1>, v2: IValue<T2>): IValue<T>;
-    bind<T, T1, T2, T3>(func: (a1: T1, a2: T2, a3: T3) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>): IValue<T>;
-    bind<T, T1, T2, T3, T4>(func: (a1: T1, a2: T2, a3: T3, a4: T4) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>): IValue<T>;
-    bind<T, T1, T2, T3, T4, T5>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>): IValue<T>;
-    bind<T, T1, T2, T3, T4, T5, T6>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>): IValue<T>;
-    bind<T, T1, T2, T3, T4, T5, T6, T7>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>): IValue<T>;
-    bind<T, T1, T2, T3, T4, T5, T6, T7, T8>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>): IValue<T>;
-    bind<T, T1, T2, T3, T4, T5, T6, T7, T8, T9>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8, a9: T9) => T, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>, v9: IValue<T9>): IValue<T>;
+    expr<T, Args extends unknown[]>(func: (...args: Args) => T, ...values: KindOfIValue<Args>): IValue<T>;
     /**
      * Enable reactivity of fields
      */
@@ -140,5 +122,10 @@ export declare class Reactive extends Destroyable {
      * @param onOn {function} on hide feedback
      */
     bindAlive(cond: IValue<boolean>, onOff?: () => void, onOn?: () => void): this;
+    init(input: T): void;
+    protected applyOptions(input: T): void;
+    protected compose(input: T): void;
+    runFunctional<F extends (...args: any) => any>(f: F, ...args: Parameters<F>): ReturnType<F>;
+    runOnDestroy(func: () => void): void;
     destroy(): void;
 }

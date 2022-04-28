@@ -1,21 +1,13 @@
-import { Executor } from "../core/executor";
 import { INode } from "./node";
-declare type AppOptions = {
+interface AppOptions {
     debugUi?: boolean;
-    freezeUi?: boolean;
-    executor?: Executor;
-};
+}
 /**
  * Application Node
  * @class AppNode
  * @extends INode
  */
 export declare class AppNode extends INode {
-    /**
-     * Executor is used to optimize the page creation/update
-     * @type {Executor}
-     */
-    run: Executor;
     /**
      * Enables debug comments
      */

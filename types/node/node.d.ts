@@ -1,6 +1,8 @@
 import { Reactive, ReactivePrivate } from "../core/core";
 import { IValue } from "../core/ivalue";
+import { KindOfIValue } from "../value/expression";
 import type { AppNode } from "./app";
+import { Options, TagOptions } from "../functional/options";
 /**
  * Represents a Vasille.js node
  * @class FragmentPrivate
@@ -43,7 +45,7 @@ export declare class FragmentPrivate extends ReactivePrivate {
  * This class is symbolic
  * @extends Reactive
  */
-export declare class Fragment extends Reactive {
+export declare class Fragment<T extends Options = Options> extends Reactive {
     /**
      * Private part
      * @protected
@@ -54,7 +56,7 @@ export declare class Fragment extends Reactive {
      * @type Array
      */
     children: Set<Fragment>;
-    lastChild: any;
+    lastChild: Fragment | null;
     /**
      * Constructs a Vasille Node
      * @param $ {FragmentPrivate}
@@ -71,20 +73,8 @@ export declare class Fragment extends Reactive {
      * @param data {*} additional data
      */
     preinit(app: AppNode, parent: Fragment, data?: unknown): void;
-    /**
-     * Initialize node
-     */
-    init(): this;
-    /** To be overloaded: created event handler */
-    created(): void;
-    /** To be overloaded: mounted event handler */
-    mounted(): void;
     /** To be overloaded: ready event handler */
     ready(): void;
-    /** To be overloaded: watchers creation milestone */
-    createWatchers(): void;
-    /** To be overloaded: DOM creation milestone */
-    compose(): void;
     /**
      * Pushes a node to children immediately
      * @param node {Fragment} A node to push
@@ -117,41 +107,28 @@ export declare class Fragment extends Reactive {
     /**
      * Defines a tag element
      * @param tagName {String} the tag name
+     * @param input
      * @param cb {function(Tag, *)} callback
      */
-    tag<K extends keyof HTMLElementTagNameMap>(tagName: K, cb?: (node: Tag, element: HTMLElementTagNameMap[K]) => void): void;
-    tag<K extends keyof SVGElementTagNameMap>(tagName: K, cb?: (node: Tag, element: SVGElementTagNameMap[K]) => void): void;
-    tag(tagName: string, cb?: (node: Tag, element: Element) => void): void;
+    tag<K extends keyof HTMLElementTagNameMap>(tagName: K, input: TagOptionsWithSlot<HTMLElementTagNameMap[K]>, cb?: TagOptionsWithSlot<HTMLElementTagNameMap[K]>['slot']): HTMLElementTagNameMap[K];
+    tag<K extends keyof SVGElementTagNameMap>(tagName: K, input: TagOptionsWithSlot<SVGElementTagNameMap[K]>, cb?: TagOptionsWithSlot<SVGElementTagNameMap[K]>['slot']): SVGElementTagNameMap[K];
+    tag(tagName: string, input: TagOptionsWithSlot<Element>, cb?: TagOptionsWithSlot<Element>['slot']): Element;
     /**
      * Defines a custom element
      * @param node {Fragment} vasille element to insert
+     * @param input
      * @param callback {function($ : *)}
-     * @param callback1 {function($ : *)}
      */
-    create<T extends Fragment>(node: T, callback?: ($: T) => void, callback1?: ($: T) => void): void;
+    create<T extends Fragment>(node: T, input: T['input'], callback?: T['input']['slot']): void;
     /**
      * Defines an if node
      * @param cond {IValue} condition
      * @param cb {function(Fragment)} callback to run on true
      * @return {this}
      */
-    if(cond: IValue<boolean>, cb: (node: Fragment) => void): this;
-    /**
-     * Defines a if-else node
-     * @param ifCond {IValue} `if` condition
-     * @param ifCb {function(Fragment)} Call-back to create `if` child nodes
-     * @param elseCb {function(Fragment)} Call-back to create `else` child nodes
-     */
-    if_else(ifCond: IValue<boolean>, ifCb: (node: Fragment) => void, elseCb: (node: Fragment) => void): this;
-    /**
-     * Defines a switch nodes: Will break after first true condition
-     * @param cases {...{ cond : IValue, cb : function(Fragment) }} cases
-     * @return {INode}
-     */
-    switch(...cases: Array<{
-        cond: IValue<boolean>;
-        cb: (node: Fragment) => void;
-    }>): this;
+    if(cond: IValue<boolean>, cb: (node: Fragment) => void): void;
+    else(cb: (node: Fragment) => void): void;
+    elif(cond: IValue<boolean>, cb: (node: Fragment) => void): void;
     /**
      * Create a case for switch
      * @param cond {IValue<boolean>}
@@ -186,6 +163,7 @@ export declare class TextNodePrivate extends FragmentPrivate {
     /**
      * Pre-initializes a text node
      * @param app {AppNode} the app node
+     * @param parent
      * @param text {IValue}
      */
     preinitText(app: AppNode, parent: Fragment, text: IValue<string>): void;
@@ -230,7 +208,7 @@ export declare class INodePrivate extends FragmentPrivate {
  * @class INode
  * @extends Fragment
  */
-export declare class INode extends Fragment {
+export declare class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
     protected $: INodePrivate;
     /**
      * Constructs a base node
@@ -242,43 +220,11 @@ export declare class INode extends Fragment {
      */
     get node(): Element;
     /**
-     * Initialize node
-     */
-    init(): this;
-    /** To be overloaded: attributes creation milestone */
-    createAttrs(): void;
-    /** To be overloaded: $style attributes creation milestone */
-    createStyle(): void;
-    /**
      * Bind attribute value
      * @param name {String} name of attribute
      * @param value {IValue} value
      */
     attr(name: string, value: IValue<string>): void;
-    /**
-     * Creates and binds a multivalued binding to attribute
-     * @param name {String} The name of attribute
-     * @param calculator {Function} Binding calculator (must return a value)
-     * @param v1 {*} argument
-     * @param v2 {*} argument
-     * @param v3 {*} argument
-     * @param v4 {*} argument
-     * @param v5 {*} argument
-     * @param v6 {*} argument
-     * @param v7 {*} argument
-     * @param v8 {*} argument
-     * @param v9 {*} argument
-     * @return {INode} A pointer to this
-     */
-    bindAttr<T1>(name: string, calculator: (a1: T1) => string, v1: IValue<T1>, v2?: IValue<void>, v3?: IValue<void>, v4?: IValue<void>, v5?: IValue<void>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
-    bindAttr<T1, T2>(name: string, calculator: (a1: T1, a2: T2) => string, v1: IValue<T1>, v2: IValue<T2>, v3?: IValue<void>, v4?: IValue<void>, v5?: IValue<void>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
-    bindAttr<T1, T2, T3>(name: string, calculator: (a1: T1, a2: T2, a3: T3) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4?: IValue<void>, v5?: IValue<void>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
-    bindAttr<T1, T2, T3, T4>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5?: IValue<void>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
-    bindAttr<T1, T2, T3, T4, T5>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6?: IValue<void>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
-    bindAttr<T1, T2, T3, T4, T5, T6>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7?: IValue<void>, v8?: IValue<void>, v9?: IValue<void>): this;
-    bindAttr<T1, T2, T3, T4, T5, T6, T7>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8?: IValue<void>, v9?: IValue<void>): this;
-    bindAttr<T1, T2, T3, T4, T5, T6, T7, T8>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>, v9?: IValue<void>): this;
-    bindAttr<T1, T2, T3, T4, T5, T6, T7, T8, T9>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8, a9: T9) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>, v9: IValue<T9>): this;
     /**
      * Set attribute value
      * @param name {string} name of attribute
@@ -316,25 +262,9 @@ export declare class INode extends Fragment {
      * Binds style property value
      * @param name {string} name of style attribute
      * @param calculator {function} calculator for style value
-     * @param v1 {*} argument
-     * @param v2 {*} argument
-     * @param v3 {*} argument
-     * @param v4 {*} argument
-     * @param v5 {*} argument
-     * @param v6 {*} argument
-     * @param v7 {*} argument
-     * @param v8 {*} argument
-     * @param v9 {*} argument
+     * @param values
      */
-    bindStyle<T1>(name: string, calculator: (a1: T1) => string, v1: IValue<T1>): this;
-    bindStyle<T1, T2>(name: string, calculator: (a1: T1, a2: T2) => string, v1: IValue<T1>, v2: IValue<T2>): this;
-    bindStyle<T1, T2, T3>(name: string, calculator: (a1: T1, a2: T2, a3: T3) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>): this;
-    bindStyle<T1, T2, T3, T4>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>): this;
-    bindStyle<T1, T2, T3, T4, T5>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>): this;
-    bindStyle<T1, T2, T3, T4, T5, T6>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>): this;
-    bindStyle<T1, T2, T3, T4, T5, T6, T7>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>): this;
-    bindStyle<T1, T2, T3, T4, T5, T6, T7, T8>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>): this;
-    bindStyle<T1, T2, T3, T4, T5, T6, T7, T8, T9>(name: string, calculator: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8, a9: T9) => string, v1: IValue<T1>, v2: IValue<T2>, v3: IValue<T3>, v4: IValue<T4>, v5: IValue<T5>, v6: IValue<T6>, v7: IValue<T7>, v8: IValue<T8>, v9: IValue<T9>): this;
+    bindStyle<T, Args extends unknown[]>(name: string, calculator: (...args: Args) => string, ...values: KindOfIValue<Args>): this;
     /**
      * Sets a style property value
      * @param prop {string} Property name
@@ -348,276 +278,6 @@ export declare class INode extends Fragment {
      * @param options {Object | boolean} addEventListener options
      */
     listen(name: string, handler: (ev: Event) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    oncontextmenu(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onmousedown(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onmouseenter(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onmouseleave(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onmousemove(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onmouseout(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onmouseover(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onmouseup(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    onclick(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (MouseEvent)}
-     * @param options {Object | boolean}
-     */
-    ondblclick(handler: (ev: MouseEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    onblur(handler: (ev: FocusEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    onfocus(handler: (ev: FocusEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    onfocusin(handler: (ev: FocusEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (FocusEvent)}
-     * @param options {Object | boolean}
-     */
-    onfocusout(handler: (ev: FocusEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (KeyboardEvent)}
-     * @param options {Object | boolean}
-     */
-    onkeydown(handler: (ev: KeyboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (KeyboardEvent)}
-     * @param options {Object | boolean}
-     */
-    onkeyup(handler: (ev: KeyboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (KeyboardEvent)}
-     * @param options {Object | boolean}
-     */
-    onkeypress(handler: (ev: KeyboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    ontouchstart(handler: (ev: TouchEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    ontouchmove(handler: (ev: TouchEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    ontouchend(handler: (ev: TouchEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (TouchEvent)}
-     * @param options {Object | boolean}
-     */
-    ontouchcancel(handler: (ev: TouchEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (WheelEvent)}
-     * @param options {Object | boolean}
-     */
-    onwheel(handler: (ev: WheelEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    onabort(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    onerror(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    onload(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    onloadend(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    onloadstart(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    onprogress(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (ProgressEvent)}
-     * @param options {Object | boolean}
-     */
-    ontimeout(handler: (ev: ProgressEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondrag(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondragend(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondragenter(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondragexit(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondragleave(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondragover(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondragstart(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (DragEvent)}
-     * @param options {Object | boolean}
-     */
-    ondrop(handler: (ev: DragEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointerover(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointerenter(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointerdown(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointermove(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointerup(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointercancel(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointerout(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onpointerleave(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    ongotpointercapture(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (PointerEvent)}
-     * @param options {Object | boolean}
-     */
-    onlostpointercapture(handler: (ev: PointerEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (AnimationEvent)}
-     * @param options {Object | boolean}
-     */
-    onanimationstart(handler: (ev: AnimationEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (AnimationEvent)}
-     * @param options {Object | boolean}
-     */
-    onanimationend(handler: (ev: AnimationEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (AnimationEvent)}
-     * @param options {Object | boolean}
-     */
-    onanimationiteraton(handler: (ev: AnimationEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    onclipboardchange(handler: (ev: ClipboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    oncut(handler: (ev: ClipboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    oncopy(handler: (ev: ClipboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
-    /**
-     * @param handler {function (ClipboardEvent)}
-     * @param options {Object | boolean}
-     */
-    onpaste(handler: (ev: ClipboardEvent) => void, options?: boolean | AddEventListenerOptions): this;
     insertAdjacent(node: Node): void;
     /**
      * A v-show & ngShow alternative
@@ -629,15 +289,20 @@ export declare class INode extends Fragment {
      * @param value {IValue}
      */
     html(value: IValue<string>): void;
+    protected applyOptions(options: T): void;
+}
+export interface TagOptionsWithSlot<T extends Element> extends TagOptions {
+    slot?: (tag: Fragment, element: T) => void;
 }
 /**
  * Represents an Vasille.js HTML element node
  * @class Tag
  * @extends INode
  */
-export declare class Tag extends INode {
+export declare class Tag<T extends Element> extends INode<TagOptionsWithSlot<T>> {
     constructor();
     preinit(app: AppNode, parent: Fragment, tagName?: string): void;
+    protected compose(input: TagOptionsWithSlot<T>): void;
     protected findFirstChild(): Node;
     insertAdjacent(node: Node): void;
     appendNode(node: Node): void;
@@ -656,7 +321,7 @@ export declare class Tag extends INode {
  * @class Extension
  * @extends INode
  */
-export declare class Extension extends INode {
+export declare class Extension<T extends TagOptions> extends INode<T> {
     preinit(app: AppNode, parent: Fragment): void;
     constructor($?: INodePrivate);
     destroy(): void;
@@ -666,9 +331,9 @@ export declare class Extension extends INode {
  * @class Component
  * @extends Extension
  */
-export declare class Component extends Extension {
+export declare class Component<T extends TagOptions> extends Extension<T> {
     constructor();
-    mounted(): void;
+    ready(): void;
     preinit(app: AppNode, parent: Fragment): void;
 }
 /**
@@ -699,6 +364,27 @@ export declare class SwitchedNodePrivate extends FragmentPrivate {
     /**
      * Runs GC
      */
+    destroy(): void;
+}
+/**
+ * Defines a node witch can switch its children conditionally
+ */
+export declare class SwitchedNode extends Fragment {
+    protected $: SwitchedNodePrivate;
+    /**
+     * Constructs a switch node and define a sync function
+     */
+    constructor();
+    addCase(case_: {
+        cond: IValue<boolean>;
+        cb: (node: Fragment) => void;
+    }): void;
+    /**
+     * Creates a child node
+     * @param cb {function(Fragment)} Call-back
+     */
+    createChild(cb: (node: Fragment) => void): void;
+    ready(): void;
     destroy(): void;
 }
 /**

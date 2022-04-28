@@ -1,4 +1,4 @@
-import { BaseView } from "./base-view";
+import { BaseView, BSO } from "./base-view";
 import { ObjectModel } from "../models/object-model";
 /**
  * Create a children pack for each object field
@@ -6,6 +6,6 @@ import { ObjectModel } from "../models/object-model";
  * @extends BaseView
  */
 export declare class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
-    constructor(model: ObjectModel<T>);
-    ready(): void;
+    constructor();
+    protected compose(input: BSO<string, T, ObjectModel<T>>): void;
 }

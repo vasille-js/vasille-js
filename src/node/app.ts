@@ -1,7 +1,8 @@
 import {Fragment, INode} from "./node";
 import {TagOptions} from "../functional/options";
+import {AcceptedTagsMap} from "../spec/react";
 
-interface AppOptions {
+export interface AppOptions<K extends keyof AcceptedTagsMap> extends TagOptions<K> {
     debugUi ?: boolean
 }
 
@@ -10,7 +11,7 @@ interface AppOptions {
  * @class AppNode
  * @extends INode
  */
-export class AppNode<T extends TagOptions<any> = TagOptions<any>> extends INode<T> {
+export class AppNode<T extends AppOptions<any> = AppOptions<any>> extends INode<T> {
     /**
      * Enables debug comments
      */
@@ -18,11 +19,10 @@ export class AppNode<T extends TagOptions<any> = TagOptions<any>> extends INode<
 
     /**
      * @param input
-     * @param options {Object} Application options
      */
-    constructor (input : T, options ?: AppOptions) {
+    constructor (input : T) {
         super(input);
-        this.debugUi = options?.debugUi || false;
+        this.debugUi = input.debugUi || false;
         this.seal();
     }
 }
@@ -32,14 +32,14 @@ export class AppNode<T extends TagOptions<any> = TagOptions<any>> extends INode<
  * @class App
  * @extends AppNode
  */
-export class App extends AppNode {
+export class App<T extends AppOptions<any> = AppOptions<any>> extends AppNode<T> {
     /**
      * Constructs an app node
      * @param node {Element} The root of application
-     * @param options {Object} Application options
+     * @param input
      */
-    constructor (node : Element, options ?: AppOptions) {
-        super({}, options);
+    constructor (node : Element, input : T) {
+        super(input);
 
         this.$.node = node;
         this.preinit(this, this);
@@ -53,14 +53,14 @@ export class App extends AppNode {
     }
 }
 
-interface PortalOptions extends TagOptions<'div'> {
+interface PortalOptions extends AppOptions<'div'> {
     node : Element
-    slot : (node : Fragment) => void
+    slot ?: (node : Fragment) => void
 }
 
 export class Portal extends AppNode<PortalOptions> {
     constructor (input : PortalOptions) {
-        super(input, {});
+        super(input);
 
         this.$.node = input.node;
 
@@ -69,9 +69,5 @@ export class Portal extends AppNode<PortalOptions> {
 
     public appendNode (node : Node) {
         this.$.node.appendChild(node);
-    }
-
-    protected compose(input: PortalOptions) {
-        input.slot(this);
     }
 }

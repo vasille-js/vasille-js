@@ -16,7 +16,6 @@ import { ArrayView } from "./views/array-view";
 import { BaseView } from "./views/base-view";
 import { MapView } from "./views/map-view";
 import { ObjectView } from "./views/object-view";
-import { RepeatNode } from "./views/repeat-node";
 import { SetView } from "./views/set-view";
 import { Binding } from "./binding/binding";
 import { Options, TagOptions } from "./functional/options";
@@ -34,7 +33,6 @@ export {
     MapModel,
     ObjectModel,
     SetModel,
-    RepeatNode,
     BaseView,
     Listener,
     ArrayView,

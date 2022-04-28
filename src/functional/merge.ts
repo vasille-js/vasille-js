@@ -7,7 +7,7 @@ export function merge (main : Record<string, any>, ...targets : Record<string, a
                 $: []
             };
 
-            obj.forEach(item => {
+            obj.class.forEach(item => {
                 if (item instanceof IValue) {
                     out.$.push(item);
                 }

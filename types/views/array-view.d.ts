@@ -1,4 +1,4 @@
-import { BaseView } from "./base-view";
+import { BaseView, BSO } from "./base-view";
 import { ArrayModel } from "../models/array-model";
 import { Fragment } from "../node/node";
 /**
@@ -7,7 +7,7 @@ import { Fragment } from "../node/node";
  * @extends BaseView
  */
 export declare class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
-    constructor(model: ArrayModel<T>);
-    createChild(id: T, item: T, before?: Fragment): any;
-    ready(): void;
+    constructor();
+    createChild(input: BSO<T, T, ArrayModel<T>>, id: T, item: T, before?: Fragment): any;
+    protected compose(input: BSO<T, T, ArrayModel<T>>): void;
 }

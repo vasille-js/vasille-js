@@ -1,5 +1,5 @@
 import { Fragment, INodePrivate } from "../node/node";
-import { Slot } from "../core/slot";
+import { Options } from "../functional/options";
 /**
  * Private part of repeat node
  * @class RepeatNodePrivate
@@ -14,22 +14,21 @@ export declare class RepeatNodePrivate<IdT> extends INodePrivate {
     constructor();
     destroy(): void;
 }
+export interface RNO<T, IdT> extends Options {
+    slot?: (node: Fragment, value: T, index: IdT) => void;
+}
 /**
  * Repeat node repeats its children
  * @class RepeatNode
  * @extends Fragment
  */
-export declare class RepeatNode<IdT, T> extends Fragment {
+export declare class RepeatNode<IdT, T, Opts extends RNO<T, IdT> = RNO<T, IdT>> extends Fragment<Opts> {
     protected $: RepeatNodePrivate<IdT>;
-    /**
-     * Default slot
-     */
-    slot: Slot<Fragment, T, IdT>;
     /**
      * If false will use timeout executor, otherwise the app executor
      */
     freezeUi: boolean;
     constructor($?: RepeatNodePrivate<IdT>);
-    createChild(id: IdT, item: T, before?: Fragment): any;
+    createChild(opts: Opts, id: IdT, item: T, before?: Fragment): any;
     destroyChild(id: IdT, item: T): void;
 }

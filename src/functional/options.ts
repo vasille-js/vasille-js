@@ -20,6 +20,6 @@ export interface TagOptions<T extends keyof AcceptedTagsMap> extends Options {
 
     "v:events" ?: Partial<AcceptedTagsSpec[T]['events']>
 
-    "v:set" ?: AcceptedTagsMap[T] & Record<string, any>
-    "v:bind" ?: { [K in keyof AcceptedTagsMap[T]] : IValue<AcceptedTagsMap[T][K]> } & Record<string, IValue<any>>
+    "v:set" ?: Partial<AcceptedTagsMap[T]> & Record<string, any>
+    "v:bind" ?: { [K in keyof AcceptedTagsMap[T]] ?: IValue<AcceptedTagsMap[T][K]> } & Record<string, IValue<any>>
 }

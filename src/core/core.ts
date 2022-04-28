@@ -175,10 +175,6 @@ export class Reactive<T extends Options = Options> extends Destroyable {
         return model;
     }
 
-    public autodestroy(data : Destroyable) {
-        this.$.bindings.add(data);
-    }
-
     /**
      * Creates a watcher
      * @param func {function} function to run on any argument change

@@ -29,6 +29,17 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
         }
     }
 
+    // proxy
+
+    public proxy() {
+        return new Proxy(this, {
+            set(target: ArrayModel<T>, p: string, value: T): boolean {
+                target.splice(parseInt(p), 1, value);
+                return true;
+            }
+        });
+    }
+
     /* Array members */
 
     /**

@@ -6,6 +6,7 @@ import { ListenableModel } from "./model";
  */
 export declare class ObjectModel<T> extends Object implements ListenableModel<string, T> {
     listener: Listener<T, string>;
+    container: Record<string, T>;
     /**
      * Constructs a object model
      * @param obj {Object} input data
@@ -31,6 +32,7 @@ export declare class ObjectModel<T> extends Object implements ListenableModel<st
      * @param key {string} property name
      */
     delete(key: string): void;
+    proxy(): ObjectModel<T>;
     enableReactivity(): void;
     disableReactivity(): void;
 }

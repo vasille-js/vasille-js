@@ -1,5 +1,5 @@
 import {Component, Extension, Fragment, SwitchedNode, TagOptionsWithSlot} from "../node/node";
-import { App } from "../node/app";
+import {App, AppOptions} from "../node/app";
 import { current, Reactive } from "../core/core";
 import { Options, TagOptions } from "./options";
 import { IValue } from "../core/ivalue";
@@ -14,33 +14,38 @@ import { ObjectModel } from "../models/object-model";
 import { ObjectView } from "../views/object-view";
 import { Watch } from "../node/watch";
 import {AcceptedTagsMap} from "../spec/react";
+import {userError} from "../core/errors";
 
-export function app<In extends Options>(renderer: (opts : In) => In["return"])
-    : (node: Element, opts : In) => void {
+export function app<In extends AppOptions<any>>(renderer: (opts : In) => In["return"])
+    : (node: Element, opts : In) => In["return"] {
     return (node, opts) => {
-        new App(node).runFunctional(renderer, opts);
+        return new App(node, opts).runFunctional(renderer, opts);
     }
 }
 
 export function component<In extends TagOptions<any>>
     (renderer: (opts : In) => In["return"])
-    : (opts : In, callback : In['slot']) => In["return"] {
+    : (opts : In, callback ?: In['slot']) => In["return"] {
     return (opts, callback ?: In['slot']) => {
         const component = new Component(opts);
-        if (!(current instanceof Fragment)) throw 'missing parent node';
+        if (!(current instanceof Fragment)) throw userError('missing parent node', 'out-of-context');
+
+        let ret : In["return"];
 
         if (callback) opts.slot = callback;
-        current.create(component);
+        current.create(component, node => {
+            ret = node.runFunctional(renderer, opts);
+        });
 
-        return component.runFunctional(renderer, opts);
+        return ret;
     }
 }
 
 export function fragment<In extends Options>
-    (renderer: (opts : In) => In["return"]) : (opts : In, callback : In['slot']) => In["return"] {
-    return (opts, callback : In['slot']) => {
+    (renderer: (opts : In) => In["return"]) : (opts : In, callback ?: In['slot']) => In["return"] {
+    return (opts, callback ?: In['slot']) => {
         const frag = new Fragment(opts);
-        if (!(current instanceof Fragment)) throw 'missing parent node';
+        if (!(current instanceof Fragment)) throw userError('missing parent node', 'out-of-context');
 
         if (callback) opts.slot = callback;
         current.create(frag);
@@ -50,10 +55,10 @@ export function fragment<In extends Options>
 }
 
 export function extension<In extends TagOptions<any>>
-(renderer: (opts : In) => In["return"]) : (opts : In, callback : In['slot']) => In["return"] {
+(renderer: (opts : In) => In["return"]) : (opts : In, callback ?: In['slot']) => In["return"] {
     return (opts, callback ?: In['slot']) => {
         const ext = new Extension(opts);
-        if (!(current instanceof Fragment)) throw 'missing parent node';
+        if (!(current instanceof Fragment)) throw userError('missing parent node', 'out-of-context');
 
         if (callback) opts.slot = callback;
         current.create(ext);
@@ -63,16 +68,16 @@ export function extension<In extends TagOptions<any>>
 }
 
 export function tag<K extends keyof AcceptedTagsMap>(
-    name : string,
+    name : K,
     opts : TagOptionsWithSlot<K>,
-    callback : () => void
+    callback ?: () => void
 ) : { node : (HTMLElementTagNameMap & SVGElementTagNameMap)[K] } {
-    if (!(current instanceof Fragment)) throw 'missing current node';
+    if (!(current instanceof Fragment)) throw userError('missing parent node', 'out-of-context');
 
     return {
         node : current.tag(name, opts, (node: Fragment) => {
-            node.runFunctional(callback);
-        }) as (HTMLElementTagNameMap & SVGElementTagNameMap)[K]
+            callback && node.runFunctional(callback);
+        })
     };
 }
 
@@ -82,10 +87,10 @@ export function create<T extends Fragment>(
     node : T,
     callback ?: (...args: ExtractParams<T['input']['slot']>) => void
 ) : T {
-    if (!(current instanceof Fragment)) throw 'missing current node';
+    if (!(current instanceof Fragment)) throw userError('missing current node', 'out-of-context');
 
     current.create(node, (node : Fragment, ...args : ExtractParams<T['input']['slot']>) => {
-        node.runFunctional(callback, ...args);
+        callback && node.runFunctional(callback, ...args);
     });
 
     return node;
@@ -99,7 +104,7 @@ export const v = {
             current.if(condition, node => node.runFunctional(callback));
         }
         else {
-            throw "wrong use of `v.if` function";
+            throw userError("wrong use of `v.if` function", "logic-error");
         }
     },
     else(callback: () => void) {
@@ -107,7 +112,7 @@ export const v = {
             current.else(node => node.runFunctional(callback));
         }
         else {
-            throw "wrong use of `v.else` function";
+            throw userError("wrong use of `v.else` function", "logic-error");
         }
     },
     elif(condition: IValue<boolean>, callback: () => void) {
@@ -115,7 +120,7 @@ export const v = {
             current.elif(condition, node => node.runFunctional(callback));
         }
         else {
-            throw "wrong use of `v.elif` function";
+            throw userError("wrong use of `v.elif` function", "logic-error");
         }
     },
     for<T, K>(model : ListenableModel<K, T>, callback : (value : T, index : K) => void) {
@@ -136,7 +141,7 @@ export const v = {
             create(new ObjectView<T>({ model }), callback as any as (value : T, index : string) => void);
         }
         else {
-            throw "wrong use of `v.for` function";
+            throw userError("wrong use of `v.for` function", 'wrong-model');
         }
     },
     watch<T>(model: IValue<T>, callback: (value : T) => void) {

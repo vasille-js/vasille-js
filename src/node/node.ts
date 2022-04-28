@@ -207,14 +207,13 @@ export class Fragment<T extends Options = Options> extends Reactive {
         cb && cb(node);
     }
 
-    public debug(text : IValue<string>) : this {
+    public debug(text : IValue<string>) {
         if (this.$.app.debugUi) {
             const node = new DebugNode();
 
             node.preinit(this.$.app, this, text);
             this.pushNode(node);
         }
-        return this;
     }
 
     /**
@@ -224,7 +223,7 @@ export class Fragment<T extends Options = Options> extends Reactive {
      * @param cb {function(Tag, *)} callback
      */
     public tag<K extends keyof AcceptedTagsMap>(
-        tagName : string,
+        tagName : K,
         input : TagOptionsWithSlot<K>,
         cb ?: (node : Tag<K>) => void
     ) : (HTMLElementTagNameMap & SVGElementTagNameMap)[K] {
@@ -284,7 +283,7 @@ export class Fragment<T extends Options = Options> extends Reactive {
             this.lastChild.addCase(this.default(cb));
         }
         else {
-            throw 'wrong `else` function use';
+            throw userError('wrong `else` function use', 'logic-error');
         }
     }
 
@@ -296,7 +295,7 @@ export class Fragment<T extends Options = Options> extends Reactive {
             this.lastChild.addCase(this.case(cond, cb));
         }
         else {
-            throw 'wrong `elif` function use';
+            throw userError('wrong `elif` function use', 'logic-error');
         }
     }
 
@@ -540,8 +539,8 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      * Adds some CSS classes
      * @param cls {...string} classes names
      */
-    public addClasses (...cls : Array<string>) : this {
-        this.$.node.classList.add(...cls);
+    public removeClasse (cl : string) : this {
+        this.$.node.classList.remove(cl);
         return this;
     }
 
@@ -650,14 +649,14 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      * bind HTML
      * @param value {IValue}
      */
-    public html (value : IValue<string>) {
+    public bindDomApi (name : string, value : IValue<string>) {
         const $ : INodePrivate = this.$;
         const node = $.node;
 
         if (node instanceof HTMLElement) {
-            node.innerHTML = value.$;
+            node[name] = value.$;
             this.watch((v : string) => {
-                node.innerHTML = v;
+                node[name] = v;
             }, value);
         }
         else {
@@ -679,6 +678,18 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
         });
 
         if (options.class) {
+            const handleClass = (name : string, value : IValue<boolean> | string | boolean) => {
+                if (value instanceof IValue) {
+                    this.floatingClass(value, name);
+                }
+                else if (value && name !== '$') {
+                    this.addClass(name);
+                }
+                else {
+                    this.removeClasse(name);
+                }
+            }
+
             if (Array.isArray(options.class)) {
                 options.class.forEach(item => {
                     if (item instanceof IValue) {
@@ -689,14 +700,7 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
                     }
                     else {
                         Reflect.ownKeys(item).forEach((name : string) => {
-                            const value = item[name];
-
-                            if (value instanceof IValue) {
-                                this.floatingClass(value, name);
-                            }
-                            else if (value) {
-                                this.addClass(name);
-                            }
+                            handleClass(name, item[name]);
                         });
                     }
                 });
@@ -706,14 +710,7 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
                     this.bindClass(item);
                 });
                 Reflect.ownKeys(options.class).forEach((name : string) => {
-                    const value = options.class[name];
-
-                    if (value instanceof IValue) {
-                        this.floatingClass(value, name);
-                    }
-                    else if (value && name !== '$') {
-                        this.addClass(name);
-                    }
+                    handleClass(name, options.class[name]);
                 });
             }
         }
@@ -748,20 +745,16 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
                 const value = options["v:bind"][k];
 
                 if (k === 'value' && (inode instanceof HTMLInputElement || inode instanceof  HTMLTextAreaElement)) {
-                    this.watch((v : string) => inode.value = v, value);
                     inode.oninput = () => value.$ = inode.value;
                 }
                 else if (k === 'checked' && inode instanceof HTMLInputElement) {
-                    this.watch((v : boolean) => inode.checked = v, value);
                     inode.oninput = () => value.$ = inode.checked;
                 }
                 else if (k === 'volume' && inode instanceof HTMLMediaElement) {
-                    this.watch((v : number) => inode.volume = v, value);
                     inode.onvolumechange = () => value.$ = inode.volume;
                 }
-                else {
-                    this.watch((v : any) => inode[k] = v, value);
-                }
+
+                this.bindDomApi(k, value);
             });
         }
 
@@ -863,17 +856,24 @@ export class Tag<K extends keyof AcceptedTagsMap> extends INode<TagOptionsWithSl
  * @class Extension
  * @extends INode
  */
-export class Extension<T extends TagOptions<any>> extends INode<T> {
+export class Extension<T extends TagOptions<any> = TagOptions<any>> extends INode<T> {
 
     public preinit (app : AppNode, parent : Fragment) {
 
-        if (parent instanceof INode) {
-            const $ : INodePrivate = this.$;
+        const $ : INodePrivate = this.$;
+        let it : Reactive = parent;
 
-            $.preinit(app, parent);
-            $.node = parent.node;
+        while (it && !(it instanceof INode)) {
+            it = it.parent;
         }
-        else {
+
+        if (it && it instanceof INode) {
+            $.node = it.node;
+        }
+
+        $.preinit(app, parent);
+
+        if (!it) {
             throw userError("A extension node can be encapsulated only in a tag/extension/component", "virtual-dom");
         }
     }
