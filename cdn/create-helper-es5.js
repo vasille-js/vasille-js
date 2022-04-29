@@ -193,4 +193,6 @@ window.Reflect = window.Reflect || {
     }
 }
 
-window.Proxy = window.Proxy || function () {};
+window.Proxy = window.Proxy || function (obj) {
+    return obj;
+};

@@ -194,7 +194,9 @@ window.Reflect = window.Reflect || {
     }
 }
 
-window.Proxy = window.Proxy || function () {};
+window.Proxy = window.Proxy || function (obj) {
+    return obj;
+};
 // ./lib-es5/v/index.js
 
 var v = __assign(__assign({ ref: function (value) {
