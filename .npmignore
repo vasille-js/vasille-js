@@ -14,6 +14,7 @@ tsconfig.json
 /cdn/create.js
 /cdn/create-helper-es5.js
 /cdn/*.html
+/flow-typed/create.js
 .eslint*
 tsconfig*.json
 *config.js
