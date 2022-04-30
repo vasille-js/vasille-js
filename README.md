@@ -1,4 +1,4 @@
-# Vasille
+# Vasille Core Library
 
 ![Vasille.js logo](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/img/logo.png)
 
@@ -10,10 +10,10 @@
 ## Table of content
 
 * [Installation](#installation)
+* [How to use Vasille](#how-to-use-vasille)
 * [How SAFE is Vasille](#how-safe-is-vasille)
 * [How FAST is Vasille](#how-fast-is-vasille)
 * [How POWERFUL is Vasille](#how-powerful-is-vasille)
-* [How to use Vasille](#how-to-use-vasille)
 * [Best Practices](#best-practices)
 
 
@@ -23,31 +23,32 @@
 
 ```
 npm install vasille --save
+npm install vasille-less --save
+npm install vasille-magic --save
 ```
 
 ### How to create the first project step by step
 
 [Read instruction here](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/GetStarted.md).
 
-### CDN
+## How to use Vasille
 
-```html
-ES2015 version
-<script src="https://unpkg.com/vasille"></script>
-ES5 Compatible version
-<script src="https://unpkg.com/vasille/cdn/es5.js"></script>
-```
+There are several modes to use Vasille.
+
+### Documentation for beginners:
+* [Vasille Core Library (low-level, the hard way)](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/GetStarted.md)
+* [Vasille Less Library (high-level, perfect for me)](https://gitlab.com/vasille-js/vasille-less/-/blob/v2/pages/GetStarted.md)
+* [Vasille Magic (hightest-level, perfect for you)](https://gitlab.com/vasille-js/vcc/-/blob/master/pages/GetStarted.md)
+
+### Full documentation:
+* [Vasille Core Library API (low-level, write anything)](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/Vasille-Core-Library-API.md)
+* [Vasille Less Library API (high-level, write less do more)](https://gitlab.com/vasille-js/vasille-less/-/blob/v2/pages/Vasille-Less-Library-API.md)
+* [Vasille Magic API (highest-level, compiler writes for you)](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/API.md)
 
 ### Getting ready be example
 * [JavaScript Example](https://gitlab.com/vasille-js/learning/vasille-js-example)
 * [TypeScript Example](https://gitlab.com/vasille-js/learning/vasille-ts-example)
 * [Flow.js Example](https://gitlab.com/vasille-js/learning/vasille-flow-js-example)
-
-### Flow.js typedef
-Add the next line to `[libs]` section in your `.flowconfig` file
-```
-node_modules/vasille/flow-typed
-```
 
 <hr>
 
@@ -168,7 +169,6 @@ which will be reflected into a browser DOM and keep up to date it.
 * `DebugNode` reflects a `Comment` node, useful for debug.
 * `Watch` recompose children nodes on model value change.
 * `RepeatNode` creates multiples children nodes using the same code multiple time.
-* `Repeater` repeat slot content `n` times.
 * `BaseView` represent a view in context of MVC (Model-View-Controller).
 * `ObjectView` repeats slot content for each value of `ObjectModel`.
 * `MapView` repeats slot content for each `MapModel` value.
@@ -177,14 +177,26 @@ which will be reflected into a browser DOM and keep up to date it.
 * `InterceptorNode` is used to send an event/signal from one child to other 
 without manually creating of interceptors.
 
-## How to use Vasille
+<hr>
 
-There are several modes, and most of it are WIP (Work In Progress):
-* [Object-Oriented Programming - Ready](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/OOP-API.md)
-* [Procedural Programming - WIP](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/Procedural-API.md)
-* [Template Programming - WIP](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/API.md)
+### CDN
 
-## Best Practices
+```html
+ES2015 version
+<script src="https://unpkg.com/vasille"></script>
+ES5 Compatible version
+<script src="https://unpkg.com/vasille/cdn/es5.js"></script>
+```
+
+### Flow.js typedef
+Add the next lines to `[libs]` section in your `.flowconfig` file
+```
+node_modules/vasille/flow-typed
+node_modules/vasille-less/flow-typed
+node_modules/vasille-magic/flow-typed
+```
+
+## Best Practices applicable to Vasille Core Library
 
 * [Reactive Object Practice](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/reactive-object.ts)
 * [Application](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/application.ts)
