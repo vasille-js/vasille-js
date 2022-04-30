@@ -271,9 +271,9 @@ export class Reactive<T extends Options = Options> extends Destroyable {
         return this;
     }
 
-    public init() {
+    public init() : T['return'] {
         this.applyOptions(this.input);
-        this.compose(this.input);
+        return this.compose(this.input);
     }
 
     protected applyOptions(input : T) {
@@ -284,8 +284,8 @@ export class Reactive<T extends Options = Options> extends Destroyable {
         this.applyOptions(this.input);
     }
 
-    protected compose (input : T) {
-        // empty
+    protected compose (input : T) : T['return'] {
+        return undefined as any;
     }
 
     protected composeNow () {

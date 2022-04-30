@@ -10,7 +10,7 @@ import {
     Pointer, Reactive,
     Reference,
     SetModel, SetView, Tag,
-    libV, BaseView
+    BaseView
 } from "../src";
 import {page} from "./page";
 
@@ -48,6 +48,4 @@ it('import test', function () {
     const expr = new Expression(v => v, false, ref);
     const binding = new BindingTest(ref);
     const reactive = new Reactive({});
-
-    expect(libV.v.alwaysFalse.$).toBe(false);
 });

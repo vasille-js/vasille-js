@@ -1,7 +1,7 @@
 import {
     App,
     ArrayModel,
-    ArrayView, Fragment, libV,
+    ArrayView, Fragment,
     MapModel,
     MapView,
     ObjectModel,

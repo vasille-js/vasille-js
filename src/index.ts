@@ -19,7 +19,6 @@ import { ObjectView } from "./views/object-view";
 import { SetView } from "./views/set-view";
 import { Binding } from "./binding/binding";
 import { Options, TagOptions } from "./functional/options";
-import * as libV from "./v/index";
 
 
 
@@ -50,6 +49,5 @@ export {
     Binding,
     Reactive,
     Options,
-    TagOptions,
-    libV
+    TagOptions
 };

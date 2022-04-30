@@ -115,13 +115,13 @@ export class Fragment<T extends Options = Options> extends Reactive {
         $.preinit(app, parent);
     }
 
-    init() {
-        super.init();
+    init() : T['return'] {
+        const ret = super.init();
         this.ready();
+        return ret;
     }
 
     protected compose(input: T) {
-        super.compose(input);
         input.slot && input.slot(this);
     }
 
@@ -252,7 +252,7 @@ export class Fragment<T extends Options = Options> extends Reactive {
     public create<T extends Fragment> (
         node : T,
         callback ?: T['input']['slot']
-    ) : void {
+    ) : T['input']['return'] {
         const $ : FragmentPrivate = this.$;
 
 
@@ -260,7 +260,7 @@ export class Fragment<T extends Options = Options> extends Reactive {
         node.preinit($.app, this);
         node.input.slot = callback || node.input.slot;
         this.pushNode(node);
-        node.init();
+        return node.init();
     }
 
     /**
