@@ -1,12 +1,12 @@
 {
-  "name": "vasille",
+  "name": "vasille-less",
   "description": "Vasille - Safe. Fast. Powerful.",
-  "main": "lib/index.js",
-  "types": "types/index.d.ts",
+  "main": "lib/v/index.js",
+  "types": "types/v/index.d.ts",
   "version": "2.2.1",
   "exports": {
-    "import": "./lib/index.js",
-    "browser": "./lib/index.js"
+    "import": "./lib/v/index.js",
+    "browser": "./lib/v/index.js"
   },
   "unpkg": "./cdn/es2015.js",
   "scripts": {
