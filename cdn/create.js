@@ -33,7 +33,8 @@ function extract(path) {
     const lines = test.split('\n').filter(line => !/^import\s/.test(line));
     const classes = new Set;
 
-    let needRepeat = false;
+    const after = /\/(v|functional)\//;
+    let needRepeat = after.test(path) && !fileQueue.every(path => after.test(path));
 
     lines.forEach((line, index) => {
         const parentMath = line.match(/class (\w+) extends (\w+)\b/);
