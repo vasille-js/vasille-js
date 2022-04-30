@@ -27,28 +27,24 @@ npm install vasille-less --save
 npm install vasille-magic --save
 ```
 
-### How to create the first project step by step
-
-[Read instruction here](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/GetStarted.md).
-
 ## How to use Vasille
 
 There are several modes to use Vasille.
 
-### Documentation for beginners:
-* [Vasille Core Library (low-level, the hard way)](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/GetStarted.md)
-* [Vasille Less Library (high-level, perfect for me)](https://gitlab.com/vasille-js/vasille-less/-/blob/v2/pages/GetStarted.md)
-* [Vasille Magic (hightest-level, perfect for you)](https://gitlab.com/vasille-js/vcc/-/blob/master/pages/GetStarted.md)
+### Documentation for beginners (how to create the first project step by step):
+* [`Vasille Core Library` - the hard way - `low-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/GetStarted.md)
+* [`Vasille Less Library` - perfect for me - `high-level`](https://gitlab.com/vasille-js/vasille-less/-/blob/v2/pages/GetStarted.md)
+* [`Vasille Magic` - perfect for you - `highest-level`](https://gitlab.com/vasille-js/vcc/-/blob/master/pages/GetStarted.md)
 
 ### Full documentation:
-* [Vasille Core Library API (low-level, write anything)](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/Vasille-Core-Library-API.md)
-* [Vasille Less Library API (high-level, write less do more)](https://gitlab.com/vasille-js/vasille-less/-/blob/v2/pages/Vasille-Less-Library-API.md)
-* [Vasille Magic API (highest-level, compiler writes for you)](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/API.md)
+* [`Vasille Core Library API`- write anything - `low-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/Vasille-Core-Library-API.md)
+* [`Vasille Less Library API`- write less do more - `high-level`](https://gitlab.com/vasille-js/vasille-less/-/blob/v2/pages/Vasille-Less-Library-API.md)
+* [`Vasille Magic API`- compiler writes for you - `highest-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/API.md)
 
 ### Getting ready be example
-* [JavaScript Example](https://gitlab.com/vasille-js/learning/vasille-js-example)
 * [TypeScript Example](https://gitlab.com/vasille-js/learning/vasille-ts-example)
-* [Flow.js Example](https://gitlab.com/vasille-js/learning/vasille-flow-js-example)
+* [JavaScript Example (Vasille Magic not supported)](https://gitlab.com/vasille-js/learning/vasille-js-example)
+* [Flow.js Example (Vasille Magic not supported)](https://gitlab.com/vasille-js/learning/vasille-flow-js-example)
 
 <hr>
 
