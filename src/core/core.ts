@@ -280,8 +280,16 @@ export class Reactive<T extends Options = Options> extends Destroyable {
         // empty
     }
 
+    protected applyOptionsNow () {
+        this.applyOptions(this.input);
+    }
+
     protected compose (input : T) {
         // empty
+    }
+
+    protected composeNow () {
+        this.compose(this.input);
     }
 
     public runFunctional<F extends (...args : any) => any>(f : F, ...args : Parameters<F>) : ReturnType<F> {

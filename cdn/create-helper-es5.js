@@ -12,7 +12,7 @@ var __spreadArray = function (to, from, pack) {
 };
 
 var __assign = function(o1, o2) {
-    for (let i in o2) {
+    for (var i in o2) {
         o1[i] = o2[i];
     }
 
@@ -181,7 +181,7 @@ window.Reflect = window.Reflect || {
         return false;
     },
     ownKeys: function (obj) {
-        let ret = [];
+        var ret = [];
 
         for (var i in obj) {
             if (obj.hasOwnProperty(i)) {

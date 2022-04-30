@@ -1,7 +1,7 @@
 import { Reactive, ReactivePrivate } from "../core/core";
 import { IValue } from "../core/ivalue";
 import { Reference } from "../value/reference";
-import { Expression, KindOfIValue } from "../value/expression";
+import { Expression } from "../value/expression";
 import { AttributeBinding } from "../binding/attribute";
 import { StaticClassBinding, DynamicalClassBinding } from "../binding/class";
 import { StyleBinding } from "../binding/style";
@@ -115,7 +115,12 @@ export class Fragment<T extends Options = Options> extends Reactive {
         $.preinit(app, parent);
     }
 
-    protected compose(input: Options) {
+    init() {
+        super.init();
+        this.ready();
+    }
+
+    protected compose(input: T) {
         super.compose(input);
         input.slot && input.slot(this);
     }
@@ -256,7 +261,6 @@ export class Fragment<T extends Options = Options> extends Reactive {
         node.input.slot = callback || node.input.slot;
         this.pushNode(node);
         node.init();
-        node.ready();
     }
 
     /**
@@ -889,6 +893,12 @@ export class Extension<T extends TagOptions<any> = TagOptions<any>> extends INod
  * @extends Extension
  */
 export class Component<T extends TagOptions<any>> extends Extension<T> {
+
+    init() {
+        super.composeNow();
+        this.ready();
+        super.applyOptionsNow();
+    }
 
     public ready () {
         super.ready();

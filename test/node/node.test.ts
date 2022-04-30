@@ -418,7 +418,10 @@ it('Component test', function () {
     expect(() => root.create(new OneChildComponent({}))).toThrow("dom-error");
     expect(() => root.create(new MultiChildrenComponent({}))).toThrow("dom-error");
 
-    root.create(new CorrectComponent({}));
+    const correct = new CorrectComponent({ class: ['test'] });
+    root.create(correct);
+
+    expect(correct.node.className).toBe('test');
 });
 
 it('INode unmount/mount advanced', function () {
