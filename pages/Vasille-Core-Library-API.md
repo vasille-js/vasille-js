@@ -20,12 +20,6 @@ nodes at top level. `Extension` are used to extend a component.
 ## Table of content
 [[_TOC_]]
 
-## Class fields and methods
-
-Component data, functions, events, slots and watcher are defined as class
-fields and methods.
-
-
 ### Component data/state
 
 Component state is composed of private class fields, created by a call
@@ -36,6 +30,7 @@ import { App } from 'vasille';
 
 class MyComponent extends App {
     compose() {
+        // reactive data
         const foo = this.ref(2);
         const bar = this.ref('bar');
         
@@ -43,22 +38,17 @@ class MyComponent extends App {
         const data = 3;
     }
 }
-
-// const data
-const pi = 3.14;
 ```
 
 ### Component properties
 
-Component properties are created by a call to 
-`prop<T>(initialValue?: T): Reference<T>` method:
+Component properties are declared in an interface type which
+extends `AppOptions` for `VApp`, `Options` for `VFragment` or
+`TagOptions` for others:
 
 ```typescript
 import {App, TagOptions, IValue} from 'vasille';
 
-// for App you must extend AppOptions
-// for Fragment you must extend Options
-// otherwise you must extend TagOptions
 interface MyComponentOptions extends AppOptions<"div"> {
     x?: number; // non reactive prop
     y: IValue<number>; // reactive prop
