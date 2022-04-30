@@ -23,7 +23,7 @@ export class AppNode<T extends AppOptions<any> = AppOptions<any>> extends INode<
     constructor (input : T) {
         super(input);
         this.debugUi = input.debugUi || false;
-        this.seal();
+        this.$seal();
     }
 }
 
@@ -45,7 +45,7 @@ export class App<T extends AppOptions<any> = AppOptions<any>> extends AppNode<T>
         this.preinit(this, this);
         this.init();
 
-        this.seal();
+        this.$seal();
     }
 
     public appendNode (node : Node) {
@@ -64,7 +64,7 @@ export class Portal extends AppNode<PortalOptions> {
 
         this.$.node = input.node;
 
-        this.seal();
+        this.$seal();
     }
 
     public appendNode (node : Node) {

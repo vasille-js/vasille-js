@@ -83,7 +83,7 @@ it('array view', function () {
 
     array.push(34);
 
-    root.destroy();
+    root.$destroy();
 });
 
 it('map view', function () {
@@ -114,7 +114,7 @@ it('map view', function () {
     model.enableReactivity();
     expect(element.innerHTML).toBe("");
 
-    root.destroy();
+    root.$destroy();
 });
 
 it('object view', function () {
@@ -147,7 +147,7 @@ it('object view', function () {
         void proxy[index];
     });
 
-    root.destroy();
+    root.$destroy();
 });
 
 it('set view', function () {
@@ -175,7 +175,7 @@ it('set view', function () {
     model.clear();
     expect(element.innerHTML).toBe("");
 
-    root.destroy();
+    root.$destroy();
 });
 
 class ReactivityTest extends Fragment {
@@ -213,7 +213,7 @@ it('views reactivity', function () {
     test.enable();
     expect(element.innerHTML).toBe("1234");
 
-    root.destroy();
+    root.$destroy();
 });
 
 it('view timeout test', function (done) {
@@ -242,7 +242,7 @@ it('view timeout test', function (done) {
 
         setTimeout(() => {
             expect(element.innerHTML).toBe("1234");
-            root.destroy();
+            root.$destroy();
             done();
         }, 0);
     }, 0);

@@ -18,7 +18,7 @@ export class Watch<T> extends Fragment<WatchOptions<T>> {
     public compose (input : WatchOptions<T>) {
         this.watch((value) => {
             this.children.forEach(child => {
-                child.destroy();
+                child.$destroy();
             });
             this.children.clear();
             this.lastChild = null;

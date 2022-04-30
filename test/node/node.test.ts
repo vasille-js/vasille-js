@@ -33,7 +33,7 @@ it('Fragment', function () {
     expect(ready).toBe(true);
     expect(compose).toBe(true);
 
-    root.destroy();
+    root.$destroy();
 });
 
 it('Tag', function () {
@@ -55,7 +55,7 @@ it('Tag', function () {
         expect(div.node.childNodes[2] instanceof page.window.Comment).toBe(true);
     });
 
-    root.destroy();
+    root.$destroy();
 });
 
 it('if', function () {
@@ -70,7 +70,7 @@ it('if', function () {
 
     expect(check1).toBe(true);
     expect(check2).toBe(true);
-    root.destroy();
+    root.$destroy();
 });
 
 it('if else', function () {
@@ -97,7 +97,7 @@ it('if else', function () {
     expect(check1).toBe(2);
     expect(check2).toBe(1);
 
-    root.destroy();
+    root.$destroy();
 });
 
 it('switch', function () {
@@ -127,7 +127,7 @@ it('switch', function () {
     v2.$ = false;
     expect(check).toBe(4);
 
-    root.destroy();
+    root.$destroy();
 });
 
 it('INode', function () {
@@ -227,7 +227,7 @@ it('INode', function () {
         })();
     });
 
-    root.destroy();
+    root.$destroy();
 });
 
 it('Extension test', function () {
@@ -254,7 +254,7 @@ it('Extension test', function () {
     expect(div.style.display).toBe('none');
     expect(div.className).toBe('yyy');
 
-    root.destroy();
+    root.$destroy();
 })
 
 
@@ -269,7 +269,7 @@ it('INode Events', function () {
     element.click();
     expect(test).toBe(true);
 
-    root.destroy();
+    root.$destroy();
 });
 
 it('Freeze test', function () {
@@ -313,7 +313,7 @@ it('Freeze test', function () {
     expect(showEl.childNodes.length).toBe(2);
     expect(showEl.innerHTML).toBe(`<div></div><div class="second"></div>`);
 
-    root.destroy();
+    root.$destroy();
 });
 
 it('bind DON api test', function () {
@@ -362,7 +362,7 @@ it('bind DON api test', function () {
 
     expect(media2.volume).toBe(0.75);
 
-    root.destroy();
+    root.$destroy();
 });
 
 it('Error threading', function () {

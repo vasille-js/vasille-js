@@ -8,7 +8,7 @@ export class Destroyable {
      * Make object fields non configurable
      * @protected
      */
-    protected seal () {
+    protected $seal () {
         const $ = this as never as { [key : string] : unknown };
 
         Object.keys($).forEach(i => {
@@ -41,11 +41,11 @@ export class Destroyable {
             }
         });
     }
-    
+
     /**
      * Garbage collector method
      */
-    public destroy () : void {
+    public $destroy () : void {
         // nothing here
     }
 }

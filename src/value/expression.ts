@@ -72,12 +72,12 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
         this.func = handler;
 
         if (link) {
-            this.enable ();
+            this.$enable ();
         } else {
             handler ();
         }
 
-        this.seal ();
+        this.$seal ();
     }
 
     public get $ () : T {
@@ -88,20 +88,20 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
         this.sync.$ = value;
     }
 
-    public on (handler : (value : T) => void) : this {
-        this.sync.on (handler);
+    public $on (handler : (value : T) => void) : this {
+        this.sync.$on (handler);
         return this;
     }
 
-    public off (handler : (value : T) => void) : this {
-        this.sync.off (handler);
+    public $off (handler : (value : T) => void) : this {
+        this.sync.$off (handler);
         return this;
     }
 
-    public enable () : this {
+    public $enable () : this {
         if (!this.isEnabled) {
             for (let i = 0; i < this.values.length; i++) {
-                this.values[i].on (this.linkedFunc[i]);
+                this.values[i].$on (this.linkedFunc[i]);
                 this.valuesCache[i] = this.values[i].$;
             }
             this.func ();
@@ -110,22 +110,22 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
         return this;
     }
 
-    public disable () : this {
+    public $disable () : this {
         if (this.isEnabled) {
             for (let i = 0; i < this.values.length; i++) {
-                this.values[i].off (this.linkedFunc[i]);
+                this.values[i].$off (this.linkedFunc[i]);
             }
             this.isEnabled = false;
         }
         return this;
     }
 
-    public destroy () : void {
-        this.disable ();
+    public $destroy () : void {
+        this.$disable ();
         this.values.splice (0);
         this.valuesCache.splice (0);
         this.linkedFunc.splice (0);
 
-        super.destroy();
+        super.$destroy();
     }
 }

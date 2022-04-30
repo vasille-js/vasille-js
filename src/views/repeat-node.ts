@@ -17,12 +17,12 @@ export class RepeatNodePrivate<IdT> extends INodePrivate {
 
     public constructor () {
         super ();
-        this.seal();
+        this.$seal();
     }
 
-    public destroy () {
+    public $destroy () {
         this.nodes.clear();
-        super.destroy ();
+        super.$destroy ();
     }
 }
 
@@ -83,7 +83,7 @@ export class RepeatNode<IdT, T, Opts extends RNO<T, IdT> = RNO<T, IdT>> extends 
 
         if (child) {
             child.remove();
-            child.destroy();
+            child.$destroy();
             this.$.nodes.delete(id);
             this.children.delete(child);
         }

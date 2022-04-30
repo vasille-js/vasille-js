@@ -23,7 +23,7 @@ export class BaseViewPrivate<K, T> extends RepeatNodePrivate<K> {
 
     public constructor () {
         super ();
-        this.seal();
+        this.$seal();
     }
 }
 

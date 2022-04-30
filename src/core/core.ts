@@ -73,22 +73,22 @@ export class ReactivePrivate extends Destroyable {
 
     constructor () {
         super ();
-        this.seal ();
+        this.$seal ();
     }
 
-    destroy () {
-        this.watch.forEach(value => value.destroy());
+    $destroy () {
+        this.watch.forEach(value => value.$destroy());
         this.watch.clear ();
 
-        this.bindings.forEach(binding => binding.destroy());
+        this.bindings.forEach(binding => binding.$destroy());
         this.bindings.clear();
 
         this.models.forEach(model => model.disableReactivity());
         this.models.clear();
 
-        this.freezeExpr && this.freezeExpr.destroy();
+        this.freezeExpr && this.freezeExpr.$destroy();
         this.onDestroy && this.onDestroy();
-        super.destroy ();
+        super.$destroy ();
     }
 }
 
@@ -110,7 +110,7 @@ export class Reactive<T extends Options = Options> extends Destroyable {
         super ();
         this.input = input;
         this.$ = $ || new ReactivePrivate;
-        this.seal();
+        this.$seal();
     }
 
     /**
@@ -213,7 +213,7 @@ export class Reactive<T extends Options = Options> extends Destroyable {
 
         if (!$.enabled) {
             $.watch.forEach(watcher => {
-                watcher.enable();
+                watcher.$enable();
             });
             $.models.forEach(model => {
                 model.enableReactivity();
@@ -230,7 +230,7 @@ export class Reactive<T extends Options = Options> extends Destroyable {
 
         if ($.enabled) {
             $.watch.forEach(watcher => {
-                watcher.disable();
+                watcher.$disable();
             });
             $.models.forEach(model => {
                 model.disableReactivity();
@@ -307,9 +307,9 @@ export class Reactive<T extends Options = Options> extends Destroyable {
         this.$.onDestroy = func;
     }
 
-    public destroy () {
-        super.destroy ();
-        this.$.destroy ();
+    public $destroy () {
+        super.$destroy ();
+        this.$.$destroy ();
         this.$ = null;
 
     }

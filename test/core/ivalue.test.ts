@@ -8,8 +8,8 @@ it('ivalue', function () {
 
     expect(() => ivalue.$).toThrow(error);
     expect(() => ivalue.$ = null).toThrow(error);
-    expect(() => ivalue.on(() => 0)).toThrow(error);
-    expect(() => ivalue.off(() => 0)).toThrow(error);
-    expect(() => ivalue.enable()).toThrow(error);
-    expect(() => ivalue.disable()).toThrow(error);
+    expect(() => ivalue.$on(() => 0)).toThrow(error);
+    expect(() => ivalue.$off(() => 0)).toThrow(error);
+    expect(() => ivalue.$enable()).toThrow(error);
+    expect(() => ivalue.$disable()).toThrow(error);
 })

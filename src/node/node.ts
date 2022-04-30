@@ -45,7 +45,7 @@ export class FragmentPrivate extends ReactivePrivate {
 
     public constructor () {
         super ();
-        this.seal ();
+        this.$seal ();
     }
 
     /**
@@ -61,10 +61,10 @@ export class FragmentPrivate extends ReactivePrivate {
     /**
      * Unlinks all bindings
      */
-    public destroy () {
+    public $destroy () {
         this.next = null;
         this.prev = null;
-        super.destroy();
+        super.$destroy();
     }
 }
 
@@ -355,8 +355,8 @@ export class Fragment<T extends Options = Options> extends Reactive {
         }
     }
 
-    public destroy () {
-        this.children.forEach(child => child.destroy());
+    public $destroy () {
+        this.children.forEach(child => child.$destroy());
 
         this.children.clear();
         this.lastChild = null;
@@ -364,7 +364,7 @@ export class Fragment<T extends Options = Options> extends Reactive {
         if (this.$.parent.lastChild === this) {
             this.$.parent.lastChild = this.$.prev;
         }
-        super.destroy ();
+        super.$destroy ();
     }
 }
 
@@ -380,7 +380,7 @@ export class TextNodePrivate extends FragmentPrivate {
 
     public constructor () {
         super ();
-        this.seal();
+        this.$seal();
     }
 
     /**
@@ -407,8 +407,8 @@ export class TextNodePrivate extends FragmentPrivate {
     /**
      * Clear node data
      */
-    public destroy () {
-        super.destroy();
+    public $destroy () {
+        super.$destroy();
     }
 }
 
@@ -423,7 +423,7 @@ export class TextNode extends Fragment {
 
     public constructor ($ = new TextNodePrivate()) {
         super({}, $);
-        this.seal();
+        this.$seal();
     }
 
     public preinit (app : AppNode, parent : Fragment, text ?: IValue<string> | string) {
@@ -441,10 +441,10 @@ export class TextNode extends Fragment {
         return this.$.node;
     }
 
-    public destroy () : void {
+    public $destroy () : void {
         this.$.node.remove();
-        this.$.destroy();
-        super.destroy();
+        this.$.$destroy();
+        super.$destroy();
     }
 }
 
@@ -468,11 +468,11 @@ export class INodePrivate extends FragmentPrivate {
 
     public constructor () {
         super ();
-        this.seal();
+        this.$seal();
     }
 
-    public destroy () {
-        super.destroy();
+    public $destroy () {
+        super.$destroy();
     }
 }
 
@@ -491,7 +491,7 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      */
     constructor (input : T, $ ?: INodePrivate) {
         super(input, $ || new INodePrivate);
-        this.seal();
+        this.$seal();
     }
 
     /**
@@ -781,7 +781,7 @@ export class Tag<K extends keyof AcceptedTagsMap> extends INode<TagOptionsWithSl
 
     public constructor (input : TagOptionsWithSlot<K>) {
         super (input);
-        this.seal();
+        this.$seal();
     }
 
     public preinit (
@@ -849,9 +849,9 @@ export class Tag<K extends keyof AcceptedTagsMap> extends INode<TagOptionsWithSl
     /**
      * Runs GC
      */
-    public destroy () {
+    public $destroy () {
         this.node.remove();
-        super.destroy();
+        super.$destroy();
     }
 }
 
@@ -882,8 +882,8 @@ export class Extension<T extends TagOptions<any> = TagOptions<any>> extends INod
         }
     }
 
-    public destroy () {
-        super.destroy();
+    public $destroy () {
+        super.$destroy();
     }
 }
 
@@ -949,20 +949,20 @@ export class SwitchedNodePrivate extends FragmentPrivate {
 
     public constructor () {
         super ();
-        this.seal();
+        this.$seal();
     }
 
     /**
      * Runs GC
      */
-    public destroy () {
+    public $destroy () {
         this.cases.forEach(c => {
             delete c.cond;
             delete c.cb;
         });
         this.cases.splice(0);
 
-        super.destroy();
+        super.$destroy();
     }
 }
 
@@ -993,7 +993,7 @@ export class SwitchedNode extends Fragment {
             }
 
             if (this.lastChild) {
-                this.lastChild.destroy();
+                this.lastChild.$destroy();
                 this.children.clear();
                 this.lastChild = null;
             }
@@ -1007,12 +1007,12 @@ export class SwitchedNode extends Fragment {
             }
         };
 
-        this.seal();
+        this.$seal();
     }
 
     public addCase(case_ : { cond : IValue<boolean>, cb : (node : Fragment) => void }) {
         this.$.cases.push(case_);
-        case_.cond.on(this.$.sync);
+        case_.cond.$on(this.$.sync);
         this.$.sync();
     }
 
@@ -1036,20 +1036,20 @@ export class SwitchedNode extends Fragment {
         const $ = this.$;
 
         $.cases.forEach(c => {
-            c.cond.on($.sync);
+            c.cond.$on($.sync);
         });
 
         $.sync();
     }
 
-    public destroy () {
+    public $destroy () {
         const $ = this.$;
 
         $.cases.forEach(c => {
-            c.cond.off($.sync);
+            c.cond.$off($.sync);
         });
 
-        super.destroy();
+        super.$destroy();
     }
 }
 
@@ -1061,7 +1061,7 @@ export class DebugPrivate extends FragmentPrivate {
 
     public constructor () {
         super ();
-        this.seal();
+        this.$seal();
     }
 
     /**
@@ -1088,9 +1088,9 @@ export class DebugPrivate extends FragmentPrivate {
     /**
      * Clear node data
      */
-    public destroy () {
+    public $destroy () {
         this.node.remove();
-        super.destroy();
+        super.$destroy();
     }
 }
 
@@ -1108,7 +1108,7 @@ export class DebugNode extends Fragment {
 
     public constructor () {
         super({});
-        this.seal();
+        this.$seal();
     }
 
     public preinit (app : AppNode, parent : Fragment, text ?: IValue<string>) {
@@ -1124,8 +1124,8 @@ export class DebugNode extends Fragment {
     /**
      * Runs garbage collector
      */
-    public destroy () : void {
-        this.$.destroy();
-        super.destroy();
+    public $destroy () : void {
+        this.$.$destroy();
+        super.$destroy();
     }
 }

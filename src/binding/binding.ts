@@ -20,20 +20,20 @@ export class Binding<T> extends Destroyable {
     ) {
         super ();
         this.binding = value;
-        this.seal ();
+        this.$seal ();
     }
 
     protected init(bounded : (v: T) => void) {
         this.func = bounded;
-        this.binding.on(this.func);
+        this.binding.$on(this.func);
         this.func(this.binding.$);
     }
 
     /**
      * Just clear bindings
      */
-    public destroy () {
-        this.binding.off (this.func);
-        super.destroy();
+    public $destroy () {
+        this.binding.$off (this.func);
+        super.$destroy();
     }
 }

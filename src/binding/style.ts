@@ -27,6 +27,6 @@ export class StyleBinding extends Binding<string> {
                 node.node.style.setProperty(name, value);
             }
         });
-        this.seal();
+        this.$seal();
     }
 }

@@ -28,7 +28,7 @@ export class StaticClassBinding extends Binding<boolean> {
                 this.current = value;
             }
         });
-        this.seal();
+        this.$seal();
     }
 }
 
@@ -48,6 +48,6 @@ export class DynamicalClassBinding extends Binding<string> {
                 this.current = value;
             }
         });
-        this.seal();
+        this.$seal();
     }
 }

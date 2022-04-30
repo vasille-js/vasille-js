@@ -41,7 +41,7 @@ export function valueOf<T>(value : IValue<T>) : T {
 
 export function setValue<T>(ref : IValue<T>, value : IValue<T> | T) {
     if (ref instanceof Pointer && value instanceof IValue) {
-        ref.point(value);
+        ref.$$ = value;
     }
     else {
         ref.$ = value instanceof IValue ? value.$ : value;

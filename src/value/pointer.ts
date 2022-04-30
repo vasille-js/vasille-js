@@ -20,11 +20,11 @@ export class Pointer<T> extends Mirror<T> {
      * Point a new ivalue
      * @param value {IValue} value to point
      */
-    public point (value : IValue<T>) {
-        if (this.pointedValue !== value) {
-            this.disable ();
-            this.pointedValue = value;
-            this.enable ();
+    public set $$ (value : IValue<T>) {
+        if (this.$pointedValue !== value) {
+            this.$disable ();
+            this.$pointedValue = value;
+            this.$enable ();
         }
     }
 }

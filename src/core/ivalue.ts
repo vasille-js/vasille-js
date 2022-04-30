@@ -7,14 +7,14 @@ export class Switchable extends Destroyable {
     /**
      * Enable update handlers triggering
      */
-    public enable () : void {
+    public $enable () : void {
         throw notOverwritten();
     }
 
     /**
      * disable update handlers triggering
      */
-    public disable () : void {
+    public $disable () : void {
         throw notOverwritten();
     }
 }
@@ -60,7 +60,7 @@ export class IValue<T> extends Switchable {
      * Add a new handler to value change
      * @param handler {function(value : *)} the handler to add
      */
-    public on (handler : (value : T) => void) : void {
+    public $on (handler : (value : T) => void) : void {
         throw notOverwritten ();
     }
 
@@ -68,7 +68,7 @@ export class IValue<T> extends Switchable {
      * Removes a handler of value change
      * @param handler {function(value : *)} the handler to remove
      */
-    public off (handler : (value : T) => void) : void {
+    public $off (handler : (value : T) => void) : void {
         throw notOverwritten ();
     }
 }

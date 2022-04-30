@@ -36,6 +36,6 @@ export class AttributeBinding extends Binding<string | number | boolean | null> 
                 node.node.removeAttribute(name);
             }
         });
-        this.seal();
+        this.$seal();
     }
 }

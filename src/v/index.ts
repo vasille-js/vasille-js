@@ -29,6 +29,12 @@ export {
     AppOptions
 }
 
+export type VApp<In extends AppOptions<any> = AppOptions<'div'>> = (node: Element, opts : In) => In['return'];
+export type VComponent<In extends TagOptions<any>> = (opts : In, callback ?: In['slot']) => In['return'];
+export type VFragment<In extends Options = Options> = (opts : In, callback ?: In['slot']) => In['return'];
+export type VExtension<In extends TagOptions<any>> = (opts : In, callback ?: In['slot']) => In['return'];
+
+
 export const v = {
 
     ref (value : any) {
@@ -53,7 +59,7 @@ export const v = {
     merge,
 
     destructor() {
-        return current.destroy.bind(current);
+        return current.$destroy.bind(current);
     },
     runOnDestroy(callback : () => void) {
         current.runOnDestroy(callback);

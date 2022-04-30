@@ -46,7 +46,7 @@ class CoreTest extends Reactive {
         this.freeze_test = super.ref(false);
         this.handler_ref = super.ref(23);
 
-        this.handler_ref.on((n) => {
+        this.handler_ref.$on((n) => {
             this.handler_test = n;
         });
     }
@@ -86,14 +86,14 @@ it("Reactive", function () {
     expect(coreTest.bind0.$).toBe(6);
     expect(coreTest.bind_unlinked.$).toBe(2);
 
-    coreTest.point0.disable();
+    coreTest.point0.$disable();
     coreTest.mirror0.$ = 4;
     expect(coreTest.ref0.$).toBe(4);
     expect(coreTest.mirror0.$).toBe(4);
     expect(coreTest.point0.$).toBe(3);
     expect(coreTest.ro_point.$).toBe(3);
 
-    coreTest.mirror0.disable();
+    coreTest.mirror0.$disable();
     coreTest.ref0.$ = 5;
     expect(coreTest.ref0.$).toBe(5);
     expect(coreTest.mirror0.$).toBe(4);
@@ -111,10 +111,10 @@ it("Reactive", function () {
     expect(coreTest.watch_test).toBe(2);
     expect(coreTest.bind0.$).toBe(4);
 
-    coreTest.point0.point(coreTest.bind0);
+    coreTest.point0.$$ = coreTest.bind0;
     expect(coreTest.point0.$).toBe(4);
     expect(coreTest.ro_point.$).toBe(4);
 
-    coreTest.destroy();
+    coreTest.$destroy();
 });
 
