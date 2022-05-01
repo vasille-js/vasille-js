@@ -170,8 +170,6 @@ which will be reflected into a browser DOM and keep up to date it.
 * `MapView` repeats slot content for each `MapModel` value.
 * `SetView` repeats slot content for each `SetModel` value.
 * `ArrayView` repeats slot content for each `ArrayModel` value respecting its order.
-* `InterceptorNode` is used to send an event/signal from one child to other 
-without manually creating of interceptors.
 
 <hr>
 

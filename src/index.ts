@@ -6,7 +6,7 @@ import { Listener } from "./models/listener";
 import { MapModel } from "./models/map-model";
 import { ObjectModel } from "./models/object-model";
 import { SetModel } from "./models/set-model";
-import { App, AppNode } from "./node/app";
+import { App, AppNode, AppOptions, Portal } from "./node/app";
 import { Component, Extension, Fragment, INode, Tag } from "./node/node";
 import { Expression } from "./value/expression";
 import { Mirror } from "./value/mirror";
@@ -18,8 +18,7 @@ import { MapView } from "./views/map-view";
 import { ObjectView } from "./views/object-view";
 import { SetView } from "./views/set-view";
 import { Binding } from "./binding/binding";
-import { Options, TagOptions } from "./functional/options";
-
+import { FragmentOptions, TagOptions } from "./functional/options";
 
 
 export {
@@ -45,9 +44,11 @@ export {
     Extension,
     AppNode,
     App,
+    Portal,
     Expression,
     Binding,
     Reactive,
-    Options,
-    TagOptions
+    FragmentOptions,
+    TagOptions,
+    AppOptions
 };

@@ -9,6 +9,4 @@ IValue <|-- Expression
 Reference <|-- Mirror
 Mirror <|-- Pointer
 
-Reactive *-left- Signal
-
 @enduml

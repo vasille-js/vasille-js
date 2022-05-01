@@ -92,6 +92,9 @@ it('array model', function () {
     array.removeOne(-1);
     expect(array).toEqual([3, 2, 1]);
 
+    array.replace(1, 4);
+    expect(array).toEqual([3, 4, 1]);
+
     array.clear();
     expect(array).toEqual([]);
 });

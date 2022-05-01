@@ -1,8 +1,8 @@
 import { Fragment } from "./node";
 import { IValue } from "../core/ivalue";
-import { Options } from "../functional/options";
+import { FragmentOptions } from "../functional/options";
 
-interface WatchOptions<T> extends Options {
+interface WatchOptions<T> extends FragmentOptions {
     model : IValue<T>
     slot ?: (node : Fragment, value : T) => void;
 }

@@ -1,5 +1,5 @@
 import { Fragment, INodePrivate } from "../node/node";
-import { Options } from "../functional/options";
+import { FragmentOptions } from "../functional/options";
 
 
 
@@ -27,7 +27,7 @@ export class RepeatNodePrivate<IdT> extends INodePrivate {
 }
 
 // RNO = RepeatNodeOptions
-export interface RNO<T, IdT> extends Options {
+export interface RNO<T, IdT> extends FragmentOptions {
     slot ?: (node : Fragment, value : T, index : IdT) => void
 }
 

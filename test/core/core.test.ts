@@ -115,6 +115,8 @@ it("Reactive", function () {
     expect(coreTest.point0.$).toBe(4);
     expect(coreTest.ro_point.$).toBe(4);
 
+    expect(() => new Reactive({}).init()).toThrow('not-overwritten');
+
     coreTest.$destroy();
 });
 

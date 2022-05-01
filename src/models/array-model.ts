@@ -29,17 +29,6 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
         }
     }
 
-    // proxy
-
-    public proxy() {
-        return new Proxy(this, {
-            set(target: ArrayModel<T>, p: string, value: T): boolean {
-                target.splice(parseInt(p), 1, value);
-                return true;
-            }
-        });
-    }
-
     /* Array members */
 
     /**
@@ -249,6 +238,13 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
         return this;
     }
 
+    public replace (at : number, with_ : T) : this {
+        this.listener.emitAdded(this[at], with_);
+        this.listener.emitRemoved(this[at], this[at]);
+        this[at] = with_;
+        return this;
+    }
+
     public enableReactivity () {
         this.listener.enableReactivity();
     }
@@ -257,4 +253,3 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
         this.listener.disableReactivity();
     }
 }
-

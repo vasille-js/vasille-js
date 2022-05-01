@@ -120,7 +120,6 @@ it('map view', function () {
 it('object view', function () {
     const root = new App(page.window.document.body, {});
     const model = new ObjectModel({0: 1, 1: 2, 2: 3});
-    const proxy = model.proxy();
 
     const element = root.tag('div', {}, (node) => {
         node.create(new ObjectView({model}), (node, item) => {
@@ -130,22 +129,18 @@ it('object view', function () {
 
     expect(element.innerHTML).toBe("123");
 
-    delete proxy['2'];
+    model.delete('2');
     expect(element.innerHTML).toBe("12");
 
-    proxy[0] = 4;
+    model.set('0', 4);
     expect(element.innerHTML).toBe('24');
 
     model.disableReactivity();
-    proxy[3] = 3;
+    model.set('3', 3);
     expect(element.innerHTML).toBe('24');
 
     model.enableReactivity();
     expect(element.innerHTML).toBe('243');
-
-    Reflect.ownKeys(proxy).forEach((item, index) => {
-        void proxy[index];
-    });
 
     root.$destroy();
 });

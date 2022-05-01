@@ -69,6 +69,10 @@ export class ObjectModel<T> extends Object implements ListenableModel<string, T>
         return this;
     }
 
+    get values() {
+        return this.container;
+    }
+
     /**
      * Deletes an object property
      * @param key {string} property name
@@ -78,25 +82,6 @@ export class ObjectModel<T> extends Object implements ListenableModel<string, T>
             this.listener.emitRemoved(key, this.container[key]);
             delete this.container[key];
         }
-    }
-
-    public proxy() : Record<string, T> {
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const ts = this;
-
-        return new Proxy(this.container, {
-            get(target, p: string): T {
-                return ts.get(p);
-            },
-            set(target, p: string, value: T): boolean {
-                ts.set(p, value);
-                return true;
-            },
-            deleteProperty(target, p: string): boolean {
-                ts.delete(p);
-                return true;
-            }
-        });
     }
 
     public enableReactivity () {

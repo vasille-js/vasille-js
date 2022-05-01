@@ -1,17 +1,17 @@
 import { Destroyable } from "./destroyable.js";
-import { wrongBinding } from "./errors";
+import { notOverwritten, wrongBinding } from "./errors";
 import { IValue, Switchable } from "./ivalue.js";
 import { Expression, KindOfIValue } from "../value/expression";
 import { Reference } from "../value/reference";
 import { Pointer } from "../value/pointer";
 import { Mirror } from "../value/mirror";
 import { IModel } from "../models/model";
-import { Options } from "../functional/options";
+import { FragmentOptions } from "../functional/options";
 
 
 
 export let current : Reactive | null = null;
-const currentStack : (Reactive | null)[] = [];
+const currentStack : Reactive[] = [];
 
 function stack(node : Reactive) {
     currentStack.push(current);
@@ -97,7 +97,7 @@ export class ReactivePrivate extends Destroyable {
  * @class Reactive
  * @extends Destroyable
  */
-export class Reactive<T extends Options = Options> extends Destroyable {
+export class Reactive<T extends FragmentOptions = FragmentOptions> extends Destroyable {
     /**
      * Private stuff
      * @protected
@@ -285,7 +285,7 @@ export class Reactive<T extends Options = Options> extends Destroyable {
     }
 
     protected compose (input : T) : T['return'] {
-        return undefined as any;
+        throw notOverwritten();
     }
 
     protected composeNow () {

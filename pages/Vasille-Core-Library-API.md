@@ -25,9 +25,7 @@ nodes at top level. `Extension` are used to extend a component.
 Component state is composed of private class fields, created by a call
 to `ref<T>(initialValue: T): IValue<T>` method:
 
-```typescript
-import { App } from 'vasille';
-
+```javascript
 class MyComponent extends App {
     compose() {
         // reactive data
@@ -43,12 +41,10 @@ class MyComponent extends App {
 ### Component properties
 
 Component properties are declared in an interface type which
-extends `AppOptions` for `VApp`, `Options` for `VFragment` or
+extends `AppOptions` for `VApp`, `FragmentOptions` for `VFragment` or
 `TagOptions` for others:
 
-```typescript
-import {App, TagOptions, IValue} from 'vasille';
-
+```javascript
 interface MyComponentOptions extends AppOptions<"div"> {
     x?: number; // non reactive prop
     y: IValue<number>; // reactive prop
@@ -64,11 +60,10 @@ class MyComponent extends App<MyComponentOptions> {
 ### Computed properties (expressions)
 
 An expression is a state variable which is created by a call to
-`expr<T, ...Args>(expr: (args: ...Args) => T, ...args: IValue<...Args>): IValue<T>` method:
+`expr<T, ...Args>(expr: (args: ...Args) => T, ...args: IValue<...Args>): IValue<T>`
+method:
 
 ```typescript
-import { App } from 'vasille';
-
 class MyComponent extends App {
     compose() {
         const x = this.ref(2);
@@ -107,9 +102,7 @@ class MyComponent extends App {
 
 To declare a component method, just declare a function:
 
-```typescript
-import { App } from 'vasille';
-
+```javascript
 class MyComponent extends App {
     compose() {
         function sum (a, b) {
@@ -120,20 +113,11 @@ class MyComponent extends App {
 }
 ```
 
-Any method is available outside of component.
-
 ### Components hooks
 
-The Vasille.js components has 4 hooks and some milestones. The `created`
-hook is called when the component is created and properties are 
-initialized. The `mounted` hook is called when all elements defined in
-component are mounted The`destroy` hook is called when component is destroyed.
-
-To define a hook just overwrite the method with its name.
+The`destroy` hook is called when component is destroyed. No more hooks available.
 
 ```javascript
-import { App } from 'vasille';
-
 class MyComponent extends App {
     compose() {
         // created
@@ -156,13 +140,11 @@ To send and handle custom events use props;
 Syntax:
 
 ```typescript
-import {App, AppOptions} from 'vasille';
-
 interface Input extends AppOptions {
     onEvent ?: (x : number, y : number) => void;
 }
 
-class MyComponent extends App {
+class MyComponent extends App<Input> {
     compose({onEvent}) {
         // emit a event
         onEvent && onEvent(1, 2);
@@ -180,8 +162,6 @@ to define a watcher in `createWatchers` milestone.
 Example:
 
 ```javascript
-import { App } from 'vasille';
-
 class MyComponent extends App {
     compose () {
         const x = this.ref(0);
@@ -208,11 +188,9 @@ HTML part is used to define the HTML nodes and subcomponents.
 ### HTML node/tag
 
 An HTML tag is defined by 
-`tag(tagName: string, callback: (createdNode: TagNode) => void)`
+`tag(tagName: string, options, callback: (createdNode: TagNode) => void)`
 method in `compose` milestone:
 ```javascript
-import { App } from 'vasille';
-
 class MyComponent extends App {
     compose () {
         this.tag("div", {}, div => {
@@ -229,7 +207,6 @@ class MyComponent extends App {
 Subcomponents must be imported, after are defined by a call to
 `create<T>(component: T, callback?: T.input.slot) : T.input.return` method.
 ```javascript
-import { App } from 'vasille';
 import { Component } from './Component';
 
 class MyComponent extends App {
@@ -245,8 +222,6 @@ Attributes and properties are set using options parameter.
 
 Example:
 ```javascript
-import { App } from 'vasille';
-
 class MyComponent extends App {
     compose () {
         const a = this.ref(0);
@@ -273,8 +248,6 @@ class MyComponent extends App {
 Classes are set using options parameter:
 
 ```javascript
-import { App } from 'vasille';
-
 class MyComponent extends App {
     compose () {
         const dynamicalClass = this.ref('dynamical-class');
@@ -297,8 +270,6 @@ Style are set using options parameter:
 
 Example:
 ```javascript
-import { App } from 'vasille';
-
 class MyComponent extends App {
     compose () {
         const reactive = this.ref(0);
@@ -307,7 +278,6 @@ class MyComponent extends App {
         this.tag("div", {
             style: {
                 width: '3px',
-                // the next style values are equivalent
                 margin: [reactive, 'px'],
                 padding: composed,
             }
@@ -321,7 +291,6 @@ class MyComponent extends App {
 Listeners to DOM events are set using options parameter:
 
 ```javascript
-import { App } from 'vasille';
 import {Component} from './Component'; 
 
 class MyComponent extends App {
@@ -332,10 +301,10 @@ class MyComponent extends App {
                 mousemove: event => event.target.click()
             }
         });
-        this.create(new Component, {
+        this.create(new Component({
             'onHover': () => { /* code here */ },
             'onClick': () => { /* code here */ }
-        });
+        }));
     }
 }
 ```
@@ -344,8 +313,6 @@ class MyComponent extends App {
 
 Inner HTML are set/bound using options parameter:
 ```javascript
-import { App } from 'vasille';
-
 class MyComponent extends App {
     compose () {
         const html = this.ref('code');
@@ -368,19 +335,18 @@ Use variables and assign the result of `tag` function;
 
 Examples:
 ```typescript
-import { App } from 'vasille';
 import MyComponent from './MyComponent';
 
-class MyComponent extends App {
+class AnotherComponent extends App {
     compose () {
-        const items : Set<HTMLElement> = new Set();
+        let p !: HTMLParagraphElement;
         
         const div = this.tag("div");
         this.create(new MyComponent({}), (node) => {
-            items.add(node.tag('p', {}));
-            items.add(node.tag('p', {}));
-            items.add(node.tag('p', {}));
+            p = node.tag('p', {})
         });
+        
+        console.log(p, div);
     }
 }
 ```
@@ -392,20 +358,18 @@ Slots are functions which trigger the composition of subcomponent.
 Example:
 
 ```typescript
-import {App, Options, Fragment} from 'vasille';
-
-interface Opts extends Options {
-    slot1?: (node: Fragment) => void;
+interface Opts extends FragmentOptions {
+    slot?: (node: Fragment) => void;
     slot2?: (node : Fragment, x : number, y : number) => void;
 }
 
 class MyComponent extends Fragment<Opts> {
-    compose({slot1, slot2}) {
+    compose({slot, slot2}) {
         // You can predefine slot content
         // Predefined content will be overritten
         // Create the content of first slot
-        if (slot1) {
-            slot1(this);
+        if (slot) {
+            slot(this);
         }
         else {
             this.tag('div', {});
@@ -417,7 +381,7 @@ class MyComponent extends Fragment<Opts> {
         });
 
         this.create(new MyComponent({
-            slot1: slot => {
+            slot: slot => {
                 // Insert into slot1
                 slot.tag("div");
             },
@@ -451,8 +415,6 @@ Flow can be controlled using methods:
 The `if` has one condition, and one callback which get executed when the condition
 is true:
 ```javascript
-import { App } from 'vasille';
-
 class MyApp extends App {
     compose() {
         const condition = this.ref(false);
@@ -468,8 +430,6 @@ class MyApp extends App {
 
 If-else is composed of a 'if' and 'else' calls:
 ```javascript
-import { App } from 'vasille';
-
 class MyApp extends App {
     compose() {
         const condition = this.ref(false);
@@ -488,8 +448,6 @@ class MyApp extends App {
 
 A switch accepts pairs of conditions and callback.
 ```typescript
-import { App } from 'vasille';
-
 class MyApp extends App {
     compose() {
         const condition = this.ref(false);
@@ -513,9 +471,6 @@ A repeater will repeat a fragment, by a special rule. List of predefined repeate
 * `MapView` - use `MapModel` as model.
 
 ```typescript
-import {App, ArrayModel} from 'vasille';
-import {} from "./array-model";
-
 class MyApp extends App {
     compose() {
         const model = this.register(new ArrayModel());
@@ -531,8 +486,6 @@ class MyApp extends App {
 
 Use `debug` tag to define debug comments:
 ```javascript
-import { App } from 'vasille';
-
 class MyApp extends App {
     compose() {
         const condition = this.ref('false');
@@ -553,10 +506,8 @@ language.
 A pointer can be defined using a `point` method.
 
 ```javascript
-import { App } from 'vasille';
-
 class MyComponent extends App {
-    constructor() {
+    compose() {
 
         const x = this.ref('x');
         const y = this.ref('y');
@@ -589,8 +540,6 @@ requested in special cases only.
 
 Example:
 ```javascript
-import { App } from 'vasille';
-
 class MyApp extends App {
     compose() {
         const model = this.ref('false');

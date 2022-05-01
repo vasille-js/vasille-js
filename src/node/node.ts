@@ -7,7 +7,7 @@ import { StaticClassBinding, DynamicalClassBinding } from "../binding/class";
 import { StyleBinding } from "../binding/style";
 import { internalError, userError } from "../core/errors";
 import type { AppNode } from "./app";
-import { Options, TagOptions } from "../functional/options";
+import { FragmentOptions, TagOptions } from "../functional/options";
 import {AcceptedTagsMap} from "../spec/react";
 
 
@@ -72,7 +72,7 @@ export class FragmentPrivate extends ReactivePrivate {
  * This class is symbolic
  * @extends Reactive
  */
-export class Fragment<T extends Options = Options> extends Reactive {
+export class Fragment<T extends FragmentOptions = FragmentOptions> extends Reactive {
 
     /**
      * Private part
@@ -880,6 +880,10 @@ export class Extension<T extends TagOptions<any> = TagOptions<any>> extends INod
         if (!it) {
             throw userError("A extension node can be encapsulated only in a tag/extension/component", "virtual-dom");
         }
+    }
+
+    public extend(options : T) {
+        this.applyOptions(options);
     }
 
     public $destroy () {

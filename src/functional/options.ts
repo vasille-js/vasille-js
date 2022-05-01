@@ -2,7 +2,7 @@ import type {IValue} from "../core/ivalue";
 import {AcceptedTagsMap, AcceptedTagsSpec} from "../spec/react";
 import type {Fragment} from "../node/node";
 
-export interface Options {
+export interface FragmentOptions {
     "v:is" ?: Record<string, IValue<any>>;
     return ?: any;
     slot ?: (node : Fragment, ...args: any[]) => void;
@@ -11,7 +11,7 @@ export interface Options {
 
 export type AttrType<T> = IValue<T | string | null> | T | string | null | undefined;
 
-export interface TagOptions<T extends keyof AcceptedTagsMap> extends Options {
+export interface TagOptions<T extends keyof AcceptedTagsMap> extends FragmentOptions {
     "v:attr" ?: { [K in keyof AcceptedTagsSpec[T]['attrs']]?: AttrType<AcceptedTagsSpec[T]['attrs'][K]> } &
         Record<string, AttrType<number | boolean>>;
     class ?: (string | IValue<string> | Record<string, boolean | IValue<boolean>>)[] |

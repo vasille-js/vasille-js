@@ -13,7 +13,7 @@ export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
     protected compose(input: BSO<string, T, ObjectModel<T>>) {
         super.compose(input);
 
-        const obj = input.model.proxy();
+        const obj = input.model.values;
 
         for (const key in obj) {
             this.createChild(input, key, obj[key]);

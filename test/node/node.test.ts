@@ -3,7 +3,7 @@ import {
     Component,
     Expression,
     Extension,
-    Fragment, INode,
+    Fragment, FragmentOptions, INode,
     Reference, Tag, TagOptions
 } from "../../src";
 import {page} from "../page";
@@ -230,6 +230,14 @@ it('INode', function () {
     root.$destroy();
 });
 
+class MyExtension extends Extension {
+    protected compose(input: TagOptions<any>) {
+        this.extend({
+            class: ['ext']
+        });
+    }
+}
+
 it('Extension test', function () {
     const root = new App(page.window.document.body, {});
 
@@ -242,7 +250,7 @@ it('Extension test', function () {
         node.create(new Fragment({}), node1 => {
             const yyy = new Reference('yyy');
 
-            node1.create(new Extension<TagOptions<any>>({
+            node1.create(new MyExtension({
                 style: { display: 'none' },
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
@@ -252,7 +260,7 @@ it('Extension test', function () {
     });
 
     expect(div.style.display).toBe('none');
-    expect(div.className).toBe('yyy');
+    expect(div.className).toBe('yyy ext');
 
     root.$destroy();
 })
@@ -504,3 +512,22 @@ it('INode unmount/mount advanced 2', function () {
         '<div class="2"></div>' +
         '<div class="3"></div>');
 });
+
+let Ftested = 0;
+
+function f (x: number, y: number) {
+    Ftested = x + y;
+}
+
+class F extends Fragment {
+    protected compose(input: FragmentOptions) {
+        super.compose(input);
+        this.runFunctional(f, 1, 2);
+    }
+}
+
+it('functional test', function () {
+    new F({}).init();
+
+    expect(Ftested).toBe(3);
+})
