@@ -1,5 +1,5 @@
 import { Destroyable } from "./core/destroyable";
-import { Reactive } from "./core/core";
+import { current, Reactive } from "./core/core";
 import { IValue } from "./core/ivalue";
 import { ArrayModel } from "./models/array-model";
 import { Listener } from "./models/listener";
@@ -7,8 +7,8 @@ import { MapModel } from "./models/map-model";
 import { ObjectModel } from "./models/object-model";
 import { SetModel } from "./models/set-model";
 import { App, AppNode, AppOptions, Portal } from "./node/app";
-import { Component, Extension, Fragment, INode, Tag } from "./node/node";
-import { Expression } from "./value/expression";
+import { Component, Extension, Fragment, INode, Tag, TagOptionsWithSlot } from "./node/node";
+import { Expression, KindOfIValue } from "./value/expression";
 import { Mirror } from "./value/mirror";
 import { Pointer } from "./value/pointer";
 import { Reference } from "./value/reference";
@@ -19,6 +19,10 @@ import { ObjectView } from "./views/object-view";
 import { SetView } from "./views/set-view";
 import { Binding } from "./binding/binding";
 import { FragmentOptions, TagOptions } from "./functional/options";
+import { AcceptedTagsMap, AcceptedTagsSpec } from "./spec/react";
+import { userError } from "./core/errors";
+import { ListenableModel } from "./models/model";
+import { Watch } from "./node/watch";
 
 
 export {
@@ -48,7 +52,16 @@ export {
     Expression,
     Binding,
     Reactive,
+    Watch,
     FragmentOptions,
     TagOptions,
-    AppOptions
+    AppOptions,
+    // private stuff
+    AcceptedTagsSpec,
+    AcceptedTagsMap,
+    userError,
+    current,
+    KindOfIValue,
+    ListenableModel,
+    TagOptionsWithSlot,
 };

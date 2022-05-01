@@ -11,7 +11,7 @@ import {
     Reference,
     SetModel, SetView, Tag,
     BaseView,
-    Portal
+    Portal, Watch, current, userError
 } from "../src";
 import {page} from "./page";
 
@@ -50,4 +50,8 @@ it('import test', function () {
     const binding = new BindingTest(ref);
     const reactive = new Reactive({});
     const portal = new Portal({ node: page.window.document.body });
+    const watch = new Watch({ model: ivalue });
+
+    expect(!!current).toBe(false);
+    expect(userError("msg", "e")).toBe("e");
 });

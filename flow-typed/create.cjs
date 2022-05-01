@@ -55,7 +55,7 @@ function extract(path) {
         }
 
         // add any type to variables without a type
-        if (/^\s*\w+;$/.test(l)) {
+        if (/^\s*[\w$]+;$/.test(l)) {
             l = l.replace(/;$/, ": any;");
         }
         // add void type to functions without a type
