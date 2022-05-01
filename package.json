@@ -6,12 +6,15 @@
   "version": "2.3.0",
   "exports": {
     "import": "./lib/index.js",
-    "browser": "./lib/index.js"
+    "browser": "./lib/index.js",
+    "node": "./lib-node/index.js",
+    "require": "./lib-node/index.js"
   },
   "unpkg": "./cdn/es2015.js",
   "scripts": {
     "build": "tsc --build tsconfig-build.json",
     "build-es5": "tsc --build tsconfig-build-es5.json",
+    "build-node": "tsc --build tsconfig-build-node.json",
     "test": "jest",
     "test-coverage": "jest --coverage",
     "update-types": "tsc --build tsconfig-types.json",
@@ -23,6 +26,7 @@
     "type": "git",
     "url": "https://gitlab.com/vasille-js/vasille-js.git"
   },
+  "type": "module",
   "keywords": [
     "front-end",
     "web",
@@ -34,22 +38,22 @@
   "author": "Vasile Lixcode <lixcode@vivaldi.net> (https://t.me/lixcode)",
   "license": "MIT",
   "devDependencies": {
-    "@types/debug": "latest",
-    "@types/eslint": "latest",
-    "@types/eslint-scope": "latest",
-    "@types/estree": "latest",
-    "@types/events": "latest",
-    "@types/jest": "latest",
-    "@types/jsdom": "latest",
-    "@types/node": "latest",
-    "@typescript-eslint/eslint-plugin": "latest",
-    "@typescript-eslint/parser": "latest",
+    "@types/debug": "4.1.7",
+    "@types/eslint": "8.4.1",
+    "@types/eslint-scope": "3.7.3",
+    "@types/estree": "0.0.51",
+    "@types/events": "3.0.0",
+    "@types/jest": "27.4.1",
+    "@types/jsdom": "16.2.14",
+    "@types/node": "17.0.23",
+    "@typescript-eslint/eslint-plugin": "5.18.0",
+    "@typescript-eslint/parser": "5.18.0",
     "es-check": "latest",
     "eslint": "latest",
     "flow-bin": "latest",
-    "jest": "latest",
-    "jsdom": "latest",
-    "ts-jest": "latest",
+    "jest": "27.5.1",
+    "jsdom": "19.0.0",
+    "ts-jest": "27.1.4",
     "typescript": "latest"
   }
 }

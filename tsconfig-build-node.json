@@ -4,9 +4,11 @@
   "compilerOptions": {
     "allowJs": true,
     "declaration": false,
-    "outDir": "lib-es5",
-    "target": "ES5",
+    "outDir": "./lib-node",
+    "target": "ES2015",
     "module": "CommonJS",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
     "types": [
       "debug",
       "estree",
