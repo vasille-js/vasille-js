@@ -11,13 +11,13 @@ tsconfig.json
 /test
 /img
 /lib-es5
-/cdn/create.js
+/cdn/create.cjs
 /cdn/create-helper-es5.js
 /cdn/*.html
-/flow-typed/create.js
+/flow-typed/create.cjs
 .eslint*
 tsconfig*.json
-*config.js
+*config.cjs
 *.tgz
 .*
 /translations

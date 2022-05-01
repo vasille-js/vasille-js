@@ -3,7 +3,7 @@
   "description": "Vasille - Safe. Fast. Powerful.",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "exports": {
     "import": "./lib/index.js",
     "browser": "./lib/index.js",
@@ -18,8 +18,8 @@
     "test": "jest",
     "test-coverage": "jest --coverage",
     "update-types": "tsc --build tsconfig-types.json",
-    "update-flowjs": "node flow-typed/create.js",
-    "cdn-create": "node cdn/create.js",
+    "update-flowjs": "node flow-typed/create.cjs",
+    "cdn-create": "node cdn/create.cjs",
     "es5-check": "es-check es5 cdn/*es5.js"
   },
   "repository": {
