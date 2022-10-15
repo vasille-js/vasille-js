@@ -13,12 +13,12 @@ import { FragmentOptions } from "../functional/options";
 export let current : Reactive | null = null;
 const currentStack : Reactive[] = [];
 
-function stack(node : Reactive) {
+export function stack(node : Reactive) {
     currentStack.push(current);
     current = node;
 }
 
-function unstack() {
+export function unstack() {
     current = currentStack.pop();
 }
 

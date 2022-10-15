@@ -3,7 +3,7 @@
   "description": "Vasille - Safe. Fast. Powerful.",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "exports": {
     "import": "./lib/index.js",
     "browser": "./lib/index.js",
@@ -12,6 +12,7 @@
   },
   "unpkg": "./cdn/es2015.js",
   "scripts": {
+    "prettier": "npx prettier src test --check",
     "build": "tsc --build tsconfig-build.json",
     "build-es5": "tsc --build tsconfig-build-es5.json",
     "build-node": "tsc --build tsconfig-build-node.json",
@@ -53,7 +54,9 @@
     "flow-bin": "latest",
     "jest": "27.5.1",
     "jsdom": "19.0.0",
+    "prettier": "2.7.1",
     "ts-jest": "27.1.4",
+    "tslint-config-prettier": "^1.18.0",
     "typescript": "latest"
   }
 }

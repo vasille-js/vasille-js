@@ -1,5 +1,5 @@
 import { Destroyable } from "./core/destroyable";
-import { current, Reactive } from "./core/core";
+import { current, Reactive, stack, unstack } from "./core/core";
 import { IValue } from "./core/ivalue";
 import { ArrayModel } from "./models/array-model";
 import { Listener } from "./models/listener";
@@ -24,6 +24,13 @@ import { userError } from "./core/errors";
 import { ListenableModel } from "./models/model";
 import { Watch } from "./node/watch";
 
+
+const less = {
+    stack,
+    unstack,
+    current,
+    userError,
+};
 
 export {
     Destroyable,
@@ -59,9 +66,8 @@ export {
     // private stuff
     AcceptedTagsSpec,
     AcceptedTagsMap,
-    userError,
-    current,
     KindOfIValue,
     ListenableModel,
     TagOptionsWithSlot,
+    less,
 };
