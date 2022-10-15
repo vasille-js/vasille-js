@@ -24,14 +24,6 @@ import { userError } from "./core/errors";
 import { ListenableModel } from "./models/model";
 import { Watch } from "./node/watch";
 
-
-const less = {
-    stack,
-    unstack,
-    current,
-    userError,
-};
-
 export {
     Destroyable,
     IValue,
@@ -69,5 +61,8 @@ export {
     KindOfIValue,
     ListenableModel,
     TagOptionsWithSlot,
-    less,
+    stack,
+    unstack,
+    userError,
+    current,
 };

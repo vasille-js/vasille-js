@@ -11,7 +11,7 @@ import {
     Reference,
     SetModel, SetView, Tag,
     BaseView,
-    Portal, Watch, current, userError
+    Portal, Watch, current, userError,
 } from "../src";
 import {page} from "./page";
 
