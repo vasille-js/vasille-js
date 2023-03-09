@@ -34,12 +34,12 @@ There are several modes to use Vasille.
 ### Documentation for beginners (how to create the first project step by step):
 * [`Vasille Core Library` - the hard way - `low-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/GetStarted.md)
 * [`Vasille Less Library` - perfect for me - `high-level`](https://gitlab.com/vasille-js/vasille-less/-/blob/v2/pages/GetStarted.md)
-* [`Vasille Magic` - perfect for you - `highest-level`](https://gitlab.com/vasille-js/vcc/-/blob/master/pages/GetStarted.md)
+* [`Vasille Magic` - perfect for you - `highest-level`](https://gitlab.com/vasille-js/vasille-magic/-/blob/master/pages/GetStarted.md)
 
 ### Full documentation:
 * [`Vasille Core Library API`- write anything - `low-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/Vasille-Core-Library-API.md)
 * [`Vasille Less Library API`- write less do more - `high-level`](https://gitlab.com/vasille-js/vasille-less/-/blob/v2/pages/Vasille-Less-Library-API.md)
-* [`Vasille Magic API`- compiler writes for you - `highest-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/API.md)
+* [`Vasille Magic API`- compiler writes for you - `highest-level`](https://gitlab.com/vasille-js/vasille-magic/-/blob/master/pages/Vasille-Magic-API.md)
 
 ### Getting ready be example
 * [TypeScript Example](https://gitlab.com/vasille-js/learning/vasille-ts-example)
@@ -50,7 +50,7 @@ There are several modes to use Vasille.
 
 ## How SAFE is Vasille
 
-The safe of your application is ensured by 
+The safe of your application is ensured by
 * `100%` coverage of `vasille` code by unit tests.
   Each function, each branch are working as designed.
 * `strong typing` makes your javascript/typescript code safe as C++ code.
@@ -87,11 +87,11 @@ The test project was coded using the next frameworks:
   [Try Initial](https://vasille-js.gitlab.io/project-x32/vasille-js/) /
   [Try Optimized](https://vasille-js.gitlab.io/project-x32-if/vasille-js/).
 
-The result of test are demonstrated in figures 1 & 2. 
+The result of test are demonstrated in figures 1 & 2.
 The test result are measured in FPS (frames per second), which is calculated as `1000 / ft`,
 where `ft` is an average frame time in ms of 20 frames. All values are absolute. Higher is better.
 
-The initial version is updating all the page content in each frame. 
+The initial version is updating all the page content in each frame.
 The page reactivity connections are very complex, and we get poor results in Angular, React, Vue & Svelte.
 
 The optimized version disables the offscreen & non-actual content, which simplifies the
