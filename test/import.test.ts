@@ -11,7 +11,7 @@ import {
     Reference,
     SetModel, SetView, Tag,
     BaseView,
-    Portal, Watch, current, userError,
+    Portal, Watch, current, userError, stack, unstack,
 } from "../src";
 import {page} from "./page";
 
@@ -54,4 +54,13 @@ it('import test', function () {
 
     expect(!!current).toBe(false);
     expect(userError("msg", "e")).toBe("e");
+
+    stack(app);
+    expect(current).toBe(app);
+
+    stack(reactive);
+    expect(current).toBe(reactive);
+
+    unstack();
+    expect(current).toBe(app);
 });
