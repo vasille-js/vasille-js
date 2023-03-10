@@ -15,7 +15,7 @@ export class Watch<T> extends Fragment<WatchOptions<T>> {
 
     input !: WatchOptions<T>
 
-    public compose (input : WatchOptions<T>) {
+    public compose (input : WatchOptions<T>) : WatchOptions<T>['return'] {
         this.watch((value) => {
             this.children.forEach(child => {
                 child.$destroy();
@@ -26,5 +26,6 @@ export class Watch<T> extends Fragment<WatchOptions<T>> {
         }, input.model);
 
         input.slot(this, input.model.$);
+        return {};
     }
 }

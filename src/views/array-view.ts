@@ -20,5 +20,6 @@ export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
         input.model.forEach(item => {
             this.createChild(input, item, item);
         });
+        return {};
     }
 }

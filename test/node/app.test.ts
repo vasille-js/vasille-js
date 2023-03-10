@@ -15,6 +15,7 @@ class MyApp extends App {
         });
 
         this.div = div as HTMLDivElement;
+        return {};
     }
 }
 

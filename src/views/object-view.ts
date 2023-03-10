@@ -20,7 +20,7 @@ export class ObjectView<T> extends BaseView<string, T, ObjectModel<T>> {
         }
 
         super.ready();
-
+        return {};
     }
 }
 

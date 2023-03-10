@@ -121,8 +121,9 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
         return ret;
     }
 
-    protected compose(input: T) {
+    protected compose(input: T) : T['return'] {
         input.slot && input.slot(this);
+        return {};
     }
 
     /** To be overloaded: ready event handler */
@@ -804,8 +805,9 @@ export class Tag<K extends keyof AcceptedTagsMap> extends INode<TagOptionsWithSl
         $.parent.appendNode(node);
     }
 
-    protected compose(input: TagOptionsWithSlot<K>) {
+    protected compose(input: TagOptionsWithSlot<K>) : TagOptionsWithSlot<K>['return'] {
         input.slot && input.slot(this);
+        return {};
     }
 
     protected findFirstChild(): Node {
@@ -900,10 +902,11 @@ export class Extension<T extends TagOptions<any> = TagOptions<any>> extends INod
  */
 export class Component<T extends TagOptions<any>> extends Extension<T> {
 
-    init() {
-        super.composeNow();
+    init() : T['return'] {
+        const ret = super.composeNow();
         this.ready();
         super.applyOptionsNow();
+        return ret;
     }
 
     public ready () {

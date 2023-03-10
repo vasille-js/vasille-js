@@ -3,7 +3,7 @@
   "description": "Vasille - Safe. Fast. Powerful.",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "2.3.5",
+  "version": "2.3.7",
   "exports": {
     "import": "./lib/index.js",
     "browser": "./lib/index.js",

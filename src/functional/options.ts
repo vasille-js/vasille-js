@@ -4,7 +4,7 @@ import type {Fragment} from "../node/node";
 
 export interface FragmentOptions {
     "v:is" ?: Record<string, IValue<any>>;
-    return ?: any;
+    return ?: {[key: string]: any};
     slot ?: (node : Fragment, ...args: any[]) => void;
 }
 

@@ -63,5 +63,6 @@ export class BaseView<K, T, Model extends ListenableModel<K, T>> extends RepeatN
             input.model.listener.offAdd($.addHandler);
             input.model.listener.offRemove($.removeHandler);
         });
+        return {};
     }
 }

@@ -18,6 +18,7 @@ export class SetView<T> extends BaseView<T, T, SetModel<T>> {
         set.forEach(item => {
             this.createChild(input, item, item);
         });
+        return {};
     }
 }
 

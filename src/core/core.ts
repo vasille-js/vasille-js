@@ -288,8 +288,8 @@ export class Reactive<T extends FragmentOptions = FragmentOptions> extends Destr
         throw notOverwritten();
     }
 
-    protected composeNow () {
-        this.compose(this.input);
+    protected composeNow () : T['return'] {
+        return this.compose(this.input);
     }
 
     public runFunctional<F extends (...args : any) => any>(f : F, ...args : Parameters<F>) : ReturnType<F> {

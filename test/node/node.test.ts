@@ -20,6 +20,7 @@ class FragmentTest extends Fragment {
     compose() {
         super.compose({});
         compose = true;
+        return {};
     }
 }
 
@@ -235,6 +236,7 @@ class MyExtension extends Extension {
         this.extend({
             class: ['ext']
         });
+        return {};
     }
 }
 
@@ -403,6 +405,7 @@ class ZeroChildrenComponent extends Component<TagOptions<any>> {
 class OneChildComponent extends Component<TagOptions<any>> {
     compose() {
         this.create(new Fragment({}));
+        return {};
     }
 }
 
@@ -410,12 +413,14 @@ class MultiChildrenComponent extends Component<TagOptions<any>> {
     compose() {
         this.tag('div', {});
         this.tag('div', {});
+        return {};
     }
 }
 
 class CorrectComponent extends Component<TagOptions<any>> {
     compose() {
         this.tag('div', {});
+        return {};
     }
 }
 
@@ -523,6 +528,7 @@ class F extends Fragment {
     protected compose(input: FragmentOptions) {
         super.compose(input);
         this.runFunctional(f, 1, 2);
+        return {};
     }
 }
 

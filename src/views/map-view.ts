@@ -15,6 +15,7 @@ export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
         input.model.forEach((value, key) => {
             this.createChild(input, key, value);
         });
+        return {};
     }
 }
 

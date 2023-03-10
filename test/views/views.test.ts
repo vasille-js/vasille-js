@@ -188,6 +188,7 @@ class ReactivityTest extends Fragment {
         this.create(new SetView({model : this.set}), (node, item) => {
             node.text(`${item}`);
         });
+        return {};
     }
 }
 
