@@ -256,7 +256,7 @@ export class Reactive<T extends FragmentOptions = FragmentOptions> extends Destr
             throw wrongBinding ("freeze state must be bound to an external component");
         }
 
-        $.freezeExpr = new Expression ((cond) => {
+        $.freezeExpr = new Expression<void, [boolean]> ((cond) => {
             $.frozen = !cond;
 
             if (cond) {
