@@ -1,0 +1,16 @@
+{
+  "include": ["src/**/*", "test/**/*"],
+
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": false,
+    "target": "ES2015",
+    "module": "ES6",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "types": [
+      "node",
+      "jest"
+    ]
+  },
+}

@@ -1,0 +1,19 @@
+{
+  "include": ["src/**/*"],
+
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "types",
+    "target": "ES2015",
+    "module": "ES6",
+    "moduleResolution": "Node",
+    "types": [
+      "debug",
+      "estree",
+      "events",
+      "json-schema",
+      "node"
+    ]
+  },
+}

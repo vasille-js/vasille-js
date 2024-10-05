@@ -1,0 +1,62 @@
+{
+  "name": "vasille-less",
+  "description": "Vasille - Safe. Fast. Powerful.",
+  "main": "lib/index.js",
+  "types": "types/index.d.ts",
+  "version": "2.3.7",
+  "exports": {
+    "import": "./lib/index.js",
+    "browser": "./lib/index.js",
+    "node": "./lib-node/index.js",
+    "require": "./lib-node/index.js"
+  },
+  "unpkg": "./cdn/es2015.js",
+  "scripts": {
+    "build": "tsc --build tsconfig-build.json",
+    "build-es5": "tsc --build tsconfig-build-es5.json",
+    "build-node": "tsc --build tsconfig-build-node.json",
+    "test": "jest",
+    "test-coverage": "jest --coverage",
+    "update-types": "tsc --build tsconfig-types.json",
+    "update-flowjs": "node flow-typed/create.cjs",
+    "cdn-create": "node cdn/create.cjs",
+    "es5-check": "es-check es5 cdn/*es5.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/vasille-js/vasille-less.git"
+  },
+  "type": "module",
+  "keywords": [
+    "front-end",
+    "web",
+    "app",
+    "safe",
+    "fast",
+    "poweful"
+  ],
+  "author": "Vasile Lixcode <lixcode@vivaldi.net> (https://t.me/lixcode)",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/debug": "latest",
+    "@types/eslint": "latest",
+    "@types/eslint-scope": "latest",
+    "@types/estree": "latest",
+    "@types/events": "latest",
+    "@types/jest": "^27.4.1",
+    "@types/jsdom": "latest",
+    "@types/node": "latest",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
+    "es-check": "latest",
+    "eslint": "latest",
+    "flow-bin": "latest",
+    "jest": "^27.5.1",
+    "jsdom": "latest",
+    "ts-jest": "^27.1.4",
+    "typescript": "4.6.3"
+  },
+  "dependencies": {
+    "vasille": "^2.3.7"
+  }
+}
