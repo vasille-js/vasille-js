@@ -1,0 +1,15 @@
+{
+  "include": ["src/*"],
+
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": true,
+    "outDir": "lib",
+    "target": "ES2016",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "types": [
+      "node"
+    ]
+  },
+}
