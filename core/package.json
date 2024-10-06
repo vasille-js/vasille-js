@@ -3,7 +3,7 @@
   "description": "Vasille - Safe. Simple. Powerful.",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "2.3.7",
+  "version": "2.3.9",
   "exports": {
     "import": "./lib/index.js",
     "browser": "./lib/index.js",
@@ -12,6 +12,7 @@
   },
   "unpkg": "./cdn/es2015.js",
   "scripts": {
+    "prepack": "cp -f ../README.md ./README.md",
     "prettier": "npx prettier src test --check",
     "build": "tsc --build tsconfig-build.json",
     "build-node": "tsc --build tsconfig-build-node.json",
