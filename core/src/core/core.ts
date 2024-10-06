@@ -185,7 +185,7 @@ export class Reactive<T extends FragmentOptions = FragmentOptions> extends Destr
         ...values : KindOfIValue<Args>
     ) {
         const $ : ReactivePrivate = this.$;
-        $.watch.add (new Expression (func, !this.$.frozen, ...values));
+        $.watch.add (new Expression<void, Args> (func, !this.$.frozen, ...values));
     }
 
     /**
@@ -198,7 +198,7 @@ export class Reactive<T extends FragmentOptions = FragmentOptions> extends Destr
         func : (...args: Args) => T,
         ...values : KindOfIValue<Args>
     ) : IValue<T> {
-        const res : IValue<T> = new Expression (func, !this.$.frozen, ...values);
+        const res : IValue<T> = new Expression<T, Args> (func, !this.$.frozen, ...values);
         const $ : ReactivePrivate = this.$;
 
         $.watch.add (res);
@@ -294,9 +294,6 @@ export class Reactive<T extends FragmentOptions = FragmentOptions> extends Destr
 
     public runFunctional<F extends (...args : any) => any>(f : F, ...args : Parameters<F>) : ReturnType<F> {
         stack(this);
-        // yet another ts bug
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         const result = f(...args);
         unstack();
 

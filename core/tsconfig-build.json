@@ -11,8 +11,7 @@
       "debug",
       "estree",
       "events",
-      "json-schema",
-      "node"
+      "json-schema"
     ]
   },
 }

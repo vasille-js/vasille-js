@@ -12,7 +12,6 @@
       <excludeFolder url="file://$MODULE_DIR$/flow-typed" />
       <excludeFolder url="file://$MODULE_DIR$/cdn" />
       <excludeFolder url="file://$MODULE_DIR$/lib-es5" />
-      <excludeFolder url="file://$MODULE_DIR$/test" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

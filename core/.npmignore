@@ -12,7 +12,6 @@ tsconfig.json
 /img
 /lib-es5
 /cdn/create.cjs
-/cdn/create-helper-es5.js
 /cdn/*.html
 /flow-typed/create.cjs
 .eslint*

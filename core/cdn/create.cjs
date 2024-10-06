@@ -140,18 +140,3 @@ function extractES5 (path) {
     classes.forEach(cl => lines.push('window.' + cl + ' = ' + cl + ';'));
     fs.appendFileSync(es5, lines.join('\n') + '\n\n');
 }
-
-const es5 = __dirname + '/es5.js';
-
-if (fs.existsSync(es5)) {
-    fs.rmSync(es5);
-}
-
-fs.appendFileSync(es5,'(function(){\n');
-fs.appendFileSync(es5, fs.readFileSync(__dirname + '/create-helper-es5.js'));
-
-fileList.forEach(file => {
-    extractES5(file.replace('lib/', 'lib-es5/'));
-});
-
-fs.appendFileSync(es5,'})();\n');

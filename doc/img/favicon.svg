@@ -5,9 +5,9 @@
    viewBox="0 0 67.733332 33.866668"
    version="1.1"
    id="svg8"
-   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20, custom)"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
    sodipodi:docname="favicon.svg"
-   inkscape:export-filename="/home/lixcode/ssd/vasile.js/img/favicon.png"
+   inkscape:export-filename="/home/lixcode/web/vasille-js/core/img/favicon.png"
    inkscape:export-xdpi="384"
    inkscape:export-ydpi="384"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -20,18 +20,6 @@
    xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
      id="defs2">
-    <linearGradient
-       inkscape:collect="always"
-       id="linearGradient52855">
-      <stop
-         style="stop-color:#9b9b9b;stop-opacity:1"
-         offset="0"
-         id="stop52851" />
-      <stop
-         style="stop-color:#303030;stop-opacity:1"
-         offset="1"
-         id="stop52853" />
-    </linearGradient>
     <linearGradient
        inkscape:collect="always"
        id="linearGradient47003">
@@ -168,29 +156,29 @@
        inkscape:collect="always"
        id="meshgradient44333"
        gradientUnits="userSpaceOnUse"
-       x="36.288082"
-       y="0.97682375"
+       x="35.447127"
+       y="0.82586901"
        gradientTransform="translate(0,3.1750001)">
       <meshrow
-         id="meshrow45374">
+         id="meshrow1763">
         <meshpatch
-           id="meshpatch45376">
+           id="meshpatch1765">
           <stop
-             path="c 3.81622,0.166362  28.4282,-1.6496  29.7407,-1.51723"
+             path="c 3.81622,0.166362  29.5566,0.0169856  30.869,0.149355"
              style="stop-color:#be1f00;stop-opacity:1"
-             id="stop45378" />
+             id="stop1767" />
           <stop
-             path="c 5.0857e-05,2.7161  -0.290868,6.94944  -0.290866,9.66554"
+             path="c -0.000260093,2.7161  0.392561,5.93558  0.392954,8.65167"
              style="stop-color:#ff5a8c;stop-opacity:1"
-             id="stop45380" />
+             id="stop1769" />
           <stop
-             path="c -2.38053,-0.084927  -27.3095,1.64353  -29.2109,1.49082"
+             path="c -2.38092,-0.0849537  -28.7852,0.121214  -30.6859,-0.0314953"
              style="stop-color:#9218c5;stop-opacity:1"
-             id="stop45382" />
+             id="stop1771" />
           <stop
-             path="c 0.000818194,-2.71612  -0.237948,-6.92297  -0.23902,-9.63913"
+             path="c 0.000381225,-2.71614  -0.57549,-6.05339  -0.576033,-8.76953"
              style="stop-color:#e31818;stop-opacity:1"
-             id="stop45384" />
+             id="stop1773" />
         </meshpatch>
       </meshrow>
     </meshgradient>
@@ -205,16 +193,6 @@
        r="15.122179"
        gradientTransform="matrix(1,0,0,0.34101651,0,18.198454)"
        gradientUnits="userSpaceOnUse" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient52855"
-       id="linearGradient52857"
-       x1="41.272186"
-       y1="13.634835"
-       x2="59.442287"
-       y2="17.286081"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.64810317,0,0,0.64810317,18.243119,5.9279881)" />
     <radialGradient
        inkscape:collect="always"
        xlink:href="#linearGradient47003"
@@ -245,18 +223,18 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="4"
-     inkscape:cx="147.375"
-     inkscape:cy="80.500001"
+     inkscape:zoom="5.6568542"
+     inkscape:cx="123.39013"
+     inkscape:cy="61.606678"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
      showgrid="false"
      units="px"
      inkscape:window-width="2560"
-     inkscape:window-height="1407"
+     inkscape:window-height="1364"
      inkscape:window-x="0"
-     inkscape:window-y="1070"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:snap-smooth-nodes="true"
      showguides="false"
@@ -378,7 +356,7 @@
            id="tspan15664"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Droid Sans';-inkscape-font-specification:'Droid Sans';fill:url(#radialGradient52958);fill-opacity:1;stroke-width:0.163432"
            x="51.052151"
-           y="27.192797">SAFE.FAST.</tspan></text>
+           y="27.192797">JUST KEEP</tspan></text>
       <text
          xml:space="preserve"
          style="font-size:5.89872px;line-height:3.68671px;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:url(#radialGradient52960);fill-opacity:1;stroke-width:0.147468"
@@ -389,19 +367,8 @@
            id="tspan16460"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Droid Sans';-inkscape-font-specification:'Droid Sans';fill:url(#radialGradient52960);fill-opacity:1;stroke-width:0.147468"
            x="50.938103"
-           y="32.689335">POWERFUL.</tspan></text>
+           y="32.689335">IT SIMPLE</tspan></text>
     </g>
-    <text
-       xml:space="preserve"
-       style="font-size:2.69857px;line-height:1.68661px;font-family:Roboto;-inkscape-font-specification:Roboto;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;opacity:0.221587;fill:url(#linearGradient52857);fill-opacity:1;stroke-width:0.0674643"
-       x="51.214073"
-       y="16.464909"
-       id="text50293"><tspan
-         sodipodi:role="line"
-         id="tspan50291"
-         style="fill:url(#linearGradient52857);fill-opacity:1;stroke-width:0.0674643"
-         x="51.214073"
-         y="16.464909">just make it</tspan></text>
   </g>
   <script
      id="mesh_polyfill"

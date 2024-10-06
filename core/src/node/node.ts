@@ -232,7 +232,7 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
         tagName : K,
         input : TagOptionsWithSlot<K>,
         cb ?: (node : Tag<K>) => void
-        // @ts-ignore
+        // @ts-expect-error
     ) : (HTMLElementTagNameMap & SVGElementTagNameMap)[K] {
         const $ : FragmentPrivate = this.$;
         const node = new Tag(input);
@@ -243,7 +243,7 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
         this.pushNode(node);
         node.ready();
 
-        // @ts-ignore
+        // @ts-expect-error
         return node.node as (HTMLElementTagNameMap & SVGElementTagNameMap)[K];
     }
 

@@ -14,14 +14,11 @@
   "scripts": {
     "prettier": "npx prettier src test --check",
     "build": "tsc --build tsconfig-build.json",
-    "build-es5": "tsc --build tsconfig-build-es5.json",
     "build-node": "tsc --build tsconfig-build-node.json",
     "test": "jest",
     "test-coverage": "jest --coverage",
     "update-types": "tsc --build tsconfig-types.json",
-    "update-flowjs": "node flow-typed/create.cjs",
-    "cdn-create": "node cdn/create.cjs",
-    "es5-check": "es-check es5 cdn/*es5.js"
+    "cdn-create": "node cdn/create.cjs"
   },
   "repository": {
     "type": "git",
@@ -33,30 +30,27 @@
     "web",
     "app",
     "safe",
-    "fast",
+    "simple",
     "poweful"
   ],
   "author": "Vasile Lixcode <lixcode@vivaldi.net> (https://t.me/lixcode)",
   "license": "MIT",
   "devDependencies": {
-    "@types/debug": "4.1.7",
-    "@types/eslint": "8.4.1",
-    "@types/eslint-scope": "3.7.3",
-    "@types/estree": "0.0.51",
-    "@types/events": "3.0.0",
-    "@types/jest": "27.4.1",
-    "@types/jsdom": "16.2.14",
-    "@types/node": "^18.14.6",
-    "@typescript-eslint/eslint-plugin": "5.18.0",
-    "@typescript-eslint/parser": "5.18.0",
-    "es-check": "latest",
-    "eslint": "latest",
-    "flow-bin": "latest",
-    "jest": "27.5.1",
-    "jsdom": "19.0.0",
-    "prettier": "2.7.1",
-    "ts-jest": "27.1.4",
-    "tslint-config-prettier": "^1.18.0",
-    "typescript": "^4.9.5"
+    "@types/debug": "4.1.12",
+    "@types/eslint": "9.6.1",
+    "@types/eslint-scope": "3.7.7",
+    "@types/estree": "1.0.6",
+    "@types/events": "3.0.3",
+    "@types/jest": "29.5.13",
+    "@types/jsdom": "21.1.7",
+    "@typescript-eslint/eslint-plugin": "8.8.0",
+    "@typescript-eslint/parser": "8.8.0",
+    "eslint": "9.0.0",
+    "jest": "29.7.0",
+    "jsdom": "25.0.1",
+    "prettier": "3.3.3",
+    "ts-jest": "29.2.5",
+    "tslint-config-prettier": "1.18.0",
+    "typescript": "5.6.2"
   }
 }

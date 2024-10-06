@@ -1,11 +1,11 @@
-# Vasille Less Library
+# Vasille Core Library
 
 ![Vasille.js logo](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/img/logo.png)
 
-`Vasille` less library is frontend solution for `safe`, `fast` & `powerful` applications.
+`Vasille` core library is frontend solution for `safe`, `fast` & `powerful` applications.
 
 [![build](https://gitlab.com/vasille-js/vasille-js/badges/v2/pipeline.svg)](https://gitlab.com/vasille-js/vasille-js)
-[![npm](https://img.shields.io/npm/v/vasille?style=flat-square)](https://www.npmjs.com/package/vasille-less)
+[![npm](https://img.shields.io/npm/v/vasille?style=flat-square)](https://www.npmjs.com/package/vasille)
 
 ## Table of content
 
@@ -149,7 +149,7 @@ forward-only shared data. Reactivity of objects/fields can be disabled/enabled m
 
 ### DOM Generation Engine
 
-DOM Generation Engine is used to describe a virtual DOM of reactive fragments,
+DOM Generation Engine is used to describe a virtual DOM of reactive fragments, 
 which will be reflected into a browser DOM and keep up to date it.
 
 ![DOM Generation Engine](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/img/nodes.png)
@@ -178,8 +178,6 @@ which will be reflected into a browser DOM and keep up to date it.
 ```html
 ES2015 version
 <script src="https://unpkg.com/vasille"></script>
-ES5 Compatible version
-<script src="https://unpkg.com/vasille/cdn/es5.js"></script>
 ```
 
 ### Flow.js typedef
