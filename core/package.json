@@ -1,6 +1,6 @@
 {
   "name": "vasille",
-  "description": "Vasille - Safe. Fast. Powerful.",
+  "description": "Vasille - Safe. Simple. Powerful.",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "version": "2.3.7",

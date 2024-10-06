@@ -1,10 +1,9 @@
 # Vasille Core Library
 
-![Vasille.js logo](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/img/logo.png)
+![Vasille.js logo](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/doc/img/logo.png)
 
-`Vasille` core library is frontend solution for `safe`, `fast` & `powerful` applications.
+`Vasille` core library is frontend solution for `safe`, `simple` & `powerful` applications.
 
-[![build](https://gitlab.com/vasille-js/vasille-js/badges/v2/pipeline.svg)](https://gitlab.com/vasille-js/vasille-js)
 [![npm](https://img.shields.io/npm/v/vasille?style=flat-square)](https://www.npmjs.com/package/vasille)
 
 ## Table of content
@@ -12,7 +11,7 @@
 * [Installation](#installation)
 * [How to use Vasille](#how-to-use-vasille)
 * [How SAFE is Vasille](#how-safe-is-vasille)
-* [How FAST is Vasille](#how-fast-is-vasille)
+* [How SIMPLE is Vasille](#how-fast-is-vasille)
 * [How POWERFUL is Vasille](#how-powerful-is-vasille)
 * [Best Practices](#best-practices)
 
@@ -32,19 +31,18 @@ npm install vasille-magic --save
 There are several modes to use Vasille.
 
 ### Documentation for beginners (how to create the first project step by step):
-* [`Vasille Core Library` - the hard way - `low-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/GetStarted.md)
-* [`Vasille Less Library` - perfect for me - `high-level`](https://gitlab.com/vasille-js/vasille-less/-/blob/v2/pages/GetStarted.md)
-* [`Vasille Magic` - perfect for you - `highest-level`](https://gitlab.com/vasille-js/vasille-magic/-/blob/master/pages/GetStarted.md)
+* [`Vasille Core Library` - the hard way - `low-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/core/GetStarted.md)
+* [`Vasille Less Library` - no transcriber usage - `high-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/less/GetStarted.md)
+* [`Vasille Magic` - perfect for you - `highest-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/magic/GetStarted.md)
 
 ### Full documentation:
-* [`Vasille Core Library API`- write anything - `low-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/pages/Vasille-Core-Library-API.md)
-* [`Vasille Less Library API`- write less do more - `high-level`](https://gitlab.com/vasille-js/vasille-less/-/blob/v2/pages/Vasille-Less-Library-API.md)
-* [`Vasille Magic API`- compiler writes for you - `highest-level`](https://gitlab.com/vasille-js/vasille-magic/-/blob/master/pages/Vasille-Magic-API.md)
+* [`Vasille Core Library API`- write anything - `low-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/core/Vasille-Core-Library-API.md)
+* [`Vasille Less Library API`- write less do more - `high-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/less/Vasille-Less-Library-API.md)
+* [`Vasille Magic API`- compiler writes for you - `highest-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/magic/Vasille-Magic-API.md)
 
 ### Getting ready be example
 * [TypeScript Example](https://gitlab.com/vasille-js/learning/vasille-ts-example)
 * [JavaScript Example (Vasille Magic not supported)](https://gitlab.com/vasille-js/learning/vasille-js-example)
-* [Flow.js Example (Vasille Magic not supported)](https://gitlab.com/vasille-js/learning/vasille-flow-js-example)
 
 <hr>
 
@@ -52,9 +50,9 @@ There are several modes to use Vasille.
 
 The safe of your application is ensured by
 * `100%` coverage of `vasille` code by unit tests.
-  Each function, each branch are working as designed.
+  Each function, each branch is working as designed.
 * `strong typing` makes your javascript/typescript code safe as C++ code.
-All entities of `vasille` core library are strong typed, including:
+All entities of `vasille` core library are strongly typed, including:
   * data fields & properties.
   * computed properties (function parameters & result).
   * methods.
@@ -62,62 +60,82 @@ All entities of `vasille` core library are strong typed, including:
   * DOM events & DOM operation (attributing, styling, etc.).
   * slots of component.
   * references to children.
-* What you write is what you get - there is no hidden operations, you can control everything.
+* What you write is what you get. There are no hidden operations, you can control everything.
 * No asynchronous code, when the line of code is executed, the DOM and reactive things are already synced.
 
-## How FAST is Vasille
+## How SIMPLE is Vasille
 
-The test project was coded using the next frameworks:
-* Angular /
-  [Try Initial](https://vasille-js.gitlab.io/project-x32/angular/) /
-  [Try Optimized](https://vasille-js.gitlab.io/project-x32-if/angular/).
-* React /
-  [Try Initial](https://vasille-js.gitlab.io/project-x32/react/) /
-  [Try Optimized](https://vasille-js.gitlab.io/project-x32-if/react/).
-* Vue 2 /
-  [Try Initial](https://vasille-js.gitlab.io/project-x32/vue-2/) /
-  [Try Optimized](https://vasille-js.gitlab.io/project-x32-if/vue-2/).
-* Vue 3 /
-  [Try Initial](https://vasille-js.gitlab.io/project-x32/vue-3/) /
-  [Try Optimized](https://vasille-js.gitlab.io/project-x32-if/vue-3/).
-* Svelte /
-  [Try Initial](https://vasille-js.gitlab.io/project-x32/svelte/) /
-  [Try Optimized](https://vasille-js.gitlab.io/project-x32-if/svelte/).
-* Vasille /
-  [Try Initial](https://vasille-js.gitlab.io/project-x32/vasille-js/) /
-  [Try Optimized](https://vasille-js.gitlab.io/project-x32-if/vasille-js/).
+Can you detect the correct order of console logs in the next code snippet:
+```javascript
+import logo from './logo.svg';
+import './App.css';
+import {useEffect} from 'react';
 
-The result of test are demonstrated in figures 1 & 2.
-The test result are measured in FPS (frames per second), which is calculated as `1000 / ft`,
-where `ft` is an average frame time in ms of 20 frames. All values are absolute. Higher is better.
+function C1 ({children}) {
+  console.log(1);
 
-The initial version is updating all the page content in each frame.
-The page reactivity connections are very complex, and we get poor results in Angular, React, Vue & Svelte.
+  useEffect(() => {
+    console.log(2);
+  });
 
-The optimized version disables the offscreen & non-actual content, which simplifies the
-reactivity complexity in time. Angular & Svelte give result similar to Vasille.
-React & Vue continue to be slow in the beginning of test.
+  return <div>{children}</div>;
+}
 
-**Conclusion:** The reactivity system of Vasille is very fast
-and its complexity is not slowing down the application.
+function C2 () {
+  console.log(3);
 
-<hr>
+  useEffect(() => {
+    console.log(4);
+  });
 
-&nbsp;
+  return <div></div>;
+}
 
-Figure 1: Initial version
+function App() {
+  return <C1>
+    <C2/>
+  </C1>;
+}
 
-![results 1](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/img/scores-wo.png)
+export default App;
+```
 
-<hr>
+So let's see the same example using Vasille:
+```typescript jsx
+interface Options extends FragmentOptions {
+    slot?: () => void;
+}
 
-&nbsp;
+const C1 : VFragment<Options> = ({slot}) => {
+  console.log(1);
+  
+  <div>
+    <vxSlot model={slot} />
+  </div>;
+  
+  console.log(2);
+}
 
-Figure 2: Optimized version
+const C2: VFragment = () => {
+  console.log(3);
+  
+  <div></div>;
+    
+  console.log(4);
+}
 
-![results 2](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/img/scores-o.png)
+const App: VApp = () => {
+  <C1>
+    <C2/>
+  </C1>
+}
+```
 
-<hr>
+The `C2` function is sent to `C1` as function,
+so it will be called after `console.log(1)` and before `console.log(2)`.
+No return is present in this case,
+then construction like `for` & `if` can be used in place of `[].map()` and ternary operator.
+The component function is called once, no recalls on component update.
 
 ## How POWERFUL is Vasille
 
@@ -131,7 +149,7 @@ an effective reactive module and a DOM generation engine based on it.
 Reactivity module is used to create a model of data. It can contain self-updating values,
 forward-only shared data. Reactivity of objects/fields can be disabled/enabled manually.
 
-![Reactivity Module](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/img/reactive.png)
+![Reactivity Module](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/doc/img/reactive.png)
 
 * `Destroyable` is an entity which has a custom destructor.
 * `IValue<T>` is a common interface for any value container, with next members:
@@ -152,7 +170,7 @@ forward-only shared data. Reactivity of objects/fields can be disabled/enabled m
 DOM Generation Engine is used to describe a virtual DOM of reactive fragments, 
 which will be reflected into a browser DOM and keep up to date it.
 
-![DOM Generation Engine](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/img/nodes.png)
+![DOM Generation Engine](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/doc/img/nodes.png)
 
 * `Fragment` describes a virtual DOM node, which has siblings, children, parent & slots.
 * `TextNode` reflects a `Text` node.
@@ -176,23 +194,14 @@ which will be reflected into a browser DOM and keep up to date it.
 ### CDN
 
 ```html
-ES2015 version
 <script src="https://unpkg.com/vasille"></script>
-```
-
-### Flow.js typedef
-Add the next lines to `[libs]` section in your `.flowconfig` file
-```
-node_modules/vasille/flow-typed
-node_modules/vasille-less/flow-typed
-node_modules/vasille-magic/flow-typed
 ```
 
 ## Best Practices applicable to Vasille Core Library
 
 * [Reactive Object Practice](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/reactive-object.ts)
 * [Application](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/application.ts)
-* [Application in Application](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/application-in-application.ts)
+* [Application in Application (Micro frontends)](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/application-in-application.ts)
 * [Signaling](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/signaling.ts)
 * [Forward Only Data Exchange](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/forward-only.ts)
 * [Absolute, Relative & Auto Values](https://gitlab.com/vasille-js/vasille-practices/-/blob/main/practices/auto-value.ts)
@@ -204,10 +213,8 @@ node_modules/vasille-magic/flow-typed
 
 ## Questions
 
-If you have questions, fell free to contact the maintainer of project:
+If you have questions, feel free to contact the maintainer of the project:
 
-* [Author's Email](mailto:lixcode@vivaldi.net)
-* [Project Discord Server](https://discord.gg/SNcXNZxz)
+* [Author's Email](mailto:vas.lixcode@gmail.com)
 * [Author's Telegram](https://t.me/lixcode)
-* [Author's VK](https://vk.com/lixcode)
 
