@@ -1,8 +1,8 @@
-# Vasille Core Library
+# Vasille
 
 ![Vasille.js logo](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/doc/img/logo.png)
 
-`Vasille` core library is frontend solution for `safe`, `simple` & `powerful` applications.
+`Vasille` core library is frontend solution for `safe`, `performant` & `powerful` applications.
 
 [![npm](https://img.shields.io/npm/v/vasille?style=flat-square)](https://www.npmjs.com/package/vasille)
 
@@ -31,14 +31,14 @@ npm install vasille-magic --save
 There are several modes to use Vasille.
 
 ### Documentation for beginners (how to create the first project step by step):
-* [`Vasille Core Library` - the hard way - `low-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/core/GetStarted.md)
-* [`Vasille Less Library` - no transcriber usage - `high-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/less/GetStarted.md)
 * [`Vasille Magic` - perfect for you - `highest-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/magic/GetStarted.md)
+* [`Vasille Less Library` - no transcriber usage - `high-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/less/GetStarted.md)
+* [`Vasille Core Library` - the hard way - `low-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/core/GetStarted.md)
 
 ### Full documentation:
-* [`Vasille Core Library API`- write anything - `low-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/core/Vasille-Core-Library-API.md)
-* [`Vasille Less Library API`- write less do more - `high-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/less/Vasille-Less-Library-API.md)
 * [`Vasille Magic API`- compiler writes for you - `highest-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/magic/Vasille-Magic-API.md)
+* [`Vasille Less Library API`- write less do more - `high-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/less/Vasille-Less-Library-API.md)
+* [`Vasille Core Library API`- write anything - `low-level`](https://gitlab.com/vasille-js/vasille-js/-/blob/v2/doc/core/Vasille-Core-Library-API.md)
 
 ### Getting ready be example
 * [TypeScript Example](https://gitlab.com/vasille-js/learning/vasille-ts-example)
