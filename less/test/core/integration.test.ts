@@ -1,5 +1,5 @@
 import {Component, TagOptions} from "vasille";
-import {app, v} from "../../src";
+import {app, v, create} from "../../src";
 import {page} from "../page";
 
 interface Options extends TagOptions<'button'> {
@@ -13,13 +13,23 @@ class Button extends Component<Options> {
     }
 }
 
-const myMapp = app(() => {
+const myApp = app(() => {
     v.create(new Button({color: 'red'}));
     return {};
 });
 
 
 it('Integration', function () {
-    myMapp(page.window.document.body, {});
+    myApp(page.window.document.body, {});
+    expect(page.window.document.body.children[0].tagName).toBe('BUTTON');
+});
+
+const myAppAlt = app(() => {
+    create(new Button({color: 'red'}));
+    return {};
+});
+
+it('IntegrationAlt', function () {
+    myAppAlt(page.window.document.body, {});
     expect(page.window.document.body.children[0].tagName).toBe('BUTTON');
 });

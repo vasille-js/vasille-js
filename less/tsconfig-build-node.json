@@ -9,6 +9,7 @@
     "module": "CommonJS",
     "moduleResolution": "Node",
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "types": [
       "debug",
       "estree",

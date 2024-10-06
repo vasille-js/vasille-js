@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.com/vasille-js/vasille-magic.git"
+    "url": "https://gitlab.com/vasille-js/vasille-js.git"
   },
   "author": "lixcode",
   "license": "MIT",
   "bugs": {
-    "url": "https://gitlab.com/vasille-js/vasille-magic/issues"
+    "url": "https://gitlab.com/vasille-js/vasille-js/issues"
   },
-  "homepage": "https://gitlab.com/vasille-js/vasille-magic#readme",
+  "homepage": "https://gitlab.com/vasille-js/vasille-js#readme",
   "devDependencies": {
     "@types/node": "^17.0.23",
     "flow-bin": "^0.174.1",

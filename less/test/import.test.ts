@@ -1,4 +1,4 @@
-import {v} from ".././src";
+import {v} from "../src";
 
 it('import test', function () {
 

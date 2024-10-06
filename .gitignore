@@ -9,3 +9,5 @@
 */cdn/es2015.js
 */flow-typed/vasille.js
 */README.md
+.nyc
+.nyc_output

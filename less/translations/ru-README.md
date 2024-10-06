@@ -30,8 +30,6 @@ npm install vasille --save
 ```html
 Версия ES2015
 <script src="https://unpkg.com/vasille"></script>
-Веррсия ES5 для обратной совместиости со старыми браузерами
-<script src="https://unpkg.com/vasille/cdn/es5.js"></script>
 ```
 
 ### Примеры для быстрого старта

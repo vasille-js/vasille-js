@@ -9,7 +9,6 @@ module.exports = {
         },
     },
     moduleNameMapper: {
-        'vasille': 'vasille/lib-node',
         '^(\\.{1,2}/.*)\\.js$': '$1',
     },
     moduleFileExtensions: ["ts", "tsx", "js"]

@@ -89,6 +89,7 @@ export function tag<K extends keyof AcceptedTagsMap>(
     name : K,
     opts : TagOptionsWithSlot<K>,
     callback ?: () => void
+    // @ts-expect-error
 ) : { node : (HTMLElementTagNameMap & SVGElementTagNameMap)[K] } {
     if (!(current instanceof Fragment)) throw userError('missing parent node', 'out-of-context');
 
@@ -104,7 +105,7 @@ type ExtractParams<T> = T extends ((node : Fragment, ...args: infer P) => any) ?
 export function create<T extends Fragment>(
     node : T,
     callback ?: (...args: ExtractParams<T['input']['slot']>) => void
-) : T['return'] {
+) : T['input']['return'] {
     if (!(current instanceof Fragment)) throw userError('missing current node', 'out-of-context');
 
     return current.create(node, (node : Fragment, ...args : ExtractParams<T['input']['slot']>) => {

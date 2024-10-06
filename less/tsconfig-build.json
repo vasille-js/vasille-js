@@ -8,6 +8,7 @@
     "target": "ES2015",
     "module": "ES6",
     "moduleResolution": "Node",
+    "skipLibCheck": true,
     "types": [
       "debug",
       "estree",

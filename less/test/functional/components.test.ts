@@ -1,12 +1,12 @@
 import {
     app,
-    arrayModel,
+    arrayModel, component,
     extension,
     fragment, mapModel, objectModel,
     ref, setModel,
-    tag,
+    tag, text,
     v,
-    VApp,
+    VApp, VComponent,
     VExtension,
     VFragment,
     VxExtend, VxFor, VxPortal,
@@ -49,6 +49,26 @@ it ("vx-extend", function () {
         const div = tag("div", {}, () => Extension({})).node;
 
         expect(div.className).toBe("extension");
+
+        return {};
+    })
+
+    App(page.window.document.body, {});
+})
+
+it ("vx-component", function () {
+    const Component : VComponent<TagOptions<"div">> = component(() => {
+        tag("div", {class: ['test-class']}, () => {
+            text('Text text');
+        });
+
+        return {};
+    })
+    const App : VApp = app(() => {
+        const div = tag("div", {}, () => Component({})).node;
+
+        expect(div.children[0].className).toBe("test-class");
+        expect(div.children[0].innerHTML).toBe("Text text");
 
         return {};
     })

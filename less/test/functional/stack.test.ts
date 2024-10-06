@@ -1,7 +1,6 @@
-import {ref, expr, v, arrayModel, objectModel, setModel, mapModel, debug, AppOptions, value} from "../../src";
+import {ref, expr, v, arrayModel, objectModel, setModel, mapModel, debug, AppOptions, value, tag} from "../../src";
 import {TagOptions} from "../../src";
 import {page} from "../page";
-import {tag} from "../../src/functional/stack";
 import { Extension } from "vasille";
 
 
