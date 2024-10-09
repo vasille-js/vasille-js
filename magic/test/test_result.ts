@@ -35,7 +35,7 @@ const Test = v.app(() => {
                 v.text(v.expr($x => `sd${$x}`, x));
             });
             v.tag("div", { "v:attr": { dir: 'ltr' } }, () => {
-                v.tag("h1", { class: ["23", "21", "2323"] }, () => {
+                v.tag("h1", { class: ["23", "21"] }, () => {
                     v.text("Header ");
                     v.text(y);
                 });

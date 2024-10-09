@@ -1,7 +1,6 @@
 import {IValue, AcceptedTagsMap, AcceptedTagsSpec} from "vasille";
 
 export interface FragmentOptions {
-    "v:is" ?: Record<string, IValue<any>>;
     return ?: {[key: string]: any};
     slot ?: (...args: any[]) => void;
 }

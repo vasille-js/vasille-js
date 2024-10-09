@@ -116,7 +116,7 @@ export const transform = (program : ts.Program) => (ctx : ts.TransformationConte
         ) {
             vType = true;
             return factory.createImportDeclaration(
-                node.decorators, node.modifiers,
+                node.modifiers,
                 factory.createImportClause(
                     node.importClause?.isTypeOnly || false,
                     node.importClause?.name,
@@ -324,7 +324,7 @@ export const transform = (program : ts.Program) => (ctx : ts.TransformationConte
             const name = varNameFromNode(entity);
 
             parameters.push(factory.createParameterDeclaration(
-                undefined, undefined, undefined, name));
+                undefined, undefined, name));
         });
 
         let arrow : ts.ArrowFunction;
@@ -334,7 +334,7 @@ export const transform = (program : ts.Program) => (ctx : ts.TransformationConte
         }
         if ((ts.isArrowFunction(child) || ts.isFunctionDeclaration(child)) && child.body) {
             arrow = factory.createArrowFunction(
-                child.modifiers, child.typeParameters, parameters, child.type,
+                undefined, child.typeParameters, parameters, child.type,
                 ts.isArrowFunction(child) ? child.equalsGreaterThanToken : undefined,
                 child.body);
         }
@@ -500,7 +500,7 @@ export const transform = (program : ts.Program) => (ctx : ts.TransformationConte
             }
         }
 
-        if (tagType != jsxTagType.Tag) {
+        if (tagType != jsxTagType.Tag && !ts.isJsxNamespacedName(node)) {
             target = node;
         }
         else {
@@ -635,7 +635,12 @@ export const transform = (program : ts.Program) => (ctx : ts.TransformationConte
 
         attrs.properties.forEach((node) => {
             if (ts.isJsxAttribute(node)) {
-                const split = node.name.escapedText.toString().split(':');
+                const split = ts.isIdentifier(node.name)
+                  ? node.name.escapedText.toString().split(':')
+                  : [
+                      node.name.namespace.escapedText.toString(),
+                      node.name.name.escapedText.toString()
+                  ];
                 const type = split[0];
                 const prop = split[1];
                 const defaultInitializer = factory.createTrue();
@@ -978,7 +983,7 @@ export const transform = (program : ts.Program) => (ctx : ts.TransformationConte
         return factory.createTrue();
     }
 
-    return ts.visitNode(sourceFile, visitor);
+    return ts.visitNode(sourceFile, visitor) as ts.SourceFile;
 };
 
 export default transform;

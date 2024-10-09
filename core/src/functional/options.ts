@@ -3,7 +3,6 @@ import {AcceptedTagsMap, AcceptedTagsSpec} from "../spec/react";
 import type {Fragment} from "../node/node";
 
 export interface FragmentOptions {
-    "v:is" ?: Record<string, IValue<any>>;
     return ?: {[key: string]: any};
     slot ?: (node : Fragment, ...args: any[]) => void;
 }

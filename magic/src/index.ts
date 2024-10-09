@@ -10,7 +10,6 @@ import {transform} from "./ts";
 export default transform;
 
 export interface FragmentOptions {
-    "v:is" : Record<string, IValue<any>>;
     return ?: {[key : string]: any};
     slot ?: (...args: any[]) => void;
 }
@@ -30,6 +29,7 @@ export interface TagOptions<T extends keyof AcceptedTagsMap> extends FragmentOpt
 
 export interface TagOptionsWithSlot<T extends keyof AcceptedTagsMap> extends TagOptions<T> {
     return : {
+        // @ts-expect-error
         node : (HTMLElementTagNameMap & SVGElementTagNameMap)[T];
     }
 }
@@ -51,13 +51,11 @@ export type Pointer<T> = IValue<T> & _Pointer<T>;
 
 export type VInput<T extends FragmentOptions> =
     Omit<T, 'v-is' | 'return'> &
-    prefixedObject<T['v:is'], 'is:'> &
     prefixedObject<T['return'], 'returns:'>;
 
 export type VTagInputBase<K extends keyof AcceptedTagsMap, T extends TagOptions<K>> =
     Omit<T, 'v:set' | 'v:bind' | 'v:attr' | 'v:events' | 'v:is' | 'return'> &
     prefixedObject<T['v:events'], 'on'> &
-    prefixedObject<T['v:is'], 'is:'> &
     prefixedObject<T['v:set'], 'set:'> &
     prefixedObject<T['v:bind'], 'bind:'> &
     {
@@ -74,7 +72,7 @@ export type VTagInput<K extends keyof AcceptedTagsMap, T extends TagOptions<K> =
 export type VJsxInput<K extends keyof AcceptedTagsMap, T extends TagOptions<K> = TagOptions<K>> =
     VTagInputBase<K, T> &
     T['v:attr'] &
-    {[K : `class:${string}`] : boolean} &
+    // @ts-expect-error
     {'returns:node'?: (HTMLElementTagNameMap & SVGElementTagNameMap)[K]};
 
 
@@ -159,6 +157,7 @@ interface Vasille {
         name : string,
         opts : TagOptionsWithSlot<K>,
         callback : () => void
+        // @ts-expect-error
     ) : { node : (HTMLElementTagNameMap & SVGElementTagNameMap)[K] };
 
     app<In extends AppOptions<any>>(renderer: (opts : In) => Required<In>["return"])

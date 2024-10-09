@@ -11,6 +11,7 @@ const CJS_CONFIG: ts.CompilerOptions = {
     noUnusedLocals: true,
     noUnusedParameters: true,
     stripInternal: true,
+    skipLibCheck: true,
     declaration: true,
     baseUrl: __dirname,
     target: ts.ScriptTarget.ES2016,
@@ -31,7 +32,9 @@ export function compile(fileNames: string[], options: ts.CompilerOptions = CJS_C
         undefined,
         undefined,
         {
-            before: [transform(program)]
+            before: [
+              transform(program)
+            ]
         }
     );
 

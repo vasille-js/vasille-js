@@ -25,7 +25,7 @@ const Test : VApp = () => {
                 String ${`sd${x}`}
             </span>
             <div dir={'ltr'}>
-                <h1 class={'23 21'} class:2323>
+                <h1 class={'23 21'}>
                     Header {y}
                 </h1>
             </div>
