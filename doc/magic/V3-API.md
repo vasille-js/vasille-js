@@ -50,6 +50,17 @@ export const MyComponent = compose(() => {
 
 Operations on arrays/sets/maps like `push` & `pull` are also reactive.
 
+Component data can contains asynchronous data.
+
+```typescript jsx
+export const MyComponent = compose(() => {
+  const [fetchError, response] = awaited(fetch('https://..'));
+  const [parseError, data] = awaited(response.json());
+  // variables will be initially undefined
+  // the code must react to data chnages
+});
+```
+
 ## Inline expressions are reactive
 
 ```typescript jsx
@@ -295,18 +306,6 @@ export const MyApp = composeApp(() => {
   let model = 1;
   
   <Debug model={model}/>
-});
-```
-
-## Portals
-
-Portals will create the children nodes in another place.
-The next example will add a div at the end of the body.
-```typescript jsx
-export const MyApp = composeApp(() => {
-  <Portal node={document.body}>
-    <div />
-  </Portal>
 });
 ```
 
