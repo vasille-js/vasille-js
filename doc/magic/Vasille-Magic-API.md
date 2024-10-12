@@ -1,4 +1,4 @@
-# Vassile Less Library - High Level Functional Programming Documentation
+# Vasille Magic Library is a transcriber for Vasille applications
 
 To create a Vasille Less component, create a file with extension `.ts` and
 define a constant of type `VApp`, `VComponent`, `VExtension` or `VFragment`.
@@ -8,9 +8,9 @@ Example:
 ```typescript
 import { VApp, v } from 'vasille-magic';
 
-const MyComponent : VApp = () => {
+const MyApp = vApp(() => {
     // ..
-}
+})
 ```
 
 A `VApp` is a root of a Vasille.js application, it will be bounded to
