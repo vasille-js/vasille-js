@@ -19,7 +19,6 @@ export const MyComponent = compose(() => {
 ```
 
 The `compose` function contains code that runs when the component is created.
-The function `composeApp` create the root component of application.
 
 Component props are sent as the first parameter of the compose function.
 ```typescript jsx
@@ -105,7 +104,7 @@ export const MyComponent = compose(() => {
 A lowercase tag like `<a>`, denotes a regular HTML tag. A capitalized tag, such `MyComponent`, indicates a *component*.
 
 ```typescript jsx
-export const MyApp = composeApp(() => {
+export const MyApp = compose(() => {
   <div>
     <MyComponent/>
   </div>
@@ -116,7 +115,7 @@ export const MyApp = composeApp(() => {
 
 Attributes work exactly like HTML ones.
 ```typescript jsx
-export const MyApp = composeApp(() => {
+export const MyApp = compose(() => {
   <a href="/main">To Main Page</a>
 });
 ```
@@ -124,7 +123,7 @@ export const MyApp = composeApp(() => {
 Attribute values can be JavaScript expressions.
 
 ```typescript jsx
-export const MyApp = composeApp(() => {
+export const MyApp = compose(() => {
   let path = '/main';
   
   <a href={path}>To Main Page</a>
@@ -133,7 +132,7 @@ export const MyApp = composeApp(() => {
 
 Conditionally attributes are controlled using boolean values.
 ```typescript jsx
-export const MyApp = composeApp(() => {
+export const MyApp = compose(() => {
   let readonly = false;
   
   <button disabled={readonly}>To Main Page</button>
@@ -153,7 +152,7 @@ const MyComponent = compose(({count}: Props) => {
   <div>{count}</div>
 });
 
-export const MyApp = composeApp(() => {
+export const MyApp = compose(() => {
   <MyComponent count={2}/>
 });
 ```
@@ -162,7 +161,7 @@ export const MyApp = composeApp(() => {
 
 In JSX a text expression can be included in HTML using curly braces.
 ```typescript jsx
-export const MyApp = composeApp(() => {
+export const MyApp = compose(() => {
   let text = 'Main';
   
   <a href="/main">To {text} Page</a>
@@ -183,7 +182,7 @@ const MyComponent = compose(({slot}: Props) => {
   </div>
 });
 
-export const MyApp = composeApp(() => {
+export const MyApp = compose(() => {
   <MyComponent>
     <div>Text</div>
   </MyComponent>
@@ -204,7 +203,7 @@ const MyComponent = compose(({slot}: Props) => {
   </div>
 });
 
-export const MyApp = composeApp(() => {
+export const MyApp = compose(() => {
   <MyComponent slot={({name, count}) => {
     <div>{name}: x{count}</div>
   }}/>
@@ -235,7 +234,7 @@ const MyComponent = compose((): InputControl|null => {
   return null;
 });
 
-export const MyApp = composeApp(() => {
+export const MyApp = compose(() => {
   let control: InputControl|null = null;
   
   <MyComponent callback={obj => control = obj}/>
@@ -250,7 +249,7 @@ export const MyApp = composeApp(() => {
 
 All logic blocks are predefined components, no any special syntax.
 ```typescript jsx
-export const MyApp = composeApp(() => {
+export const MyApp = compose(() => {
   <If condition={true}>
     ..
   </If>
@@ -267,7 +266,7 @@ export const MyApp = composeApp(() => {
 
 Iterating over a list can be done using `For` component.
 ```typescript jsx
-export const MyApp = composeApp(() => {
+export const MyApp = compose(() => {
   const arr = [1, 2, 3];
   const set = new Set([2, 3]);
   const map = new Map([[1, 2], [2, 3]]);
@@ -282,7 +281,7 @@ export const MyApp = composeApp(() => {
 
 Watching a value will lead to content destroyed and created each time when the model is updated.
 ```typescript jsx
-export const MyApp = composeApp(() => {
+export const MyApp = compose(() => {
   let model = 2;
   
   <Watch model={model}>
@@ -296,7 +295,7 @@ export const MyApp = composeApp(() => {
 Debug allows you to see some values of states or properties in DOM as comments. Values will be cast to string using `toString` method.
 
 ```typescript jsx
-export const MyApp = composeApp(() => {
+export const MyApp = compose(() => {
   let model = 1;
   
   <Debug model={model}/>
