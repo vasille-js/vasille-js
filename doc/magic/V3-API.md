@@ -1,6 +1,7 @@
 
 
 The main goal of the Vasille project is to create a framework which just works as expected.
+No special knowledge required, just HTML, CSS, TypeScript, minimal JSX.
 
 ## Table of content
 [[_TOC_]]
@@ -127,13 +128,6 @@ export const MyApp = composeApp(() => {
   let path = '/main';
   
   <a href={path}>To Main Page</a>
-});
-```
-
-Custom attribute names are supported by `extra-attrs` attribute.
-```typescript jsx
-export const MyApp = composeApp(() => {
-  <a href="/main" extra-attrs={{'data-page': "main"}}>To Main Page</a>
 });
 ```
 
