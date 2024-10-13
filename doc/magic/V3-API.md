@@ -277,6 +277,28 @@ export const MyApp = compose(() => {
 });
 ```
 
+Lists of objects are supported.
+```typescript jsx
+export const MyApp = compose(() => {
+  const arr = [
+    {name: "Human1", age: 20},
+    {name: "Human2", age: 30},
+  ];
+  
+  <ol>
+    <For of={arr} slot={(value, key) => {
+      <li>{value.name} is {value.age} years old</li>
+    }}/>
+  </ol>
+  <button onclick={() => arr.push({name: "Human", age: arr.length})}>
+    Add human
+  </button>
+  <button onclick={() => arr[0].age = 30}>
+    Correct age of first human
+  </button>
+});
+```
+
 ## Watching
 
 Watching a value will lead to content destroyed and created each time when the model is updated.
