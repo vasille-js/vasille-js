@@ -1,4 +1,5 @@
 import { IValue } from "../core/ivalue";
+import { reportError } from "../functional/safety";
 
 
 
@@ -40,18 +41,14 @@ export class Reference<T> extends IValue<T> {
             this.$value = value;
 
             if (this.isEnabled) {
-                this.$onchange.forEach(handler => {
-                    handler (value);
-                });
+                this.$updateDeps(value);
             }
         }
     }
 
     public $enable () : void {
         if (!this.isEnabled) {
-            this.$onchange.forEach(handler => {
-                handler (this.$value);
-            });
+            this.$updateDeps(this.$value);
             this.isEnabled = true;
         }
     }
@@ -71,6 +68,17 @@ export class Reference<T> extends IValue<T> {
     public $destroy () {
         super.$destroy ();
         this.$onchange.clear ();
+    }
+
+    protected $updateDeps(value: T) {
+        this.$onchange.forEach(handler => {
+            try {
+                handler (value);
+            }
+            catch (e) {
+                reportError(e);
+            }
+        });
     }
 }
 

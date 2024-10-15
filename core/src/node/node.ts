@@ -673,8 +673,8 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
 
     protected applyOptions(options : T) {
 
-        options["v:attr"] && Object.keys(options["v:attr"]).forEach(name => {
-            const value = options["v:attr"][name];
+        options["attr"] && Object.keys(options["attr"]).forEach(name => {
+            const value = options["attr"][name];
 
             if (value instanceof IValue) {
                 this.attr(name, value);
@@ -741,15 +741,15 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
             }
         });
 
-        options["v:events"] && Object.keys(options["v:events"]).forEach(name => {
-            this.listen(name, options["v:events"][name]);
+        options["events"] && Object.keys(options["events"]).forEach(name => {
+            this.listen(name, options["events"][name]);
         });
 
-        if (options["v:bind"]) {
+        if (options["bind"]) {
             const inode = this.node;
 
-            Reflect.ownKeys(options["v:bind"]).forEach((k : string) => {
-                const value = options["v:bind"][k];
+            Reflect.ownKeys(options["bind"]).forEach((k : string) => {
+                const value = options["bind"][k];
 
                 if (k === 'value' && (inode instanceof HTMLInputElement || inode instanceof  HTMLTextAreaElement)) {
                     inode.oninput = () => value.$ = inode.value;
@@ -765,8 +765,8 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
             });
         }
 
-        options["v:set"] && Object.keys(options["v:set"]).forEach(key => {
-            this.node[key] = options["v:set"][key];
+        options["set"] && Object.keys(options["set"]).forEach(key => {
+            this.node[key] = options["set"][key];
         });
     }
 }

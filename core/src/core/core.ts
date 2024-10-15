@@ -1,3 +1,4 @@
+import { reportError } from "../functional/safety";
 import { Destroyable } from "./destroyable.js";
 import { notOverwritten, wrongBinding } from "./errors";
 import { IValue, Switchable } from "./ivalue.js";
@@ -292,15 +293,25 @@ export class Reactive<T extends FragmentOptions = FragmentOptions> extends Destr
         return this.compose(this.input);
     }
 
-    public runFunctional<F extends (...args : any) => any>(f : F, ...args : Parameters<F>) : ReturnType<F> {
+    public runFunctional<F extends (...args : any) => any>(f : F, ...args : Parameters<F>) : ReturnType<F>|undefined {
+        let result: ReturnType<F>|undefined ;
+
         stack(this);
-        const result = f(...args);
+        try {
+            result = f(...args);
+        }
+        catch (e) {
+            reportError(e);
+        }
         unstack();
 
         return result;
     }
 
     public runOnDestroy(func : () => void) {
+        if (this.$.onDestroy) {
+            console.warn(new Error('You rewrite onDestroy handler'));
+        }
         this.$.onDestroy = func;
     }
 

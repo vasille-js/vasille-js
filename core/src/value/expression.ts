@@ -29,7 +29,7 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
     private readonly func : (i ? : number) => void;
 
     /**
-     * Expression will link different handler for each value of list
+     * Expression will link different handler for each value of the list
      */
     private linkedFunc : Array<() => void> = [];
 

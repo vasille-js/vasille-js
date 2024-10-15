@@ -1,0 +1,24 @@
+{
+  "name": "vasille-jsx",
+  "version": "1.0.0",
+  "description": "Describe Vasille components using JSX",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "frone-end",
+    "jsx",
+    "vasille"
+  ],
+  "author": "lixcode",
+  "license": "MIT",
+  "dependencies": {
+    "vasille": "file:../core"
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^8.9.0",
+    "eslint": "^9.12.0",
+    "typescript": "5.6.3"
+  }
+}

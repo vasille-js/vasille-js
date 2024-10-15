@@ -140,7 +140,7 @@ it('INode', function () {
             const attrName = "data-attr";
             const attrValue = new Reference("test");
             const el = test.tag("div", {
-                "v:attr": {
+                "attr": {
                     "data-checked": true,
                     "data-checked2": root.ref(true),
                     "data-set": "test",
@@ -275,7 +275,7 @@ it('INode Events', function () {
 
     root.init();
 
-    const element = root.tag<'button'>('button', { "v:events": { click: handler } });
+    const element = root.tag<'button'>('button', { "events": { click: handler } });
     element.click();
     expect(test).toBe(true);
 
@@ -338,15 +338,15 @@ it('bind DON api test', function () {
     global.HTMLMediaElement = page.window.HTMLMediaElement;
 
     const el = root.tag('div', {
-        "v:bind": {
+        "bind": {
             'innerHTML': html
         }
     });
 
-    const input = root.tag('textarea', { "v:bind": { value: html } }) as HTMLTextAreaElement;
-    const checkbox = root.tag('input', { "v:attr": { type: 'checkbox' }, "v:bind": { checked: bool } } ) as HTMLInputElement;
-    const media = root.tag('audio', { "v:bind": { volume: num } }) as HTMLAudioElement;
-    const media2 = root.tag('audio', { "v:set": { volume: 0.75 } }) as HTMLAudioElement;
+    const input = root.tag('textarea', { "bind": { value: html } }) as HTMLTextAreaElement;
+    const checkbox = root.tag('input', { "attr": { type: 'checkbox' }, "bind": { checked: bool } } ) as HTMLInputElement;
+    const media = root.tag('audio', { "bind": { volume: num } }) as HTMLAudioElement;
+    const media2 = root.tag('audio', { "set": { volume: 0.75 } }) as HTMLAudioElement;
 
     expect(el.innerHTML).toBe("test me now");
 
