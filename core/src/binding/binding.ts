@@ -1,29 +1,26 @@
 import { Destroyable } from "../core/destroyable";
 import type { IValue } from "../core/ivalue";
 
-
 /**
  * Describe a common binding logic
  * @class Binding
  * @extends Destroyable
  */
 export class Binding<T> extends Destroyable {
-    private binding : IValue<T>;
-    private func : (value: T) => void;
+    private binding: IValue<T>;
+    private func: (value: T) => void;
 
     /**
      * Constructs a common binding logic
      * @param value {IValue} the value to bind
      */
-    public constructor (
-        value : IValue<T>
-    ) {
-        super ();
+    public constructor(value: IValue<T>) {
+        super();
         this.binding = value;
-        this.$seal ();
+        this.$seal();
     }
 
-    protected init(bounded : (v: T) => void) {
+    protected init(bounded: (v: T) => void) {
         this.func = bounded;
         this.binding.$on(this.func);
         this.func(this.binding.$);
@@ -32,8 +29,8 @@ export class Binding<T> extends Destroyable {
     /**
      * Just clear bindings
      */
-    public $destroy () {
-        this.binding.$off (this.func);
+    public $destroy() {
+        this.binding.$off(this.func);
         super.$destroy();
     }
 }

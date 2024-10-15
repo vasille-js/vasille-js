@@ -1,25 +1,23 @@
-import {Expression, IValue, Pointer, Reactive, Reference} from "../../src";
+import { Expression, IValue, Pointer, Reactive, Reference } from "../../src";
 
-const alive : IValue<boolean> = new Reference(true);
+const alive: IValue<boolean> = new Reference(true);
 
 class CoreTest extends Reactive {
+    ref0: IValue<number>;
+    mirror0: IValue<number>;
+    forward0: IValue<number>;
+    point0: Pointer<number>;
+    ro_point: IValue<number>;
 
-    ref0 : IValue<number>;
-    mirror0 : IValue<number>;
-    forward0 : IValue<number>;
-    point0 : Pointer<number>;
-    ro_point : IValue<number>;
-
-    predefined_point : IValue<number>;
+    predefined_point: IValue<number>;
 
     watch_test = 0;
     handler_test = 0;
-    handler_ref : IValue<number>;
-    bind0 : IValue<number>;
-    bind_unlinked : IValue<number>;
+    handler_ref: IValue<number>;
+    bind0: IValue<number>;
+    bind_unlinked: IValue<number>;
 
-    freeze_test : IValue<boolean>;
-
+    freeze_test: IValue<boolean>;
 
     constructor() {
         super({});
@@ -31,22 +29,31 @@ class CoreTest extends Reactive {
         this.ro_point = super.point(this.point0, true);
         this.predefined_point = super.point(this.ref(23));
 
-        super.watch((v) => {
+        super.watch(v => {
             this.watch_test = v;
         }, this.ref0);
 
-        this.bind0 = super.expr((x, y) => {
-            return x + y;
-        }, this.ref0, this.mirror0);
+        this.bind0 = super.expr(
+            (x, y) => {
+                return x + y;
+            },
+            this.ref0,
+            this.mirror0,
+        );
 
-        this.bind_unlinked = new Expression((x, y) => {
-            return x + y;
-        }, false, this.ref0, this.mirror0);
+        this.bind_unlinked = new Expression(
+            (x, y) => {
+                return x + y;
+            },
+            false,
+            this.ref0,
+            this.mirror0,
+        );
 
         this.freeze_test = super.ref(false);
         this.handler_ref = super.ref(23);
 
-        this.handler_ref.$on((n) => {
+        this.handler_ref.$on(n => {
             this.handler_test = n;
         });
     }
@@ -55,7 +62,6 @@ class CoreTest extends Reactive {
 const coreTest = new CoreTest();
 
 it("Reactive", function () {
-
     expect(() => coreTest.bindAlive(coreTest.freeze_test)).toThrow("wrong-binding");
     coreTest.bindAlive(alive);
     expect(() => coreTest.bindAlive(alive)).toThrow("wrong-binding");
@@ -115,8 +121,7 @@ it("Reactive", function () {
     expect(coreTest.point0.$).toBe(4);
     expect(coreTest.ro_point.$).toBe(4);
 
-    expect(() => new Reactive({}).init()).toThrow('not-overwritten');
+    expect(() => new Reactive({}).init()).toThrow("not-overwritten");
 
     coreTest.$destroy();
 });
-

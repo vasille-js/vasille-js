@@ -3,13 +3,12 @@
  * @class Destroyable
  */
 export class Destroyable {
-
     /**
      * Make object fields non configurable
      * @protected
      */
-    protected $seal () {
-        const $ = this as never as { [key : string] : unknown };
+    protected $seal() {
+        const $ = this as never as { [key: string]: unknown };
 
         Object.keys($).forEach(i => {
             // eslint-disable-next-line no-prototype-builtins
@@ -17,22 +16,21 @@ export class Destroyable {
                 const config = Object.getOwnPropertyDescriptor($, i);
 
                 if (config.configurable) {
-                    let descriptor : PropertyDescriptor;
+                    let descriptor: PropertyDescriptor;
 
                     if (config.set || config.get) {
                         descriptor = {
                             configurable: false,
                             get: config.get,
                             set: config.set,
-                            enumerable: config.enumerable
+                            enumerable: config.enumerable,
                         };
-                    }
-                    else {
+                    } else {
                         descriptor = {
                             value: $[i],
                             configurable: false,
                             writable: config.writable,
-                            enumerable: config.enumerable
+                            enumerable: config.enumerable,
                         };
                     }
 
@@ -45,7 +43,7 @@ export class Destroyable {
     /**
      * Garbage collector method
      */
-    public $destroy () : void {
+    public $destroy(): void {
         // nothing here
     }
 }

@@ -1,8 +1,6 @@
 import { IValue } from "../core/ivalue";
 import { Reference } from "./reference";
 
-
-
 /**
  * Declares a notifiable bind to a value
  * @class Mirror
@@ -14,44 +12,44 @@ export class Mirror<T> extends Reference<T> {
      * pointed value
      * @type IValue
      */
-    protected $pointedValue : IValue<T>;
+    protected $pointedValue: IValue<T>;
 
     /**
      * Collection of handlers
      * @type Set
      */
-    private readonly $handler : (value : T) => void;
+    private readonly $handler: (value: T) => void;
 
     /**
      * Ensure forward only synchronization
      */
-    public $forwardOnly : boolean;
+    public $forwardOnly: boolean;
 
     /**
      * Constructs a notifiable bind to a value
      * @param value {IValue} is initial value
      * @param forwardOnly {boolean} ensure forward only synchronization
      */
-    public constructor (value : IValue<T>, forwardOnly = false) {
-        super (value.$);
-        this.$handler = (v : T) => {
+    public constructor(value: IValue<T>, forwardOnly = false) {
+        super(value.$);
+        this.$handler = (v: T) => {
             this.$ = v;
         };
         this.$pointedValue = value;
         this.$forwardOnly = forwardOnly;
 
-        value.$on (this.$handler);
-        this.$seal ();
+        value.$on(this.$handler);
+        this.$seal();
     }
 
-    public get $ () : T {
+    public get $(): T {
         // this is a ts bug
         // eslint-disable-next-line
         // @ts-ignore
         return super.$;
     }
 
-    public set $ (v : T) {
+    public set $(v: T) {
         if (!this.$forwardOnly) {
             this.$pointedValue.$ = v;
         }
@@ -61,7 +59,7 @@ export class Mirror<T> extends Reference<T> {
         super.$ = v;
     }
 
-    public $enable () : void {
+    public $enable(): void {
         if (!this.isEnabled) {
             this.isEnabled = true;
             this.$pointedValue.$on(this.$handler);
@@ -69,14 +67,14 @@ export class Mirror<T> extends Reference<T> {
         }
     }
 
-    public $disable () : void {
+    public $disable(): void {
         if (this.isEnabled) {
             this.$pointedValue.$off(this.$handler);
             this.isEnabled = false;
         }
     }
 
-    public $destroy () {
+    public $destroy() {
         this.$disable();
         super.$destroy();
     }

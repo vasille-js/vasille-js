@@ -7,24 +7,23 @@ import { IValue } from "../core/ivalue";
  * @extends Mirror
  */
 export class Pointer<T> extends Mirror<T> {
-
     /**
      * @param value {IValue} value to point
      * @param forwardOnly {boolean} forward only data flow
      */
-    public constructor (value : IValue<T>, forwardOnly = false) {
-        super (value, forwardOnly);
+    public constructor(value: IValue<T>, forwardOnly = false) {
+        super(value, forwardOnly);
     }
 
     /**
      * Point a new ivalue
      * @param value {IValue} value to point
      */
-    public set $$ (value : IValue<T>) {
+    public set $$(value: IValue<T>) {
         if (this.$pointedValue !== value) {
-            this.$disable ();
+            this.$disable();
             this.$pointedValue = value;
-            this.$enable ();
+            this.$enable();
         }
     }
 }

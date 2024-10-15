@@ -1,8 +1,6 @@
 import { Listener } from "./listener";
 import { ListenableModel } from "./model";
 
-
-
 /**
  * A Map based memory
  * @class MapModel
@@ -10,20 +8,19 @@ import { ListenableModel } from "./model";
  * @implements IModel
  */
 export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
-
-    public listener : Listener<T, K>;
+    public listener: Listener<T, K>;
 
     /**
      * Constructs a map model
      * @param map {[*, *][]} input data
      */
-    public constructor (map : [K, T][] = []) {
+    public constructor(map: [K, T][] = []) {
         super();
 
-        Object.defineProperty(this, 'listener', {
-            value: new Listener,
+        Object.defineProperty(this, "listener", {
+            value: new Listener(),
             writable: false,
-            configurable: false
+            configurable: false,
         });
 
         map.forEach(([key, value]) => {
@@ -34,7 +31,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
     /**
      * Calls Map.clear and notify abut changes
      */
-    public clear () {
+    public clear() {
         this.forEach((value, key) => {
             this.listener.emitRemoved(key, value);
         });
@@ -46,7 +43,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
      * @param key {*} key
      * @return {boolean} true if removed something, otherwise false
      */
-    public delete (key : any) : boolean {
+    public delete(key: any): boolean {
         const tmp = super.get(key);
         if (tmp) {
             this.listener.emitRemoved(key, tmp);
@@ -60,7 +57,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
      * @param value {*} value
      * @return {MapModel} a pointer to this
      */
-    public set (key : K, value : T) : this {
+    public set(key: K, value: T): this {
         const tmp = super.get(key);
         if (tmp) {
             this.listener.emitRemoved(key, tmp);
@@ -72,12 +69,11 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
         return this;
     }
 
-    public enableReactivity () {
+    public enableReactivity() {
         this.listener.enableReactivity();
     }
 
-    public disableReactivity () {
+    public disableReactivity() {
         this.listener.disableReactivity();
     }
 }
-

@@ -1,8 +1,6 @@
 import { Fragment, INodePrivate } from "../node/node";
 import { FragmentOptions } from "../functional/options";
 
-
-
 /**
  * Private part of repeat node
  * @class RepeatNodePrivate
@@ -13,22 +11,22 @@ export class RepeatNodePrivate<IdT> extends INodePrivate {
      * Children node hash
      * @type {Map}
      */
-    public nodes : Map<IdT, Fragment> = new Map();
+    public nodes: Map<IdT, Fragment> = new Map();
 
-    public constructor () {
-        super ();
+    public constructor() {
+        super();
         this.$seal();
     }
 
-    public $destroy () {
+    public $destroy() {
         this.nodes.clear();
-        super.$destroy ();
+        super.$destroy();
     }
 }
 
 // RNO = RepeatNodeOptions
 export interface RNO<T, IdT> extends FragmentOptions {
-    slot ?: (node : Fragment, value : T, index : IdT) => void
+    slot?: (node: Fragment, value: T, index: IdT) => void;
 }
 
 /**
@@ -37,19 +35,18 @@ export interface RNO<T, IdT> extends FragmentOptions {
  * @extends Fragment
  */
 export class RepeatNode<IdT, T, Opts extends RNO<T, IdT> = RNO<T, IdT>> extends Fragment<Opts> {
-    protected $ : RepeatNodePrivate<IdT>;
+    protected $: RepeatNodePrivate<IdT>;
 
     /**
      * If false will use timeout executor, otherwise the app executor
      */
     public freezeUi = true;
 
-    public constructor (input : Opts, $ : RepeatNodePrivate<IdT>) {
+    public constructor(input: Opts, $: RepeatNodePrivate<IdT>) {
         super(input, $);
     }
 
-    public createChild (opts : Opts, id : IdT, item : T, before ?: Fragment) : any {
-
+    public createChild(opts: Opts, id: IdT, item: T, before?: Fragment): any {
         const node = new Fragment({});
 
         this.destroyChild(id, item);
@@ -57,8 +54,7 @@ export class RepeatNode<IdT, T, Opts extends RNO<T, IdT> = RNO<T, IdT>> extends 
         if (before) {
             this.children.add(node);
             before.insertBefore(node);
-        }
-        else {
+        } else {
             const lastChild = this.lastChild;
 
             if (lastChild) {
@@ -77,8 +73,8 @@ export class RepeatNode<IdT, T, Opts extends RNO<T, IdT> = RNO<T, IdT>> extends 
         this.$.nodes.set(id, node);
     }
 
-    public destroyChild (id : IdT, item : T) {
-        const $ : RepeatNodePrivate<IdT> = this.$;
+    public destroyChild(id: IdT, item: T) {
+        const $: RepeatNodePrivate<IdT> = this.$;
         const child = $.nodes.get(id);
 
         if (child) {
@@ -89,4 +85,3 @@ export class RepeatNode<IdT, T, Opts extends RNO<T, IdT> = RNO<T, IdT>> extends 
         }
     }
 }
-

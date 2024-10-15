@@ -1,24 +1,23 @@
 import {
     App,
     ArrayModel,
-    ArrayView, Fragment,
+    ArrayView,
+    Fragment,
     MapModel,
     MapView,
     ObjectModel,
     ObjectView,
     Reference,
     SetModel,
-    SetView
+    SetView,
 } from "../../src";
-import {page} from "../page";
+import { page } from "../page";
 
-
-
-it('array view', function () {
+it("array view", function () {
     const root = new App(page.window.document.body, {});
     const array = new ArrayModel<number>([1]);
 
-    const element = root.tag('div', {}, (node) => {
+    const element = root.tag("div", {}, node => {
         node.create(new ArrayView({ model: array }), (node, item) => {
             node.text(`${item}`);
         });
@@ -86,12 +85,16 @@ it('array view', function () {
     root.$destroy();
 });
 
-it('map view', function () {
+it("map view", function () {
     const root = new App(page.window.document.body, {});
-    const model = new MapModel<number, number>([[1, 2], [2, 3], [3, 4]]);
+    const model = new MapModel<number, number>([
+        [1, 2],
+        [2, 3],
+        [3, 4],
+    ]);
 
-    const element = root.tag('div', {}, (node) => {
-        node.create(new MapView({model}), (node, item) => {
+    const element = root.tag("div", {}, node => {
+        node.create(new MapView({ model }), (node, item) => {
             node.text(`${item}`);
         });
     });
@@ -117,40 +120,40 @@ it('map view', function () {
     root.$destroy();
 });
 
-it('object view', function () {
+it("object view", function () {
     const root = new App(page.window.document.body, {});
-    const model = new ObjectModel({0: 1, 1: 2, 2: 3});
+    const model = new ObjectModel({ 0: 1, 1: 2, 2: 3 });
 
-    const element = root.tag('div', {}, (node) => {
-        node.create(new ObjectView({model}), (node, item) => {
+    const element = root.tag("div", {}, node => {
+        node.create(new ObjectView({ model }), (node, item) => {
             node.text(`${item}`);
         });
     });
 
     expect(element.innerHTML).toBe("123");
 
-    model.delete('2');
+    model.delete("2");
     expect(element.innerHTML).toBe("12");
 
-    model.set('0', 4);
-    expect(element.innerHTML).toBe('24');
+    model.set("0", 4);
+    expect(element.innerHTML).toBe("24");
 
     model.disableReactivity();
-    model.set('3', 3);
-    expect(element.innerHTML).toBe('24');
+    model.set("3", 3);
+    expect(element.innerHTML).toBe("24");
 
     model.enableReactivity();
-    expect(element.innerHTML).toBe('243');
+    expect(element.innerHTML).toBe("243");
 
     root.$destroy();
 });
 
-it('set view', function () {
+it("set view", function () {
     const root = new App(page.window.document.body, {});
     const model = new SetModel([1, 2, 3]);
 
-    const element = root.tag('div', {}, (node) => {
-        node.create(new SetView({model}), (node, item) => {
+    const element = root.tag("div", {}, node => {
+        node.create(new SetView({ model }), (node, item) => {
             node.text(`${item}`);
         });
     });
@@ -174,7 +177,7 @@ it('set view', function () {
 });
 
 class ReactivityTest extends Fragment {
-    set : SetModel<number>;
+    set: SetModel<number>;
 
     constructor() {
         super({});
@@ -185,18 +188,18 @@ class ReactivityTest extends Fragment {
     compose(input) {
         super.compose(input);
 
-        this.create(new SetView({model : this.set}), (node, item) => {
+        this.create(new SetView({ model: this.set }), (node, item) => {
             node.text(`${item}`);
         });
         return {};
     }
 }
 
-it('views reactivity', function () {
+it("views reactivity", function () {
     const root = new App(page.window.document.body, {});
     const test = new ReactivityTest();
 
-    const element = root.tag('div', {}, (node) => {
+    const element = root.tag("div", {}, node => {
         node.create(test);
     });
 
@@ -212,21 +215,20 @@ it('views reactivity', function () {
     root.$destroy();
 });
 
-it('view timeout test', function (done) {
+it("view timeout test", function (done) {
     const root = new App(page.window.document.body, {});
     const model = new SetModel([1, 2, 3]);
 
     // @ts-ignore
     global.window = page.window;
 
-    const element = root.tag('div', {}, (node) => {
-        node.create(new SetView({model}), (node, item) => {
+    const element = root.tag("div", {}, node => {
+        node.create(new SetView({ model }), (node, item) => {
             setTimeout(() => {
                 node.text(`${item}`);
             }, 0);
         });
     });
-
 
     expect(element.innerHTML).toBe("");
 

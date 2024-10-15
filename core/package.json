@@ -13,7 +13,7 @@
   "unpkg": "./cdn/es2015.js",
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
-    "prettier": "npx prettier src test --check",
+    "prettier": "npx prettier src test --write",
     "build": "tsc --build tsconfig-build.json",
     "build-node": "tsc --build tsconfig-build-node.json",
     "test": "jest",

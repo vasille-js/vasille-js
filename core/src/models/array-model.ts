@@ -1,27 +1,24 @@
 import { Listener } from "./listener";
 import { ListenableModel } from "./model";
 
-
-
 /**
  * Model based on Array class
  * @extends Array
  * @implements IModel
  */
 export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
-
-    public listener : Listener<T, T>;
+    public listener: Listener<T, T>;
 
     /**
      * @param data {Array} input data
      */
-    public constructor (data : Array<T> = []) {
+    public constructor(data: Array<T> = []) {
         super();
 
-        Object.defineProperty(this, 'listener', {
-            value: new Listener,
+        Object.defineProperty(this, "listener", {
+            value: new Listener(),
             writable: false,
-            configurable: false
+            configurable: false,
         });
 
         for (let i = 0; i < data.length; i++) {
@@ -35,7 +32,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * Gets the last item of array
      * @return {*} the last item of array
      */
-    public get last () : T {
+    public get last(): T {
         return this.length ? this[this.length - 1] : null;
     }
 
@@ -45,7 +42,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @param start {?number} begin index
      * @param end {?number} end index
      */
-    public fill (value : T, start ?: number, end ?: number) : this {
+    public fill(value: T, start?: number, end?: number): this {
         if (!start) {
             start = 0;
         }
@@ -65,7 +62,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * Calls Array.pop and notify about changes
      * @return {*} removed value
      */
-    public pop () : T {
+    public pop(): T {
         const v = super.pop();
 
         if (v !== undefined) {
@@ -79,9 +76,8 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @param items {...*} values to push
      * @return {number} new length of array
      */
-    public push (...items : Array<T>) : number {
+    public push(...items: Array<T>): number {
         items.forEach(item => {
-
             this.listener.emitAdded(item, item);
             super.push(item);
         });
@@ -92,7 +88,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * Calls Array.shift and notify about changed
      * @return {*} the shifted value
      */
-    public shift () : T {
+    public shift(): T {
         const v = super.shift();
 
         if (v !== undefined) {
@@ -108,11 +104,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @param items {...*}
      * @return {ArrayModel} a pointer to this
      */
-    public splice (
-        start : number,
-        deleteCount ?: number,
-        ...items : Array<T>
-    ) : ArrayModel<T> {
+    public splice(start: number, deleteCount?: number, ...items: Array<T>): ArrayModel<T> {
         start = Math.min(start, this.length);
         deleteCount = deleteCount || this.length - start;
 
@@ -136,8 +128,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @param items {...*} values to insert
      * @return {number} the length after prepend
      */
-    public unshift (...items : Array<T>) : number {
-
+    public unshift(...items: Array<T>): number {
         for (let i = 0; i < items.length; i++) {
             this.listener.emitAdded(this[i], items[i]);
         }
@@ -148,7 +139,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * Inserts a value to the end of array
      * @param v {*} value to insert
      */
-    public append (v : T) : this {
+    public append(v: T): this {
         this.listener.emitAdded(null, v);
         super.push(v);
         return this;
@@ -158,7 +149,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * Clears array
      * @return {this} a pointer to this
      */
-    public clear () : this {
+    public clear(): this {
         this.forEach(v => {
             this.listener.emitRemoved(v, v);
         });
@@ -172,7 +163,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @param v {*} value to insert
      * @return {this} a pointer to this
      */
-    public insert (index : number, v : T) : this {
+    public insert(index: number, v: T): this {
         this.listener.emitAdded(this[index], v);
         super.splice(index, 0, v);
         return this;
@@ -183,7 +174,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @param v {*} value to insert
      * @return {this} a pointer to this
      */
-    public prepend (v : T) : this {
+    public prepend(v: T): this {
         this.listener.emitAdded(this[0], v);
         super.unshift(v);
         return this;
@@ -194,7 +185,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @param index {number} index of value to remove
      * @return {this} a pointer to this
      */
-    public removeAt (index : number) : this {
+    public removeAt(index: number): this {
         if (index > 0 && index < this.length) {
             this.listener.emitRemoved(this[index], this[index]);
             super.splice(index, 1);
@@ -206,7 +197,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * Removes the first value of array
      * @return {this} a pointer to this
      */
-    public removeFirst () : this {
+    public removeFirst(): this {
         if (this.length) {
             this.listener.emitRemoved(this[0], this[0]);
             super.shift();
@@ -218,7 +209,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * Removes the ast value of array
      * @return {this} a pointer to this
      */
-    public removeLast () : this {
+    public removeLast(): this {
         const last = this.last;
 
         if (last != null) {
@@ -233,23 +224,23 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @param v {*} value to remove
      * @return {this}
      */
-    public removeOne (v : T) : this {
+    public removeOne(v: T): this {
         this.removeAt(this.indexOf(v));
         return this;
     }
 
-    public replace (at : number, with_ : T) : this {
+    public replace(at: number, with_: T): this {
         this.listener.emitAdded(this[at], with_);
         this.listener.emitRemoved(this[at], this[at]);
         this[at] = with_;
         return this;
     }
 
-    public enableReactivity () {
+    public enableReactivity() {
         this.listener.enableReactivity();
     }
 
-    public disableReactivity () {
+    public disableReactivity() {
         this.listener.disableReactivity();
     }
 }

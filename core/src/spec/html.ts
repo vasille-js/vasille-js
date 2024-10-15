@@ -1,485 +1,483 @@
-
-export type EventHandler<T> = (ev : T) => any;
+export type EventHandler<T> = (ev: T) => any;
 
 export interface Tag<Attrs, Events> {
-    attrs : Attrs
-    events : Events
+    attrs: Attrs;
+    events: Events;
 }
 
 type TagEvents = {
-    [K in keyof HTMLElementEventMap] : EventHandler<HTMLElementEventMap[K]> | undefined
-}
+    [K in keyof HTMLElementEventMap]: EventHandler<HTMLElementEventMap[K]> | undefined;
+};
 
 interface TagAttrs {
-    id : string
-    accesskey : string
-    autocapitalize : "off" | "none" | "on" | "sentences" | "words" | "characters"
-    autofocus : "" | boolean
-    contenteditable : "true" | "false" | "" | boolean
-    dir : "ltr" | "rtl" | "auto"
-    draggable : "true" | "false" | "" | boolean
-    enterkeyhint : "enter" | "done" | "go" | "next" | "previous" | "search" | "send"
-    hidden : "until-found" | "hidden" | "" | boolean
-    inert : boolean
-    inputmode : "none" | "text" | "tel" | "url" | "email" | "numeric" | "decimal" | "search"
-    is : string
-    itemid : string
-    itemprop : string
-    itemref : string
-    itemscope : boolean
-    itemtype : string
-    lang : string
-    nonce : string
-    spellcheck : "true" | "false" | "" | boolean
-    tabindex : number
-    title : string
-    translate : "yes" | "no" | "" | boolean
+    id: string;
+    accesskey: string;
+    autocapitalize: "off" | "none" | "on" | "sentences" | "words" | "characters";
+    autofocus: "" | boolean;
+    contenteditable: "true" | "false" | "" | boolean;
+    dir: "ltr" | "rtl" | "auto";
+    draggable: "true" | "false" | "" | boolean;
+    enterkeyhint: "enter" | "done" | "go" | "next" | "previous" | "search" | "send";
+    hidden: "until-found" | "hidden" | "" | boolean;
+    inert: boolean;
+    inputmode: "none" | "text" | "tel" | "url" | "email" | "numeric" | "decimal" | "search";
+    is: string;
+    itemid: string;
+    itemprop: string;
+    itemref: string;
+    itemscope: boolean;
+    itemtype: string;
+    lang: string;
+    nonce: string;
+    spellcheck: "true" | "false" | "" | boolean;
+    tabindex: number;
+    title: string;
+    translate: "yes" | "no" | "" | boolean;
 }
 
 interface MediaTagAttrs extends TagAttrs {
-    src : string
-    crossorigin : "anonymous" | "use-credentials" | "" | boolean
-    preload : "none" | "metadata" | "auto"
-    autoplay : boolean
-    loop : boolean
-    muted : boolean
-    controls : boolean
+    src: string;
+    crossorigin: "anonymous" | "use-credentials" | "" | boolean;
+    preload: "none" | "metadata" | "auto";
+    autoplay: boolean;
+    loop: boolean;
+    muted: boolean;
+    controls: boolean;
 }
 
 type MediaEvents = {
-    [K in keyof HTMLMediaElementEventMap] : EventHandler<HTMLMediaElementEventMap[K]> | undefined
-}
+    [K in keyof HTMLMediaElementEventMap]: EventHandler<HTMLMediaElementEventMap[K]> | undefined;
+};
 
 type VideoEvents = {
-    [K in keyof HTMLVideoElementEventMap] : EventHandler<HTMLVideoElementEventMap[K]> | undefined
-}
+    [K in keyof HTMLVideoElementEventMap]: EventHandler<HTMLVideoElementEventMap[K]> | undefined;
+};
 
 interface BaseAttrs extends TagAttrs {
-    href : string
-    target : string
+    href: string;
+    target: string;
 }
 
 interface LinkAttrs extends TagAttrs {
-    href : string
-    crossorigin : "anonymous" | "use-credentials" | "" | boolean
-    rel : string
-    media : string
-    integrity : string
-    hreflang : string
-    type : string
-    referrerpolicy : string
-    sizes : string
-    imagesrcset : string
-    imagesizes : string
-    as : string
-    blocking : boolean
-    color : string
+    href: string;
+    crossorigin: "anonymous" | "use-credentials" | "" | boolean;
+    rel: string;
+    media: string;
+    integrity: string;
+    hreflang: string;
+    type: string;
+    referrerpolicy: string;
+    sizes: string;
+    imagesrcset: string;
+    imagesizes: string;
+    as: string;
+    blocking: boolean;
+    color: string;
 }
 
 interface MetaAttrs extends TagAttrs {
-    name : string
-    'http-equiv' : string
-    content : string
-    charset : string
-    media : string
+    name: string;
+    "http-equiv": string;
+    content: string;
+    charset: string;
+    media: string;
 }
 
 interface StyleAttrs extends TagAttrs {
-    media : string
-    blocking : string
+    media: string;
+    blocking: string;
 }
 
 type BodyEvents = {
-    [K in keyof HTMLBodyElementEventMap] : EventHandler<HTMLBodyElementEventMap[K]> | undefined
-}
+    [K in keyof HTMLBodyElementEventMap]: EventHandler<HTMLBodyElementEventMap[K]> | undefined;
+};
 
 interface BlockQuoteAttrs extends TagAttrs {
-    cite : string
+    cite: string;
 }
 
 interface OlAttrs extends TagAttrs {
-    reversed : boolean
-    start : number
-    type : "1" | "a" | "A" | "i" | "I"
+    reversed: boolean;
+    start: number;
+    type: "1" | "a" | "A" | "i" | "I";
 }
 
 interface AAttrs extends TagAttrs {
-    href : string
-    target : string
-    download : string
-    ping : string
-    hreflang : string
-    type : string
-    referrerpolicy : string
+    href: string;
+    target: string;
+    download: string;
+    ping: string;
+    hreflang: string;
+    type: string;
+    referrerpolicy: string;
 }
 
 interface QAttrs extends TagAttrs {
-    cite : string
+    cite: string;
 }
 
 interface DataAttr extends TagAttrs {
-    value : string
+    value: string;
 }
 
 interface BdoAttrs extends TagAttrs {
-    dir : "ltr" | "rtl"
+    dir: "ltr" | "rtl";
 }
 
 interface SourceAttrs extends TagAttrs {
-    type : string
-    src : string
-    srcset : string
-    sizes : string
-    media : string
-    width : number
-    height : number
+    type: string;
+    src: string;
+    srcset: string;
+    sizes: string;
+    media: string;
+    width: number;
+    height: number;
 }
 
 interface ImgAttrs extends TagAttrs {
-    alt : string
-    src : string
-    srcset : string
-    sizes : string
-    crossorigin : "anonymous" | "use-credentials" | "" | boolean
-    usemap : string
-    ismap : string
-    width : number
-    height : number
-    referrerpolicy : string
-    decoding : string
-    loading : string
+    alt: string;
+    src: string;
+    srcset: string;
+    sizes: string;
+    crossorigin: "anonymous" | "use-credentials" | "" | boolean;
+    usemap: string;
+    ismap: string;
+    width: number;
+    height: number;
+    referrerpolicy: string;
+    decoding: string;
+    loading: string;
 }
 
 interface IframeAttrs extends TagAttrs {
-    src : string
-    srcdoc : string
-    name : string
-    sandbox : string
-    allow : string
-    allowfullscreen : string
-    width : number
-    height : number
-    referrerpolicy : string
-    loading : string
+    src: string;
+    srcdoc: string;
+    name: string;
+    sandbox: string;
+    allow: string;
+    allowfullscreen: string;
+    width: number;
+    height: number;
+    referrerpolicy: string;
+    loading: string;
 }
 
 interface EmbedAttrs extends TagAttrs {
-    src : string
-    type : string
-    width : number
-    height : number
+    src: string;
+    type: string;
+    width: number;
+    height: number;
 }
 
 interface ObjectAttrs extends TagAttrs {
-    data : string
-    type : string
-    name : string
-    form : string
-    width : number
-    height : number
+    data: string;
+    type: string;
+    name: string;
+    form: string;
+    width: number;
+    height: number;
 }
 
 interface ParamAttrs extends TagAttrs {
-    name : string
-    value : string
+    name: string;
+    value: string;
 }
 
 interface VideoAttrs extends MediaTagAttrs {
-    poster : string
-    playsinline : boolean
-    width : number
-    height : number
+    poster: string;
+    playsinline: boolean;
+    width: number;
+    height: number;
 }
 
 interface TrackAttrs extends TagAttrs {
-    kind : string
-    src : string
-    srclang : string
-    label : string
-    defautl : boolean
+    kind: string;
+    src: string;
+    srclang: string;
+    label: string;
+    defautl: boolean;
 }
 
 interface MapAttrs extends TagAttrs {
-    name : string
+    name: string;
 }
 
 interface AreaAttrs extends TagAttrs {
-    alt : string
-    coords : string
-    shape : string
-    href : string
-    target : string
-    download : string
-    ping : string
-    rel : string
-    referrerpolicy : string
+    alt: string;
+    coords: string;
+    shape: string;
+    href: string;
+    target: string;
+    download: string;
+    ping: string;
+    rel: string;
+    referrerpolicy: string;
 }
 
 interface ColAttrs extends TagAttrs {
-    span : number
+    span: number;
 }
 
 interface TdAttrs extends TagAttrs {
-    colspan : number
-    rowspan : number
-    headers : string
+    colspan: number;
+    rowspan: number;
+    headers: string;
 }
 
 interface ThAttrs extends TdAttrs {
-    scope : string
-    abbr : string
+    scope: string;
+    abbr: string;
 }
 
 interface FormAttrs extends TagAttrs {
-    'accept-charset' : string
-    action : string
-    autocomplete : string
-    enctype : string
-    method : string
-    name : string
-    novalidate : string
-    target : string
-    rel : string
+    "accept-charset": string;
+    action: string;
+    autocomplete: string;
+    enctype: string;
+    method: string;
+    name: string;
+    novalidate: string;
+    target: string;
+    rel: string;
 }
 
 interface LabelAttrs extends TagAttrs {
-    for : string
+    for: string;
 }
 
 interface InputAttrs extends TagAttrs {
-    accept : string
-    alt : string
-    autocomplete : boolean
-    checked : boolean
-    dirname : string
-    disabled : boolean
-    form : string
-    formaction : string
-    formenctype : string
-    formmethod : string
-    formnovalidate : string
-    formtarget : string
-    height : number
-    list : string
-    max : number
-    maxlength : number
-    min : number
-    minlength : number
-    multiple : boolean
-    name : string
-    pattern : string
-    placeholder : string
-    readonly : string
-    required : string
-    size : number
-    src : string
-    step : string
-    type : string
-    width : number
+    accept: string;
+    alt: string;
+    autocomplete: boolean;
+    checked: boolean;
+    dirname: string;
+    disabled: boolean;
+    form: string;
+    formaction: string;
+    formenctype: string;
+    formmethod: string;
+    formnovalidate: string;
+    formtarget: string;
+    height: number;
+    list: string;
+    max: number;
+    maxlength: number;
+    min: number;
+    minlength: number;
+    multiple: boolean;
+    name: string;
+    pattern: string;
+    placeholder: string;
+    readonly: string;
+    required: string;
+    size: number;
+    src: string;
+    step: string;
+    type: string;
+    width: number;
 }
 
 interface ButtonAttrs extends TagAttrs {
-    disabled : boolean
-    form : string
-    formaction : string
-    formenctype : string
-    formmethod : string
-    formnovalidate : string
-    formtarget : string
-    name : string
-    type : string
-    value : string
+    disabled: boolean;
+    form: string;
+    formaction: string;
+    formenctype: string;
+    formmethod: string;
+    formnovalidate: string;
+    formtarget: string;
+    name: string;
+    type: string;
+    value: string;
 }
 
 interface SelectAttrs extends TagAttrs {
-    autocomplete : boolean
-    disabled : boolean
-    form : string
-    multiple : boolean
-    name : string
-    required : boolean
-    size : number
+    autocomplete: boolean;
+    disabled: boolean;
+    form: string;
+    multiple: boolean;
+    name: string;
+    required: boolean;
+    size: number;
 }
 
 interface OptgroupAttrs extends TagAttrs {
-    disabled : boolean
-    label : string
+    disabled: boolean;
+    label: string;
 }
 
 interface OptionAttrs extends TagAttrs {
-    disabled : boolean
-    label : string
-    selected : boolean
-    value : string
+    disabled: boolean;
+    label: string;
+    selected: boolean;
+    value: string;
 }
 
 interface TextareaAttrs extends TagAttrs {
-    autocomplete : boolean
-    cols : number
-    dirname : string
-    disabled : boolean
-    form : string
-    maxlength : number
-    minlength : number
-    name : string
-    placeholder : string
-    readonly : boolean
-    required : boolean
-    rows : number
-    wrap : string
+    autocomplete: boolean;
+    cols: number;
+    dirname: string;
+    disabled: boolean;
+    form: string;
+    maxlength: number;
+    minlength: number;
+    name: string;
+    placeholder: string;
+    readonly: boolean;
+    required: boolean;
+    rows: number;
+    wrap: string;
 }
 
 interface OutputAttrs extends TagAttrs {
-    for : string
-    form : string
-    name : string
+    for: string;
+    form: string;
+    name: string;
 }
 
 interface ProgressAttrs extends TagAttrs {
-    value : number
-    max : number
+    value: number;
+    max: number;
 }
 
 interface MeterAttrs extends TagAttrs {
-    value : number
-    min : number
-    max : number
-    low : number
-    high : number
-    optimum : number
+    value: number;
+    min: number;
+    max: number;
+    low: number;
+    high: number;
+    optimum: number;
 }
 
 interface FieldsetAttrs extends TagAttrs {
-    disabled : boolean
-    form : string
-    name : string
+    disabled: boolean;
+    form: string;
+    name: string;
 }
 
 interface DetailsAttrs extends TagAttrs {
-    open : boolean
+    open: boolean;
 }
 
 export interface HtmlTagMap {
-    "a": Tag<AAttrs, TagEvents>;
-    "abbr": Tag<TagAttrs, TagEvents>;
-    "address": Tag<TagAttrs, TagEvents>;
-    "area": Tag<AreaAttrs, TagEvents>;
-    "article": Tag<TagAttrs, TagEvents>;
-    "aside": Tag<TagAttrs, TagEvents>;
-    "audio": Tag<MediaTagAttrs, MediaEvents>;
-    "b": Tag<TagAttrs, TagEvents>;
-    "base": Tag<BaseAttrs, TagEvents>;
-    "bdi": Tag<TagAttrs, TagEvents>;
-    "bdo": Tag<BdoAttrs, TagEvents>;
-    "blockquote": Tag<BlockQuoteAttrs, TagEvents>;
-    "body": Tag<TagAttrs, BodyEvents>;
-    "br": Tag<TagAttrs, TagEvents>;
-    "button": Tag<ButtonAttrs, TagEvents>;
-    "canvas": Tag<TagAttrs, TagEvents>;
-    "caption": Tag<TagAttrs, TagEvents>;
-    "cite": Tag<TagAttrs, TagEvents>;
-    "code": Tag<TagAttrs, TagEvents>;
-    "col": Tag<ColAttrs, TagEvents>;
-    "colgroup": Tag<ColAttrs, TagEvents>;
-    "data": Tag<DataAttr, TagEvents>;
-    "datalist": Tag<TagAttrs, TagEvents>;
-    "dd": Tag<TagAttrs, TagEvents>;
-    "del": Tag<TagAttrs, TagEvents>;
-    "details": Tag<DetailsAttrs, TagEvents>;
-    "dfn": Tag<TagAttrs, TagEvents>;
-    "dialog": Tag<TagAttrs, TagEvents>;
-    "dir": Tag<TagAttrs, TagEvents>;
-    "div": Tag<TagAttrs, TagEvents>;
-    "dl": Tag<TagAttrs, TagEvents>;
-    "dt": Tag<TagAttrs, TagEvents>;
-    "em": Tag<TagAttrs, TagEvents>;
-    "embed": Tag<EmbedAttrs, TagEvents>;
-    "fieldset": Tag<FieldsetAttrs, TagEvents>;
-    "figcaption": Tag<TagAttrs, TagEvents>;
-    "figure": Tag<TagAttrs, TagEvents>;
-    "font": Tag<TagAttrs, TagEvents>;
-    "footer": Tag<TagAttrs, TagEvents>;
-    "form": Tag<FormAttrs, TagEvents>;
-    "frame": Tag<TagAttrs, TagEvents>;
-    "frameset": Tag<TagAttrs, TagEvents>;
-    "h1": Tag<TagAttrs, TagEvents>;
-    "h2": Tag<TagAttrs, TagEvents>;
-    "h3": Tag<TagAttrs, TagEvents>;
-    "h4": Tag<TagAttrs, TagEvents>;
-    "h5": Tag<TagAttrs, TagEvents>;
-    "h6": Tag<TagAttrs, TagEvents>;
-    "head": Tag<TagAttrs, TagEvents>;
-    "header": Tag<TagAttrs, TagEvents>;
-    "hgroup": Tag<TagAttrs, TagEvents>;
-    "hr": Tag<TagAttrs, TagEvents>;
-    "html": Tag<TagAttrs, TagEvents>;
-    "i": Tag<TagAttrs, TagEvents>;
-    "iframe": Tag<IframeAttrs, TagEvents>;
-    "img": Tag<ImgAttrs, TagEvents>;
-    "input": Tag<InputAttrs, TagEvents>;
-    "ins": Tag<TagAttrs, TagEvents>;
-    "kbd": Tag<TagAttrs, TagEvents>;
-    "label": Tag<LabelAttrs, TagEvents>;
-    "legend": Tag<TagAttrs, TagEvents>;
-    "li": Tag<TagAttrs, TagEvents>;
-    "link": Tag<LinkAttrs, TagEvents>;
-    "main": Tag<TagAttrs, TagEvents>;
-    "map": Tag<MapAttrs, TagEvents>;
-    "mark": Tag<TagAttrs, TagEvents>;
-    "marquee": Tag<TagAttrs, TagEvents>;
-    "menu": Tag<TagAttrs, TagEvents>;
-    "meta": Tag<MetaAttrs, TagEvents>;
-    "meter": Tag<MeterAttrs, TagEvents>;
-    "nav": Tag<TagAttrs, TagEvents>;
-    "noscript": Tag<TagAttrs, TagEvents>;
-    "object": Tag<ObjectAttrs, TagEvents>;
-    "ol": Tag<OlAttrs, TagEvents>;
-    "optgroup": Tag<OptgroupAttrs, TagEvents>;
-    "option": Tag<OptionAttrs, TagEvents>;
-    "output": Tag<OutputAttrs, TagEvents>;
-    "p": Tag<TagAttrs, TagEvents>;
-    "param": Tag<ParamAttrs, TagEvents>;
-    "picture": Tag<TagAttrs, TagEvents>;
-    "pre": Tag<TagAttrs, TagEvents>;
-    "progress": Tag<ProgressAttrs, TagEvents>;
-    "q": Tag<QAttrs, TagEvents>;
-    "rp": Tag<TagAttrs, TagEvents>;
-    "rt": Tag<TagAttrs, TagEvents>;
-    "ruby": Tag<TagAttrs, TagEvents>;
-    "s": Tag<TagAttrs, TagEvents>;
-    "samp": Tag<TagAttrs, TagEvents>;
-    "script": Tag<TagAttrs, TagEvents>;
-    "section": Tag<TagAttrs, TagEvents>;
-    "select": Tag<SelectAttrs, TagEvents>;
-    "slot": Tag<TagAttrs, TagEvents>;
-    "small": Tag<TagAttrs, TagEvents>;
-    "source": Tag<SourceAttrs, TagEvents>;
-    "span": Tag<TagAttrs, TagEvents>;
-    "strong": Tag<TagAttrs, TagEvents>;
-    "style": Tag<StyleAttrs, TagEvents>;
-    "sub": Tag<TagAttrs, TagEvents>;
-    "summary": Tag<TagAttrs, TagEvents>;
-    "sup": Tag<TagAttrs, TagEvents>;
-    "table": Tag<TagAttrs, TagEvents>;
-    "tbody": Tag<TagAttrs, TagEvents>;
-    "td": Tag<TdAttrs, TagEvents>;
-    "template": Tag<TagAttrs, TagEvents>;
-    "textarea": Tag<TextareaAttrs, TagEvents>;
-    "tfoot": Tag<TagAttrs, TagEvents>;
-    "th": Tag<ThAttrs, TagEvents>;
-    "thead": Tag<TagAttrs, TagEvents>;
-    "time": Tag<TagAttrs, TagEvents>;
-    "title": Tag<TagAttrs, TagEvents>;
-    "tr": Tag<TagAttrs, TagEvents>;
-    "track": Tag<TrackAttrs, TagEvents>;
-    "u": Tag<TagAttrs, TagEvents>;
-    "ul": Tag<TagAttrs, TagEvents>;
-    "var": Tag<TagAttrs, TagEvents>;
-    "video": Tag<VideoAttrs, VideoEvents>;
-    "wbr": Tag<TagAttrs, TagEvents>;
-    [K : string] : Tag<TagAttrs, TagEvents>;
+    a: Tag<AAttrs, TagEvents>;
+    abbr: Tag<TagAttrs, TagEvents>;
+    address: Tag<TagAttrs, TagEvents>;
+    area: Tag<AreaAttrs, TagEvents>;
+    article: Tag<TagAttrs, TagEvents>;
+    aside: Tag<TagAttrs, TagEvents>;
+    audio: Tag<MediaTagAttrs, MediaEvents>;
+    b: Tag<TagAttrs, TagEvents>;
+    base: Tag<BaseAttrs, TagEvents>;
+    bdi: Tag<TagAttrs, TagEvents>;
+    bdo: Tag<BdoAttrs, TagEvents>;
+    blockquote: Tag<BlockQuoteAttrs, TagEvents>;
+    body: Tag<TagAttrs, BodyEvents>;
+    br: Tag<TagAttrs, TagEvents>;
+    button: Tag<ButtonAttrs, TagEvents>;
+    canvas: Tag<TagAttrs, TagEvents>;
+    caption: Tag<TagAttrs, TagEvents>;
+    cite: Tag<TagAttrs, TagEvents>;
+    code: Tag<TagAttrs, TagEvents>;
+    col: Tag<ColAttrs, TagEvents>;
+    colgroup: Tag<ColAttrs, TagEvents>;
+    data: Tag<DataAttr, TagEvents>;
+    datalist: Tag<TagAttrs, TagEvents>;
+    dd: Tag<TagAttrs, TagEvents>;
+    del: Tag<TagAttrs, TagEvents>;
+    details: Tag<DetailsAttrs, TagEvents>;
+    dfn: Tag<TagAttrs, TagEvents>;
+    dialog: Tag<TagAttrs, TagEvents>;
+    dir: Tag<TagAttrs, TagEvents>;
+    div: Tag<TagAttrs, TagEvents>;
+    dl: Tag<TagAttrs, TagEvents>;
+    dt: Tag<TagAttrs, TagEvents>;
+    em: Tag<TagAttrs, TagEvents>;
+    embed: Tag<EmbedAttrs, TagEvents>;
+    fieldset: Tag<FieldsetAttrs, TagEvents>;
+    figcaption: Tag<TagAttrs, TagEvents>;
+    figure: Tag<TagAttrs, TagEvents>;
+    font: Tag<TagAttrs, TagEvents>;
+    footer: Tag<TagAttrs, TagEvents>;
+    form: Tag<FormAttrs, TagEvents>;
+    frame: Tag<TagAttrs, TagEvents>;
+    frameset: Tag<TagAttrs, TagEvents>;
+    h1: Tag<TagAttrs, TagEvents>;
+    h2: Tag<TagAttrs, TagEvents>;
+    h3: Tag<TagAttrs, TagEvents>;
+    h4: Tag<TagAttrs, TagEvents>;
+    h5: Tag<TagAttrs, TagEvents>;
+    h6: Tag<TagAttrs, TagEvents>;
+    head: Tag<TagAttrs, TagEvents>;
+    header: Tag<TagAttrs, TagEvents>;
+    hgroup: Tag<TagAttrs, TagEvents>;
+    hr: Tag<TagAttrs, TagEvents>;
+    html: Tag<TagAttrs, TagEvents>;
+    i: Tag<TagAttrs, TagEvents>;
+    iframe: Tag<IframeAttrs, TagEvents>;
+    img: Tag<ImgAttrs, TagEvents>;
+    input: Tag<InputAttrs, TagEvents>;
+    ins: Tag<TagAttrs, TagEvents>;
+    kbd: Tag<TagAttrs, TagEvents>;
+    label: Tag<LabelAttrs, TagEvents>;
+    legend: Tag<TagAttrs, TagEvents>;
+    li: Tag<TagAttrs, TagEvents>;
+    link: Tag<LinkAttrs, TagEvents>;
+    main: Tag<TagAttrs, TagEvents>;
+    map: Tag<MapAttrs, TagEvents>;
+    mark: Tag<TagAttrs, TagEvents>;
+    marquee: Tag<TagAttrs, TagEvents>;
+    menu: Tag<TagAttrs, TagEvents>;
+    meta: Tag<MetaAttrs, TagEvents>;
+    meter: Tag<MeterAttrs, TagEvents>;
+    nav: Tag<TagAttrs, TagEvents>;
+    noscript: Tag<TagAttrs, TagEvents>;
+    object: Tag<ObjectAttrs, TagEvents>;
+    ol: Tag<OlAttrs, TagEvents>;
+    optgroup: Tag<OptgroupAttrs, TagEvents>;
+    option: Tag<OptionAttrs, TagEvents>;
+    output: Tag<OutputAttrs, TagEvents>;
+    p: Tag<TagAttrs, TagEvents>;
+    param: Tag<ParamAttrs, TagEvents>;
+    picture: Tag<TagAttrs, TagEvents>;
+    pre: Tag<TagAttrs, TagEvents>;
+    progress: Tag<ProgressAttrs, TagEvents>;
+    q: Tag<QAttrs, TagEvents>;
+    rp: Tag<TagAttrs, TagEvents>;
+    rt: Tag<TagAttrs, TagEvents>;
+    ruby: Tag<TagAttrs, TagEvents>;
+    s: Tag<TagAttrs, TagEvents>;
+    samp: Tag<TagAttrs, TagEvents>;
+    script: Tag<TagAttrs, TagEvents>;
+    section: Tag<TagAttrs, TagEvents>;
+    select: Tag<SelectAttrs, TagEvents>;
+    slot: Tag<TagAttrs, TagEvents>;
+    small: Tag<TagAttrs, TagEvents>;
+    source: Tag<SourceAttrs, TagEvents>;
+    span: Tag<TagAttrs, TagEvents>;
+    strong: Tag<TagAttrs, TagEvents>;
+    style: Tag<StyleAttrs, TagEvents>;
+    sub: Tag<TagAttrs, TagEvents>;
+    summary: Tag<TagAttrs, TagEvents>;
+    sup: Tag<TagAttrs, TagEvents>;
+    table: Tag<TagAttrs, TagEvents>;
+    tbody: Tag<TagAttrs, TagEvents>;
+    td: Tag<TdAttrs, TagEvents>;
+    template: Tag<TagAttrs, TagEvents>;
+    textarea: Tag<TextareaAttrs, TagEvents>;
+    tfoot: Tag<TagAttrs, TagEvents>;
+    th: Tag<ThAttrs, TagEvents>;
+    thead: Tag<TagAttrs, TagEvents>;
+    time: Tag<TagAttrs, TagEvents>;
+    title: Tag<TagAttrs, TagEvents>;
+    tr: Tag<TagAttrs, TagEvents>;
+    track: Tag<TrackAttrs, TagEvents>;
+    u: Tag<TagAttrs, TagEvents>;
+    ul: Tag<TagAttrs, TagEvents>;
+    var: Tag<TagAttrs, TagEvents>;
+    video: Tag<VideoAttrs, VideoEvents>;
+    wbr: Tag<TagAttrs, TagEvents>;
+    [K: string]: Tag<TagAttrs, TagEvents>;
 }
-
 
 type HtmlOrSvgTag = HTMLElement | SVGElement;
 
@@ -950,116 +948,116 @@ interface VideoTag extends MediaTag {
 }
 
 export interface TagNameMap {
-    "a": AnchorTag;
-    "abbr": HtmlTag;
-    "address": HtmlTag;
-    "area": AreaTag;
-    "article": HtmlTag;
-    "aside": HtmlTag;
-    "audio": MediaTag;
-    "b": HtmlTag;
-    "base": BaseTag;
-    "bdi": HtmlTag;
-    "bdo": HtmlTag;
-    "blockquote": QuoteTag;
-    "body": HtmlTag;
-    "br": HtmlTag;
-    "button": ButtonTag;
-    "canvas": CanvasTag;
-    "caption": HtmlTag;
-    "cite": HtmlTag;
-    "code": HtmlTag;
-    "col": TableColTag;
-    "colgroup": TableColTag;
-    "data": DataTag;
-    "datalist": HtmlTag;
-    "dd": HtmlTag;
-    "del": ModTag;
-    "details": DetailsTag;
-    "dfn": HtmlTag;
-    "dialog": HtmlTag;
-    "div": HtmlTag;
-    "dl": HtmlTag;
-    "dt": HtmlTag;
-    "em": HtmlTag;
-    "embed": EmbedTag;
-    "fieldset": FieldSetTag;
-    "figcaption": HtmlTag;
-    "figure": HtmlTag;
-    "footer": HtmlTag;
-    "form": FormTag;
-    "h1": HtmlTag;
-    "h2": HtmlTag;
-    "h3": HtmlTag;
-    "h4": HtmlTag;
-    "h5": HtmlTag;
-    "h6": HtmlTag;
-    "head": HtmlTag;
-    "header": HtmlTag;
-    "hgroup": HtmlTag;
-    "hr": HtmlTag;
-    "html": HtmlTag;
-    "i": HtmlTag;
-    "iframe": IFrameTag;
-    "img": ImageTag;
-    "input": InputTag;
-    "ins": ModTag;
-    "kbd": HtmlTag;
-    "label": LabelTag;
-    "legend": HtmlTag;
-    "li": LITag;
-    "link": LinkTag;
-    "main": HtmlTag;
-    "map": MapTag;
-    "mark": HtmlTag;
-    "menu": HtmlTag;
-    "meta": HtmlTag;
-    "meter": MeterTag;
-    "nav": HtmlTag;
-    "noscript": HtmlTag;
-    "object": ObjectTag;
-    "ol": OListTag;
-    "optgroup": OptGroupTag;
-    "option": OptionTag;
-    "output": OutputTag;
-    "p": HtmlTag;
-    "param": ParamTag;
-    "picture": HtmlTag;
-    "pre": HtmlTag;
-    "progress": ProgressTag;
-    "q": QuoteTag;
-    "rp": HtmlTag;
-    "rt": HtmlTag;
-    "ruby": HtmlTag;
-    "s": HtmlTag;
-    "samp": HtmlTag;
-    "script": ScriptTag;
-    "section": HtmlTag;
-    "select": SelectTag;
-    "slot": SlotTag;
-    "small": HtmlTag;
-    "source": SourceTag;
-    "span": HtmlTag;
-    "strong": HtmlTag;
-    "style": StyleTag;
-    "sub": HtmlTag;
-    "summary": HtmlTag;
-    "sup": HtmlTag;
-    "table": TableTag;
-    "tbody": HtmlTag;
-    "td": TableCellTag;
-    "template": HtmlTag;
-    "textarea": TextAreaTag;
-    "tfoot": HtmlTag;
-    "th": TableCellTag;
-    "thead": HtmlTag;
-    "time": TimeTag;
-    "title": TitleTag;
-    "tr": HtmlTag;
-    "track": TrackTag;
-    "u": HtmlTag;
-    "ul": HtmlTag;
-    "var": HtmlTag;
-    "video": VideoTag;
-    "wbr": HtmlTag;
+    a: AnchorTag;
+    abbr: HtmlTag;
+    address: HtmlTag;
+    area: AreaTag;
+    article: HtmlTag;
+    aside: HtmlTag;
+    audio: MediaTag;
+    b: HtmlTag;
+    base: BaseTag;
+    bdi: HtmlTag;
+    bdo: HtmlTag;
+    blockquote: QuoteTag;
+    body: HtmlTag;
+    br: HtmlTag;
+    button: ButtonTag;
+    canvas: CanvasTag;
+    caption: HtmlTag;
+    cite: HtmlTag;
+    code: HtmlTag;
+    col: TableColTag;
+    colgroup: TableColTag;
+    data: DataTag;
+    datalist: HtmlTag;
+    dd: HtmlTag;
+    del: ModTag;
+    details: DetailsTag;
+    dfn: HtmlTag;
+    dialog: HtmlTag;
+    div: HtmlTag;
+    dl: HtmlTag;
+    dt: HtmlTag;
+    em: HtmlTag;
+    embed: EmbedTag;
+    fieldset: FieldSetTag;
+    figcaption: HtmlTag;
+    figure: HtmlTag;
+    footer: HtmlTag;
+    form: FormTag;
+    h1: HtmlTag;
+    h2: HtmlTag;
+    h3: HtmlTag;
+    h4: HtmlTag;
+    h5: HtmlTag;
+    h6: HtmlTag;
+    head: HtmlTag;
+    header: HtmlTag;
+    hgroup: HtmlTag;
+    hr: HtmlTag;
+    html: HtmlTag;
+    i: HtmlTag;
+    iframe: IFrameTag;
+    img: ImageTag;
+    input: InputTag;
+    ins: ModTag;
+    kbd: HtmlTag;
+    label: LabelTag;
+    legend: HtmlTag;
+    li: LITag;
+    link: LinkTag;
+    main: HtmlTag;
+    map: MapTag;
+    mark: HtmlTag;
+    menu: HtmlTag;
+    meta: HtmlTag;
+    meter: MeterTag;
+    nav: HtmlTag;
+    noscript: HtmlTag;
+    object: ObjectTag;
+    ol: OListTag;
+    optgroup: OptGroupTag;
+    option: OptionTag;
+    output: OutputTag;
+    p: HtmlTag;
+    param: ParamTag;
+    picture: HtmlTag;
+    pre: HtmlTag;
+    progress: ProgressTag;
+    q: QuoteTag;
+    rp: HtmlTag;
+    rt: HtmlTag;
+    ruby: HtmlTag;
+    s: HtmlTag;
+    samp: HtmlTag;
+    script: ScriptTag;
+    section: HtmlTag;
+    select: SelectTag;
+    slot: SlotTag;
+    small: HtmlTag;
+    source: SourceTag;
+    span: HtmlTag;
+    strong: HtmlTag;
+    style: StyleTag;
+    sub: HtmlTag;
+    summary: HtmlTag;
+    sup: HtmlTag;
+    table: TableTag;
+    tbody: HtmlTag;
+    td: TableCellTag;
+    template: HtmlTag;
+    textarea: TextAreaTag;
+    tfoot: HtmlTag;
+    th: TableCellTag;
+    thead: HtmlTag;
+    time: TimeTag;
+    title: TitleTag;
+    tr: HtmlTag;
+    track: TrackTag;
+    u: HtmlTag;
+    ul: HtmlTag;
+    var: HtmlTag;
+    video: VideoTag;
+    wbr: HtmlTag;
 }

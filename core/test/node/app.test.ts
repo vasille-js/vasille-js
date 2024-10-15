@@ -1,16 +1,16 @@
-import {page} from "../page";
-import {App} from "../../src";
-import {Portal} from "../../src/node/app";
+import { page } from "../page";
+import { App } from "../../src";
+import { Portal } from "../../src/node/app";
 
 class MyApp extends App {
-    div : HTMLDivElement;
+    div: HTMLDivElement;
 
     protected compose(input) {
         super.compose(input);
 
         const div = this.tag("div", {});
 
-        this.create(new Portal({node: div}), node => {
+        this.create(new Portal({ node: div }), node => {
             node.tag("span", {});
         });
 

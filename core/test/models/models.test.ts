@@ -1,12 +1,13 @@
-import {ArrayModel, Listener, MapModel, ObjectModel, SetModel} from "../../src";
+import { ArrayModel, Listener, MapModel, ObjectModel, SetModel } from "../../src";
 
-it('listener', function () {
+it("listener", function () {
     const listener = new Listener<number, number>();
-    let addCounter = 0, removeCounter = 0;
-    const addHandler = (i : number, v : number) => {
+    let addCounter = 0,
+        removeCounter = 0;
+    const addHandler = (i: number, v: number) => {
         addCounter = i + v;
     };
-    const removeHandler = (i : number, v : number) => {
+    const removeHandler = (i: number, v: number) => {
         removeCounter = i + v;
     };
 
@@ -44,7 +45,7 @@ it('listener', function () {
     expect(removeCounter).toBe(13);
 });
 
-it('array model', function () {
+it("array model", function () {
     const array = new ArrayModel<number>([1, 2, 3]);
     const empty = new ArrayModel<number>();
 
@@ -99,35 +100,45 @@ it('array model', function () {
     expect(array).toEqual([]);
 });
 
-it('map model', function () {
-    const map = new MapModel<number, number>([[1, 2], [2, 3], [3, 4]]);
+it("map model", function () {
+    const map = new MapModel<number, number>([
+        [1, 2],
+        [2, 3],
+        [3, 4],
+    ]);
 
     expect(map.get(1)).toBe(2);
 
     map.delete(3);
-    expect(Array.from(map)).toEqual([[1, 2], [2, 3]]);
+    expect(Array.from(map)).toEqual([
+        [1, 2],
+        [2, 3],
+    ]);
 
     map.set(2, 4);
-    expect(Array.from(map)).toEqual([[1, 2], [2, 4]]);
+    expect(Array.from(map)).toEqual([
+        [1, 2],
+        [2, 4],
+    ]);
 
     map.clear();
     expect(Array.from(map)).toEqual([]);
 });
 
-it('object model', function () {
-    const obj = new ObjectModel<number>({0: 1, 1: 2, 2: 3});
+it("object model", function () {
+    const obj = new ObjectModel<number>({ 0: 1, 1: 2, 2: 3 });
 
-    obj.delete('2');
-    expect(obj.get('2')).toBeUndefined();
+    obj.delete("2");
+    expect(obj.get("2")).toBeUndefined();
 
-    obj.set('1', 4);
-    expect(obj.get('1')).toBe(4);
+    obj.set("1", 4);
+    expect(obj.get("1")).toBe(4);
 
-    obj.set('3', 3);
-    expect(obj.get('3')).toBe(3);
+    obj.set("3", 3);
+    expect(obj.get("3")).toBe(3);
 });
 
-it('set model', function () {
+it("set model", function () {
     const set = new SetModel<number>([1, 2, 3]);
 
     set.add(4);

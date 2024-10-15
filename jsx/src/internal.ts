@@ -4,13 +4,21 @@ export const internal = {
   /**
    * Create reference, use only in compose functions
    */
-  ref<T>(v: T): IValue<T> {
+  ref(v: unknown): unknown {
+    if (v instanceof IValue) {
+      return v;
+    }
+
     return current.ref(v);
   },
   /**
    * Create module reference, can be used anywhere
    */
-  mRef<T>(v:T): IValue<T> {
+  mRef(v: unknown): unknown {
+    if (v instanceof IValue) {
+      return new Reference(v.$);
+    }
+
     return new Reference(v);
   },
   /**

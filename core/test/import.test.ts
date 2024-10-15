@@ -1,29 +1,47 @@
 import {
     App,
     AppNode,
-    ArrayModel, ArrayView, Binding, Component,
-    Destroyable, Expression, Extension, Fragment, INode,
-    IValue, Listener,
-    MapModel, MapView,
+    ArrayModel,
+    ArrayView,
+    Binding,
+    Component,
+    Destroyable,
+    Expression,
+    Extension,
+    Fragment,
+    INode,
+    IValue,
+    Listener,
+    MapModel,
+    MapView,
     Mirror,
-    ObjectModel, ObjectView,
-    Pointer, Reactive,
+    ObjectModel,
+    ObjectView,
+    Pointer,
+    Reactive,
     Reference,
-    SetModel, SetView, Tag,
+    SetModel,
+    SetView,
+    Tag,
     BaseView,
-    Portal, Watch, current, userError, stack, unstack,
+    Portal,
+    Watch,
+    current,
+    userError,
+    stack,
+    unstack,
 } from "../src";
-import {page} from "./page";
+import { page } from "./page";
 
 class BindingTest extends Binding<any> {
     protected bound(name: string): (node: INode, value: any) => void {
         return (node, value) => {
             return void 0;
-        }
+        };
     }
 }
 
-it('import test', function () {
+it("import test", function () {
     const destroyable = new Destroyable();
     const ivalue = new IValue(false);
     const ref = new Reference(ivalue);

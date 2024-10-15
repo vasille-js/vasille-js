@@ -1,9 +1,9 @@
-import {Fragment, INode} from "./node";
-import {TagOptions} from "../functional/options";
-import {AcceptedTagsMap} from "../spec/react";
+import { Fragment, INode } from "./node";
+import { TagOptions } from "../functional/options";
+import { AcceptedTagsMap } from "../spec/react";
 
 export interface AppOptions<K extends keyof AcceptedTagsMap> extends TagOptions<K> {
-    debugUi ?: boolean
+    debugUi?: boolean;
 }
 
 /**
@@ -15,12 +15,12 @@ export class AppNode<T extends AppOptions<any> = AppOptions<any>> extends INode<
     /**
      * Enables debug comments
      */
-    debugUi : boolean;
+    debugUi: boolean;
 
     /**
      * @param input
      */
-    constructor (input : T) {
+    constructor(input: T) {
         super(input);
         this.debugUi = input.debugUi || false;
         this.$seal();
@@ -38,7 +38,7 @@ export class App<T extends AppOptions<any> = AppOptions<any>> extends AppNode<T>
      * @param node {Element} The root of application
      * @param input
      */
-    constructor (node : Element, input : T) {
+    constructor(node: Element, input: T) {
         super(input);
 
         this.$.node = node;
@@ -48,18 +48,18 @@ export class App<T extends AppOptions<any> = AppOptions<any>> extends AppNode<T>
         this.$seal();
     }
 
-    public appendNode (node : Node) {
+    public appendNode(node: Node) {
         this.$.node.appendChild(node);
     }
 }
 
-interface PortalOptions extends AppOptions<'div'> {
-    node : Element
-    slot ?: (node : Fragment) => void
+interface PortalOptions extends AppOptions<"div"> {
+    node: Element;
+    slot?: (node: Fragment) => void;
 }
 
 export class Portal extends AppNode<PortalOptions> {
-    constructor (input : PortalOptions) {
+    constructor(input: PortalOptions) {
         super(input);
 
         this.$.node = input.node;
@@ -67,7 +67,7 @@ export class Portal extends AppNode<PortalOptions> {
         this.$seal();
     }
 
-    public appendNode (node : Node) {
+    public appendNode(node: Node) {
         this.$.node.appendChild(node);
     }
 }
