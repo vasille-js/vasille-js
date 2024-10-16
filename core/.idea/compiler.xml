@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="TypeScriptCompiler">
-    <option name="nodeInterpreterTextField" value="$USER_HOME$/.nvm/versions/node/v20.7.0/bin/node" />
-    <option name="recompileOnChanges" value="true" />
+    <option name="nodeInterpreterTextField" value="$USER_HOME$/.nvm/versions/node/v18.19.1/bin/node" />
+    <option name="typeScriptCompilerParams" value="--no-emit" />
     <option name="versionType" value="EMBEDDED" />
   </component>
 </project>

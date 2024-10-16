@@ -1,7 +1,7 @@
 import { Expression, IValue, Pointer, userError } from "vasille";
 import { dereference } from "./inline";
 
-type Path = (string | number)[];
+export type Path = (string | number)[];
 
 export function readProperty(o: unknown, path: Path): unknown {
     let target: unknown = o;
@@ -63,6 +63,10 @@ export function propertyExtractor(source: unknown, path: Path): unknown {
 
     if (iValue && index >= 0) {
         const fixedPath = path.slice(index);
+
+        if (fixedPath.length === 0) {
+            return iValue;
+        }
 
         return new Expression(
             (obj: unknown) => {

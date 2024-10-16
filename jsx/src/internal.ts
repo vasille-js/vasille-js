@@ -1,4 +1,7 @@
 import { current, IValue, Reference } from "vasille";
+import { Expression } from "./expression";
+import { assign, dereference } from "./inline";
+import { propertyExtractor, readProperty, writeValue } from "./objects";
 
 export const internal = {
     /**
@@ -14,7 +17,7 @@ export const internal = {
     /**
      * Create module reference, can be used anywhere
      */
-    mRef(v: unknown): unknown {
+    var(v: unknown): unknown {
         if (v instanceof IValue) {
             return new Reference(v.$);
         }
@@ -26,7 +29,16 @@ export const internal = {
      * @param func
      * @param values
      */
-    expr<T, Args extends unknown[]>(func: (...args: Args) => T, ...values: Args): IValue<any> {
-        //
+    expr(func: (...args: unknown) => unknown, values: unknown[]): unknown {
+        if (values.some(item => item instanceof IValue)) {
+            return new Expression(func, values);
+        } else {
+            return func.apply(null, values);
+        }
     },
+    rp: readProperty,
+    wp: writeValue,
+    pe: propertyExtractor,
+    rv: dereference,
+    sv: assign,
 };

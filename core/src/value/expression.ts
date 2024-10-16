@@ -47,7 +47,7 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
     public constructor(func: (...args: Args) => T, link: boolean, ...values: KindOfIValue<Args>) {
         super(false);
         const handler = (i?: number) => {
-            if (i != null) {
+            if (typeof i === "number") {
                 this.valuesCache[i] = this.values[i].$;
             }
             this.sync.$ = func.apply(this, this.valuesCache);
@@ -84,17 +84,15 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
         this.sync.$ = value;
     }
 
-    public $on(handler: (value: T) => void): this {
+    public $on(handler: (value: T) => void): void {
         this.sync.$on(handler);
-        return this;
     }
 
-    public $off(handler: (value: T) => void): this {
+    public $off(handler: (value: T) => void): void {
         this.sync.$off(handler);
-        return this;
     }
 
-    public $enable(): this {
+    public $enable(): void {
         if (!this.isEnabled) {
             for (let i = 0; i < this.values.length; i++) {
                 this.values[i].$on(this.linkedFunc[i]);
@@ -103,17 +101,15 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
             this.func();
             this.isEnabled = true;
         }
-        return this;
     }
 
-    public $disable(): this {
+    public $disable(): void {
         if (this.isEnabled) {
             for (let i = 0; i < this.values.length; i++) {
                 this.values[i].$off(this.linkedFunc[i]);
             }
             this.isEnabled = false;
         }
-        return this;
     }
 
     public $destroy(): void {
