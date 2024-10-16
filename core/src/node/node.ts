@@ -4,10 +4,10 @@ import { Reference } from "../value/reference";
 import { Expression } from "../value/expression";
 import { AttributeBinding } from "../binding/attribute";
 import { StaticClassBinding, DynamicalClassBinding } from "../binding/class";
-import { StyleBinding } from "../binding/style";
+import { stringifyStyleValue, StyleBinding } from "../binding/style";
 import { internalError, userError } from "../core/errors";
 import type { AppNode } from "./app";
-import { FragmentOptions, TagOptions } from "../functional/options";
+import { AttrType, FragmentOptions, TagOptions } from "../functional/options";
 import { AcceptedTagsMap } from "../spec/react";
 
 /**
@@ -220,8 +220,7 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
         tagName: K,
         input: TagOptionsWithSlot<K>,
         cb?: (node: Tag<K>) => void,
-        // @ts-expect-error
-    ): (HTMLElementTagNameMap & SVGElementTagNameMap)[K] {
+    ): void {
         const $: FragmentPrivate = this.$;
         const node = new Tag(input);
 
@@ -230,9 +229,6 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
         node.init();
         this.pushNode(node);
         node.ready();
-
-        // @ts-expect-error
-        return node.node as (HTMLElementTagNameMap & SVGElementTagNameMap)[K];
     }
 
     /**
@@ -524,9 +520,9 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
 
     /**
      * Adds some CSS classes
-     * @param cls {...string} classes names
+     * @param cl {string} classes names
      */
-    public removeClasse(cl: string): this {
+    public removeClass(cl: string): this {
         this.$.node.classList.remove(cl);
         return this;
     }
@@ -557,7 +553,7 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      * @param name {String} name of style attribute
      * @param value {IValue} value
      */
-    public style(name: string, value: IValue<string>): this {
+    public style(name: string, value: IValue<string | number | number[]>): this {
         const $: INodePrivate = this.$;
 
         if ($.node instanceof HTMLElement) {
@@ -573,9 +569,9 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      * @param prop {string} Property name
      * @param value {string} Property value
      */
-    public setStyle(prop: string, value: string): this {
+    public setStyle(prop: string, value: string | number | number[]): this {
         if (this.$.node instanceof HTMLElement) {
-            this.$.node.style.setProperty(prop, value);
+            this.$.node.style.setProperty(prop, stringifyStyleValue(value));
         } else {
             throw userError("Style can be set for HTML elements only", "non-html-element");
         }
@@ -642,17 +638,65 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
         }
     }
 
-    protected applyOptions(options: T) {
-        options.attr &&
-            Object.keys(options.attr).forEach(name => {
-                const value = options.attr[name];
+    protected applyAttrs(attrs: Record<string, AttrType<number | boolean>>) {
+        for (const name in attrs) {
+            const value = attrs[name];
 
-                if (value instanceof IValue) {
-                    this.attr(name, value);
+            if (value instanceof IValue) {
+                this.attr(name, value);
+            } else {
+                this.setAttr(name, value);
+            }
+        }
+    }
+
+    protected applyStyle(style: Record<string, string | number | number[] | IValue<string | number | number[]>>) {
+        for (const name in style) {
+            const value = style[name];
+
+            if (value instanceof IValue) {
+                this.style(name, value);
+            } else if (typeof value === "string") {
+                this.setStyle(name, value);
+            } else {
+                if (value[0] instanceof IValue) {
+                    this.style(
+                        name,
+                        this.expr(v => v + value[1], value[0]),
+                    );
                 } else {
-                    this.setAttr(name, value);
+                    this.setStyle(name, value[0] + value[1]);
                 }
-            });
+            }
+        }
+    }
+
+    protected applyBind(bind: Record<string, any>) {
+        const inode = this.node;
+
+        for (const k in bind) {
+            const value = bind[k];
+
+            if (!(value instanceof IValue)) {
+                inode[k] = value;
+                return;
+            }
+
+            if (k === "value" && (inode instanceof HTMLInputElement || inode instanceof HTMLTextAreaElement)) {
+                inode.oninput = () => (value.$ = inode.value);
+            } else if (k === "checked" && inode instanceof HTMLInputElement) {
+                inode.oninput = () => (value.$ = inode.checked);
+            } else if (k === "volume" && inode instanceof HTMLMediaElement) {
+                inode.onvolumechange = () => (value.$ = inode.volume);
+            }
+
+            this.bindDomApi(k, value);
+        }
+    }
+
+    protected applyOptions(options: T) {
+        options.attr && this.applyAttrs(options.attr);
+        options.attrX && this.applyAttrs(options.attrX);
 
         options.class &&
             options.class.forEach(item => {
@@ -661,7 +705,7 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
                 } else if (typeof item == "string") {
                     this.addClass(item);
                 } else {
-                    Reflect.ownKeys(item).forEach((name: string) => {
+                    for (const name in item) {
                         const value = item[name];
 
                         if (value instanceof IValue) {
@@ -669,59 +713,22 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
                         } else if (value && name !== "$") {
                             this.addClass(name);
                         } else {
-                            this.removeClasse(name);
+                            this.removeClass(name);
                         }
-                    });
-                }
-            });
-
-        options.style &&
-            Object.keys(options.style).forEach(name => {
-                const value = options.style[name];
-
-                if (value instanceof IValue) {
-                    this.style(name, value);
-                } else if (typeof value === "string") {
-                    this.setStyle(name, value);
-                } else {
-                    if (value[0] instanceof IValue) {
-                        this.style(
-                            name,
-                            this.expr(v => v + value[1], value[0]),
-                        );
-                    } else {
-                        this.setStyle(name, value[0] + value[1]);
                     }
                 }
             });
+
+        options.style && this.applyStyle(options.style);
+        options.styleX && this.applyStyle(options.styleX);
 
         options.events &&
             Object.keys(options.events).forEach(name => {
                 this.listen(name, options.events[name]);
             });
 
-        if (options.bind) {
-            const inode = this.node;
-
-            Reflect.ownKeys(options.bind).forEach((k: string) => {
-                const value = options.bind[k];
-
-                if (k === "value" && (inode instanceof HTMLInputElement || inode instanceof HTMLTextAreaElement)) {
-                    inode.oninput = () => (value.$ = inode.value);
-                } else if (k === "checked" && inode instanceof HTMLInputElement) {
-                    inode.oninput = () => (value.$ = inode.checked);
-                } else if (k === "volume" && inode instanceof HTMLMediaElement) {
-                    inode.onvolumechange = () => (value.$ = inode.volume);
-                }
-
-                this.bindDomApi(k, value);
-            });
-        }
-
-        options.set &&
-            Object.keys(options.set).forEach(key => {
-                this.node[key] = options.set[key];
-            });
+        options.bind && this.applyBind(options.bind);
+        options.bindX && this.applyBind(options.bindX);
     }
 }
 
@@ -780,6 +787,10 @@ export class Tag<K extends keyof AcceptedTagsMap> extends INode<TagOptionsWithSl
         this.$.node.appendChild(node);
     }
 
+    public extent(options: TagOptions<K>) {
+        this.applyOptions(options);
+    }
+
     /**
      * Mount/Unmount a node
      * @param cond {IValue} show condition
@@ -836,8 +847,21 @@ export class Extension<T extends TagOptions<any> = TagOptions<any>> extends INod
         }
     }
 
-    public extend(options: T) {
-        this.applyOptions(options);
+    public tag<K extends keyof AcceptedTagsMap>(tagName: K, input: TagOptionsWithSlot<K>): void {
+        const parent = this.parent;
+
+        if (parent instanceof Fragment) {
+            for (const child of parent.children) {
+                if (child instanceof Tag) {
+                    if (child.node.tagName === tagName) {
+                        child.extent(input);
+                        input.slot?.(child);
+                    }
+                } else if (child instanceof Fragment) {
+                    child.tag(tagName, input);
+                }
+            }
+        }
     }
 
     public $destroy() {
@@ -880,7 +904,7 @@ export class Component<T extends TagOptions<any>> extends Extension<T> {
 }
 
 /**
- * Private part of switch node
+ * Private part of the switch node
  * @class SwitchedNodePrivate
  * @extends INodePrivate
  */

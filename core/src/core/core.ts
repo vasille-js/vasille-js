@@ -281,7 +281,7 @@ export class Reactive<T extends FragmentOptions = FragmentOptions> extends Destr
         this.applyOptions(this.input);
     }
 
-    protected compose(input: T): Parameters<T['callback']>[0] {
+    protected compose(input: T): Parameters<T["callback"]>[0] {
         throw notOverwritten();
     }
 

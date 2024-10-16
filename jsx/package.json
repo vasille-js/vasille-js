@@ -4,6 +4,8 @@
   "description": "Describe Vasille components using JSX",
   "main": "src/index.ts",
   "scripts": {
+    "prepack": "cp -f ../README.md ./README.md",
+    "prettier": "npx prettier src test --write",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -14,6 +16,7 @@
   "author": "lixcode",
   "license": "MIT",
   "dependencies": {
+    "prettier": "^3.3.3",
     "vasille": "file:../core"
   },
   "devDependencies": {

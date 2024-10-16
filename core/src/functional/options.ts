@@ -1,6 +1,7 @@
 import type { IValue } from "../core/ivalue";
 import { AcceptedTagsMap, AcceptedTagsSpec } from "../spec/react";
 import type { Fragment } from "../node/node";
+import { PropertiesHyphen } from "csstype";
 
 export interface FragmentOptions<T = unknown> {
     callback?: (data: T) => void;
@@ -8,18 +9,23 @@ export interface FragmentOptions<T = unknown> {
 }
 
 export type AttrType<T> = IValue<T | string | null> | T | string | null | undefined;
+export type StyleType<T> = T | number | number[] | IValue<string | number | number[]>;
 
 export interface TagOptions<T extends keyof AcceptedTagsMap> extends FragmentOptions {
     attr?: {
         [K in keyof AcceptedTagsSpec[T]["attrs"]]?: AttrType<AcceptedTagsSpec[T]["attrs"][K]>;
-    } & Record<string, AttrType<number | boolean>>;
+    };
+    attrX?: Record<string, AttrType<number | boolean>>;
     class?: (string | IValue<string> | Record<string, boolean | IValue<boolean>>)[];
-    style?: Record<string, string | IValue<string> | [number | string | IValue<number | string>, string]>;
+    style?: {
+        [K in keyof PropertiesHyphen]: StyleType<PropertiesHyphen[K]>;
+    };
+    styleX?: Record<string, StyleType<string>>;
 
     events?: Partial<AcceptedTagsSpec[T]["events"]>;
 
-    set?: Partial<AcceptedTagsMap[T]> & Record<string, any>;
     bind?: {
-        [K in keyof AcceptedTagsMap[T]]?: IValue<AcceptedTagsMap[T][K]>;
-    } & Record<string, IValue<any>>;
+        [K in keyof AcceptedTagsMap[T]]?: IValue<AcceptedTagsMap[T][K]> | AcceptedTagsMap[T][K];
+    };
+    bindX?: Record<string, any>;
 }

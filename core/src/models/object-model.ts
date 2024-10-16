@@ -49,7 +49,7 @@ export class ObjectModel<T> extends Object implements ListenableModel<string, T>
      * @return {ObjectModel} a pointer to this
      */
     public set(key: string, v: T): this {
-        if (Reflect.has(this.container, key)) {
+        if (key in this.container) {
             this.listener.emitRemoved(key, this.container[key]);
             this.container[key] = v;
         } else {

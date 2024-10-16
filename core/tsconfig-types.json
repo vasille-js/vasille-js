@@ -5,6 +5,7 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "outDir": "types",
+    "moduleResolution": "Node",
     "target": "ES2015",
     "module": "ES6",
     "types": [
