@@ -1,69 +1,15 @@
-import { Reactive, ReactivePrivate } from "../core/core";
+import { Reactive, stack, unstack } from "../core/core";
 import { IValue } from "../core/ivalue";
+import { reportError } from "../functional/safety";
 import { Reference } from "../value/reference";
 import { Expression } from "../value/expression";
 import { AttributeBinding } from "../binding/attribute";
 import { StaticClassBinding, DynamicalClassBinding } from "../binding/class";
 import { stringifyStyleValue, StyleBinding } from "../binding/style";
 import { internalError, userError } from "../core/errors";
-import type { AppNode } from "./app";
 import { AttrType, FragmentOptions, TagOptions } from "../functional/options";
 import { AcceptedTagsMap } from "../spec/react";
-
-/**
- * Represents a Vasille.js node
- * @class FragmentPrivate
- * @extends ReactivePrivate
- */
-export class FragmentPrivate extends ReactivePrivate {
-    /**
-     * The app node
-     * @type {AppNode}
-     */
-    public app: AppNode;
-
-    /**
-     * Parent node
-     * @type {Fragment}
-     */
-    public parent: Fragment;
-
-    /**
-     * Next node
-     * @type {?Fragment}
-     */
-    public next?: Fragment;
-
-    /**
-     * Previous node
-     * @type {?Fragment}
-     */
-    public prev?: Fragment;
-
-    public constructor() {
-        super();
-        this.$seal();
-    }
-
-    /**
-     * Pre-initializes the base of a fragment
-     * @param app {App} the app node
-     * @param parent {Fragment} the parent node
-     */
-    public preinit(app: AppNode, parent: Fragment) {
-        this.app = app;
-        this.parent = parent;
-    }
-
-    /**
-     * Unlinks all bindings
-     */
-    public $destroy() {
-        this.next = null;
-        this.prev = null;
-        super.$destroy();
-    }
-}
+import { config } from "../core/config";
 
 /**
  * This class is symbolic
@@ -71,32 +17,36 @@ export class FragmentPrivate extends ReactivePrivate {
  */
 export class Fragment<T extends FragmentOptions = FragmentOptions> extends Reactive {
     /**
-     * Private part
-     * @protected
-     */
-    protected $: FragmentPrivate;
-
-    /**
      * The children list
      * @type Array
      */
     public children: Set<Fragment> = new Set();
-    public lastChild: Fragment | null = null;
+    public lastChild: Fragment | undefined = undefined;
+
+    /**
+     * Parent node
+     * @type {Fragment}
+     */
+    protected parent: Fragment;
+
+    /**
+     * Next node
+     * @type {?Fragment}
+     */
+    protected next?: Fragment;
+
+    /**
+     * Previous node
+     * @type {?Fragment}
+     */
+    protected prev?: Fragment;
 
     /**
      * Constructs a Vasille Node
      * @param input
-     * @param $ {FragmentPrivate}
      */
-    public constructor(input: T, $?: FragmentPrivate) {
-        super(input, $ || new FragmentPrivate());
-    }
-
-    /**
-     * Gets the app of node
-     */
-    get app(): AppNode {
-        return this.$.app;
+    public constructor(input: T) {
+        super(input);
     }
 
     /**
@@ -105,10 +55,8 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
      * @param parent {Fragment} parent of node
      * @param data {*} additional data
      */
-    public preinit(app: AppNode, parent: Fragment, data?: unknown) {
-        const $: FragmentPrivate = this.$;
-
-        $.preinit(app, parent);
+    public preinit(parent: Fragment, data?: unknown) {
+        this.parent = parent;
     }
 
     init(): void {
@@ -132,9 +80,9 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
      */
     protected pushNode(node: Fragment): void {
         if (this.lastChild) {
-            this.lastChild.$.next = node;
+            this.lastChild.next = node;
         }
-        node.$.prev = this.lastChild;
+        node.prev = this.lastChild;
 
         this.lastChild = node;
         this.children.add(node);
@@ -145,8 +93,8 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
      * @return {?Element}
      * @protected
      */
-    protected findFirstChild(): Node {
-        let first: Node;
+    protected findFirstChild(): Node | undefined {
+        let first: Node | undefined;
 
         this.children.forEach(child => {
             first = first || child.findFirstChild();
@@ -160,12 +108,10 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
      * @param node {Node} node to insert
      */
     public appendNode(node: Node): void {
-        const $: FragmentPrivate = this.$;
-
-        if ($.next) {
-            $.next.insertAdjacent(node);
+        if (this.next) {
+            this.next.insertAdjacent(node);
         } else {
-            $.parent.appendNode(node);
+            this.parent.appendNode(node);
         }
     }
 
@@ -175,14 +121,13 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
      */
     public insertAdjacent(node: Node): void {
         const child = this.findFirstChild();
-        const $: FragmentPrivate = this.$;
 
         if (child) {
-            child.parentElement.insertBefore(node, child);
-        } else if ($.next) {
-            $.next.insertAdjacent(node);
+            child.parentElement?.insertBefore(node, child);
+        } else if (this.next) {
+            this.next.insertAdjacent(node);
         } else {
-            $.parent.appendNode(node);
+            this.parent.appendNode(node);
         }
     }
 
@@ -191,21 +136,20 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
      * @param text {String | IValue} A text fragment string
      * @param cb {function (TextNode)} Callback if previous is slot name
      */
-    public text(text: string | IValue<string>, cb?: (text: TextNode) => void): void {
-        const $ = this.$;
-        const node = new TextNode();
+    public text(text: unknown, cb?: (text: TextNode) => void): void {
+        const node = new TextNode({});
 
-        node.preinit($.app, this, text);
+        node.preinit(this, text);
         this.pushNode(node);
 
         cb && cb(node);
     }
 
     public debug(text: IValue<unknown>) {
-        if (this.$.app.debugUi) {
-            const node = new DebugNode();
+        if (config.debugUi) {
+            const node = new DebugNode({});
 
-            node.preinit(this.$.app, this, text);
+            node.preinit(this, text);
             this.pushNode(node);
         }
     }
@@ -221,11 +165,10 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
         input: TagOptionsWithSlot<K>,
         cb?: (node: Tag<K>) => void,
     ): void {
-        const $: FragmentPrivate = this.$;
         const node = new Tag(input);
 
         input.slot = cb || input.slot;
-        node.preinit($.app, this, tagName);
+        node.preinit(this, tagName);
         node.init();
         this.pushNode(node);
         node.ready();
@@ -237,13 +180,24 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
      * @param callback {function($ : *)}
      */
     public create<T extends Fragment>(node: T, callback?: T["input"]["slot"]): void {
-        const $: FragmentPrivate = this.$;
-
-        node.$.parent = this;
-        node.preinit($.app, this);
+        node.preinit(this);
         node.input.slot = callback || node.input.slot;
         this.pushNode(node);
         node.init();
+    }
+
+    public runFunctional<F extends (...args: any) => any>(f: F, ...args: Parameters<F>): ReturnType<F> | undefined {
+        let result: ReturnType<F> | undefined;
+
+        stack(this);
+        try {
+            result = f(...args);
+        } catch (e) {
+            reportError(e);
+        }
+        unstack();
+
+        return result;
     }
 
     /**
@@ -252,10 +206,10 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
      * @param cb {function(Fragment)} callback to run on true
      * @return {this}
      */
-    public if(cond: IValue<boolean>, cb: (node: Fragment) => void) {
+    public if(cond: IValue<unknown>, cb: (node: Fragment) => void) {
         const node = new SwitchedNode();
 
-        node.preinit(this.$.app, this);
+        node.preinit(this);
         node.init();
         this.pushNode(node);
         node.addCase(this.case(cond, cb));
@@ -270,7 +224,7 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
         }
     }
 
-    public elif(cond: IValue<boolean>, cb: (node: Fragment) => void) {
+    public elif(cond: IValue<unknown>, cb: (node: Fragment) => void) {
         if (this.lastChild instanceof SwitchedNode) {
             this.lastChild.addCase(this.case(cond, cb));
         } else {
@@ -285,9 +239,9 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
      * @return {{cond : IValue, cb : (function(Fragment) : void)}}
      */
     public case(
-        cond: IValue<boolean>,
+        cond: IValue<unknown>,
         cb: (node: Fragment) => void,
-    ): { cond: IValue<boolean>; cb: (node: Fragment) => void } {
+    ): { cond: IValue<unknown>; cb: (node: Fragment) => void } {
         return { cond, cb };
     }
 
@@ -303,95 +257,45 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
     }
 
     insertBefore(node: Fragment) {
-        const $ = this.$;
+        node.prev = this.prev;
+        node.next = this;
 
-        node.$.prev = $.prev;
-        node.$.next = this;
-
-        if ($.prev) {
-            $.prev.$.next = node;
+        if (this.prev) {
+            this.prev.next = node;
         }
-        $.prev = node;
+        this.prev = node;
     }
 
     insertAfter(node: Fragment) {
-        const $ = this.$;
+        node.prev = this;
+        node.next = this.next;
 
-        node.$.prev = this;
-        node.$.next = $.next;
-
-        $.next = node;
+        this.next = node;
     }
 
     remove() {
-        const $ = this.$;
-
-        if ($.next) {
-            $.next.$.prev = $.prev;
+        if (this.next) {
+            this.next.prev = this.prev;
         }
-        if ($.prev) {
-            $.prev.$.next = $.next;
+        if (this.prev) {
+            this.prev.next = this.next;
         }
     }
 
-    public $destroy() {
-        this.children.forEach(child => child.$destroy());
+    public destroy() {
+        this.children.forEach(child => child.destroy());
 
         this.children.clear();
-        this.lastChild = null;
+        this.lastChild = undefined;
 
-        if (this.$.parent.lastChild === this) {
-            this.$.parent.lastChild = this.$.prev;
+        if (this.parent.lastChild === this) {
+            this.parent.lastChild = this.prev;
         }
-        super.$destroy();
+        super.destroy();
     }
 }
 
 const trueIValue = new Reference(true);
-
-/**
- * The private part of a text node
- * @class TextNodePrivate
- * @extends FragmentPrivate
- */
-export class TextNodePrivate extends FragmentPrivate {
-    public node: Text;
-
-    public constructor() {
-        super();
-        this.$seal();
-    }
-
-    /**
-     * Pre-initializes a text node
-     * @param app {AppNode} the app node
-     * @param parent
-     * @param text {IValue}
-     */
-    public preinitText(app: AppNode, parent: Fragment, text: IValue<string> | string) {
-        super.preinit(app, parent);
-        this.node = document.createTextNode(text instanceof IValue ? text.$ : text);
-
-        if (text instanceof IValue) {
-            this.bindings.add(
-                new Expression(
-                    (v: string) => {
-                        this.node.replaceData(0, -1, v);
-                    },
-                    true,
-                    text,
-                ),
-            );
-        }
-    }
-
-    /**
-     * Clear node data
-     */
-    public $destroy() {
-        super.$destroy();
-    }
-}
 
 /**
  * Represents a text node
@@ -399,60 +303,34 @@ export class TextNodePrivate extends FragmentPrivate {
  * @extends Fragment
  */
 export class TextNode extends Fragment {
-    protected $: TextNodePrivate;
+    #node: Text;
 
-    public constructor($ = new TextNodePrivate()) {
-        super({}, $);
-        this.$seal();
-    }
-
-    public preinit(app: AppNode, parent: Fragment, text?: IValue<string> | string) {
-        const $: TextNodePrivate = this.$;
+    public preinit(parent: Fragment, text?: unknown) {
+        super.preinit(parent);
 
         if (!text) {
-            throw internalError("wrong TextNode::$preninit call");
+            throw internalError("wrong TextNode::preninit call");
         }
 
-        $.preinitText(app, parent, text);
-        $.parent.appendNode($.node);
+        this.#node = document.createTextNode(text instanceof IValue ? text.$ : text);
+
+        if (text instanceof IValue) {
+            this.register(
+                new Expression((v: string) => {
+                    this.#node.replaceData(0, -1, v);
+                }, text),
+            );
+        }
+        this.parent.appendNode(this.#node);
     }
 
     protected findFirstChild(): Node {
-        return this.$.node;
+        return this.#node;
     }
 
-    public $destroy(): void {
-        this.$.node.remove();
-        this.$.$destroy();
-        super.$destroy();
-    }
-}
-
-/**
- * The private part of a base node
- * @class INodePrivate
- * @extends FragmentPrivate
- */
-export class INodePrivate extends FragmentPrivate {
-    /**
-     * Defines if node is unmounted
-     * @type {boolean}
-     */
-    public unmounted = false;
-
-    /**
-     * The element of vasille node
-     * @type Element
-     */
-    public node: Element;
-
-    public constructor() {
-        super();
-        this.$seal();
-    }
-
-    public $destroy() {
-        super.$destroy();
+    public destroy(): void {
+        this.#node.remove();
+        super.destroy();
     }
 }
 
@@ -462,23 +340,20 @@ export class INodePrivate extends FragmentPrivate {
  * @extends Fragment
  */
 export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment<T> {
-    protected $: INodePrivate;
+    /**
+     * Defines if node is unmounted
+     * @type {boolean}
+     */
+    protected unmounted = false;
 
     /**
-     * Constructs a base node
-     * @param input
-     * @param $ {?INodePrivate}
+     * The element of vasille node
+     * @type Element
      */
-    constructor(input: T, $?: INodePrivate) {
-        super(input, $ || new INodePrivate());
-        this.$seal();
-    }
+    protected node: Element;
 
-    /**
-     * Get the bound node
-     */
-    get node(): Element {
-        return this.$.node;
+    public get element(): Element {
+        return this.node;
     }
 
     /**
@@ -486,11 +361,8 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      * @param name {String} name of attribute
      * @param value {IValue} value
      */
-    public attr(name: string, value: IValue<string | number | boolean>): void {
-        const $: INodePrivate = this.$;
-        const attr = new AttributeBinding(this, name, value);
-
-        $.bindings.add(attr);
+    public attr(name: string, value: IValue<string | number | boolean | null | undefined>): void {
+        this.register(new AttributeBinding(this, name, value));
     }
 
     /**
@@ -498,13 +370,13 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      * @param name {string} name of attribute
      * @param value {string} value
      */
-    public setAttr(name: string, value: string | number | boolean): this {
+    public setAttr(name: string, value: string | number | boolean | null | undefined): this {
         if (typeof value === "boolean") {
             if (value) {
-                this.$.node.setAttribute(name, "");
+                this.node.setAttribute(name, "");
             }
-        } else {
-            this.$.node.setAttribute(name, `${value}`);
+        } else if (value !== null && value !== undefined) {
+            this.node.setAttribute(name, `${value}`);
         }
         return this;
     }
@@ -514,7 +386,7 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      * @param cl {string} Class name
      */
     public addClass(cl: string): this {
-        this.$.node.classList.add(cl);
+        this.node.classList.add(cl);
         return this;
     }
 
@@ -523,7 +395,7 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      * @param cl {string} classes names
      */
     public removeClass(cl: string): this {
-        this.$.node.classList.remove(cl);
+        this.node.classList.remove(cl);
         return this;
     }
 
@@ -532,9 +404,7 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      * @param className {IValue}
      */
     public bindClass(className: IValue<string>): this {
-        const $: INodePrivate = this.$;
-
-        $.bindings.add(new DynamicalClassBinding(this, className));
+        this.register(new DynamicalClassBinding(this, className));
         return this;
     }
 
@@ -544,7 +414,7 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      * @param className {string} class name
      */
     public floatingClass(cond: IValue<boolean>, className: string): this {
-        this.$.bindings.add(new StaticClassBinding(this, className, cond));
+        this.register(new StaticClassBinding(this, className, cond));
         return this;
     }
 
@@ -554,10 +424,8 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      * @param value {IValue} value
      */
     public style(name: string, value: IValue<string | number | number[]>): this {
-        const $: INodePrivate = this.$;
-
-        if ($.node instanceof HTMLElement) {
-            $.bindings.add(new StyleBinding(this, name, value));
+        if (this.node instanceof HTMLElement) {
+            this.register(new StyleBinding(this, name, value));
         } else {
             throw userError("style can be applied to HTML elements only", "non-html-element");
         }
@@ -570,8 +438,8 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      * @param value {string} Property value
      */
     public setStyle(prop: string, value: string | number | number[]): this {
-        if (this.$.node instanceof HTMLElement) {
-            this.$.node.style.setProperty(prop, stringifyStyleValue(value));
+        if (this.node instanceof HTMLElement) {
+            this.node.style.setProperty(prop, stringifyStyleValue(value));
         } else {
             throw userError("Style can be set for HTML elements only", "non-html-element");
         }
@@ -585,21 +453,20 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      * @param options {Object | boolean} addEventListener options
      */
     public listen(name: string, handler: (ev: Event) => void, options?: boolean | AddEventListenerOptions): this {
-        this.$.node.addEventListener(name, handler, options);
+        this.node.addEventListener(name, handler, options);
         return this;
     }
 
     public insertAdjacent(node: Node) {
-        this.$.node.parentNode.insertBefore(node, this.$.node);
+        this.node.parentNode?.insertBefore(node, this.node);
     }
 
     /**
      * A v-show & ngShow alternative
      * @param cond {IValue} show condition
      */
-    public bindShow(cond: IValue<boolean>) {
-        const $: INodePrivate = this.$;
-        const node = $.node;
+    public bindShow(cond: IValue<unknown>) {
+        const node = this.node;
 
         if (node instanceof HTMLElement) {
             let lastDisplay = node.style.display;
@@ -625,8 +492,7 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
      * @param value {IValue}
      */
     public bindDomApi(name: string, value: IValue<string>) {
-        const $: INodePrivate = this.$;
-        const node = $.node;
+        const node = this.node;
 
         if (node instanceof HTMLElement) {
             node[name] = value.$;
@@ -722,10 +588,11 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
         options.style && this.applyStyle(options.style);
         options.styleX && this.applyStyle(options.styleX);
 
-        options.events &&
-            Object.keys(options.events).forEach(name => {
+        if (options.events) {
+            for (const name of Object.keys(options.events)) {
                 this.listen(name, options.events[name]);
-            });
+            }
+        }
 
         options.bind && this.applyBind(options.bind);
         options.bindX && this.applyBind(options.bindX);
@@ -745,38 +612,36 @@ export interface TagOptionsWithSlot<K extends keyof AcceptedTagsMap> extends Tag
 export class Tag<K extends keyof AcceptedTagsMap> extends INode<TagOptionsWithSlot<K>> {
     public constructor(input: TagOptionsWithSlot<K>) {
         super(input);
-        this.$seal();
     }
 
-    public preinit(app: AppNode, parent: Fragment, tagName?: string) {
+    public preinit(parent: Fragment, tagName?: string) {
         if (!tagName || typeof tagName !== "string") {
             throw internalError("wrong Tag::preinit call");
         }
 
         const node = document.createElement(tagName);
-        const $: INodePrivate = this.$;
 
-        $.preinit(app, parent);
-        $.node = node;
+        super.preinit(parent);
+        this.node = node;
 
-        $.parent.appendNode(node);
+        this.parent.appendNode(node);
     }
 
     protected compose(input: TagOptionsWithSlot<K>): void {
         input.slot?.(this);
-        input.callback?.(this.$.node);
+        input.callback?.(this.node);
     }
 
-    protected findFirstChild(): Node {
-        return this.$.unmounted ? null : this.$.node;
+    protected findFirstChild(): Node | undefined {
+        return this.unmounted ? undefined : this.node;
     }
 
     public insertAdjacent(node: Node) {
-        if (this.$.unmounted) {
-            if (this.$.next) {
-                this.$.next.insertAdjacent(node);
+        if (this.unmounted) {
+            if (this.next) {
+                this.next.insertAdjacent(node);
             } else {
-                this.$.parent.appendNode(node);
+                this.parent.appendNode(node);
             }
         } else {
             super.insertAdjacent(node);
@@ -784,7 +649,7 @@ export class Tag<K extends keyof AcceptedTagsMap> extends INode<TagOptionsWithSl
     }
 
     public appendNode(node: Node) {
-        this.$.node.appendChild(node);
+        this.node.appendChild(node);
     }
 
     public extent(options: TagOptions<K>) {
@@ -795,19 +660,17 @@ export class Tag<K extends keyof AcceptedTagsMap> extends INode<TagOptionsWithSl
      * Mount/Unmount a node
      * @param cond {IValue} show condition
      */
-    public bindMount(cond: IValue<boolean>) {
-        const $: INodePrivate = this.$;
-
+    public bindMount(cond: IValue<unknown>) {
         this.bindAlive(
             cond,
             () => {
-                $.node.remove();
-                $.unmounted = true;
+                this.node.remove();
+                this.unmounted = true;
             },
             () => {
-                if ($.unmounted) {
-                    this.insertAdjacent($.node);
-                    $.unmounted = false;
+                if (this.unmounted) {
+                    this.insertAdjacent(this.node);
+                    this.unmounted = false;
                 }
             },
         );
@@ -816,133 +679,24 @@ export class Tag<K extends keyof AcceptedTagsMap> extends INode<TagOptionsWithSl
     /**
      * Runs GC
      */
-    public $destroy() {
+    public destroy() {
         this.node.remove();
-        super.$destroy();
+        super.destroy();
     }
 }
-
 /**
  * Represents a vasille extension node
  * @class Extension
  * @extends INode
  */
 export class Extension<T extends TagOptions<any> = TagOptions<any>> extends INode<T> {
-    public preinit(app: AppNode, parent: Fragment) {
-        const $: INodePrivate = this.$;
-        let it: Reactive = parent;
-
-        while (it && !(it instanceof INode)) {
-            it = it.parent;
-        }
-
-        if (it && it instanceof INode) {
-            $.node = it.node;
-        }
-
-        $.preinit(app, parent);
-
-        if (!it) {
-            throw userError("A extension node can be encapsulated only in a tag/extension/component", "virtual-dom");
-        }
-    }
-
     public tag<K extends keyof AcceptedTagsMap>(tagName: K, input: TagOptionsWithSlot<K>): void {
         const parent = this.parent;
 
-        if (parent instanceof Fragment) {
-            for (const child of parent.children) {
-                if (child instanceof Tag) {
-                    if (child.node.tagName === tagName) {
-                        child.extent(input);
-                        input.slot?.(child);
-                    }
-                } else if (child instanceof Fragment) {
-                    child.tag(tagName, input);
-                }
-            }
+        if (parent instanceof Tag && parent.element.tagName === tagName) {
+            parent.extent(input);
+            input.slot?.(parent);
         }
-    }
-
-    public $destroy() {
-        super.$destroy();
-    }
-}
-
-/**
- * Node which cas has just a child
- * @class Component
- * @extends Extension
- */
-export class Component<T extends TagOptions<any>> extends Extension<T> {
-    init(): void {
-        super.composeNow();
-        this.ready();
-        super.applyOptionsNow();
-    }
-
-    public ready() {
-        super.ready();
-
-        if (this.children.size !== 1) {
-            throw userError("Component must have a child only", "dom-error");
-        }
-        const child = this.lastChild;
-
-        if (child instanceof Tag || child instanceof Component) {
-            const $: INodePrivate = this.$;
-
-            $.node = child.node;
-        } else {
-            throw userError("Component child must be Tag or Component", "dom-error");
-        }
-    }
-
-    preinit(app: AppNode, parent: Fragment) {
-        this.$.preinit(app, parent);
-    }
-}
-
-/**
- * Private part of the switch node
- * @class SwitchedNodePrivate
- * @extends INodePrivate
- */
-export class SwitchedNodePrivate extends FragmentPrivate {
-    /**
-     * Index of current true condition
-     * @type number
-     */
-    public index: number;
-
-    /**
-     * Array of possible cases
-     * @type {Array<{cond : IValue<boolean>, cb : function(Fragment)}>}
-     */
-    public cases: { cond: IValue<boolean>; cb: (node: Fragment) => void }[] = [];
-
-    /**
-     * A function that syncs index and content will be bounded to each condition
-     * @type {Function}
-     */
-    public sync: () => void;
-
-    public constructor() {
-        super();
-        this.$seal();
-    }
-
-    /**
-     * Runs GC
-     */
-    public $destroy() {
-        this.cases.forEach(c => {
-            delete c.cond;
-            delete c.cb;
-        });
-        this.cases.splice(0);
-
-        super.$destroy();
     }
 }
 
@@ -950,49 +704,62 @@ export class SwitchedNodePrivate extends FragmentPrivate {
  * Defines a node which can switch its children conditionally
  */
 export class SwitchedNode extends Fragment {
-    protected $: SwitchedNodePrivate;
+    /**
+     * Index of current true condition
+     * @type number
+     */
+    #index: number;
+
+    /**
+     * Array of possible cases
+     * @type {Array<{cond : IValue<unknown>, cb : function(Fragment)}>}
+     */
+    #cases: { cond: IValue<unknown>; cb: (node: Fragment) => void }[] = [];
+
+    /**
+     * A function that syncs index and content will be bounded to each condition
+     * @type {Function}
+     */
+    #sync: () => void;
 
     /**
      * Constructs a switch node and define a sync function
      */
     public constructor() {
-        super({}, new SwitchedNodePrivate());
+        super({});
 
-        this.$.sync = () => {
-            const $: SwitchedNodePrivate = this.$;
+        this.#sync = () => {
             let i = 0;
 
-            for (; i < $.cases.length; i++) {
-                if ($.cases[i].cond.$) {
+            for (; i < this.#cases.length; i++) {
+                if (this.#cases[i].cond.$) {
                     break;
                 }
             }
 
-            if (i === $.index) {
+            if (i === this.#index) {
                 return;
             }
 
             if (this.lastChild) {
-                this.lastChild.$destroy();
+                this.lastChild.destroy();
                 this.children.clear();
-                this.lastChild = null;
+                this.lastChild = undefined;
             }
 
-            if (i !== $.cases.length) {
-                $.index = i;
-                this.createChild($.cases[i].cb);
+            if (i !== this.#cases.length) {
+                this.#index = i;
+                this.createChild(this.#cases[i].cb);
             } else {
-                $.index = -1;
+                this.#index = -1;
             }
         };
-
-        this.$seal();
     }
 
-    public addCase(case_: { cond: IValue<boolean>; cb: (node: Fragment) => void }) {
-        this.$.cases.push(case_);
-        case_.cond.$on(this.$.sync);
-        this.$.sync();
+    public addCase(case_: { cond: IValue<unknown>; cb: (node: Fragment) => void }) {
+        this.#cases.push(case_);
+        case_.cond.on(this.#sync);
+        this.#sync();
     }
 
     /**
@@ -1002,7 +769,7 @@ export class SwitchedNode extends Fragment {
     public createChild(cb: (node: Fragment) => void) {
         const node = new Fragment({});
 
-        node.preinit(this.$.app, this);
+        node.preinit(this);
         node.init();
 
         this.lastChild = node;
@@ -1012,66 +779,20 @@ export class SwitchedNode extends Fragment {
     }
 
     public ready() {
-        const $ = this.$;
-
-        $.cases.forEach(c => {
-            c.cond.$on($.sync);
+        this.#cases.forEach(c => {
+            c.cond.on(this.#sync);
         });
 
-        $.sync();
+        this.#sync();
     }
 
-    public $destroy() {
-        const $ = this.$;
-
-        $.cases.forEach(c => {
-            c.cond.$off($.sync);
+    public destroy() {
+        this.#cases.forEach(c => {
+            c.cond.off(this.#sync);
         });
+        this.#cases.splice(0);
 
-        super.$destroy();
-    }
-}
-
-/**
- * The private part of a text node
- */
-export class DebugPrivate extends FragmentPrivate {
-    public node: Comment;
-
-    public constructor() {
-        super();
-        this.$seal();
-    }
-
-    /**
-     * Pre-initializes a text node
-     * @param app {App} the app node
-     * @param parent {Fragment} parent node
-     * @param text {String | IValue}
-     */
-    public preinitComment(app: AppNode, parent: Fragment, text: IValue<unknown>) {
-        super.preinit(app, parent);
-        this.node = document.createComment(text.$.toString());
-
-        this.bindings.add(
-            new Expression(
-                (v: unknown) => {
-                    this.node.replaceData(0, -1, v.toString());
-                },
-                true,
-                text,
-            ),
-        );
-
-        this.parent.appendNode(this.node);
-    }
-
-    /**
-     * Clear node data
-     */
-    public $destroy() {
-        this.node.remove();
-        super.$destroy();
+        super.destroy();
     }
 }
 
@@ -1081,32 +802,31 @@ export class DebugPrivate extends FragmentPrivate {
  * @extends Fragment
  */
 export class DebugNode extends Fragment {
-    /**
-     * private data
-     * @type {DebugNode}
-     */
-    protected $: DebugPrivate = new DebugPrivate();
+    #node: Comment;
 
-    public constructor() {
-        super({});
-        this.$seal();
-    }
-
-    public preinit(app: AppNode, parent: Fragment, text?: IValue<unknown>) {
-        const $: DebugPrivate = this.$;
+    public preinit(parent: Fragment, text?: IValue<unknown>) {
+        super.preinit(parent);
 
         if (!text) {
-            throw internalError("wrong DebugNode::$preninit call");
+            throw internalError("wrong DebugNode::preninit call");
         }
 
-        $.preinitComment(app, parent, text);
+        this.#node = document.createComment(text.$?.toString() ?? "");
+
+        this.register(
+            new Expression((v: unknown) => {
+                this.#node.replaceData(0, -1, v?.toString() ?? "");
+            }, text),
+        );
+
+        this.parent.appendNode(this.#node);
     }
 
     /**
      * Runs garbage collector
      */
-    public $destroy(): void {
-        this.$.$destroy();
-        super.$destroy();
+    public destroy(): void {
+        this.#node.remove();
+        super.destroy();
     }
 }

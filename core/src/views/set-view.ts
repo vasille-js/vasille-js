@@ -1,4 +1,4 @@
-import { BaseView, BaseViewPrivate, BSO } from "./base-view";
+import { BaseView, BSO } from "./base-view";
 import { SetModel } from "../models/set-model";
 
 /**

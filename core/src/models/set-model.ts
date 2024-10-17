@@ -16,12 +16,7 @@ export class SetModel<T> extends Set<T> implements ListenableModel<T, T> {
      */
     public constructor(set: T[] = []) {
         super();
-
-        Object.defineProperty(this, "listener", {
-            value: new Listener(),
-            writable: false,
-            configurable: false,
-        });
+        this.listener = new Listener();
 
         set.forEach(item => {
             super.add(item);
@@ -63,11 +58,7 @@ export class SetModel<T> extends Set<T> implements ListenableModel<T, T> {
         return super.delete(value);
     }
 
-    public enableReactivity() {
-        this.listener.enableReactivity();
-    }
-
-    public disableReactivity() {
-        this.listener.disableReactivity();
+    public destroy(): void {
+        this.clear();
     }
 }

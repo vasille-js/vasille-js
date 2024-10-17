@@ -20,10 +20,10 @@ export class Pointer<T> extends Mirror<T> {
      * @param value {IValue} value to point
      */
     public set $$(value: IValue<T>) {
-        if (this.$pointedValue !== value) {
-            this.$disable();
-            this.$pointedValue = value;
-            this.$enable();
+        if (this.value !== value) {
+            this.value.off(this.handler);
+            this.value = value;
+            this.value.on(this.handler);
         }
     }
 }

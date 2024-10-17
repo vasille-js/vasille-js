@@ -28,10 +28,9 @@ export class StyleBinding extends Binding<string | number | number[]> {
     public constructor(node: INode, name: string, value: IValue<string | number | number[]>) {
         super(value);
         this.init(value => {
-            if (node.node instanceof HTMLElement) {
-                node.node.style.setProperty(name, stringifyStyleValue(value));
+            if (node.element instanceof HTMLElement) {
+                node.element.style.setProperty(name, stringifyStyleValue(value));
             }
         });
-        this.$seal();
     }
 }

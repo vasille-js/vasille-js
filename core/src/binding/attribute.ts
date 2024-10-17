@@ -7,27 +7,26 @@ import type { IValue } from "../core/ivalue";
  * @class AttributeBinding
  * @extends Binding
  */
-export class AttributeBinding extends Binding<string | number | boolean | null> {
+export class AttributeBinding extends Binding<string | number | boolean | null | undefined> {
     /**
      * Constructs an attribute binding description
      * @param node {INode} the vasille node
      * @param name {String} the name of attribute
      * @param value {IValue} value to bind
      */
-    public constructor(node: INode, name: string, value: IValue<string | number | boolean | null>) {
+    public constructor(node: INode, name: string, value: IValue<string | number | boolean | null | undefined>) {
         super(value);
 
-        this.init((value: string | number | boolean | null) => {
+        this.init((value: string | number | boolean | null | undefined) => {
             if (value) {
                 if (typeof value === "boolean") {
-                    node.node.setAttribute(name, "");
+                    node.element.setAttribute(name, "");
                 } else {
-                    node.node.setAttribute(name, `${value}`);
+                    node.element.setAttribute(name, `${value}`);
                 }
             } else {
-                node.node.removeAttribute(name);
+                node.element.removeAttribute(name);
             }
         });
-        this.$seal();
     }
 }

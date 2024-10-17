@@ -11,65 +11,51 @@ export class Reference<T> extends IValue<T> {
      * The encapsulated value
      * @type {*}
      */
-    private $value: T;
+    private state: T;
 
     /**
      * Array of handlers
      * @type {Set}
      * @readonly
      */
-    private readonly $onchange: Set<(value: T) => void>;
+    private readonly onChange: Set<(value: T) => void>;
 
     /**
      * @param value {any} the initial value
      */
     public constructor(value: T) {
-        super(true);
-        this.$value = value;
-        this.$onchange = new Set();
-        this.$seal();
+        super();
+        this.state = value;
+        this.onChange = new Set();
     }
 
     public get $(): T {
-        return this.$value;
+        return this.state;
     }
 
     public set $(value: T) {
-        if (this.$value !== value) {
-            this.$value = value;
+        if (this.state !== value) {
+            this.state = value;
 
-            if (this.isEnabled) {
-                this.$updateDeps(value);
-            }
+            this.updateDeps(value);
         }
     }
 
-    public $enable(): void {
-        if (!this.isEnabled) {
-            this.$updateDeps(this.$value);
-            this.isEnabled = true;
-        }
+    public on(handler: (value: T) => void): void {
+        this.onChange.add(handler);
     }
 
-    public $disable(): void {
-        this.isEnabled = false;
+    public off(handler: (value: T) => void): void {
+        this.onChange.delete(handler);
     }
 
-    public $on(handler: (value: T) => void): void {
-        this.$onchange.add(handler);
+    public destroy() {
+        super.destroy();
+        this.onChange.clear();
     }
 
-    public $off(handler: (value: T) => void): void {
-        this.$onchange.delete(handler);
-    }
-
-    public $destroy() {
-        super.$destroy();
-        this.$onchange.clear();
-    }
-
-    protected $updateDeps(value: T) {
-        this.$onchange.forEach(handler => {
+    protected updateDeps(value: T) {
+        this.onChange.forEach(handler => {
             try {
                 handler(value);
             } catch (e) {

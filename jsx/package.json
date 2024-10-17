@@ -6,6 +6,7 @@
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
     "prettier": "npx prettier src test --write",
+    "build": "tsc --build tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

@@ -3,11 +3,11 @@ import type { INode } from "../node/node";
 import type { IValue } from "../core/ivalue";
 
 function addClass(node: INode, cl: string) {
-    node.node.classList.add(cl);
+    node.element.classList.add(cl);
 }
 
 function removeClass(node: INode, cl: string) {
-    node.node.classList.remove(cl);
+    node.element.classList.remove(cl);
 }
 
 export class StaticClassBinding extends Binding<boolean> {
@@ -25,7 +25,6 @@ export class StaticClassBinding extends Binding<boolean> {
                 this.current = value;
             }
         });
-        this.$seal();
     }
 }
 
@@ -45,6 +44,5 @@ export class DynamicalClassBinding extends Binding<string> {
                 this.current = value;
             }
         });
-        this.$seal();
     }
 }

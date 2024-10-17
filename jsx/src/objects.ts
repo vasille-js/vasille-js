@@ -1,5 +1,5 @@
-import { Expression, IValue, Pointer, userError } from "vasille";
-import { dereference } from "./inline";
+import { current, Expression, IValue, Pointer, Reactive, Reference, userError } from "vasille";
+import { readValue } from "./inline";
 
 export type Path = (string | number)[];
 
@@ -27,18 +27,19 @@ export function readProperty(o: unknown, path: Path): unknown {
 export function writeValue(o: unknown, path: Path, v: unknown) {
     const field = path.pop();
     const target = readProperty(o, path);
-    const current = typeof target === "object" && target !== null && field in target ? target[field] : undefined;
+    const current =
+        typeof target === "object" && target !== null && field && field in target ? target[field] : undefined;
 
     if (field === "$" && target instanceof IValue) {
-        target.$ = dereference(v);
+        target.$ = readValue(v);
     } else if (current instanceof Pointer && v instanceof IValue) {
         current.$$ = v as IValue<unknown>;
     } else if (current instanceof IValue) {
-        current.$ = dereference(v);
-    } else if (typeof target === "object" && target !== null && field in target) {
-        target[field] = dereference(v);
-    } else {
-        Object.defineProperty(target, field, { value: dereference(v), configurable: false });
+        current.$ = readValue(v);
+    } else if (typeof target === "object" && target !== null && field && field in target) {
+        target[field] = readValue(v);
+    } else if (field) {
+        Object.defineProperty(target, field, { value: readValue(v), configurable: false });
     }
 }
 
@@ -68,14 +69,32 @@ export function propertyExtractor(source: unknown, path: Path): unknown {
             return iValue;
         }
 
-        return new Expression(
-            (obj: unknown) => {
-                return readProperty(obj, fixedPath);
-            },
-            true,
-            iValue,
-        );
+        return new Expression((obj: unknown) => {
+            return readProperty(obj, fixedPath);
+        }, iValue);
     }
 
     return target;
+}
+
+export function reactiveObject(o: object, ctx?: Reactive): object {
+    if (!ctx && current) {
+        ctx = current;
+    }
+
+    if (ctx) {
+        for (const key of Object.keys(o)) {
+            if (!(o[key] instanceof IValue)) {
+                o[key] = ctx.ref(o[key]);
+            }
+        }
+    } else {
+        for (const key of Object.keys(o)) {
+            if (!(o[key] instanceof IValue)) {
+                o[key] = new Reference(o[key]);
+            }
+        }
+    }
+
+    return o;
 }

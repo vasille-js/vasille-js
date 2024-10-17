@@ -7,8 +7,8 @@ export class Expression extends IValue<unknown> {
     private readonly linkedFunc: (() => void)[] = [];
     private readonly sync: Reference<unknown>;
 
-    public constructor(func: (...args: unknown) => unknown, values: unknown[]) {
-        super(false);
+    public constructor(func: (...args: unknown[]) => unknown, values: unknown[]) {
+        super();
 
         const handler = (i?: number) => {
             if (typeof i === "number") {
@@ -40,8 +40,7 @@ export class Expression extends IValue<unknown> {
         this.values = values;
         this.func = handler;
 
-        this.$enable();
-        this.$seal();
+        handler();
     }
 
     public get $(): unknown {
@@ -52,48 +51,26 @@ export class Expression extends IValue<unknown> {
         this.sync.$ = value;
     }
 
-    public $on(handler: (value: unknown) => void): void {
-        this.sync.$on(handler);
+    public on(handler: (value: unknown) => void): void {
+        this.sync.on(handler);
     }
 
-    public $off(handler: (value: unknown) => void) {
-        this.sync.$off(handler);
+    public off(handler: (value: unknown) => void) {
+        this.sync.off(handler);
     }
 
-    public $enable() {
-        if (!this.isEnabled) {
-            for (let i = 0; i < this.values.length; i++) {
-                const value = this.values[i];
+    public destroy() {
+        for (let i = 0; i < this.values.length; i++) {
+            const value = this.values[i];
 
-                if (value instanceof IValue) {
-                    value.$on(this.linkedFunc[i]);
-                    this.valuesCache[i] = value.$;
-                }
+            if (value instanceof IValue) {
+                value.off(this.linkedFunc[i]);
             }
-            this.func();
-            this.isEnabled = true;
         }
-    }
-
-    public $disable() {
-        if (this.isEnabled) {
-            for (let i = 0; i < this.values.length; i++) {
-                const value = this.values[i];
-
-                if (value instanceof IValue) {
-                    value.$off(this.linkedFunc[i]);
-                }
-            }
-            this.isEnabled = false;
-        }
-    }
-
-    public $destroy() {
-        this.$disable();
         this.values.splice(0);
         this.valuesCache.splice(0);
         this.linkedFunc.splice(0);
 
-        super.$destroy();
+        super.destroy();
     }
 }

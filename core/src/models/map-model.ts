@@ -16,12 +16,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
      */
     public constructor(map: [K, T][] = []) {
         super();
-
-        Object.defineProperty(this, "listener", {
-            value: new Listener(),
-            writable: false,
-            configurable: false,
-        });
+        this.listener = new Listener();
 
         map.forEach(([key, value]) => {
             super.set(key, value);
@@ -43,7 +38,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
      * @param key {*} key
      * @return {boolean} true if removed something, otherwise false
      */
-    public delete(key: any): boolean {
+    public delete(key: K): boolean {
         const tmp = super.get(key);
         if (tmp) {
             this.listener.emitRemoved(key, tmp);
@@ -69,11 +64,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
         return this;
     }
 
-    public enableReactivity() {
-        this.listener.enableReactivity();
-    }
-
-    public disableReactivity() {
-        this.listener.disableReactivity();
+    destroy(): void {
+        this.clear();
     }
 }

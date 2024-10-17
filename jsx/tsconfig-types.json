@@ -9,6 +9,7 @@
     "module": "ES6",
     "moduleResolution": "Node",
     "skipLibCheck": true,
+    "strictNullChecks": true,
     "types": [
       "debug",
       "estree",

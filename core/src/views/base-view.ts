@@ -1,29 +1,5 @@
-import { RepeatNode, RepeatNodePrivate, RNO } from "./repeat-node";
+import { RepeatNode, RNO } from "./repeat-node";
 import { ListenableModel } from "../models/model";
-
-/**
- * Private part of BaseView
- * @class BaseViewPrivate
- * @extends RepeatNodePrivate
- */
-export class BaseViewPrivate<K, T> extends RepeatNodePrivate<K> {
-    /**
-     * Handler to catch values addition
-     * @type {Function}
-     */
-    public addHandler: (index: K, value: T) => void;
-
-    /**
-     * Handler to catch values removes
-     * @type {Function}
-     */
-    public removeHandler: (index: K, value: T) => void;
-
-    public constructor() {
-        super();
-        this.$seal();
-    }
-}
 
 export interface BSO<K, T, Model extends ListenableModel<K, T>> extends RNO<T, K> {
     model: Model;
@@ -36,30 +12,38 @@ export interface BSO<K, T, Model extends ListenableModel<K, T>> extends RNO<T, K
  * @implements IModel
  */
 export class BaseView<K, T, Model extends ListenableModel<K, T>> extends RepeatNode<K, T, BSO<K, T, Model>> {
-    protected $: BaseViewPrivate<K, T>;
+    public readonly input!: BSO<K, T, Model>;
 
-    input!: BSO<K, T, Model>;
+    /**
+     * Handler to catch values addition
+     * @type {Function}
+     */
+    protected addHandler: (index: K, value: T) => void;
 
-    public constructor(input: BSO<K, T, Model>, $?: BaseViewPrivate<K, T>) {
-        super(input, $ || new BaseViewPrivate());
+    /**
+     * Handler to catch values removes
+     * @type {Function}
+     */
+    protected removeHandler: (index: K, value: T) => void;
+
+    public constructor(input: BSO<K, T, Model>) {
+        super(input);
     }
 
     protected compose(input: BSO<K, T, Model>) {
-        const $: BaseViewPrivate<K, T> = this.$;
-        $.addHandler = (id, item) => {
+        this.addHandler = (id, item) => {
             this.createChild(input, id, item);
         };
-        $.removeHandler = (id, item) => {
+        this.removeHandler = (id, item) => {
             this.destroyChild(id, item);
         };
 
-        input.model.listener.onAdd($.addHandler);
-        input.model.listener.onRemove($.removeHandler);
+        input.model.listener.onAdd(this.addHandler);
+        input.model.listener.onRemove(this.removeHandler);
+    }
 
-        this.runOnDestroy(() => {
-            input.model.listener.offAdd($.addHandler);
-            input.model.listener.offRemove($.removeHandler);
-        });
-        return {};
+    public destroy(): void {
+        this.input.model.listener.offAdd(this.addHandler);
+        this.input.model.listener.offRemove(this.removeHandler);
     }
 }

@@ -210,7 +210,7 @@ it("INode", function () {
                     div.tag("circle", {}, (nonHTML: INode) => {
                         // eslint-disable-next-line
                         // @ts-ignore
-                        nonHTML.$.node = document.createComment("test");
+                        nonHTML.#node = document.createComment("test");
                         expect(() => {
                             nonHTML.setStyle("display", "none");
                         }).toThrow(error);
@@ -405,7 +405,7 @@ it("Error threading", function () {
     root.tag("div", {}, test => {
         // eslint-disable-next-line
         // @ts-ignore
-        test.$.node = null;
+        test.#node = null;
         expect(() => test.bindShow(bool)).toThrow("bind-show");
         expect(() => test.bindDomApi("innerHtml", text)).toThrow("dom-error");
         expect(() => test.preinit(root, root, null)).toThrow("internal-error");

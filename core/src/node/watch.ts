@@ -1,6 +1,5 @@
 import { Fragment } from "./node";
 import { IValue } from "../core/ivalue";
-import { FragmentOptions } from "../functional/options";
 
 interface WatchOptions<T> {
     model: IValue<T>;
@@ -17,13 +16,13 @@ export class Watch<T> extends Fragment<WatchOptions<T>> {
     public compose(input: WatchOptions<T>): void {
         this.watch(value => {
             this.children.forEach(child => {
-                child.$destroy();
+                child.destroy();
             });
             this.children.clear();
-            this.lastChild = null;
+            this.lastChild = undefined;
             input.slot && input.slot(this, value);
         }, input.model);
 
-        input.slot(this, input.model.$);
+        input.slot?.(this, input.model.$);
     }
 }

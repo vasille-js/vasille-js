@@ -9,7 +9,7 @@ import { Fragment } from "../node/node";
  */
 export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
     public createChild(input: BSO<T, T, ArrayModel<T>>, id: T, item: T, before?: Fragment): any {
-        super.createChild(input, item, item, before || this.$.nodes.get(id));
+        super.createChild(input, item, item, before || this.nodes.get(id));
     }
 
     protected compose(input: BSO<T, T, ArrayModel<T>>) {

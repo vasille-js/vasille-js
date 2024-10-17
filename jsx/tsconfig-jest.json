@@ -9,6 +9,7 @@
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "strictNullChecks": true,
     "types": [
       "node",
       "jest"

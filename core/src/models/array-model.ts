@@ -14,12 +14,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      */
     public constructor(data: Array<T> = []) {
         super();
-
-        Object.defineProperty(this, "listener", {
-            value: new Listener(),
-            writable: false,
-            configurable: false,
-        });
+        this.listener = new Listener();
 
         for (let i = 0; i < data.length; i++) {
             super.push(data[i]);
@@ -27,14 +22,6 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
     }
 
     /* Array members */
-
-    /**
-     * Gets the last item of array
-     * @return {*} the last item of array
-     */
-    public get last(): T {
-        return this.length ? this[this.length - 1] : null;
-    }
 
     /**
      * Calls Array.fill and notify about changes
@@ -62,7 +49,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * Calls Array.pop and notify about changes
      * @return {*} removed value
      */
-    public pop(): T {
+    public pop(): T | undefined {
         const v = super.pop();
 
         if (v !== undefined) {
@@ -88,7 +75,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * Calls Array.shift and notify about changed
      * @return {*} the shifted value
      */
-    public shift(): T {
+    public shift(): T | undefined {
         const v = super.shift();
 
         if (v !== undefined) {
@@ -135,100 +122,6 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
         return super.unshift(...items);
     }
 
-    /**
-     * Inserts a value to the end of array
-     * @param v {*} value to insert
-     */
-    public append(v: T): this {
-        this.listener.emitAdded(null, v);
-        super.push(v);
-        return this;
-    }
-
-    /**
-     * Clears array
-     * @return {this} a pointer to this
-     */
-    public clear(): this {
-        this.forEach(v => {
-            this.listener.emitRemoved(v, v);
-        });
-        super.splice(0);
-        return this;
-    }
-
-    /**
-     * Inserts a value to position `index`
-     * @param index {number} index to insert value
-     * @param v {*} value to insert
-     * @return {this} a pointer to this
-     */
-    public insert(index: number, v: T): this {
-        this.listener.emitAdded(this[index], v);
-        super.splice(index, 0, v);
-        return this;
-    }
-
-    /**
-     * Inserts a value to the beginning of array
-     * @param v {*} value to insert
-     * @return {this} a pointer to this
-     */
-    public prepend(v: T): this {
-        this.listener.emitAdded(this[0], v);
-        super.unshift(v);
-        return this;
-    }
-
-    /**
-     * Removes a value from an index
-     * @param index {number} index of value to remove
-     * @return {this} a pointer to this
-     */
-    public removeAt(index: number): this {
-        if (index > 0 && index < this.length) {
-            this.listener.emitRemoved(this[index], this[index]);
-            super.splice(index, 1);
-        }
-        return this;
-    }
-
-    /**
-     * Removes the first value of array
-     * @return {this} a pointer to this
-     */
-    public removeFirst(): this {
-        if (this.length) {
-            this.listener.emitRemoved(this[0], this[0]);
-            super.shift();
-        }
-        return this;
-    }
-
-    /**
-     * Removes the ast value of array
-     * @return {this} a pointer to this
-     */
-    public removeLast(): this {
-        const last = this.last;
-
-        if (last != null) {
-            this.listener.emitRemoved(this[this.length - 1], last);
-            super.pop();
-        }
-        return this;
-    }
-
-    /**
-     * Remove the first occurrence of value
-     * @param v {*} value to remove
-     * @return {this}
-     */
-    public removeOne(v: T): this {
-        this.removeAt(this.indexOf(v));
-        return this;
-    }
-
     public replace(at: number, with_: T): this {
         this.listener.emitAdded(this[at], with_);
         this.listener.emitRemoved(this[at], this[at]);
@@ -236,11 +129,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
         return this;
     }
 
-    public enableReactivity() {
-        this.listener.enableReactivity();
-    }
-
-    public disableReactivity() {
-        this.listener.disableReactivity();
+    public destroy(): void {
+        this.splice(0);
     }
 }

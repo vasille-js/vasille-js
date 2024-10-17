@@ -1,19 +1,10 @@
+import { IDestroyable } from "../core/destroyable";
 import { Listener } from "./listener";
 
 /**
  * @interface IModel
  */
-export interface IModel {
-    /**
-     * Enable the reactivity of model
-     */
-    enableReactivity(): void;
-
-    /**
-     * Disable the reactivity of model
-     */
-    disableReactivity(): void;
-}
+export interface IModel extends IDestroyable {}
 
 export interface ListenableModel<K, T> extends IModel {
     /**

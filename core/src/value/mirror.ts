@@ -12,18 +12,18 @@ export class Mirror<T> extends Reference<T> {
      * pointed value
      * @type IValue
      */
-    protected $pointedValue: IValue<T>;
+    protected value: IValue<T>;
 
     /**
      * Collection of handlers
      * @type Set
      */
-    private readonly $handler: (value: T) => void;
+    protected readonly handler: (value: T) => void;
 
     /**
      * Ensure forward only synchronization
      */
-    public $forwardOnly: boolean;
+    public forward: boolean;
 
     /**
      * Constructs a notifiable bind to a value
@@ -32,14 +32,13 @@ export class Mirror<T> extends Reference<T> {
      */
     public constructor(value: IValue<T>, forwardOnly = false) {
         super(value.$);
-        this.$handler = (v: T) => {
+        this.handler = (v: T) => {
             this.$ = v;
         };
-        this.$pointedValue = value;
-        this.$forwardOnly = forwardOnly;
+        this.value = value;
+        this.forward = forwardOnly;
 
-        value.$on(this.$handler);
-        this.$seal();
+        value.on(this.handler);
     }
 
     public get $(): T {
@@ -50,8 +49,8 @@ export class Mirror<T> extends Reference<T> {
     }
 
     public set $(v: T) {
-        if (!this.$forwardOnly) {
-            this.$pointedValue.$ = v;
+        if (!this.forward) {
+            this.value.$ = v;
         }
         // this is a ts bug
         // eslint-disable-next-line
@@ -59,23 +58,8 @@ export class Mirror<T> extends Reference<T> {
         super.$ = v;
     }
 
-    public $enable(): void {
-        if (!this.isEnabled) {
-            this.isEnabled = true;
-            this.$pointedValue.$on(this.$handler);
-            this.$ = this.$pointedValue.$;
-        }
-    }
-
-    public $disable(): void {
-        if (this.isEnabled) {
-            this.$pointedValue.$off(this.$handler);
-            this.isEnabled = false;
-        }
-    }
-
-    public $destroy() {
-        this.$disable();
-        super.$destroy();
+    public destroy() {
+        this.value.off(this.handler);
+        super.destroy();
     }
 }

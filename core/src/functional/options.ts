@@ -3,8 +3,7 @@ import { AcceptedTagsMap, AcceptedTagsSpec } from "../spec/react";
 import type { Fragment } from "../node/node";
 import { PropertiesHyphen } from "csstype";
 
-export interface FragmentOptions<T = unknown> {
-    callback?: (data: T) => void;
+export interface FragmentOptions {
     slot?: (node: Fragment, ...args: any[]) => void;
 }
 

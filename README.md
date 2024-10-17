@@ -155,8 +155,6 @@ forward-only shared data. Reactivity of objects/fields can be disabled/enabled m
 * `IValue<T>` is a common interface for any value container, with next members:
   * `get $` gets the encapsulated value.
   * `set $` manually update the encapsulated value, if enabled triggers updating of all linked data.
-  * `disable` disables the reactivity.
-  * `enable` enables the reactivity and triggers updating of all linked data.
 * `Reference<T>` contains a value of type `T`.
 * `Mirror<T>` syncs self value with another `IValue` container, can be used to share a value forward-only.
 * `Pointer<T>` same as `Mirror`, but it can switch between `IValue` target anytime.
