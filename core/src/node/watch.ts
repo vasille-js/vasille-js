@@ -3,7 +3,7 @@ import { IValue } from "../core/ivalue";
 
 interface WatchOptions<T> {
     model: IValue<T>;
-    slot?: (node: Fragment, value: T) => void;
+    slot?: (this: Fragment, value: T) => void;
 }
 /**
  * Watch Node
@@ -11,18 +11,20 @@ interface WatchOptions<T> {
  * @extends Fragment
  */
 export class Watch<T> extends Fragment<WatchOptions<T>> {
-    input!: WatchOptions<T>;
+    public constructor(parent: Fragment, input: WatchOptions<T>) {
+        super(parent, input, ":watch");
+    }
 
-    public compose(input: WatchOptions<T>): void {
+    public compose() {
         this.watch(value => {
             this.children.forEach(child => {
                 child.destroy();
             });
             this.children.clear();
             this.lastChild = undefined;
-            input.slot && input.slot(this, value);
-        }, input.model);
+            this.input.slot?.call(this, value);
+        }, this.input.model);
 
-        input.slot?.(this, input.model.$);
+        this.input.slot?.call(this, this.input.model.$);
     }
 }

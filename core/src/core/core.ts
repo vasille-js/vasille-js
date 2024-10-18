@@ -1,34 +1,18 @@
 import { Fragment } from "../node/node";
 import { Destroyable, IDestroyable } from "./destroyable.js";
-import { notOverwritten, wrongBinding } from "./errors";
+import { wrongBinding } from "./errors";
 import { IValue } from "./ivalue.js";
 import { Expression, KindOfIValue } from "../value/expression";
 import { Reference } from "../value/reference";
 import { Pointer } from "../value/pointer";
 import { Mirror } from "../value/mirror";
-import { IModel } from "../models/model";
-import { FragmentOptions } from "../functional/options";
-
-export let current: Fragment | null = null;
-const currentStack: Fragment[] = [];
-
-export function stack(node: Fragment) {
-    if (current) {
-        currentStack.push(current);
-    }
-    current = node;
-}
-
-export function unstack() {
-    current = currentStack.pop() ?? null;
-}
 
 /**
  * A reactive object
  * @class Reactive
  * @extends Destroyable
  */
-export class Reactive<T extends FragmentOptions = FragmentOptions> extends Destroyable {
+export class Reactive<T extends object = object> extends Destroyable {
     /**
      * A list of user-defined values
      * @type {Set}
@@ -52,15 +36,9 @@ export class Reactive<T extends FragmentOptions = FragmentOptions> extends Destr
      */
     #freezeExpr: Expression<void, [unknown]> | undefined;
 
-    /**
-     * Parent node
-     * @type {Reactive}
-     */
-    protected parent: Reactive;
-
     #onDestroy?: () => void;
 
-    public readonly input!: T;
+    public readonly input: T;
 
     public constructor(input: T) {
         super();
@@ -166,30 +144,10 @@ export class Reactive<T extends FragmentOptions = FragmentOptions> extends Destr
         return this;
     }
 
-    public init(): void {
-        this.applyOptions(this.input);
-        this.compose(this.input);
-    }
-
-    protected applyOptions(input: T) {
-        // empty
-    }
-
-    protected applyOptionsNow() {
-        this.applyOptions(this.input);
-    }
-
-    protected compose(input: T): void {
-        throw notOverwritten();
-    }
-
-    protected composeNow(): void {
-        this.compose(this.input);
-    }
-
     public runOnDestroy(func: () => void) {
         if (this.#onDestroy) {
-            console.warn(new Error("You rewrite onDestroy handler"));
+            console.warn(new Error("You rewrite onDestroy existing handler"));
+            console.log(this.#onDestroy);
         }
         this.#onDestroy = func;
     }

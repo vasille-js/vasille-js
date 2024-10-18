@@ -1,13 +1,11 @@
-import { Fragment, INode } from "./node";
-import { FragmentOptions, TagOptions } from "../functional/options";
-import { AcceptedTagsMap } from "../spec/react";
+import { Fragment, Root } from "./node";
 
 /**
  * Represents a Vasille.js application
  * @class App
  * @extends AppNode
  */
-export class App<T extends FragmentOptions = FragmentOptions> extends Fragment {
+export class App<T extends object = object> extends Root<T> {
     #node: Element;
 
     /**
@@ -19,8 +17,6 @@ export class App<T extends FragmentOptions = FragmentOptions> extends Fragment {
         super(input);
 
         this.#node = node;
-        this.preinit(this, this);
-        this.init();
     }
 
     public appendNode(node: Node) {
@@ -28,16 +24,16 @@ export class App<T extends FragmentOptions = FragmentOptions> extends Fragment {
     }
 }
 
-interface PortalOptions extends FragmentOptions {
+interface PortalOptions {
     node: Element;
-    slot?: (node: Fragment) => void;
+    slot?: (this: Fragment) => void;
 }
 
 export class Portal extends Fragment {
     #node: Element;
 
-    constructor(input: PortalOptions) {
-        super(input);
+    constructor(parent: Root, input: PortalOptions) {
+        super(parent, input, ":portal");
 
         this.#node = input.node;
     }

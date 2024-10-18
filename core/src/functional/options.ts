@@ -1,16 +1,11 @@
 import type { IValue } from "../core/ivalue";
 import { AcceptedTagsMap, AcceptedTagsSpec } from "../spec/react";
-import type { Fragment } from "../node/node";
 import { PropertiesHyphen } from "csstype";
-
-export interface FragmentOptions {
-    slot?: (node: Fragment, ...args: any[]) => void;
-}
 
 export type AttrType<T> = IValue<T | string | null> | T | string | null | undefined;
 export type StyleType<T> = T | number | number[] | IValue<string | number | number[]>;
 
-export interface TagOptions<T extends keyof AcceptedTagsMap> extends FragmentOptions {
+export interface TagOptions<T extends keyof AcceptedTagsMap> {
     attr?: {
         [K in keyof AcceptedTagsSpec[T]["attrs"]]?: AttrType<AcceptedTagsSpec[T]["attrs"][K]>;
     };

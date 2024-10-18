@@ -1,4 +1,4 @@
-import { current, Expression, IValue, Pointer, Reactive, Reference, userError } from "vasille";
+import { Expression, Fragment, IValue, Pointer, Reactive, Reference, userError } from "vasille";
 import { readValue } from "./inline";
 
 export type Path = (string | number)[];
@@ -77,15 +77,11 @@ export function propertyExtractor(source: unknown, path: Path): unknown {
     return target;
 }
 
-export function reactiveObject(o: object, ctx?: Reactive): object {
-    if (!ctx && current) {
-        ctx = current;
-    }
-
-    if (ctx) {
+export function reactiveObject(node: unknown, o: object): object {
+    if (node instanceof Fragment) {
         for (const key of Object.keys(o)) {
             if (!(o[key] instanceof IValue)) {
-                o[key] = ctx.ref(o[key]);
+                o[key] = node.ref(o[key]);
             }
         }
     } else {

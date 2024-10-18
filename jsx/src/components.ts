@@ -9,10 +9,8 @@ import {
     SetView,
     userError,
     Watch as CoreWatch,
-    current,
     Tag,
 } from "vasille";
-import { getCurrent } from "./inline";
 
 type Magic<T extends object> = { [K in keyof T]: T[K] | IValue<T[K]> | undefined };
 
@@ -20,43 +18,48 @@ function dereference<T>(value: T | IValue<T>): T {
     return value instanceof IValue ? value.$ : value;
 }
 
-export function Adapter({ node, slot }: Magic<{ node: Fragment; slot?: () => void }>) {
+export function Adapter(this: Fragment, { node, slot }: Magic<{ node: Fragment; slot?: (this: Fragment) => void }>) {
     const dNode = dereference(node);
+    const dSlot = dereference(slot);
 
-    if (dNode) {
-        getCurrent().create(dNode, dereference(slot));
+    if (dNode && dSlot) {
+        this.create(dNode, dSlot);
     }
 }
 
 export function Slot<T extends object = {}>(
-    options: Magic<{ model?: (() => void) | ((input: T) => void); slot?: () => void }> & T,
+    this: Fragment,
+    options: Magic<{ model?: (() => void) | ((input: T) => void); slot?: (this: Fragment) => void }> & T,
 ) {
     const model = dereference(options.model);
 
     if (model) {
         model(options);
     } else {
-        dereference(options.slot)?.();
+        dereference(options.slot)?.call(this);
     }
 }
 
-export function If({ condition, slot: magicSlot }: Magic<{ condition: boolean; slot?: () => void }>) {
+export function If(this: Fragment, { condition, slot: magicSlot }: Magic<{ condition: boolean; slot?: () => void }>) {
     const slot = dereference(magicSlot);
 
-    getCurrent().if(condition instanceof IValue ? condition : getCurrent().ref(condition), slot ?? (() => {}));
+    this.if(condition instanceof IValue ? condition : this.ref(condition), slot ?? (() => {}));
 }
 
-export function ElseIf({ condition, slot: magicSlot }: Magic<{ condition: boolean; slot?: () => void }>) {
+export function ElseIf(
+    this: Fragment,
+    { condition, slot: magicSlot }: Magic<{ condition: boolean; slot?: () => void }>,
+) {
     const slot = dereference(magicSlot);
 
-    getCurrent().elif(condition instanceof IValue ? condition : getCurrent().ref(condition), slot ?? (() => {}));
+    this.elif(condition instanceof IValue ? condition : this.ref(condition), slot ?? (() => {}));
 }
 
-export function Else({ slot: magicSlot }: Magic<{ slot?: () => void }>) {
+export function Else(this: Fragment, { slot: magicSlot }: Magic<{ slot?: () => void }>) {
     const slot = dereference(magicSlot);
 
     if (slot) {
-        getCurrent().else(slot);
+        this.else(slot);
     }
 }
 
@@ -64,15 +67,20 @@ export function For<
     T extends Set<unknown> | Map<unknown, unknown> | unknown[],
     K = T extends unknown[] ? number : T extends Set<infer R> ? R : T extends Map<infer R, unknown> ? R : never,
     V = T extends (infer R)[] ? R : T extends Set<infer R> ? R : T extends Map<unknown, infer R> ? R : never,
->({ of, slot: magicSlot }: Magic<{ of: T; slot?: (value: T, index: K) => void }>) {
+>(this: Fragment, { of, slot: magicSlot }: Magic<{ of: T; slot?: (this: Fragment, value: T, index: K) => void }>) {
     const slot = dereference(magicSlot);
 
     if (of instanceof IValue) {
-        getCurrent()?.create(new CoreWatch({ model: of }), (node, model) => {
-            create(model, node);
-        });
+        this.create(
+            new CoreWatch(this, {
+                model: of,
+                slot: function (model) {
+                    create(model, this);
+                },
+            }),
+        );
     } else if (of) {
-        create(of, getCurrent());
+        create(of, this);
     }
 
     function create(model: T, node: Fragment) {
@@ -81,17 +89,32 @@ export function For<
         }
 
         if (model instanceof ArrayModel) {
-            node.create(new ArrayView<V>({ model }), (node, value, index) => {
-                node.runFunctional(slot, value as any, index as any);
-            });
+            node.create(
+                new ArrayView<V>(node, {
+                    model,
+                    slot: function (value, index) {
+                        slot.call(this, value, index);
+                    },
+                }),
+            );
         } else if (model instanceof MapModel) {
-            node.create(new MapView({ model }), (node, value: V, index) => {
-                node.runFunctional(slot, value as any, index as any);
-            });
+            node.create(
+                new MapView(node, {
+                    model,
+                    slot: function (value, index) {
+                        slot.call(this, value, index);
+                    },
+                }),
+            );
         } else if (model instanceof SetModel) {
-            node.create(new SetView({ model }), (node, value: V, index) => {
-                node.runFunctional(slot, value as any, index as any);
-            });
+            node.create(
+                new SetView(node, {
+                    model,
+                    slot: function (value, index) {
+                        slot.call(this, value, index);
+                    },
+                }),
+            );
         }
         // fallback if is used external Array/Map/Set
         else {
@@ -99,15 +122,15 @@ export function For<
 
             if (model instanceof Array) {
                 model.forEach((value: V, index) => {
-                    node.runFunctional(slot, value as any, index as any);
+                    slot.call(node, value, index);
                 });
             } else if (model instanceof Map) {
                 for (const [key, value] of model as Map<K, V>) {
-                    node.runFunctional(slot, value as any, key as any);
+                    slot.call(node, value, key);
                 }
             } else if (model instanceof Set) {
                 for (const value of model) {
-                    node.runFunctional(slot, value as any, value as any);
+                    slot.call(node, value, value);
                 }
             } else {
                 throw userError("wrong use of `<For of/>` component", "wrong-model");
@@ -116,35 +139,36 @@ export function For<
     }
 }
 
-export function Watch<T>({ model, slot: magicSlot }: Magic<{ model: T; slot?: (value: T) => void }>) {
+export function Watch<T>(this: Fragment, { model, slot: magicSlot }: Magic<{ model: T; slot?: (value: T) => void }>) {
     const slot = dereference(magicSlot);
 
     if (slot && model instanceof IValue) {
-        getCurrent().create(new CoreWatch({ model }), (node, value) => {
-            node.runFunctional(slot, value);
-        });
+        this.create(new CoreWatch(this, { model, slot }));
     }
 }
 
-export function Debug({ model }: { model: unknown }) {
-    const current = getCurrent();
-    const value = model instanceof IValue ? model : current.ref(model);
+export function Debug(this: Fragment, { model }: { model: unknown }) {
+    const value = model instanceof IValue ? model : this.ref(model);
 
-    current.debug(value as IValue<unknown>);
+    this.debug(value as IValue<unknown>);
 }
 
-export function Mount({ bind }: Magic<{ bind: boolean }>) {
-    if (!(current instanceof Tag)) {
+export function Mount(this: Fragment, { bind }: Magic<{ bind: boolean }>) {
+    const node = this;
+
+    if (!(node instanceof Tag)) {
         throw userError("<Mount bind/> can be used only as direct child of html tags", "context-mismatch");
     }
 
-    current.bindMount(bind instanceof IValue ? bind : current.ref(bind));
+    node.bindMount(bind instanceof IValue ? bind : node.ref(bind));
 }
 
-export function Show({ bind }: Magic<{ bind: boolean }>) {
-    if (!(current instanceof Tag)) {
+export function Show(this: Fragment, { bind }: Magic<{ bind: boolean }>) {
+    const node = this;
+
+    if (!(node instanceof Tag)) {
         throw userError("<Show bind/> can be used only as direct child of html tags", "context-mismatch");
     }
 
-    current.bindShow(bind instanceof IValue ? bind : current.ref(bind));
+    node.bindShow(bind instanceof IValue ? bind : node.ref(bind));
 }

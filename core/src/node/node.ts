@@ -1,13 +1,12 @@
-import { Reactive, stack, unstack } from "../core/core";
+import { Reactive } from "../core/core";
 import { IValue } from "../core/ivalue";
-import { reportError } from "../functional/safety";
 import { Reference } from "../value/reference";
 import { Expression } from "../value/expression";
 import { AttributeBinding } from "../binding/attribute";
 import { StaticClassBinding, DynamicalClassBinding } from "../binding/class";
 import { stringifyStyleValue, StyleBinding } from "../binding/style";
 import { internalError, userError } from "../core/errors";
-import { AttrType, FragmentOptions, TagOptions } from "../functional/options";
+import { AttrType, TagOptions } from "../functional/options";
 import { AcceptedTagsMap } from "../spec/react";
 import { config } from "../core/config";
 
@@ -15,7 +14,7 @@ import { config } from "../core/config";
  * This class is symbolic
  * @extends Reactive
  */
-export class Fragment<T extends FragmentOptions = FragmentOptions> extends Reactive {
+export class Root<T extends object = object> extends Reactive<T> {
     /**
      * The children list
      * @type Array
@@ -27,7 +26,7 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
      * Parent node
      * @type {Fragment}
      */
-    protected parent: Fragment;
+    public parent: Root;
 
     /**
      * Next node
@@ -47,30 +46,6 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
      */
     public constructor(input: T) {
         super(input);
-    }
-
-    /**
-     * Prepare to init fragment
-     * @param app {AppNode} app of node
-     * @param parent {Fragment} parent of node
-     * @param data {*} additional data
-     */
-    public preinit(parent: Fragment, data?: unknown) {
-        this.parent = parent;
-    }
-
-    init(): void {
-        super.init();
-        this.ready();
-    }
-
-    protected compose(input: T): void {
-        input.slot && input.slot(this);
-    }
-
-    /** To be overloaded: ready event handler */
-    public ready() {
-        // empty
     }
 
     /**
@@ -131,26 +106,29 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
         }
     }
 
+    public compose() {
+        // do nothing
+        // to override it
+    }
+
     /**
      * Defines a text fragment
      * @param text {String | IValue} A text fragment string
      * @param cb {function (TextNode)} Callback if previous is slot name
      */
-    public text(text: unknown, cb?: (text: TextNode) => void): void {
-        const node = new TextNode({});
+    public text(text: unknown): void {
+        const node = new TextNode(this, { text });
 
-        node.preinit(this, text);
         this.pushNode(node);
-
-        cb && cb(node);
+        node.compose();
     }
 
     public debug(text: IValue<unknown>) {
         if (config.debugUi) {
-            const node = new DebugNode({});
+            const node = new DebugNode(this, { text });
 
-            node.preinit(this, text);
             this.pushNode(node);
+            node.compose();
         }
     }
 
@@ -163,15 +141,13 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
     public tag<K extends keyof AcceptedTagsMap>(
         tagName: K,
         input: TagOptionsWithSlot<K>,
-        cb?: (node: Tag<K>) => void,
+        cb?: (this: Tag<K>) => void,
     ): void {
-        const node = new Tag(input);
+        const tag = new Tag(this, input, tagName);
 
         input.slot = cb || input.slot;
-        node.preinit(this, tagName);
-        node.init();
-        this.pushNode(node);
-        node.ready();
+        this.pushNode(tag);
+        tag.compose();
     }
 
     /**
@@ -179,25 +155,10 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
      * @param node {Fragment} vasille element to insert
      * @param callback {function($ : *)}
      */
-    public create<T extends Fragment>(node: T, callback?: T["input"]["slot"]): void {
-        node.preinit(this);
-        node.input.slot = callback || node.input.slot;
+    public create<T extends Fragment>(node: T, callback?: (this: T) => void): void {
         this.pushNode(node);
-        node.init();
-    }
-
-    public runFunctional<F extends (...args: any) => any>(f: F, ...args: Parameters<F>): ReturnType<F> | undefined {
-        let result: ReturnType<F> | undefined;
-
-        stack(this);
-        try {
-            result = f(...args);
-        } catch (e) {
-            reportError(e);
-        }
-        unstack();
-
-        return result;
+        node.compose();
+        callback?.call(node);
     }
 
     /**
@@ -207,13 +168,10 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
      * @return {this}
      */
     public if(cond: IValue<unknown>, cb: (node: Fragment) => void) {
-        const node = new SwitchedNode();
+        const node = new SwitchedNode(this);
 
-        node.preinit(this);
-        node.init();
         this.pushNode(node);
         node.addCase(this.case(cond, cb));
-        node.ready();
     }
 
     public else(cb: (node: Fragment) => void) {
@@ -295,21 +253,40 @@ export class Fragment<T extends FragmentOptions = FragmentOptions> extends React
     }
 }
 
+export class Fragment<T extends object = object> extends Root<T> {
+    public readonly name?: string;
+    public readonly parent: Root;
+
+    public constructor(parent: Root, input: T, name?: string) {
+        super(input);
+        this.parent = parent;
+        this.name = name;
+    }
+}
+
 const trueIValue = new Reference(true);
+
+interface TextProps {
+    text: unknown;
+}
 
 /**
  * Represents a text node
  * @class TextNode
  * @extends Fragment
  */
-export class TextNode extends Fragment {
+export class TextNode extends Fragment<TextProps> {
     #node: Text;
 
-    public preinit(parent: Fragment, text?: unknown) {
-        super.preinit(parent);
+    public constructor(parent: Root, input: TextProps) {
+        super(parent, input, ":text");
+    }
+
+    public compose() {
+        const text = this.input.text;
 
         if (!text) {
-            throw internalError("wrong TextNode::preninit call");
+            throw internalError("wrong Text constructor call");
         }
 
         this.#node = document.createTextNode(text instanceof IValue ? text.$ : text);
@@ -600,7 +577,7 @@ export class INode<T extends TagOptions<any> = TagOptions<any>> extends Fragment
 }
 
 export interface TagOptionsWithSlot<K extends keyof AcceptedTagsMap> extends TagOptions<K> {
-    slot?: (tag: Tag<K>) => void;
+    slot?: (this: Tag<K>) => void;
     callback?: (node: Element) => void;
 }
 
@@ -610,26 +587,21 @@ export interface TagOptionsWithSlot<K extends keyof AcceptedTagsMap> extends Tag
  * @extends INode
  */
 export class Tag<K extends keyof AcceptedTagsMap> extends INode<TagOptionsWithSlot<K>> {
-    public constructor(input: TagOptionsWithSlot<K>) {
-        super(input);
+    public constructor(parent: Root, input: TagOptionsWithSlot<K>, tagName: string) {
+        super(parent, input, tagName);
     }
 
-    public preinit(parent: Fragment, tagName?: string) {
-        if (!tagName || typeof tagName !== "string") {
-            throw internalError("wrong Tag::preinit call");
+    public compose() {
+        if (!this.name) {
+            throw internalError("wrong Tag constructor call");
         }
 
-        const node = document.createElement(tagName);
+        const node = document.createElement(this.name);
 
-        super.preinit(parent);
         this.node = node;
-
         this.parent.appendNode(node);
-    }
-
-    protected compose(input: TagOptionsWithSlot<K>): void {
-        input.slot?.(this);
-        input.callback?.(this.node);
+        this.input.callback?.(this.node);
+        this.input.slot?.call(this);
     }
 
     protected findFirstChild(): Node | undefined {
@@ -689,13 +661,13 @@ export class Tag<K extends keyof AcceptedTagsMap> extends INode<TagOptionsWithSl
  * @class Extension
  * @extends INode
  */
-export class Extension<T extends TagOptions<any> = TagOptions<any>> extends INode<T> {
+export class Extension extends Fragment {
     public tag<K extends keyof AcceptedTagsMap>(tagName: K, input: TagOptionsWithSlot<K>): void {
         const parent = this.parent;
 
         if (parent instanceof Tag && parent.element.tagName === tagName) {
             parent.extent(input);
-            input.slot?.(parent);
+            input.slot?.call(parent);
         }
     }
 }
@@ -725,8 +697,8 @@ export class SwitchedNode extends Fragment {
     /**
      * Constructs a switch node and define a sync function
      */
-    public constructor() {
-        super({});
+    public constructor(parent: Root) {
+        super(parent, {}, ":switch");
 
         this.#sync = () => {
             let i = 0;
@@ -767,23 +739,12 @@ export class SwitchedNode extends Fragment {
      * @param cb {function(Fragment)} Call-back
      */
     public createChild(cb: (node: Fragment) => void) {
-        const node = new Fragment({});
-
-        node.preinit(this);
-        node.init();
+        const node = new Fragment(this, {}, ":case");
 
         this.lastChild = node;
         this.children.add(node);
 
         cb(node);
-    }
-
-    public ready() {
-        this.#cases.forEach(c => {
-            c.cond.on(this.#sync);
-        });
-
-        this.#sync();
     }
 
     public destroy() {
@@ -796,29 +757,31 @@ export class SwitchedNode extends Fragment {
     }
 }
 
+interface DebugProps {
+    text: IValue<unknown>;
+}
+
 /**
  * Represents a debug node
  * @class DebugNode
  * @extends Fragment
  */
-export class DebugNode extends Fragment {
+export class DebugNode extends Fragment<DebugProps> {
     #node: Comment;
 
-    public preinit(parent: Fragment, text?: IValue<unknown>) {
-        super.preinit(parent);
+    public constructor(parent: Root, input: DebugProps) {
+        super(parent, input, ":debug");
+    }
 
-        if (!text) {
-            throw internalError("wrong DebugNode::preninit call");
-        }
+    public compose() {
+        const text = this.input.text;
 
         this.#node = document.createComment(text.$?.toString() ?? "");
-
         this.register(
             new Expression((v: unknown) => {
                 this.#node.replaceData(0, -1, v?.toString() ?? "");
             }, text),
         );
-
         this.parent.appendNode(this.#node);
     }
 

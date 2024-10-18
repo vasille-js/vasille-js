@@ -1,5 +1,6 @@
+import { config } from "./core/config";
 import { Destroyable } from "./core/destroyable";
-import { current, Reactive, stack, unstack } from "./core/core";
+import { Reactive } from "./core/core";
 import { IValue } from "./core/ivalue";
 import { ArrayModel } from "./models/array-model";
 import { Listener } from "./models/listener";
@@ -16,7 +17,7 @@ import { BaseView } from "./views/base-view";
 import { MapView } from "./views/map-view";
 import { SetView } from "./views/set-view";
 import { Binding } from "./binding/binding";
-import { FragmentOptions, TagOptions } from "./functional/options";
+import { TagOptions } from "./functional/options";
 import { AcceptedTagsMap, AcceptedTagsSpec } from "./spec/react";
 import { userError } from "./core/errors";
 import { ListenableModel } from "./models/model";
@@ -46,7 +47,6 @@ export {
     Binding,
     Reactive,
     Watch,
-    FragmentOptions,
     TagOptions,
     // private stuff
     AcceptedTagsSpec,
@@ -54,8 +54,6 @@ export {
     KindOfIValue,
     ListenableModel,
     TagOptionsWithSlot,
-    stack,
-    unstack,
     userError,
-    current,
+    config,
 };

@@ -1,15 +1,15 @@
-import { AcceptedTagsMap, IValue, Reference, TagOptions, current } from "vasille";
+import { AcceptedTagsMap, IValue, Reference, TagOptions, Fragment } from "vasille";
 import { Expression } from "./expression";
-import { getCurrent, readValue, setValue } from "./inline";
+import { asFragment, readValue, setValue } from "./inline";
 import { propertyExtractor, reactiveObject, readProperty, writeValue } from "./objects";
 import { ContextArray, ContextMap, ContextSet } from "./models";
 
 export const internal = {
     /**
-     * translate compose local `let a = v` to `const a = $.let(v)`
+     * translate compose local `let a = v` to `const a = $.let(this, v)`
      */
-    let(v: unknown): unknown {
-        if (!current) {
+    let(node: unknown, v: unknown): unknown {
+        if (!(node instanceof Fragment)) {
             return readValue(v);
         }
 
@@ -17,7 +17,7 @@ export const internal = {
             return v;
         }
 
-        return current.ref(v);
+        return node.ref(v);
     },
     /**
      * translate module `var a = v` to `const a = $.var(v)`
@@ -30,10 +30,10 @@ export const internal = {
         return new Reference(v);
     },
     /**
-     * translate compose local `let c = a + b` to `const c = $.expr((a, b) => a+b, [a, b])`
+     * translate compose local `let c = a + b` to `const c = $.expr(this, (a, b) => a+b, [a, b])`
      */
-    expr(func: (...args: unknown[]) => unknown, values: unknown[]): unknown {
-        if (!current) {
+    expr(node: unknown, func: (...args: unknown[]) => unknown, values: unknown[]): unknown {
+        if (!(node instanceof Fragment)) {
             return func.apply(
                 null,
                 values.map(v => readValue(v)),
@@ -43,7 +43,7 @@ export const internal = {
         if (values.some(item => item instanceof IValue)) {
             const expr = new Expression(func, values);
 
-            current.register(expr);
+            node.register(expr);
 
             return expr;
         } else {
@@ -71,61 +71,49 @@ export const internal = {
      */
     sv: setValue,
     /**
-     * translate `{...}` to `$.ro({...})`
+     * translate `{...}` to `$.ro(this, {...})`
      */
     ro: reactiveObject,
     /**
-     * translate jsx `<div />` to `$.tag("div", {})`
+     * translate jsx `<div />` to `this.tag("div", {}, slot)`
      */
-    tag<K extends keyof AcceptedTagsMap>(tagName: K, options: TagOptions<K>, slot?: () => void) {
-        getCurrent().tag(
-            tagName,
-            options,
-            slot
-                ? node => {
-                      node.runFunctional(slot);
-                  }
-                : undefined,
-        );
-    },
+    // function removed
     /**
-     * translate jsx text to `$.txt(...)`
+     * translate jsx text to `this.txt(...)`
      */
-    txt(text: unknown) {
-        getCurrent().text(text);
-    },
+    // function removed
     /**
-     * translate `new Set(#)` to `$.sm(#)`
+     * translate `new Set(#)` to `$.sm(this, #)`
      */
-    sm(data?: unknown[]) {
+    sm(node: unknown, data?: unknown[]) {
         const set = new ContextSet(data);
 
-        if (current) {
-            current.register(set);
+        if (node instanceof Fragment) {
+            node.register(set);
         }
 
         return set;
     },
     /**
-     * translate `new Map(#)` to `$.mm(#)`
+     * translate `new Map(#)` to `$.mm(this, #)`
      */
-    mm(data?: [unknown, unknown][]) {
+    mm(node: unknown, data?: [unknown, unknown][]) {
         const map = new ContextMap(data);
 
-        if (current) {
-            current.register(map);
+        if (node instanceof Fragment) {
+            node.register(map);
         }
 
         return map;
     },
     /**
-     * translate `[...]` to `$.am([...])`
+     * translate `[...]` to `$.am(this, [...])`
      */
-    am(data?: unknown[]) {
+    am(node: unknown, data?: unknown[]) {
         const arr = new ContextArray(data);
 
-        if (current) {
-            current.register(arr);
+        if (node instanceof Fragment) {
+            node.register(arr);
         }
 
         return arr;
@@ -160,7 +148,7 @@ export const internal = {
  *     <For of={arr} slot={() => {
  *          // context available here
  *          // JSX accepted
- *          // local expression are reactive
+ *          // local expressions are reactive
  *     }}/>
  *   </div>
  * })

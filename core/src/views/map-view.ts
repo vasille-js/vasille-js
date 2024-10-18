@@ -1,4 +1,4 @@
-import { BaseView, BSO } from "./base-view";
+import { BaseView, BaseViewOptions } from "./base-view";
 import { MapModel } from "../models/map-model";
 
 /**
@@ -7,10 +7,9 @@ import { MapModel } from "../models/map-model";
  * @extends BaseView
  */
 export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
-    protected compose(input: BSO<K, T, MapModel<K, T>>) {
-        super.compose(input);
-        input.model.forEach((value, key) => {
-            this.createChild(input, key, value);
+    public compose() {
+        this.input.model.forEach((value, key) => {
+            this.createChild(this.input, key, value);
         });
         return {};
     }

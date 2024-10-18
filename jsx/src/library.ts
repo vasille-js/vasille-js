@@ -1,17 +1,17 @@
-import { IValue, Reference, userError } from "vasille";
+import { IValue } from "vasille";
+import { asFragment } from "./inline";
 import { internal } from "./internal";
-import { getCurrent } from "./inline";
 
-export function forward(value: unknown) {
+export function forward(node: unknown, value: unknown) {
     if (value instanceof IValue) {
-        return getCurrent().forward(value as IValue<unknown>);
+        return asFragment(node).forward(value as IValue<unknown>);
     }
 
     return value;
 }
 
-export function point(value: unknown) {
-    const current = getCurrent();
+export function point(node: unknown, value: unknown) {
+    const current = asFragment(node);
 
     if (value instanceof IValue) {
         return current?.point(value as IValue<unknown>);
@@ -20,16 +20,16 @@ export function point(value: unknown) {
     return current?.point(current.ref(value));
 }
 
-export function calculate(f: (...args: unknown[]) => unknown, ...args: unknown[]) {
-    return internal.expr(f, args);
+export function calculate(node: unknown, f: (...args: unknown[]) => unknown, ...args: unknown[]) {
+    return internal.expr(node, f, args);
 }
 
-export function watch(f: (...args: unknown[]) => void, ...args: unknown[]) {
-    return internal.expr(f, args);
+export function watch(node: unknown, f: (...args: unknown[]) => void, ...args: unknown[]) {
+    return internal.expr(node, f, args);
 }
 
-export function awaited<T>(target: Promise<T>) {
-    const current = getCurrent();
+export function awaited<T>(node: unknown, target: Promise<T>) {
+    const current = asFragment(node);
     const value = current.ref<unknown>(undefined);
     const err = current.ref<unknown>(undefined);
 
@@ -38,6 +38,6 @@ export function awaited<T>(target: Promise<T>) {
     return [err, value];
 }
 
-export function ensureIValue<T>(value: T | IValue<T>): IValue<T> {
-    return value instanceof IValue ? value : getCurrent().ref(value);
+export function ensureIValue<T>(node: unknown, value: T | IValue<T>): IValue<T> {
+    return value instanceof IValue ? value : asFragment(node).ref(value);
 }

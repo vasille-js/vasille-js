@@ -1,4 +1,4 @@
-import { Fragment, IValue, Pointer, current, userError } from "vasille";
+import { Fragment, IValue, Pointer, userError } from "vasille";
 
 export function readValue(v: unknown): unknown {
     return v instanceof IValue ? v.$ : v;
@@ -16,10 +16,10 @@ export function setValue(target: unknown, value: unknown, fallback: (v: unknown)
     }
 }
 
-export function getCurrent(): Fragment {
-    if (!(current instanceof Fragment)) {
-        throw userError("missing parent node", "out-of-context");
+export function asFragment(node: unknown): Fragment {
+    if (!(node instanceof Fragment)) {
+        throw userError("missing context", "out-of-context");
     }
 
-    return current;
+    return node;
 }

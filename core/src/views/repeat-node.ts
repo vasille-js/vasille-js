@@ -1,9 +1,8 @@
-import { Fragment } from "../node/node";
-import { FragmentOptions } from "../functional/options";
+import { Fragment, Root } from "../node/node";
 
 // RNO = RepeatNodeOptions
-export interface RNO<T, IdT> extends FragmentOptions {
-    slot?: (node: Fragment, value: T, index: IdT) => void;
+export interface RepeatNodeOptions<T, IdT> {
+    slot?: (this: Fragment, value: T, index: IdT) => void;
 }
 
 /**
@@ -11,19 +10,23 @@ export interface RNO<T, IdT> extends FragmentOptions {
  * @class RepeatNode
  * @extends Fragment
  */
-export class RepeatNode<IdT, T, Opts extends RNO<T, IdT> = RNO<T, IdT>> extends Fragment<Opts> {
+export class RepeatNode<
+    IdT,
+    T,
+    Opts extends RepeatNodeOptions<T, IdT> = RepeatNodeOptions<T, IdT>,
+> extends Fragment<Opts> {
     /**
      * Children node hash
      * @type {Map}
      */
     protected nodes: Map<IdT, Fragment> = new Map();
 
-    public constructor(input: Opts) {
-        super(input);
+    public constructor(parent: Root, input: Opts, name?: string) {
+        super(parent, input, name);
     }
 
     public createChild(opts: Opts, id: IdT, item: T, before?: Fragment): any {
-        const node = new Fragment({});
+        const node = new Fragment(this, {});
 
         this.destroyChild(id, item);
 
@@ -40,11 +43,8 @@ export class RepeatNode<IdT, T, Opts extends RNO<T, IdT> = RNO<T, IdT>> extends 
         }
 
         this.lastChild = node;
-        node.preinit(this);
-        node.init();
 
-        opts.slot && opts.slot(node, item, id);
-        node.ready();
+        opts.slot && opts.slot.call(node, item, id);
 
         this.nodes.set(id, node);
     }
