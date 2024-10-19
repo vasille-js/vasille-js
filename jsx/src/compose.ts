@@ -12,11 +12,11 @@ type Composed<In extends CompositionProps, Out> = (
 
 function create<In extends CompositionProps, Out>(
     renderer: (this: Fragment, input: In) => Out,
-    create: (parent: Fragment, props: In) => Fragment,
+    create: (props: In) => Fragment,
     name: string,
 ): Composed<In, Out> {
     return function (props, slot) {
-        const frag = create(this, props);
+        const frag = create(props);
 
         if (slot) {
             props.slot = slot;
@@ -44,8 +44,8 @@ export function compose<In extends CompositionProps, Out>(
 ): Composed<In, Out> {
     return create<In, Out>(
         renderer,
-        (parent, props) => {
-            return new Fragment<object>(parent, props, name);
+        props => {
+            return new Fragment<object>(props, name);
         },
         name,
     );
@@ -57,8 +57,8 @@ export function extend<In extends CompositionProps, Out>(
 ): Composed<In, Out> {
     return create<In, Out>(
         renderer,
-        (parent: Fragment, props: In) => {
-            return new Extension(parent, props, name);
+        (props: In) => {
+            return new Extension(props, name);
         },
         name,
     );

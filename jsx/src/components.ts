@@ -72,7 +72,7 @@ export function For<
 
     if (of instanceof IValue) {
         this.create(
-            new CoreWatch(this, {
+            new CoreWatch({
                 model: of,
                 slot: function (model) {
                     create(model, this);
@@ -90,7 +90,7 @@ export function For<
 
         if (model instanceof ArrayModel) {
             node.create(
-                new ArrayView<V>(node, {
+                new ArrayView<V>({
                     model,
                     slot: function (value, index) {
                         slot.call(this, value, index);
@@ -99,7 +99,7 @@ export function For<
             );
         } else if (model instanceof MapModel) {
             node.create(
-                new MapView(node, {
+                new MapView({
                     model,
                     slot: function (value, index) {
                         slot.call(this, value, index);
@@ -108,7 +108,7 @@ export function For<
             );
         } else if (model instanceof SetModel) {
             node.create(
-                new SetView(node, {
+                new SetView({
                     model,
                     slot: function (value, index) {
                         slot.call(this, value, index);
@@ -143,7 +143,7 @@ export function Watch<T>(this: Fragment, { model, slot: magicSlot }: Magic<{ mod
     const slot = dereference(magicSlot);
 
     if (slot && model instanceof IValue) {
-        this.create(new CoreWatch(this, { model, slot }));
+        this.create(new CoreWatch({ model, slot }));
     }
 }
 
@@ -173,20 +173,20 @@ export function Show(this: Fragment, { bind }: Magic<{ bind: boolean }>) {
     node.bindShow(bind instanceof IValue ? bind : node.ref(bind));
 }
 
-export function Delay (this: Fragment, {time, slot}: Magic<{time?: number; slot?: () => {}}>){
-    const fragment = new Fragment(this, {}, ":timer");
+export function Delay(this: Fragment, { time, slot }: Magic<{ time?: number; slot?: () => {} }>) {
+    const fragment = new Fragment({}, ":timer");
     const dSlot = dereference(slot);
-    let timer: number|undefined;
+    let timer: number | undefined;
 
     if (dSlot) {
         timer = setTimeout(() => {
             dSlot.call(fragment);
             timer = undefined;
-        });
+        }, dereference(time));
     }
     fragment.runOnDestroy(() => {
-        if (typeof timer === 'number') {
+        if (typeof timer === "number") {
             clearTimeout(timer);
         }
-    })
+    });
 }
