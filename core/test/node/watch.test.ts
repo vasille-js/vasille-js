@@ -7,11 +7,19 @@ it("Watch Test", function () {
     const root = new App(page.window.document.body, {});
     let test = true;
 
-    root.create(new Watch({ model }), (node, input) => {
-        node.create(new Fragment({}), () => (test = input));
-    });
+    root.create(
+        new Watch({
+            model,
+            slot: function (input) {
+                this.create(new Fragment({}), () => (test = input));
+            },
+        }),
+    );
+
+    root.create(new Watch({ model }));
 
     expect(test).toBe(false);
     model.$ = true;
     expect(test).toBe(true);
+    expect(root.children.size).toBe(2);
 });

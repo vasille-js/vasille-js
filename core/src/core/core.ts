@@ -25,17 +25,6 @@ export class Reactive<T extends object = object> extends Destroyable {
      */
     #bindings: Set<Destroyable> = new Set();
 
-    /**
-     * A list of user defined contextual data
-     */
-    #manual: Set<IDestroyable> = new Set();
-
-    /**
-     * An expression which will freeze/unfreeze the object
-     * @type {IValue<void>}
-     */
-    #freezeExpr: Expression<void, [unknown]> | undefined;
-
     #onDestroy?: () => void;
 
     public readonly input: T;
@@ -122,28 +111,6 @@ export class Reactive<T extends object = object> extends Destroyable {
         return res;
     }
 
-    /**
-     * Disable/Enable reactivity of object fields with feedback
-     * @param cond {IValue} show condition
-     * @param onOff {function} on show feedback
-     * @param onOn {function} on hide feedback
-     */
-    public bindAlive(cond: IValue<unknown>, onOff: () => void, onOn: () => void): this {
-        if (this.#freezeExpr) {
-            throw wrongBinding("this component already have a bound state provider");
-        }
-
-        this.#freezeExpr = new Expression<void, [unknown]>(cond => {
-            if (cond) {
-                onOn();
-            } else {
-                onOff();
-            }
-        }, cond);
-
-        return this;
-    }
-
     public runOnDestroy(func: () => void) {
         if (this.#onDestroy) {
             console.warn(new Error("You rewrite onDestroy existing handler"));
@@ -160,10 +127,6 @@ export class Reactive<T extends object = object> extends Destroyable {
         this.#bindings.forEach(binding => binding.destroy());
         this.#bindings.clear();
 
-        this.#manual.forEach(model => model.destroy());
-        this.#manual.clear();
-
-        this.#freezeExpr?.destroy();
         this.#onDestroy?.();
     }
 }

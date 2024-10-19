@@ -1,28 +1,11 @@
-import {
-    App,
-    Component,
-    Expression,
-    Extension,
-    Fragment,
-    FragmentOptions,
-    INode,
-    Reference,
-    Tag,
-    TagOptions,
-} from "../../src";
+import { App, Expression, Extension, Fragment, INode, Reference, Tag } from "../../src";
 import { page } from "../page";
-import { DebugNode, TextNode } from "../../src/node/node";
 
-let ready = false;
 let compose = false;
 
 class FragmentTest extends Fragment {
-    ready() {
-        super.ready();
-        ready = true;
-    }
     compose() {
-        super.compose({});
+        super.compose();
         compose = true;
     }
 }
@@ -30,36 +13,48 @@ class FragmentTest extends Fragment {
 it("Fragment", function () {
     const root = new App(page.window.document.body, {});
 
-    root.init();
-
     root.create(new FragmentTest({}));
     expect(root.children.size).toBe(1);
-    expect(ready).toBe(true);
     expect(compose).toBe(true);
 
-    root.$destroy();
+    root.destroy();
 });
 
 it("Tag", function () {
     const root = new App(page.window.document.body, { debugUi: true });
     const text = new Reference("test");
 
-    root.init();
+    root.tag("div", {}, function () {
+        this.text(text);
+        expect(this.element.childNodes.length).toBe(1);
+        expect(this.element.innerHTML.trim()).toBe("test");
+        text.$ = "new";
+        expect(this.element.innerHTML.trim()).toBe("new");
 
-    root.tag("div", {}, (div: Tag<"div">) => {
-        div.text(text, () => {
-            expect(div.node.childNodes.length).toBe(1);
-            expect(div.node.innerHTML.trim()).toBe("test");
-            text.$ = "new";
-            expect(div.node.innerHTML.trim()).toBe("new");
-        });
-        div.text("test");
-        div.debug(new Reference<string>("debug"));
-        expect(div.node.childNodes.length).toBe(3);
-        expect(div.node.childNodes[2] instanceof page.window.Comment).toBe(true);
+        this.text("test");
+        expect(this.element.childNodes[1] instanceof page.window.Text).toBe(true);
+        expect(this.element.childNodes[1].textContent).toBe("test");
+        this.debug(new Reference<string>("debug"));
+        expect(this.element.childNodes.length).toBe(3);
+        expect(this.element.childNodes[2] instanceof page.window.Comment).toBe(true);
+        expect(this.element.childNodes[2].textContent).toBe("debug");
+
+        const debugRef = new Reference<string | null>(null);
+        this.debug(debugRef);
+        expect(this.element.childNodes[3] instanceof page.window.Comment).toBe(true);
+        expect(this.element.childNodes[3].textContent).toBe("");
+        debugRef.$ = "err";
+        expect(this.element.childNodes[3].textContent).toBe("err");
+
+        const textRef = new Reference<string | null>(null);
+        this.text(textRef);
+        expect(this.element.childNodes[4] instanceof page.window.Text).toBe(true);
+        expect(this.element.childNodes[4].textContent).toBe("");
+        textRef.$ = "ok";
+        expect(this.element.childNodes[4].textContent).toBe("ok");
     });
 
-    root.$destroy();
+    root.destroy();
 });
 
 it("if", function () {
@@ -67,22 +62,18 @@ it("if", function () {
     let check1 = false;
     let check2 = true;
 
-    root.init();
-
     root.if(new Reference(true), () => (check1 = true));
     root.if(new Reference(false), () => (check2 = false));
 
     expect(check1).toBe(true);
     expect(check2).toBe(true);
-    root.$destroy();
+    root.destroy();
 });
 
 it("if else", function () {
     const root = new App(page.window.document.body, {});
     const iv1 = new Reference(true);
     const iv2 = new Reference(false);
-
-    root.init();
 
     let check1 = 1,
         check2 = 1;
@@ -102,7 +93,7 @@ it("if else", function () {
     expect(check1).toBe(2);
     expect(check2).toBe(1);
 
-    root.$destroy();
+    root.destroy();
 });
 
 it("switch", function () {
@@ -111,11 +102,9 @@ it("switch", function () {
     const v2 = new Reference(false);
     let check = 0;
 
-    root.init();
-
-    root.if(new Expression(v => v == 1, true, v), () => (check = 1));
-    root.elif(new Expression(v => v == 2, true, v), () => (check = 2));
-    root.elif(new Expression(v => v == 3, true, v), () => (check = 3));
+    root.if(new Expression(v => v == 1, v), () => (check = 1));
+    root.elif(new Expression(v => v == 2, v), () => (check = 2));
+    root.elif(new Expression(v => v == 3, v), () => (check = 3));
     root.elif(v2, () => (check = -2));
     root.else(() => (check = 4));
 
@@ -132,18 +121,21 @@ it("switch", function () {
     v2.$ = false;
     expect(check).toBe(4);
 
-    root.$destroy();
+    root.destroy();
 });
 
 it("INode", function () {
     const root = new App(page.window.document.body, {});
 
-    root.create(new Fragment({}), (test: Fragment) => {
+    root.create(new Fragment({}), function () {
+        const test = this;
         // attr
         (function () {
             const attrName = "data-attr";
             const attrValue = new Reference("test");
-            const el = test.tag("div", {
+            let el!: Element;
+
+            test.tag("div", {
                 attr: {
                     "data-checked": true,
                     "data-checked2": root.ref(true),
@@ -153,9 +145,10 @@ it("INode", function () {
                         return str.length > 1 ? str : "alternative";
                     }, attrValue),
                 },
+                callback: node => (el = node),
             });
 
-            const data = el.dataset;
+            const data = (el as HTMLElement).dataset;
 
             expect(data.set).toBe("test");
             expect(data.attr).toBe("test");
@@ -166,16 +159,17 @@ it("INode", function () {
             expect(data.attr).toBeUndefined();
             expect(data.bind).toBe("alternative");
             expect(test.parent).toBe(root);
-            expect(test.app).toBe(root);
         })();
 
         // class
         (function () {
             const dyn = new Reference("dyn");
             const cond = new Reference(false);
+            let el!: Element;
 
-            const el = test.tag("div", {
+            test.tag("div", {
                 class: ["c1", "c2", "c3", dyn, { float: cond }],
+                callback: node => (el = node),
             });
 
             expect(el.className).toBe("c1 c2 c3 dyn");
@@ -193,29 +187,33 @@ it("INode", function () {
         //style
         (function () {
             const dyn = new Reference("0px");
-            const num = new Expression(x => parseFloat(x) + 10, true, dyn);
-            const el = test.tag(
+            const num = new Expression(x => parseFloat(x) + 10, dyn);
+            let el!: HTMLElement;
+
+            test.tag(
                 "div",
                 {
                     style: {
                         display: "none",
                         margin: dyn,
-                        padding: [num, "px"],
-                        width: [300, "px"],
+                        padding: num,
+                        width: 300,
+                        inset: [12, 23],
                     },
+                    callback: node => (el = node as HTMLElement),
                 },
-                div => {
+                function () {
                     const error = "non-html-element";
 
-                    div.tag("circle", {}, (nonHTML: INode) => {
+                    this.tag("circle", {}, function () {
                         // eslint-disable-next-line
                         // @ts-ignore
-                        nonHTML.#node = document.createComment("test");
+                        this.node = document.createComment("test");
                         expect(() => {
-                            nonHTML.setStyle("display", "none");
+                            this.setStyle("display", "none");
                         }).toThrow(error);
                         expect(() => {
-                            nonHTML.style("--p", dyn);
+                            this.style("--p", dyn);
                         }).toThrow(error);
                     });
                 },
@@ -225,6 +223,7 @@ it("INode", function () {
             expect(el.style.margin).toBe("0px");
             expect(el.style.padding).toBe("10px");
             expect(el.style.width).toBe("300px");
+            expect(el.style.inset).toBe("12px 23px");
 
             dyn.$ = "100px";
             expect(el.style.margin).toBe("100px");
@@ -232,79 +231,85 @@ it("INode", function () {
         })();
     });
 
-    root.$destroy();
+    root.destroy();
 });
 
 class MyExtension extends Extension {
-    protected compose(input: TagOptions<any>) {
-        this.extend({
+    public compose() {
+        this.tag("div", {
             class: ["ext"],
         });
-        return {};
     }
 }
 
 it("Extension test", function () {
     const root = new App(page.window.document.body, {});
+    let div!: HTMLElement;
 
-    const div = root.tag(
+    root.tag(
         "div",
         {
             style: { display: "block" },
             class: [{ xxx: true }],
+            callback: node => (div = node as HTMLElement),
         },
-        node => {
-            node.create(new Fragment({}), node1 => {
+        function () {
+            this.create(new Fragment({}), function () {
                 const yyy = new Reference("yyy");
 
-                node1.create(
-                    new MyExtension({
+                this.create(new MyExtension({}), function () {
+                    this.tag("div", {
                         style: { display: "none" },
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         class: [yyy, { xxx: false }],
-                    }),
-                );
+                        slot: function () {
+                            this.setAttr("data-s", "s");
+                        },
+                    });
+                });
             });
         },
     );
 
     expect(div.style.display).toBe("none");
-    expect(div.className).toBe("yyy ext");
+    expect(div.className).toBe("ext yyy");
+    expect(div.dataset.s).toBe("s");
 
-    root.$destroy();
+    root.destroy();
 });
 
 it("INode Events", function () {
     let test = false;
     const root = new App(page.window.document.body, {});
     const handler = () => (test = true);
+    let element!: HTMLElement;
 
-    root.init();
-
-    const element = root.tag<"button">("button", {
+    root.tag("button", {
         events: { click: handler },
+        callback: node => (element = node as HTMLElement),
     });
     element.click();
     expect(test).toBe(true);
 
-    root.$destroy();
+    root.destroy();
 });
 
-it("Freeze test", function () {
+it("Mount/Show test", function () {
     const show = new Reference(true);
     const mount = new Reference(true);
     const root = new App(page.window.document.body, {});
+    let showEl!: HTMLElement;
 
-    const showEl = root.tag("div", {}, (showTag: Tag<"div">) => {
-        showTag.bindShow(show);
+    root.tag("div", { callback: node => (showEl = node as HTMLElement) }, function () {
+        this.bindShow(show);
 
-        showTag.tag("div", {}, (mountTag: Tag<"div">) => {
-            mountTag.bindMount(mount);
+        this.tag("div", {}, function () {
+            this.bindMount(mount);
         });
 
-        showTag.tag("div", {}, (div: Tag<"div">) => {
-            div.addClass("second");
+        this.tag("div", {}, function () {
+            this.addClass("second");
         });
 
         // exception test
@@ -332,7 +337,7 @@ it("Freeze test", function () {
     expect(showEl.childNodes.length).toBe(2);
     expect(showEl.innerHTML).toBe(`<div></div><div class="second"></div>`);
 
-    root.$destroy();
+    root.destroy();
 });
 
 it("bind DON api test", function () {
@@ -340,31 +345,36 @@ it("bind DON api test", function () {
     const html = new Reference("test me now");
     const bool = new Reference(true);
     const num = new Reference(0.1);
+    let el!: Element;
 
-    global.HTMLInputElement = page.window.HTMLInputElement;
-    global.HTMLTextAreaElement = page.window.HTMLTextAreaElement;
-    global.HTMLInputElement = page.window.HTMLInputElement;
-    global.HTMLMediaElement = page.window.HTMLMediaElement;
-
-    const el = root.tag("div", {
+    root.tag("div", {
         bind: {
             innerHTML: html,
         },
+        callback: node => (el = node),
     });
 
-    const input = root.tag("textarea", {
+    let input!: HTMLTextAreaElement;
+    root.tag("textarea", {
         bind: { value: html },
-    }) as HTMLTextAreaElement;
-    const checkbox = root.tag("input", {
+        callback: node => (input = node as HTMLTextAreaElement),
+    });
+    let checkbox!: HTMLInputElement;
+    root.tag("input", {
         attr: { type: "checkbox" },
         bind: { checked: bool },
-    }) as HTMLInputElement;
-    const media = root.tag("audio", {
+        callback: node => (checkbox = node as HTMLInputElement),
+    });
+    let media!: HTMLAudioElement;
+    root.tag("audio", {
         bind: { volume: num },
-    }) as HTMLAudioElement;
-    const media2 = root.tag("audio", {
-        set: { volume: 0.75 },
-    }) as HTMLAudioElement;
+        callback: node => (media = node as HTMLAudioElement),
+    });
+    let media2!: HTMLAudioElement;
+    root.tag("audio", {
+        bind: { volume: 0.75 },
+        callback: node => (media2 = node as HTMLAudioElement),
+    });
 
     expect(el.innerHTML).toBe("test me now");
 
@@ -373,110 +383,65 @@ it("bind DON api test", function () {
 
     html.$ = "1";
     expect(input.value).toBe("1");
-    input.value = "2";
-    input.oninput(1 as any);
-    expect(html.$).toBe("2");
+    html.$ = "2";
+    expect(input.value).toBe("2");
 
     bool.$ = false;
     expect(checkbox.checked).toBe(false);
-    checkbox.checked = true;
-    checkbox.oninput(2 as any);
-    expect(bool.$).toBe(true);
+    bool.$ = true;
+    expect(checkbox.checked).toBe(true);
 
     num.$ = 1;
     expect(media.volume).toBe(1);
-    media.volume = 0.5;
-    expect(num.$).toBe(0.5);
+    num.$ = 0.5;
+    expect(media.volume).toBe(0.5);
 
     expect(media2.volume).toBe(0.75);
 
-    root.$destroy();
+    root.destroy();
 });
 
-it("Error threading", function () {
+it("Error handling", function () {
     const root = new App(page.window.document.body, {});
     const bool = new Reference(true);
     const text = new Reference("text");
-    const frag = new Fragment({});
-    const ext = new Extension({});
-    const debug = new DebugNode();
-    const textNode = new TextNode();
 
-    root.tag("div", {}, test => {
+    root.tag("div", {}, function () {
         // eslint-disable-next-line
         // @ts-ignore
-        test.#node = null;
-        expect(() => test.bindShow(bool)).toThrow("bind-show");
-        expect(() => test.bindDomApi("innerHtml", text)).toThrow("dom-error");
-        expect(() => test.preinit(root, root, null)).toThrow("internal-error");
-        expect(() => ext.preinit(root, frag)).toThrow("virtual-dom");
-        expect(() => debug.preinit(root, frag, null)).toThrow("internal-error");
-        expect(() => textNode.preinit(root, frag, null)).toThrow("internal-error");
-        expect(() => root.else(() => 0)).toThrow("logic-error");
-        expect(() => root.elif(bool, () => 0)).toThrow("logic-error");
+        this.node = null;
+        expect(() => this.bindShow(bool)).toThrow("bind-show");
+        expect(() => this.bindDomApi("innerHtml", text)).toThrow("dom-error");
+        expect(() => this.else(() => 0)).toThrow("logic-error");
+        expect(() => this.elif(bool, () => 0)).toThrow("logic-error");
+        expect(() => this.tag("" as unknown as "a", {})).toThrow("internal-error");
     });
-});
-
-class ZeroChildrenComponent extends Component<TagOptions<any>> {}
-
-class OneChildComponent extends Component<TagOptions<any>> {
-    compose() {
-        this.create(new Fragment({}));
-        return {};
-    }
-}
-
-class MultiChildrenComponent extends Component<TagOptions<any>> {
-    compose() {
-        this.tag("div", {});
-        this.tag("div", {});
-        return {};
-    }
-}
-
-class CorrectComponent extends Component<TagOptions<any>> {
-    compose() {
-        this.tag("div", {});
-        return {};
-    }
-}
-
-it("Component test", function () {
-    const root = new App(page.window.document.body, {});
-
-    expect(() => root.create(new ZeroChildrenComponent({}))).toThrow("dom-error");
-    expect(() => root.create(new OneChildComponent({}))).toThrow("dom-error");
-    expect(() => root.create(new MultiChildrenComponent({}))).toThrow("dom-error");
-
-    const correct = new CorrectComponent({ class: ["test"] });
-    root.create(correct);
-
-    expect(correct.node.className).toBe("test");
 });
 
 it("INode unmount/mount advanced", function () {
     const root = new App(page.window.document.body, {});
     const mount = new Reference(true);
+    let body!: Element;
 
-    const body = root.tag("div", {}, main => {
-        main.create(new Fragment({}), l1 => {
-            l1.create(new Fragment({}), l2 => {
-                l2.create(new Fragment({}), l3 => {
-                    l3.tag("div", { class: ["0"] }, div => {
-                        div.bindMount(mount);
+    root.tag("div", { callback: node => (body = node) }, function () {
+        this.create(new Fragment({}), function () {
+            this.create(new Fragment({}), function () {
+                this.create(new Fragment({}), function () {
+                    this.tag("div", { class: ["0"] }, function () {
+                        this.bindMount(mount);
                     });
                 });
-                l2.create(new Fragment({}));
+                this.create(new Fragment({}));
             });
-            l1.create(new Fragment({}));
-            l1.create(new Fragment({}), l2 => {
-                l2.create(new Fragment({}), l3 => {
-                    l3.create(new Fragment({}));
-                    l3.tag("div", { class: ["1"] }, div => {
-                        div.bindMount(mount);
+            this.create(new Fragment({}));
+            this.create(new Fragment({}), function () {
+                this.create(new Fragment({}), function () {
+                    this.create(new Fragment({}));
+                    this.tag("div", { class: ["1"] }, function () {
+                        this.bindMount(mount);
                     });
-                    l3.create(new Fragment({}), l4 => {
-                        l4.tag("div", { class: ["2"] });
+                    this.create(new Fragment({}), function () {
+                        this.tag("div", { class: ["2"] });
                     });
                 });
             });
@@ -497,22 +462,23 @@ it("INode unmount/mount advanced", function () {
 it("INode unmount/mount advanced 2", function () {
     const root = new App(page.window.document.body, {});
     const mount = new Reference(true);
+    let body!: Element;
 
-    const body = root.tag("div", {}, main => {
-        main.create(new Fragment({}), l1 => {
-            l1.create(new Fragment({}), l2 => {
-                l2.tag("div", { class: ["0"] }, div => {
-                    div.bindMount(mount);
+    root.tag("div", { callback: node => (body = node) }, function () {
+        this.create(new Fragment({}), function () {
+            this.create(new Fragment({}), function () {
+                this.tag("div", { class: ["0"] }, function () {
+                    this.bindMount(mount);
                 });
-                l2.tag("div", { class: ["1"] }, div => {
-                    div.bindMount(mount);
+                this.tag("div", { class: ["1"] }, function () {
+                    this.bindMount(mount);
                 });
-                l2.tag("div", { class: ["2"] }, div => {
-                    div.bindMount(mount);
+                this.tag("div", { class: ["2"] }, function () {
+                    this.bindMount(mount);
                 });
             });
-            l1.create(new Fragment({}), l2 => {
-                l2.tag("div", { class: ["3"] });
+            this.create(new Fragment({}), function () {
+                this.tag("div", { class: ["3"] });
             });
         });
     });
@@ -528,24 +494,4 @@ it("INode unmount/mount advanced 2", function () {
     expect(body.innerHTML).toBe(
         '<div class="0"></div>' + '<div class="1"></div>' + '<div class="2"></div>' + '<div class="3"></div>',
     );
-});
-
-let Ftested = 0;
-
-function f(x: number, y: number) {
-    Ftested = x + y;
-}
-
-class F extends Fragment {
-    protected compose(input: FragmentOptions) {
-        super.compose(input);
-        this.runFunctional(f, 1, 2);
-        return {};
-    }
-}
-
-it("functional test", function () {
-    new F({}).init();
-
-    expect(Ftested).toBe(3);
 });

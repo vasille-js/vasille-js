@@ -24,6 +24,7 @@ export class Pointer<T> extends Mirror<T> {
             this.value.off(this.handler);
             this.value = value;
             this.value.on(this.handler);
+            this.handler(value.$);
         }
     }
 }

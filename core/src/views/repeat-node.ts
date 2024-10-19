@@ -1,3 +1,4 @@
+import { config } from "../core/config";
 import { Fragment, Root } from "../node/node";
 
 // RNO = RepeatNodeOptions
@@ -21,13 +22,15 @@ export class RepeatNode<
      */
     protected nodes: Map<IdT, Fragment> = new Map();
 
-    public constructor(parent: Root, input: Opts, name?: string) {
-        super(parent, input, name);
+    public constructor(input: Opts, name?: string) {
+        super(input, name);
     }
 
     public createChild(opts: Opts, id: IdT, item: T, before?: Fragment): any {
-        const node = new Fragment(this, {});
+        const _id = id && typeof id === "object" && "id" in id ? id.id : config.debugUi ? JSON.stringify(id) : id;
+        const node = new Fragment({}, `${_id}`);
 
+        node.parent = this;
         this.destroyChild(id, item);
 
         if (before) {

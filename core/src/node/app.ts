@@ -32,8 +32,8 @@ interface PortalOptions {
 export class Portal extends Fragment {
     #node: Element;
 
-    constructor(parent: Root, input: PortalOptions) {
-        super(parent, input, ":portal");
+    constructor(input: PortalOptions) {
+        super(input, ":portal");
 
         this.#node = input.node;
     }

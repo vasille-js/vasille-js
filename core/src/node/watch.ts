@@ -11,8 +11,8 @@ interface WatchOptions<T> {
  * @extends Fragment
  */
 export class Watch<T> extends Fragment<WatchOptions<T>> {
-    public constructor(parent: Fragment, input: WatchOptions<T>) {
-        super(parent, input, ":watch");
+    public constructor(input: WatchOptions<T>) {
+        super(input, ":watch");
     }
 
     public compose() {

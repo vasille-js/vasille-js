@@ -8,14 +8,13 @@ import { SetModel } from "../models/set-model";
  * @extends BaseView
  */
 export class SetView<T> extends BaseView<T, T, SetModel<T>> {
-    public constructor(parent: Fragment, input: BaseViewOptions<T, T, SetModel<T>>) {
-        super(parent, input, ":set-view");
+    public constructor(input: BaseViewOptions<T, T, SetModel<T>>) {
+        super(input, ":set-view");
     }
 
     public compose() {
-        const set: SetModel<T> = this.input.model;
-
-        set.forEach(item => {
+        super.compose();
+        this.input.model.forEach(item => {
             this.createChild(this.input, item, item);
         });
         return {};

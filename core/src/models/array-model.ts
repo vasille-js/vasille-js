@@ -93,7 +93,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      */
     public splice(start: number, deleteCount?: number, ...items: Array<T>): ArrayModel<T> {
         start = Math.min(start, this.length);
-        deleteCount = deleteCount || this.length - start;
+        deleteCount = typeof deleteCount === "number" ? deleteCount : this.length - start;
 
         const before = this[start + deleteCount];
 

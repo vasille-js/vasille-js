@@ -60,8 +60,11 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
         this.sync = new Reference(func.apply(this, this.valuesCache));
 
         let i = 0;
-        values.forEach(() => {
-            this.linkedFunc.push(handler.bind(this, Number(i++)));
+        values.forEach(value => {
+            const updater = handler.bind(this, Number(i++));
+
+            this.linkedFunc.push(updater);
+            value.on(updater);
         });
 
         this.values = values;

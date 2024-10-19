@@ -45,4 +45,12 @@ export class IValue<T> extends Destroyable {
     public off(handler: (value: T) => void): void {
         throw notOverwritten();
     }
+
+    public toJSON() {
+        return this.$;
+    }
+
+    public toString() {
+        return this.$?.toString() ?? "iValue<void>";
+    }
 }

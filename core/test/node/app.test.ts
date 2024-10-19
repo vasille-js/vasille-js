@@ -3,18 +3,15 @@ import { App } from "../../src";
 import { Portal } from "../../src/node/app";
 
 class MyApp extends App {
-    div: HTMLDivElement;
+    div!: HTMLDivElement;
 
-    protected compose(input) {
-        super.compose(input);
+    public compose() {
+        this.tag("div", { callback: node => (this.div = node as HTMLDivElement) });
 
-        const div = this.tag("div", {});
-
-        this.create(new Portal({ node: div }), node => {
-            node.tag("span", {});
+        this.create(new Portal({ node: this.div }), function () {
+            this.tag("span", {});
         });
 
-        this.div = div as HTMLDivElement;
         return {};
     }
 }
@@ -22,6 +19,7 @@ class MyApp extends App {
 it("App", function () {
     const app = new MyApp(page.window.document.body, { debugUi: true });
 
+    app.compose();
     expect(app.div.childElementCount).toBe(1);
     expect(app.children.size).toBe(2);
 });

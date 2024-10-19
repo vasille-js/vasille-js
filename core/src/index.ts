@@ -2,6 +2,7 @@ import { config } from "./core/config";
 import { Destroyable } from "./core/destroyable";
 import { Reactive } from "./core/core";
 import { IValue } from "./core/ivalue";
+import { reportError, setErrorHandler } from "./functional/safety";
 import { ArrayModel } from "./models/array-model";
 import { Listener } from "./models/listener";
 import { MapModel } from "./models/map-model";
@@ -56,4 +57,6 @@ export {
     TagOptionsWithSlot,
     userError,
     config,
+    setErrorHandler,
+    reportError,
 };

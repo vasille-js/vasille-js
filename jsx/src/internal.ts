@@ -119,37 +119,3 @@ export const internal = {
         return arr;
     },
 };
-
-/**
- * Working with context
- *
- * // module.js
- *
- * var v1 = 23;       <- Global Reactive
- * var arr1 = [2, 34] <- Self-contexted object
- *                    <- JSX throw error
- *
- * function a () {
- *   let v1 = 12;       <- cannot be reactive
- *   let arr2 = [2, 45] <- cannot be reactive
- *                      <- JSX throw error
- * }
- *
- * export a = compose(() => {
- *   let v2 = 1;      <- bind to a component
- *   let arr = [1, 2] <- bind to a component
- *
- *   let callback = () => {
- *      // cannot be reactive
- *      // JSX throw error
- *   }
- *
- *   <div>
- *     <For of={arr} slot={() => {
- *          // context available here
- *          // JSX accepted
- *          // local expressions are reactive
- *     }}/>
- *   </div>
- * })
- */

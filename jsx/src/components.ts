@@ -172,3 +172,21 @@ export function Show(this: Fragment, { bind }: Magic<{ bind: boolean }>) {
 
     node.bindShow(bind instanceof IValue ? bind : node.ref(bind));
 }
+
+export function Delay (this: Fragment, {time, slot}: Magic<{time?: number; slot?: () => {}}>){
+    const fragment = new Fragment(this, {}, ":timer");
+    const dSlot = dereference(slot);
+    let timer: number|undefined;
+
+    if (dSlot) {
+        timer = setTimeout(() => {
+            dSlot.call(fragment);
+            timer = undefined;
+        });
+    }
+    fragment.runOnDestroy(() => {
+        if (typeof timer === 'number') {
+            clearTimeout(timer);
+        }
+    })
+}

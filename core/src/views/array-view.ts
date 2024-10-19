@@ -13,6 +13,7 @@ export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
     }
 
     public compose() {
+        super.compose();
         this.input.model.forEach(item => {
             this.createChild(this.input, item, item);
         });

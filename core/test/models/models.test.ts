@@ -1,4 +1,4 @@
-import { ArrayModel, Listener, MapModel, ObjectModel, SetModel } from "../../src";
+import { ArrayModel, Listener, MapModel, SetModel } from "../../src";
 
 it("listener", function () {
     const listener = new Listener<number, number>();
@@ -20,20 +20,8 @@ it("listener", function () {
     listener.emitRemoved(2, 3);
     expect(removeCounter).toBe(5);
 
-    listener.disableReactivity();
-
-    listener.emitAdded(4, 1);
     expect(addCounter).toBe(2);
-
-    listener.emitRemoved(9, 3);
     expect(removeCounter).toBe(5);
-
-    listener.emitAdded(4, 2);
-    listener.emitRemoved(9, 4);
-
-    listener.enableReactivity();
-    expect(addCounter).toBe(6);
-    expect(removeCounter).toBe(13);
 
     listener.offAdd(addHandler);
     listener.offRemove(removeHandler);
@@ -41,63 +29,59 @@ it("listener", function () {
     listener.emitAdded(1, 1);
     listener.emitRemoved(1, 1);
 
-    expect(addCounter).toBe(6);
-    expect(removeCounter).toBe(13);
+    expect(addCounter).toBe(2);
+    expect(removeCounter).toBe(5);
 });
 
 it("array model", function () {
     const array = new ArrayModel<number>([1, 2, 3]);
-    const empty = new ArrayModel<number>();
-
-    expect(array.last).toBe(3);
-    expect(empty.last).toBe(null);
 
     array.fill(0);
-    expect(array).toEqual([0, 0, 0]);
+    expect(array.join()).toEqual([0, 0, 0].join());
 
     expect(array.pop()).toBe(0);
-    expect(array).toEqual([0, 0]);
+    expect(array.join()).toEqual([0, 0].join());
 
     expect(array.push(1, 2, 3)).toBe(5);
-    expect(array).toEqual([0, 0, 1, 2, 3]);
+    expect(array.join()).toEqual([0, 0, 1, 2, 3].join());
 
     expect(array.shift()).toBe(0);
-    expect(array).toEqual([0, 1, 2, 3]);
+    expect(array.join()).toEqual([0, 1, 2, 3].join());
 
-    expect(array.splice(1, 2, 2, 1)).toEqual([1, 2]);
-    expect(array).toEqual([0, 2, 1, 3]);
-    expect(array.splice(3)).toEqual([3]);
-    expect(array).toEqual([0, 2, 1]);
+    expect(array.splice(1, 2, 2, 1).join()).toEqual([1, 2].join());
+    expect(array.join()).toEqual([0, 2, 1, 3].join());
+    expect(array.splice(3).join()).toEqual([3].join());
+    expect(array.join()).toEqual([0, 2, 1].join());
 
     expect(array.unshift(3)).toBe(4);
-    expect(array).toEqual([3, 0, 2, 1]);
+    expect(array.join()).toEqual([3, 0, 2, 1].join());
 
-    array.append(4);
-    expect(array).toEqual([3, 0, 2, 1, 4]);
+    array.push(4);
+    expect(array.join()).toEqual([3, 0, 2, 1, 4].join());
 
-    array.insert(1, -1);
-    expect(array).toEqual([3, -1, 0, 2, 1, 4]);
+    array.splice(1, 0, -1);
+    expect(array.join()).toEqual([3, -1, 0, 2, 1, 4].join());
 
-    array.prepend(-4);
-    expect(array).toEqual([-4, 3, -1, 0, 2, 1, 4]);
+    array.unshift(-4);
+    expect(array.join()).toEqual([-4, 3, -1, 0, 2, 1, 4].join());
 
-    array.removeFirst();
-    expect(array).toEqual([3, -1, 0, 2, 1, 4]);
+    array.splice(0, 1);
+    expect(array.join()).toEqual([3, -1, 0, 2, 1, 4].join());
 
-    array.removeLast();
-    expect(array).toEqual([3, -1, 0, 2, 1]);
+    array.splice(array.length - 1, 1);
+    expect(array.join()).toEqual([3, -1, 0, 2, 1].join());
 
-    array.removeAt(2);
-    expect(array).toEqual([3, -1, 2, 1]);
+    array.splice(2, 1);
+    expect(array.join()).toEqual([3, -1, 2, 1].join());
 
-    array.removeOne(-1);
-    expect(array).toEqual([3, 2, 1]);
+    array.splice(array.indexOf(-1), 1);
+    expect(array.join()).toEqual([3, 2, 1].join());
 
     array.replace(1, 4);
-    expect(array).toEqual([3, 4, 1]);
+    expect(array.join()).toEqual([3, 4, 1].join());
 
-    array.clear();
-    expect(array).toEqual([]);
+    array.splice(0);
+    expect(array.join()).toEqual([].join());
 });
 
 it("map model", function () {
@@ -123,19 +107,6 @@ it("map model", function () {
 
     map.clear();
     expect(Array.from(map)).toEqual([]);
-});
-
-it("object model", function () {
-    const obj = new ObjectModel<number>({ 0: 1, 1: 2, 2: 3 });
-
-    obj.delete("2");
-    expect(obj.get("2")).toBeUndefined();
-
-    obj.set("1", 4);
-    expect(obj.get("1")).toBe(4);
-
-    obj.set("3", 3);
-    expect(obj.get("3")).toBe(3);
 });
 
 it("set model", function () {

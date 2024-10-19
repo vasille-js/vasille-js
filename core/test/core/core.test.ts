@@ -41,19 +41,10 @@ class CoreTest extends Reactive {
             this.mirror0,
         );
 
-        this.bind_unlinked = new Expression(
-            (x, y) => {
-                return x + y;
-            },
-            false,
-            this.ref0,
-            this.mirror0,
-        );
-
         this.freeze_test = super.ref(false);
         this.handler_ref = super.ref(23);
 
-        this.handler_ref.$on(n => {
+        this.handler_ref.on(n => {
             this.handler_test = n;
         });
     }
@@ -62,10 +53,6 @@ class CoreTest extends Reactive {
 const coreTest = new CoreTest();
 
 it("Reactive", function () {
-    expect(() => coreTest.bindAlive(coreTest.freeze_test)).toThrow("wrong-binding");
-    coreTest.bindAlive(alive);
-    expect(() => coreTest.bindAlive(alive)).toThrow("wrong-binding");
-
     expect(coreTest.ref0.$).toBe(1);
     expect(coreTest.mirror0.$).toBe(1);
     expect(coreTest.forward0.$).toBe(1);
@@ -73,7 +60,6 @@ it("Reactive", function () {
     expect(coreTest.ro_point.$).toBe(1);
     expect(coreTest.predefined_point.$).toBe(23);
     expect(coreTest.bind0.$).toBe(2);
-    expect(coreTest.bind_unlinked.$).toBe(2);
 
     coreTest.handler_ref.$ = 12;
     expect(coreTest.handler_test).toBe(12);
@@ -90,26 +76,8 @@ it("Reactive", function () {
     expect(coreTest.ro_point.$).toBe(3);
     expect(coreTest.watch_test).toBe(3);
     expect(coreTest.bind0.$).toBe(6);
-    expect(coreTest.bind_unlinked.$).toBe(2);
 
-    coreTest.point0.$disable();
-    coreTest.mirror0.$ = 4;
-    expect(coreTest.ref0.$).toBe(4);
-    expect(coreTest.mirror0.$).toBe(4);
-    expect(coreTest.point0.$).toBe(3);
-    expect(coreTest.ro_point.$).toBe(3);
-
-    coreTest.mirror0.$disable();
-    coreTest.ref0.$ = 5;
-    expect(coreTest.ref0.$).toBe(5);
-    expect(coreTest.mirror0.$).toBe(4);
-    expect(coreTest.point0.$).toBe(3);
-
-    alive.$ = false;
     coreTest.ref0.$ = 2;
-    expect(coreTest.bind0.$).toBe(9);
-
-    alive.$ = true;
     expect(coreTest.ref0.$).toBe(2);
     expect(coreTest.mirror0.$).toBe(2);
     expect(coreTest.point0.$).toBe(2);
@@ -121,7 +89,26 @@ it("Reactive", function () {
     expect(coreTest.point0.$).toBe(4);
     expect(coreTest.ro_point.$).toBe(4);
 
-    expect(() => new Reactive({}).init()).toThrow("not-overwritten");
+    let test1 = false,
+        test2 = false;
+    const destroyable1 = new Reactive({}),
+        destroyable2 = new Reactive({});
 
-    coreTest.$destroy();
+    destroyable1.runOnDestroy(() => (test1 = true));
+    destroyable2.runOnDestroy(() => (test1 = true));
+    // here we test override
+    destroyable2.runOnDestroy(() => (test2 = true));
+
+    coreTest.register(destroyable1);
+    coreTest.register(destroyable2);
+    coreTest.release(destroyable2);
+
+    coreTest.destroy();
+
+    expect(test1).toBe(true);
+    expect(test2).toBe(false);
+
+    destroyable2.destroy();
+
+    expect(test2).toBe(true);
 });

@@ -196,6 +196,13 @@ export declare const v : Vasille;
 
 declare global {
     namespace JSX {
+        // Valid JSX tags: all the valid lowercase tags and function components
+        type ElementType = keyof IntrinsicElements | ((props?: object) => void);
+        type Element = never;
+        type ElementClass = never;
+        interface ElementChildrenAttribute {
+            slot: (...args: unknown[]) => void;
+        }
         interface IntrinsicElements {
 
             // HTML

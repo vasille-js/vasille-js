@@ -31,8 +31,8 @@ export class BaseView<K, T, Model extends ListenableModel<K, T>> extends RepeatN
      */
     protected removeHandler: (index: K, value: T) => void;
 
-    public constructor(parent: Root, input: BaseViewOptions<K, T, Model>, name?: string) {
-        super(parent, input, name);
+    public constructor(input: BaseViewOptions<K, T, Model>, name?: string) {
+        super(input, name);
     }
 
     public compose() {
@@ -50,5 +50,6 @@ export class BaseView<K, T, Model extends ListenableModel<K, T>> extends RepeatN
     public destroy(): void {
         this.input.model.listener.offAdd(this.addHandler);
         this.input.model.listener.offRemove(this.removeHandler);
+        super.destroy();
     }
 }
