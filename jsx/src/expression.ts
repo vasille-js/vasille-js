@@ -32,8 +32,8 @@ export class Expression extends IValue<unknown> {
         for (const value of values) {
             const index = i++;
 
-            if (values[i] instanceof IValue) {
-                this.linkedFunc[index] = handler.bind(this, index);
+            if (value instanceof IValue) {
+                value.on((this.linkedFunc[index] = handler.bind(this, index)));
             }
         }
 

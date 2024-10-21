@@ -41,11 +41,7 @@ export const internal = {
         }
 
         if (values.some(item => item instanceof IValue)) {
-            const expr = new Expression(func, values);
-
-            node.register(expr);
-
-            return expr;
+            return node.register(new Expression(func, values));
         } else {
             return func.apply(null, values);
         }

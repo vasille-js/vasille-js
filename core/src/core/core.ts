@@ -81,8 +81,10 @@ export class Reactive<T extends object = object> extends Destroyable {
     /**
      * Register a model/dependecy
      */
-    public register(data: Destroyable): void {
+    public register<T extends Destroyable>(data: T): T {
         this.#bindings.add(data);
+
+        return data;
     }
 
     public release(data: Destroyable): void {

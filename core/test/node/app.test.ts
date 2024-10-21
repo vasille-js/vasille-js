@@ -1,6 +1,5 @@
 import { page } from "../page";
-import { App } from "../../src";
-import { Portal } from "../../src/node/app";
+import { App, Portal } from "../../src";
 
 class MyApp extends App {
     div!: HTMLDivElement;
@@ -11,8 +10,6 @@ class MyApp extends App {
         this.create(new Portal({ node: this.div }), function () {
             this.tag("span", {});
         });
-
-        return {};
     }
 }
 

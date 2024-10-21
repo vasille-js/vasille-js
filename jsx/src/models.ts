@@ -18,10 +18,7 @@ class Context extends Destroyable {
     #enableObject(o: object) {
         for (const key of Object.keys(o)) {
             if (!(o[key] instanceof IValue)) {
-                const iValue = new Reference(o[key]);
-
-                this.#ctx.register(iValue);
-                o[key] = iValue;
+                o[key] = this.#ctx.register(new Reference(o[key]));
             }
         }
     }

@@ -4,15 +4,15 @@ export function readValue(v: unknown): unknown {
     return v instanceof IValue ? v.$ : v;
 }
 
-export function setValue(target: unknown, value: unknown, fallback: (v: unknown) => void) {
+export function setValue(target: unknown, value: unknown, fallback?: (v: unknown) => void) {
     if (target instanceof IValue) {
         if (target instanceof Pointer && value instanceof IValue) {
             target.$$ = value as IValue<unknown>;
         } else {
-            target.$ = value;
+            target.$ = value instanceof IValue ? value.$ : value;
         }
     } else {
-        fallback(value);
+        fallback?.(value);
     }
 }
 

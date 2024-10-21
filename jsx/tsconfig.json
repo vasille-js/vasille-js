@@ -10,9 +10,11 @@
     "moduleResolution": "Node",
     "skipLibCheck": true,
     "strictNullChecks": true,
+    "esModuleInterop": true,
     "types": [
       "estree",
       "json-schema",
+      "jest",
     ]
   },
 }
