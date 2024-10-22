@@ -7,7 +7,8 @@
     "prepack": "cp -f ../README.md ./README.md",
     "prettier": "npx prettier src test --write",
     "build": "tsc --build tsconfig.json",
-    "test": "jest"
+    "test": "jest",
+    "test-coverage": "jest --coverage"
   },
   "keywords": [
     "frone-end",

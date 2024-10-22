@@ -4,7 +4,7 @@ import { readValue } from "./inline";
 export type Path = (string | number)[];
 
 export function readProperty(o: unknown, path: Path): unknown {
-    let target: unknown = o;
+    let target: unknown = readValue(o);
 
     for (let i = 0; i < path.length; i++) {
         const field = path[i];
@@ -26,7 +26,7 @@ export function readProperty(o: unknown, path: Path): unknown {
 
 export function writeValue(o: unknown, path: Path, v: unknown) {
     const field = path.pop();
-    const target = readProperty(o, path);
+    const target = field === "$" ? readProperty(o, path) : readValue(readProperty(o, path));
     const current =
         typeof target === "object" && target !== null && field && field in target ? target[field] : undefined;
 
@@ -77,17 +77,74 @@ export function propertyExtractor(source: unknown, path: Path): unknown {
     return target;
 }
 
+class ProxyReference extends Reference<unknown> {
+    public forceUpdate(){
+        this.updateDeps(this.state);
+    }
+}
+
+function proxyObject(obj: object, proxyRef: ProxyReference) {
+    return new Proxy(obj, {
+        get(target: object, p: string | symbol, receiver: any): any {
+            return proxy(Reflect.get(target, p, receiver), proxyRef);
+        },
+        set(target: object, p: string | symbol, newValue: any, receiver: any): boolean {
+            const response = Reflect.set(target, p, newValue, receiver);
+            proxyRef.forceUpdate();
+            return response;
+        },
+        defineProperty(target: object, property: string | symbol, attributes: PropertyDescriptor): boolean {
+            const response = Reflect.defineProperty(target, property, attributes);
+            proxyRef.forceUpdate();
+            return response;
+        },
+        deleteProperty(target: object, p: string | symbol): boolean {
+            const response = Reflect.deleteProperty(target, p);
+            proxyRef.forceUpdate();
+            return response;
+        }
+    })
+}
+
+function proxy (o: unknown, ref?: ProxyReference) {
+    if (typeof o === "object" && o && o.constructor === Object) {
+        if (ref) {
+            return proxyObject(o, ref);
+        }
+        else {
+            const proxyRef = new ProxyReference(undefined);
+
+            proxyRef.$ = proxyObject(o, proxyRef);
+
+            return proxyRef;
+        }
+    }
+
+    return o;
+}
+
+function ensureIValue (node: unknown, v: unknown) {
+    if (v instanceof IValue) {
+        return v;
+    }
+    if (node instanceof Fragment) {
+        return node.ref(v);
+    }
+
+    return new Reference(v);
+}
+
 export function reactiveObject(node: unknown, o: object): object {
     if (node instanceof Fragment) {
         for (const key of Object.keys(o)) {
             if (!(o[key] instanceof IValue)) {
-                o[key] = node.ref(o[key]);
+                o[key] = ensureIValue(node, proxy(o[key]));
             }
         }
     } else {
         for (const key of Object.keys(o)) {
             if (!(o[key] instanceof IValue)) {
-                o[key] = new Reference(o[key]);
+                o[key] = ensureIValue(null, proxy(o[key]));
             }
         }
     }

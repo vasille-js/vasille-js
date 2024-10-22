@@ -39,11 +39,13 @@ class Context extends Destroyable {
 export class ContextArray<T> extends ArrayModel<T> {
     private ctx: Context;
 
-    public constructor(data: Array<T> = []) {
+    public constructor(data?: Array<T>|number) {
         const ctx = new Context();
 
-        for (const item of data) {
-            ctx.checkEnable(item);
+        if (data instanceof Array) {
+            for (const item of data) {
+                ctx.checkEnable(item);
+            }
         }
 
         super(data);

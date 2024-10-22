@@ -1,5 +1,5 @@
 import { AcceptedTagsMap, IValue, Reference, TagOptions, Fragment } from "vasille";
-import { Expression } from "./expression";
+import { PartialExpression } from "./expression";
 import { asFragment, readValue, setValue } from "./inline";
 import { propertyExtractor, reactiveObject, readProperty, writeValue } from "./objects";
 import { ContextArray, ContextMap, ContextSet } from "./models";
@@ -22,7 +22,7 @@ export const internal = {
     /**
      * translate module `var a = v` to `const a = $.var(v)`
      */
-    var(v: unknown): unknown {
+    var(v: unknown): Reference<unknown> {
         if (v instanceof IValue) {
             return new Reference(v.$);
         }
@@ -41,7 +41,7 @@ export const internal = {
         }
 
         if (values.some(item => item instanceof IValue)) {
-            return node.register(new Expression(func, values));
+            return node.register(new PartialExpression(func, values));
         } else {
             return func.apply(null, values);
         }

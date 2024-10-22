@@ -11,14 +11,14 @@ export class Reference<T> extends IValue<T> {
      * The encapsulated value
      * @type {*}
      */
-    private state: T;
+    protected state: T;
 
     /**
      * Array of handlers
      * @type {Set}
      * @readonly
      */
-    private readonly onChange: Set<(value: T) => void>;
+    protected readonly onChange: Set<(value: T) => void>;
 
     /**
      * @param value {any} the initial value

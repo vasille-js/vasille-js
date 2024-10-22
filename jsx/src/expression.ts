@@ -1,6 +1,6 @@
 import { IValue, Reference } from "vasille";
 
-export class Expression extends IValue<unknown> {
+export class PartialExpression extends IValue<unknown> {
     private readonly values: unknown[];
     private readonly valuesCache: unknown[];
     private readonly func: (i?: number) => void;
@@ -16,8 +16,6 @@ export class Expression extends IValue<unknown> {
 
                 if (dependency instanceof IValue) {
                     this.valuesCache[i] = dependency.$;
-                } else {
-                    return;
                 }
             }
 
