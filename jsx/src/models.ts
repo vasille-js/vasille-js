@@ -117,11 +117,13 @@ export class ContextArray<T> extends ArrayModel<T> {
 export class ContextMap<K, T> extends MapModel<K, T> {
     private ctx: Context;
 
-    public constructor(map: [K, T][] = []) {
+    public constructor(map?: [K, T][]) {
         const ctx = new Context();
 
-        for (const item of map) {
-            ctx.checkDisable(item[1]);
+        if (map) {
+            for (const item of map) {
+                ctx.checkEnable(item[1]);
+            }
         }
         super(map);
         this.ctx = ctx;
@@ -142,6 +144,7 @@ export class ContextMap<K, T> extends MapModel<K, T> {
     }
 
     public set(key: K, value: T): this {
+        this.ctx.checkDisable(this.get(key));
         this.ctx.checkEnable(value);
 
         return super.set(key, value);
@@ -156,11 +159,13 @@ export class ContextMap<K, T> extends MapModel<K, T> {
 export class ContextSet<T> extends SetModel<T> {
     private ctx: Context;
 
-    public constructor(set: T[] = []) {
+    public constructor(set?: T[]) {
         const ctx = new Context();
 
-        for (const item of set) {
-            ctx.checkEnable(item);
+        if (set) {
+            for (const item of set) {
+                ctx.checkEnable(item);
+            }
         }
 
         super(set);

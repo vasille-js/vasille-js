@@ -14,17 +14,17 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
      * Constructs a map model
      * @param map {[*, *][]} input data
      */
-    public constructor(map: [K, T][] = []) {
+    public constructor(map?: [K, T][]) {
         super();
         this.listener = new Listener();
 
-        map.forEach(([key, value]) => {
+        map?.forEach(([key, value]) => {
             super.set(key, value);
         });
     }
 
     /**
-     * Calls Map.clear and notify abut changes
+     * Calls Map.clear and notify about changes
      */
     public clear() {
         this.forEach((value, key) => {

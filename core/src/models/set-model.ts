@@ -14,11 +14,11 @@ export class SetModel<T> extends Set<T> implements ListenableModel<T, T> {
      * Constructs a set model based on a set
      * @param set {Set} input data
      */
-    public constructor(set: T[] = []) {
+    public constructor(set?: T[]) {
         super();
         this.listener = new Listener();
 
-        set.forEach(item => {
+        set?.forEach(item => {
             super.add(item);
         });
     }
