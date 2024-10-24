@@ -11,16 +11,13 @@ import {
     Watch as CoreWatch,
     Tag,
 } from "vasille";
+import { readValue } from "./inline";
 
 type Magic<T extends object> = { [K in keyof T]: T[K] | IValue<T[K]> | undefined };
 
-function dereference<T>(value: T | IValue<T>): T {
-    return value instanceof IValue ? value.$ : value;
-}
-
 export function Adapter(this: Fragment, { node, slot }: Magic<{ node: Fragment; slot?: (this: Fragment) => void }>) {
-    const dNode = dereference(node);
-    const dSlot = dereference(slot);
+    const dNode = readValue(node);
+    const dSlot = readValue(slot);
 
     if (dNode && dSlot) {
         this.create(dNode, dSlot);
@@ -29,34 +26,38 @@ export function Adapter(this: Fragment, { node, slot }: Magic<{ node: Fragment; 
 
 export function Slot<T extends object = {}>(
     this: Fragment,
-    options: Magic<{ model?: (() => void) | ((input: T) => void); slot?: (this: Fragment) => void }> & T,
+    options: Magic<{
+        model?: ((this: Fragment) => void) | ((this: Fragment, input: T) => void);
+        slot?: (this: Fragment) => void;
+    }> &
+        T,
 ) {
-    const model = dereference(options.model);
+    const model = readValue(options.model);
 
     if (model) {
-        model(options);
+        model.call(this, options);
     } else {
-        dereference(options.slot)?.call(this);
+        readValue(options.slot)?.call(this);
     }
 }
 
-export function If(this: Fragment, { condition, slot: magicSlot }: Magic<{ condition: boolean; slot?: () => void }>) {
-    const slot = dereference(magicSlot);
+export function If(this: Fragment, { condition, slot: magicSlot }: Magic<{ condition: unknown; slot?: () => void }>) {
+    const slot = readValue(magicSlot);
 
-    this.if(condition instanceof IValue ? condition : this.ref(condition), slot ?? (() => {}));
+    this.if(condition instanceof IValue ? (condition as IValue<unknown>) : this.ref(condition), slot ?? (() => {}));
 }
 
 export function ElseIf(
     this: Fragment,
-    { condition, slot: magicSlot }: Magic<{ condition: boolean; slot?: () => void }>,
+    { condition, slot: magicSlot }: Magic<{ condition: unknown; slot?: () => void }>,
 ) {
-    const slot = dereference(magicSlot);
+    const slot = readValue(magicSlot);
 
-    this.elif(condition instanceof IValue ? condition : this.ref(condition), slot ?? (() => {}));
+    this.elif(condition instanceof IValue ? (condition as IValue<unknown>) : this.ref(condition), slot ?? (() => {}));
 }
 
 export function Else(this: Fragment, { slot: magicSlot }: Magic<{ slot?: () => void }>) {
-    const slot = dereference(magicSlot);
+    const slot = readValue(magicSlot);
 
     if (slot) {
         this.else(slot);
@@ -68,7 +69,7 @@ export function For<
     K = T extends unknown[] ? number : T extends Set<infer R> ? R : T extends Map<infer R, unknown> ? R : never,
     V = T extends (infer R)[] ? R : T extends Set<infer R> ? R : T extends Map<unknown, infer R> ? R : never,
 >(this: Fragment, { of, slot: magicSlot }: Magic<{ of: T; slot?: (this: Fragment, value: T, index: K) => void }>) {
-    const slot = dereference(magicSlot);
+    const slot = readValue(magicSlot);
 
     if (of instanceof IValue) {
         this.create(
@@ -140,7 +141,7 @@ export function For<
 }
 
 export function Watch<T>(this: Fragment, { model, slot: magicSlot }: Magic<{ model: T; slot?: (value: T) => void }>) {
-    const slot = dereference(magicSlot);
+    const slot = readValue(magicSlot);
 
     if (slot && model instanceof IValue) {
         this.create(new CoreWatch({ model, slot }));
@@ -153,40 +154,42 @@ export function Debug(this: Fragment, { model }: { model: unknown }) {
     this.debug(value as IValue<unknown>);
 }
 
-export function Mount(this: Fragment, { bind }: Magic<{ bind: boolean }>) {
+export function Mount(this: Fragment, { bind }: Magic<{ bind: unknown }>) {
     const node = this;
 
     if (!(node instanceof Tag)) {
         throw userError("<Mount bind/> can be used only as direct child of html tags", "context-mismatch");
     }
 
-    node.bindMount(bind instanceof IValue ? bind : node.ref(bind));
+    node.bindMount(bind instanceof IValue ? (bind as IValue<unknown>) : node.ref(bind));
 }
 
-export function Show(this: Fragment, { bind }: Magic<{ bind: boolean }>) {
+export function Show(this: Fragment, { bind }: Magic<{ bind: unknown }>) {
     const node = this;
 
     if (!(node instanceof Tag)) {
         throw userError("<Show bind/> can be used only as direct child of html tags", "context-mismatch");
     }
 
-    node.bindShow(bind instanceof IValue ? bind : node.ref(bind));
+    node.bindShow(bind instanceof IValue ? (bind as IValue<unknown>) : node.ref(bind));
 }
 
-export function Delay(this: Fragment, { time, slot }: Magic<{ time?: number; slot?: () => {} }>) {
+export function Delay(this: Fragment, { time, slot }: Magic<{ time?: number; slot?: (this: Fragment) => {} }>) {
     const fragment = new Fragment({}, ":timer");
-    const dSlot = dereference(slot);
+    const dSlot = readValue(slot);
     let timer: number | undefined;
 
-    if (dSlot) {
-        timer = setTimeout(() => {
-            dSlot.call(fragment);
-            timer = undefined;
-        }, dereference(time));
-    }
-    fragment.runOnDestroy(() => {
-        if (typeof timer === "number") {
-            clearTimeout(timer);
+    this.create(fragment, function () {
+        if (dSlot) {
+            timer = setTimeout(() => {
+                dSlot.call(this);
+                timer = undefined;
+            }, readValue(time)) as unknown as number;
         }
+        this.runOnDestroy(() => {
+            if (timer !== undefined) {
+                clearTimeout(timer);
+            }
+        });
     });
 }

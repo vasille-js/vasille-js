@@ -14,10 +14,10 @@ export function point(node: unknown, value: unknown) {
     const current = asFragment(node);
 
     if (value instanceof IValue) {
-        return current?.point(value as IValue<unknown>);
+        return current.point(value as IValue<unknown>);
     }
 
-    return current?.point(current.ref(value));
+    return current.point(current.ref(value));
 }
 
 export function calculate(node: unknown, f: (...args: unknown[]) => unknown, ...args: unknown[]) {

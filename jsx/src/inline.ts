@@ -1,6 +1,6 @@
 import { Fragment, IValue, Pointer, userError } from "vasille";
 
-export function readValue(v: unknown): unknown {
+export function readValue<T>(v: T | IValue<T>): T {
     return v instanceof IValue ? v.$ : v;
 }
 

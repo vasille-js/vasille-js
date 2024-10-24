@@ -15,6 +15,8 @@ it("set value", function () {
     const ref2 = new Reference(3);
     const point = new Pointer(ref);
 
+    setValue(nr, 5);
+    expect(nr).toBe(4);
     setValue(nr, 14, v => (nr = v));
     expect(nr).toBe(14);
 

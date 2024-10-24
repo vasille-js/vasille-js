@@ -17,15 +17,15 @@ export class Reactive<T extends object = object> extends Destroyable {
      * A list of user-defined values
      * @type {Set}
      */
-    #watch: Set<Destroyable> = new Set();
+    private _watch: Set<Destroyable> = new Set();
 
     /**
      * A list of user-defined bindings
      * @type {Set}
      */
-    #bindings: Set<Destroyable> = new Set();
+    private bindings: Set<Destroyable> = new Set();
 
-    #onDestroy?: () => void;
+    private onDestroy?: () => void;
 
     public readonly input: T;
 
@@ -40,7 +40,7 @@ export class Reactive<T extends object = object> extends Destroyable {
      */
     public ref<T>(value: T): IValue<T> {
         const ref = new Reference(value);
-        this.#watch.add(ref);
+        this._watch.add(ref);
         return ref;
     }
 
@@ -51,7 +51,7 @@ export class Reactive<T extends object = object> extends Destroyable {
     public mirror<T>(value: IValue<T>): Mirror<T> {
         const mirror = new Mirror(value, false);
 
-        this.#watch.add(mirror);
+        this._watch.add(mirror);
         return mirror;
     }
 
@@ -62,7 +62,7 @@ export class Reactive<T extends object = object> extends Destroyable {
     public forward<T>(value: IValue<T>): Mirror<T> {
         const mirror = new Mirror(value, true);
 
-        this.#watch.add(mirror);
+        this._watch.add(mirror);
         return mirror;
     }
 
@@ -74,7 +74,7 @@ export class Reactive<T extends object = object> extends Destroyable {
     public point<T>(value: IValue<T>, forwardOnly = false): Pointer<T> {
         const pointer = new Pointer(value, forwardOnly);
 
-        this.#watch.add(pointer);
+        this._watch.add(pointer);
         return pointer;
     }
 
@@ -82,13 +82,13 @@ export class Reactive<T extends object = object> extends Destroyable {
      * Register a model/dependecy
      */
     public register<T extends Destroyable>(data: T): T {
-        this.#bindings.add(data);
+        this.bindings.add(data);
 
         return data;
     }
 
     public release(data: Destroyable): void {
-        this.#bindings.delete(data);
+        this.bindings.delete(data);
     }
 
     /**
@@ -97,7 +97,7 @@ export class Reactive<T extends object = object> extends Destroyable {
      * @param values
      */
     public watch<Args extends unknown[]>(func: (...args: Args) => void, ...values: KindOfIValue<Args>) {
-        this.#watch.add(new Expression<void, Args>(func, ...values));
+        this._watch.add(new Expression<void, Args>(func, ...values));
     }
 
     /**
@@ -109,26 +109,26 @@ export class Reactive<T extends object = object> extends Destroyable {
     public expr<T, Args extends unknown[]>(func: (...args: Args) => T, ...values: KindOfIValue<Args>): IValue<T> {
         const res: IValue<T> = new Expression<T, Args>(func, ...values);
 
-        this.#watch.add(res);
+        this._watch.add(res);
         return res;
     }
 
     public runOnDestroy(func: () => void) {
-        if (this.#onDestroy) {
+        if (this.onDestroy) {
             console.warn(new Error("You rewrite onDestroy existing handler"));
-            console.log(this.#onDestroy);
+            console.log(this.onDestroy);
         }
-        this.#onDestroy = func;
+        this.onDestroy = func;
     }
 
     public destroy() {
         super.destroy();
-        this.#watch.forEach(value => value.destroy());
-        this.#watch.clear();
+        this._watch.forEach(value => value.destroy());
+        this._watch.clear();
 
-        this.#bindings.forEach(binding => binding.destroy());
-        this.#bindings.clear();
+        this.bindings.forEach(binding => binding.destroy());
+        this.bindings.clear();
 
-        this.#onDestroy?.();
+        this.onDestroy?.();
     }
 }

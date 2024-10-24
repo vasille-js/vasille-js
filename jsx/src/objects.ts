@@ -1,4 +1,4 @@
-import { Expression, Fragment, IValue, Pointer, Reactive, Reference, userError } from "vasille";
+import { ArrayModel, Expression, Fragment, IValue, Pointer, Reactive, Reference, userError } from "vasille";
 import { readValue } from "./inline";
 
 export type Path = (string | number)[];
@@ -12,10 +12,12 @@ export function readProperty(o: unknown, path: Path): unknown {
             target = target[field];
         }
         if (target instanceof IValue) {
-            if (i !== path.length - 1) {
+            const nextIs$ = path[i + 1] === "$";
+
+            if (i !== path.length - 1 && !(i === path.length - 2 && nextIs$)) {
                 target = target.$;
             }
-            if (i + 1 < path.length && path[i + 1] === "$") {
+            if (nextIs$) {
                 i++;
             }
         }
@@ -36,10 +38,10 @@ export function writeValue(o: unknown, path: Path, v: unknown) {
         current.$$ = v as IValue<unknown>;
     } else if (current instanceof IValue) {
         current.$ = readValue(v);
-    } else if (typeof target === "object" && target !== null && field && field in target) {
-        target[field] = readValue(v);
-    } else if (field) {
-        Object.defineProperty(target, field, { value: readValue(v), configurable: false });
+    } else if (target instanceof ArrayModel) {
+        target.replace(field as number, v);
+    } else if (typeof target === "object" && target !== null) {
+        target[field as string] = readValue(v);
     }
 }
 
@@ -59,11 +61,12 @@ export function propertyExtractor(source: unknown, path: Path): unknown {
             }
             iValue = target as IValue<unknown>;
             index = i;
+            target = target.$;
         }
     }
 
     if (iValue && index >= 0) {
-        const fixedPath = path.slice(index);
+        const fixedPath = path.slice(index + 1);
 
         if (fixedPath.length === 0) {
             return iValue;
@@ -78,7 +81,7 @@ export function propertyExtractor(source: unknown, path: Path): unknown {
 }
 
 class ProxyReference extends Reference<unknown> {
-    public forceUpdate(){
+    public forceUpdate() {
         this.updateDeps(this.state);
     }
 }
@@ -90,28 +93,39 @@ function proxyObject(obj: object, proxyRef: ProxyReference) {
         },
         set(target: object, p: string | symbol, newValue: any, receiver: any): boolean {
             const response = Reflect.set(target, p, newValue, receiver);
-            proxyRef.forceUpdate();
+
+            if (response) {
+                proxyRef.forceUpdate();
+            }
+
             return response;
         },
         defineProperty(target: object, property: string | symbol, attributes: PropertyDescriptor): boolean {
             const response = Reflect.defineProperty(target, property, attributes);
-            proxyRef.forceUpdate();
+
+            if (response) {
+                proxyRef.forceUpdate();
+            }
+
             return response;
         },
         deleteProperty(target: object, p: string | symbol): boolean {
             const response = Reflect.deleteProperty(target, p);
-            proxyRef.forceUpdate();
+
+            if (response) {
+                proxyRef.forceUpdate();
+            }
+
             return response;
-        }
-    })
+        },
+    });
 }
 
-function proxy (o: unknown, ref?: ProxyReference) {
+function proxy(o: unknown, ref?: ProxyReference) {
     if (typeof o === "object" && o && o.constructor === Object) {
         if (ref) {
             return proxyObject(o, ref);
-        }
-        else {
+        } else {
             const proxyRef = new ProxyReference(undefined);
 
             proxyRef.$ = proxyObject(o, proxyRef);
@@ -123,7 +137,7 @@ function proxy (o: unknown, ref?: ProxyReference) {
     return o;
 }
 
-function ensureIValue (node: unknown, v: unknown) {
+function ensureIValue(node: unknown, v: unknown) {
     if (v instanceof IValue) {
         return v;
     }
@@ -134,7 +148,10 @@ function ensureIValue (node: unknown, v: unknown) {
     return new Reference(v);
 }
 
-export function reactiveObject(node: unknown, o: object): object {
+export function reactiveObject<T extends object>(
+    node: unknown,
+    o: T,
+): { [K in keyof T]: T[K] extends IValue<unknown> ? T[K] : IValue<T[K]> } {
     if (node instanceof Fragment) {
         for (const key of Object.keys(o)) {
             if (!(o[key] instanceof IValue)) {
@@ -149,5 +166,5 @@ export function reactiveObject(node: unknown, o: object): object {
         }
     }
 
-    return o;
+    return o as { [K in keyof T]: T[K] extends IValue<unknown> ? T[K] : IValue<T[K]> };
 }

@@ -277,7 +277,7 @@ interface TextProps {
  * @extends Fragment
  */
 export class TextNode extends Fragment<TextProps> {
-    #node: Text;
+    private node: Text;
 
     public constructor(input: TextProps) {
         super(input, ":text");
@@ -286,24 +286,24 @@ export class TextNode extends Fragment<TextProps> {
     public compose() {
         const text = this.input.text;
 
-        this.#node = document.createTextNode((text instanceof IValue ? text.$ : text)?.toString() ?? "");
+        this.node = document.createTextNode((text instanceof IValue ? text.$ : text)?.toString() ?? "");
 
         if (text instanceof IValue) {
             this.register(
                 new Expression((v: unknown) => {
-                    this.#node.replaceData(0, -1, v?.toString() ?? "");
+                    this.node.replaceData(0, -1, v?.toString() ?? "");
                 }, text),
             );
         }
-        this.parent.appendNode(this.#node);
+        this.parent.appendNode(this.node);
     }
 
     protected findFirstChild(): Node {
-        return this.#node;
+        return this.node;
     }
 
     public destroy(): void {
-        this.#node.remove();
+        this.node.remove();
         super.destroy();
     }
 }
@@ -666,19 +666,19 @@ export class SwitchedNode extends Fragment {
      * Index of current true condition
      * @type number
      */
-    #index: number;
+    private index: number;
 
     /**
      * Array of possible cases
      * @type {Array<{cond : IValue<unknown>, cb : function(Fragment)}>}
      */
-    #cases: { cond: IValue<unknown>; cb: (node: Fragment) => void }[] = [];
+    private cases: { cond: IValue<unknown>; cb: (node: Fragment) => void }[] = [];
 
     /**
      * A function that syncs index and content will be bounded to each condition
      * @type {Function}
      */
-    #sync: () => void;
+    private sync: () => void;
 
     /**
      * Constructs a switch node and define a sync function
@@ -686,16 +686,16 @@ export class SwitchedNode extends Fragment {
     public constructor() {
         super({}, ":switch");
 
-        this.#sync = () => {
+        this.sync = () => {
             let i = 0;
 
-            for (; i < this.#cases.length; i++) {
-                if (this.#cases[i].cond.$) {
+            for (; i < this.cases.length; i++) {
+                if (this.cases[i].cond.$) {
                     break;
                 }
             }
 
-            if (i === this.#index) {
+            if (i === this.index) {
                 return;
             }
 
@@ -705,19 +705,19 @@ export class SwitchedNode extends Fragment {
                 this.lastChild = undefined;
             }
 
-            if (i !== this.#cases.length) {
-                this.#index = i;
-                this.createChild(this.#cases[i].cb);
+            if (i !== this.cases.length) {
+                this.index = i;
+                this.createChild(this.cases[i].cb);
             } else {
-                this.#index = -1;
+                this.index = -1;
             }
         };
     }
 
     public addCase(case_: { cond: IValue<unknown>; cb: (node: Fragment) => void }) {
-        this.#cases.push(case_);
-        case_.cond.on(this.#sync);
-        this.#sync();
+        this.cases.push(case_);
+        case_.cond.on(this.sync);
+        this.sync();
     }
 
     /**
@@ -735,10 +735,10 @@ export class SwitchedNode extends Fragment {
     }
 
     public destroy() {
-        this.#cases.forEach(c => {
-            c.cond.off(this.#sync);
+        this.cases.forEach(c => {
+            c.cond.off(this.sync);
         });
-        this.#cases.splice(0);
+        this.cases.splice(0);
 
         super.destroy();
     }
@@ -754,7 +754,7 @@ interface DebugProps {
  * @extends Fragment
  */
 export class DebugNode extends Fragment<DebugProps> {
-    #node: Comment;
+    private node: Comment;
 
     public constructor(input: DebugProps) {
         super(input, ":debug");
@@ -763,20 +763,20 @@ export class DebugNode extends Fragment<DebugProps> {
     public compose() {
         const text = this.input.text;
 
-        this.#node = document.createComment(text.$?.toString() ?? "");
+        this.node = document.createComment(text.$?.toString() ?? "");
         this.register(
             new Expression((v: unknown) => {
-                this.#node.replaceData(0, -1, v?.toString() ?? "");
+                this.node.replaceData(0, -1, v?.toString() ?? "");
             }, text),
         );
-        this.parent.appendNode(this.#node);
+        this.parent.appendNode(this.node);
     }
 
     /**
      * Runs garbage collector
      */
     public destroy(): void {
-        this.#node.remove();
+        this.node.remove();
         super.destroy();
     }
 }

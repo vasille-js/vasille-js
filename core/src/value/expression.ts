@@ -69,8 +69,6 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
 
         this.values = values;
         this.func = handler;
-
-        handler();
     }
 
     public get $(): T {

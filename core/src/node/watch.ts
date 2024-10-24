@@ -24,7 +24,5 @@ export class Watch<T> extends Fragment<WatchOptions<T>> {
             this.lastChild = undefined;
             this.input.slot?.call(this, value);
         }, this.input.model);
-
-        this.input.slot?.call(this, this.input.model.$);
     }
 }

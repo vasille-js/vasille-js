@@ -1,11 +1,11 @@
 import { Reference } from "vasille";
-import {PartialExpression} from "../src/expression";
+import { PartialExpression } from "../src/expression";
 
-function sum (a: number, b: number) {
-    return a+ b;
+function sum(a: number, b: number) {
+    return a + b;
 }
 
-it ('recursive expression', function() {
+it("recursive expression", function () {
     const value = 4;
     const ref = new Reference(5);
     const expr1 = new PartialExpression(sum, [value, ref]);
@@ -20,14 +20,13 @@ it ('recursive expression', function() {
     expect(expr1.$).toBe(4);
     expect(expr2.$).toBe(4);
     expect(expr3.$).toBe(8);
-})
+});
 
-it('expression on/off', function() {
+it("expression on/off", function () {
     const ref = new Reference(2);
     const expression = new PartialExpression(sum, [ref, ref]);
     let test = expression.$;
-    const tracker = (v: number) => test = v;
-
+    const tracker = (v: number) => (test = v);
 
     expression.on(tracker);
     expect(test).toBe(4);
@@ -37,4 +36,4 @@ it('expression on/off', function() {
     expression.off(tracker);
     ref.$ = 2;
     expect(test).toBe(6);
-})
+});

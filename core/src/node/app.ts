@@ -6,7 +6,7 @@ import { Fragment, Root } from "./node";
  * @extends AppNode
  */
 export class App<T extends object = object> extends Root<T> {
-    #node: Element;
+    private node: Element;
 
     /**
      * Constructs an app node
@@ -16,11 +16,11 @@ export class App<T extends object = object> extends Root<T> {
     constructor(node: Element, input: T) {
         super(input);
 
-        this.#node = node;
+        this.node = node;
     }
 
     public appendNode(node: Node) {
-        this.#node.appendChild(node);
+        this.node.appendChild(node);
     }
 }
 
@@ -30,15 +30,15 @@ interface PortalOptions {
 }
 
 export class Portal extends Fragment {
-    #node: Element;
+    private node: Element;
 
     constructor(input: PortalOptions) {
         super(input, ":portal");
 
-        this.#node = input.node;
+        this.node = input.node;
     }
 
     public appendNode(node: Node) {
-        this.#node.appendChild(node);
+        this.node.appendChild(node);
     }
 }

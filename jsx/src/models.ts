@@ -39,7 +39,7 @@ class Context extends Destroyable {
 export class ContextArray<T> extends ArrayModel<T> {
     private ctx: Context;
 
-    public constructor(data?: Array<T>|number) {
+    public constructor(data?: Array<T> | number) {
         const ctx = new Context();
 
         if (data instanceof Array) {

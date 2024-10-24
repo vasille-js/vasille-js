@@ -1,4 +1,4 @@
-import { Extension, Fragment, config } from "vasille";
+import { Extension, Fragment, config, App, reportError } from "vasille";
 
 interface CompositionProps {
     slot?: (...args: any[]) => void;
@@ -57,9 +57,18 @@ export function extend<In extends CompositionProps, Out>(
 ): Composed<In, Out> {
     return create<In, Out>(
         renderer,
-        (props: In) => {
+        props => {
             return new Extension(props, name);
         },
         name,
     );
+}
+
+export function mount<T>(tag: Element, component: (this: Fragment, $: T) => unknown, $: T) {
+    const root = new App(tag, {});
+    const frag = new Fragment({}, ":app-root");
+
+    root.create(frag, function () {
+        component.call(this, $);
+    });
 }

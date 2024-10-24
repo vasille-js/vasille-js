@@ -12,11 +12,11 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
     /**
      * @param data {Array} input data
      */
-    public constructor(data?: Array<T>|number) {
+    public constructor(data?: Array<T> | number) {
         super();
         this.listener = new Listener();
 
-        if(data instanceof Array) {
+        if (data instanceof Array) {
             for (let i = 0; i < data.length; i++) {
                 super.push(data[i]);
             }
