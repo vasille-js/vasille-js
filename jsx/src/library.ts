@@ -1,4 +1,4 @@
-import { IValue } from "vasille";
+import { Fragment, IValue, Reference } from "vasille";
 import { asFragment } from "./inline";
 import { internal } from "./internal";
 
@@ -39,5 +39,5 @@ export function awaited<T>(node: unknown, target: Promise<T>) {
 }
 
 export function ensureIValue<T>(node: unknown, value: T | IValue<T>): IValue<T> {
-    return value instanceof IValue ? value : asFragment(node).ref(value);
+    return value instanceof IValue ? value : node instanceof Fragment ? node.ref(value) : new Reference(value);
 }

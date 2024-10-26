@@ -11,9 +11,7 @@
     "skipLibCheck": true,
     "strictNullChecks": true,
     "types": [
-      "debug",
       "estree",
-      "events",
       "json-schema",
       "node"
     ]

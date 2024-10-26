@@ -4,17 +4,13 @@
   "compilerOptions": {
     "allowJs": true,
     "declaration": false,
-    "outDir": "./lib-node",
+    "outDir": "lib",
     "target": "ES2015",
-    "module": "CommonJS",
+    "module": "ES6",
     "moduleResolution": "Node",
-    "esModuleInterop": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
-    "types": [
-      "estree",
-      "json-schema",
-      "node"
-    ]
-  },
+    "esModuleInterop": true,
+    "types": ["jest"]
+  }
 }

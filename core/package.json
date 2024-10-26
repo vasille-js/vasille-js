@@ -10,7 +10,6 @@
     "node": "./lib-node/index.js",
     "require": "./lib-node/index.js"
   },
-  "unpkg": "./cdn/es2015.js",
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
     "prettier": "npx prettier src test --write",

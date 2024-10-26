@@ -89,9 +89,11 @@ it("ensure iValue", function () {
     const value = 4;
     const ref = new Reference(5);
     const ensuredValue = ensureIValue(node, value);
+    const ensuredValue2 = ensureIValue(null, value);
     const ensuredRef = ensureIValue(node, ref);
 
     expect(ensuredValue.$).toBe(value);
+    expect(ensuredValue2.$).toBe(value);
     expect(ensuredRef).toBe(ref);
     node.destroy();
 });

@@ -1,8 +1,9 @@
 {
-  "name": "vasille-jsx",
+  "name": "vasille-dx",
   "version": "1.0.0",
-  "description": "Describe Vasille components using JSX",
+  "description": "Best Developer eXperience ever with Vasille Framework",
   "main": "src/index.ts",
+  "types": "fake-types/index.d.ts",
   "exports": {
     "import": "./lib/index.js",
     "browser": "./lib/index.js",
@@ -10,33 +11,30 @@
     "require": "./lib-node/index.js"
   },
   "scripts": {
-    "prepack": "cp -f ../README.md ./README.md",
-    "prettier": "npx prettier src test --write",
+    "prettier": "prettier src test --write",
     "build": "tsc --build tsconfig.json",
     "build-node": "tsc --build tsconfig-build-node.json",
-    "update-types": "tsc --build tsconfig-types.json",
     "test": "jest",
     "test-coverage": "jest --coverage"
   },
   "keywords": [
-    "frone-end",
-    "jsx",
-    "vasille"
+    "front-end",
+    "framework",
+    "dx"
   ],
   "author": "lixcode",
   "license": "MIT",
   "dependencies": {
-    "vasille": "file:../core"
+    "vasille": "file:../core",
+    "vasille-jsx": "file:../jsx"
   },
   "devDependencies": {
-    "prettier": "^3.3.3",
-    "@types/jest": "^29.5.13",
+    "@types/jest": "^29.5.14",
     "@types/jsdom": "^21.1.7",
-    "@typescript-eslint/parser": "^8.9.0",
-    "eslint": "^9.12.0",
     "jest": "^29.7.0",
     "jsdom": "^25.0.1",
+    "prettier": "^3.3.3",
     "ts-jest": "^29.2.5",
-    "typescript": "5.6.3"
+    "typescript": "^5.6.3"
   }
 }
