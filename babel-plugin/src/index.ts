@@ -1,6 +1,4 @@
 import * as Babel from "@babel/core";
-import * as JsxSyntax from "babel-plugin-syntax-jsx";
-import TypeScript from "@babel/plugin-transform-typescript";
 import { trProgram } from "./transformer";
 
 export default function (): Babel.PluginObj {
@@ -15,6 +13,5 @@ export default function (): Babel.PluginObj {
                 trProgram(path);
             },
         },
-        inherits: TypeScript,
     };
 }
