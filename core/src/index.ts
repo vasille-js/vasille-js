@@ -19,7 +19,6 @@ import { MapView } from "./views/map-view";
 import { SetView } from "./views/set-view";
 import { Binding } from "./binding/binding";
 import { TagOptions } from "./functional/options";
-import { AcceptedTagsMap, AcceptedTagsSpec } from "./spec/react";
 import { userError } from "./core/errors";
 import { ListenableModel } from "./models/model";
 import { Watch } from "./node/watch";
@@ -50,8 +49,6 @@ export {
     Watch,
     TagOptions,
     // private stuff
-    AcceptedTagsSpec,
-    AcceptedTagsMap,
     KindOfIValue,
     ListenableModel,
     TagOptionsWithSlot,

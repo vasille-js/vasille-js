@@ -476,7 +476,6 @@ export interface HtmlTagMap {
     var: Tag<TagAttrs, TagEvents>;
     video: Tag<VideoAttrs, VideoEvents>;
     wbr: Tag<TagAttrs, TagEvents>;
-    [K: string]: Tag<TagAttrs, TagEvents>;
 }
 
 type HtmlOrSvgTag = HTMLElement | SVGElement;
