@@ -26,11 +26,11 @@ declare function Adapter(
   props: { node: Fragment; slot?: unknown }
 ): void;
 
-declare function Slot<Args extends unknown[]>(
+declare function Slot<Args extends never[]|[object]>(
     options: {
         model?: ((...args: Args) => void);
         slot?: () => void;
-    } & (Args extends never[] ? {} : {args: Args}),
+    } & (Args extends never[] ? {} : Args[0]),
 ): void;
 
 declare function If(

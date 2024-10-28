@@ -25,19 +25,16 @@ import { bodyHasJsx } from "./jsx-detect";
 //   );
 // }
 
-// function writeProperty (expr: types.MemberExpression, value: types.Expression, internal: Internal) {
-//   const props: types.Expression[] = [];
-//   let o = expr;
+function propertyPath(expr: types.MemberExpression | types.OptionalMemberExpression) {
+    const props: types.Expression[] = [];
+    let o = expr;
 
-//   while (t.isMemberExpression(o) && t.isExpression(o.property)) {
-//           props.unshift(dereference(o.property, internal));
-//   }
+    while (t.isMemberExpression(o) && t.isExpression(o.property)) {
+        props.unshift(o.property);
+    }
 
-//   return t.callExpression(
-//       t.memberExpression(internal.id, t.identifier("wp")),
-//       [o, t.arrayExpression(props), value]
-//   );
-// }
+    return [o, props] as const;
+}
 
 // function readProperty (expr: types.MemberExpression | types.OptionalMemberExpression, internal: Internal) {
 //   const props: types.Expression[] = [];
@@ -129,41 +126,34 @@ export function dereference(nodePath: NodePath<types.Node | null | undefined>, i
         case "AssignmentExpression": {
             const path = nodePath as NodePath<types.AssignmentExpression>;
 
-            dereference(path.get("left"), internal);
-            dereference(path.get("right"), internal);
-            break;
-            // if (!t.isExpression(expr.left)) {
-            //     return t.assignmentExpression(expr.operator, expr.left, dereference(expr.right, internal));
-            // }
-
-            // const value = expr.operator !== '=' ? t.binaryExpression(
-            //     expr.operator.substring(0, expr.operator.length -1) as '+',
-            //     dereference(expr.left, internal),
-            //     dereference(expr.right, internal)) : expr.right;
-
-            // if (t.isMemberExpression(expr.left)) {
-            //     return writeProperty(expr.left, value, internal);
-            // }
-
-            // const name = t.identifier(t.isIdentifier(expr.left) ? `Vasille_${expr.left.name}` : 'Vasille');
-
-            // return t.callExpression(
-            //     t.memberExpression(internal.id, t.identifier('sv')),
-            //     [expr.left, value, t.arrowFunctionExpression([name], t.assignmentExpression('=', expr.left, name))]
-            // )
-        }
-        case "MemberExpression": {
-            const path = nodePath as NodePath<types.MemberExpression>;
-
-            dereference(path.get("object"), internal);
-            dereference(path.get("property"), internal);
+            if (t.isMemberExpression(path.node.left) && t.isExpression(path.node.left.property)) {
+                const [object, property] = propertyPath(path.node.left);
+                const [inserted] = path.replaceWith(
+                    t.callExpression(t.memberExpression(internal.id, t.identifier("wp")), [
+                        object,
+                        t.arrayExpression(property),
+                        path.node.right,
+                    ]),
+                );
+                dereference(inserted, internal);
+            } else {
+                dereference(path.get("left"), internal);
+                dereference(path.get("right"), internal);
+            }
             break;
         }
+        case "MemberExpression":
         case "OptionalMemberExpression": {
-            const path = nodePath as NodePath<types.OptionalMemberExpression>;
+            const path = nodePath as NodePath<types.MemberExpression | types.OptionalMemberExpression>;
+            const node = path.node;
 
             dereference(path.get("object"), internal);
             dereference(path.get("property"), internal);
+
+            if (t.isIdentifier(node.object) && internal.stack.get(node.object.name) === VariableState.ReactiveObject) {
+                path.replaceWith(t.memberExpression(node, t.identifier("$")));
+            }
+
             break;
         }
         case "BinaryExpression": {
@@ -306,6 +296,7 @@ export function dereference(nodePath: NodePath<types.Node | null | undefined>, i
         case "FunctionExpression": {
             if (!bodyHasJsx(expr.body)) {
                 // TODO
+                expr.params;
             }
             // TODO
             break;
@@ -343,4 +334,283 @@ export function dereference(nodePath: NodePath<types.Node | null | undefined>, i
         case "ThisExpression":
         case "TopicReference":
     }
+}
+
+export function dereferenceBody(path: NodePath<types.BlockStatement | types.Expression>, internal: Internal) {
+    if (t.isExpression(path.node)) {
+        dereference(path, internal);
+    } else {
+        for (const statementPath of (path as NodePath<types.BlockStatement>).get("body")) {
+            dereferenceStatement(statementPath, internal);
+        }
+    }
+}
+
+export function dereferenceStatements(paths: NodePath<types.Statement>[], internal: Internal) {
+    for (const path of paths) {
+        dereferenceStatement(path, internal);
+    }
+}
+
+export function ignoreParams(val: types.LVal, internal: Internal) {
+    if (t.isAssignmentPattern(val)) {
+        val = val.left;
+    }
+    if (t.isIdentifier(val)) {
+        internal.stack.set(val.name, VariableState.Ignored);
+    } else if (t.isObjectPattern(val)) {
+        for (const prop of val.properties) {
+            if (t.isObjectProperty(prop) && t.isIdentifier(prop.value)) {
+                internal.stack.set(prop.value.name, VariableState.Ignored);
+            } else if (t.isRestElement(prop) && t.isIdentifier(prop.argument)) {
+                internal.stack.set(prop.argument.name, VariableState.Ignored);
+            }
+        }
+    } else if (t.isArrayPattern(val)) {
+        for (const element of val.elements) {
+            if (element) {
+                ignoreParams(element, internal);
+            }
+        }
+    }
+}
+
+export function dereferenceStatement(path: NodePath<types.Statement | null | undefined>, internal: Internal) {
+    const statement = path.node;
+
+    if (!statement) {
+        return;
+    }
+
+    switch (statement.type) {
+        case "BlockStatement":
+            internal.stack.push();
+            dereferenceStatements((path as NodePath<types.BlockStatement>).get("body"), internal);
+            internal.stack.pop();
+            break;
+
+        case "DoWhileStatement": {
+            const _path = path as NodePath<types.DoWhileStatement>;
+
+            dereference(_path.get("test"), internal);
+            internal.stack.push();
+            dereferenceStatement(_path.get("body"), internal);
+            internal.stack.pop();
+            break;
+        }
+        case "ExpressionStatement":
+            dereference((path as NodePath<types.ExpressionStatement>).get("expression"), internal);
+            break;
+
+        case "ForInStatement": {
+            const _path = path as NodePath<types.ForInStatement>;
+            const left = _path.node.left;
+
+            internal.stack.push();
+            dereference(_path.get("right"), internal);
+            if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
+                ignoreParams(left.declarations[0].id, internal);
+            }
+            dereferenceStatement(_path.get("body"), internal);
+            internal.stack.pop();
+            break;
+        }
+        case "ForOfStatement": {
+            const _path = path as NodePath<types.ForOfStatement>;
+            const left = _path.node.left;
+
+            internal.stack.push();
+            dereference(_path.get("right"), internal);
+            if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
+                ignoreParams(left.declarations[0].id, internal);
+            }
+            dereferenceStatement(_path.get("body"), internal);
+            internal.stack.pop();
+            break;
+        }
+        case "ForStatement": {
+            const _path = path as NodePath<types.ForStatement>;
+            const node = _path.node;
+
+            internal.stack.push();
+            if (node.init) {
+                if (t.isExpression(node.init)) {
+                    dereference(_path.get("init"), internal);
+                } else {
+                    const variablePath = _path.get("init") as NodePath<types.VariableDeclaration>;
+
+                    for (const declarationPath of variablePath.get("declarations")) {
+                        dereference(declarationPath.get("init"), internal);
+                        ignoreParams(declarationPath.node.id, internal);
+                    }
+                }
+            }
+
+            dereference(_path.get("test"), internal);
+            dereference(_path.get("update"), internal);
+            dereferenceStatement(_path.get("body"), internal);
+            internal.stack.pop();
+            break;
+        }
+        case "FunctionDeclaration":
+        // TODO
+        case "IfStatement":
+            const _path = path as NodePath<types.IfStatement>;
+
+            dereference(_path.get("test"), internal);
+            internal.stack.push();
+            dereferenceStatement(_path.get("consequent"), internal);
+            internal.stack.pop();
+            internal.stack.push();
+            dereferenceStatement(_path.get("alternate"), internal);
+            internal.stack.pop();
+            break;
+
+        case "LabeledStatement":
+            dereferenceStatement((path as NodePath<types.LabeledStatement>).get("body"), internal);
+            break;
+
+        case "ReturnStatement":
+            dereference((path as NodePath<types.ReturnStatement>).get("argument"), internal);
+            break;
+
+        case "SwitchStatement": {
+            const _path = path as NodePath<types.SwitchStatement>;
+
+            dereference(_path.get("discriminant"), internal);
+            internal.stack.push();
+            for (const _case of _path.get("cases")) {
+                dereference(_case.get("test"), internal);
+                dereferenceStatements(_case.get("consequent"), internal);
+            }
+            internal.stack.pop();
+            break;
+        }
+        case "ThrowStatement":
+            dereference((path as NodePath<types.ThrowStatement>).get("argument"), internal);
+            break;
+
+        case "TryStatement":
+            dereferenceStatement((path as NodePath<types.TryStatement>).get("block"), internal);
+            break;
+
+        case "VariableDeclaration": {
+            const _path = path as NodePath<types.VariableDeclaration>;
+
+            for (const declaration of _path.get("declarations")) {
+                dereference(declaration.get("init"), internal);
+                ignoreParams(declaration.node.id, internal);
+            }
+            break;
+        }
+        case "WhileStatement": {
+            const _path = path as NodePath<types.WhileStatement>;
+
+            dereference(_path.get("test"), internal);
+            internal.stack.push();
+            dereferenceStatement(_path.get("body"), internal);
+            internal.stack.pop();
+            break;
+        }
+        case "WithStatement": {
+            const _path = path as NodePath<types.WithStatement>;
+
+            dereference(_path.get("object"), internal);
+            internal.stack.push();
+            dereferenceStatement(_path.get("body"), internal);
+            internal.stack.pop();
+            break;
+        }
+
+        // Ignored
+        case "ExportDefaultDeclaration":
+        case "ExportNamedDeclaration":
+        case "ExportAllDeclaration":
+        case "BreakStatement":
+        case "ContinueStatement":
+        case "DebuggerStatement":
+        case "EmptyStatement":
+        case "ClassDeclaration":
+        case "ImportDeclaration":
+        case "DeclareClass":
+        case "DeclareFunction":
+        case "DeclareInterface":
+        case "DeclareModule":
+        case "DeclareModuleExports":
+        case "DeclareTypeAlias":
+        case "DeclareOpaqueType":
+        case "DeclareVariable":
+        case "DeclareExportDeclaration":
+        case "DeclareExportAllDeclaration":
+        case "InterfaceDeclaration":
+        case "OpaqueType":
+        case "TypeAlias":
+        case "EnumDeclaration":
+        case "TSDeclareFunction":
+        case "TSInterfaceDeclaration":
+        case "TSTypeAliasDeclaration":
+        case "TSEnumDeclaration":
+        case "TSModuleDeclaration":
+        case "TSImportEqualsDeclaration":
+        case "TSExportAssignment":
+        case "TSNamespaceExportDeclaration":
+    }
+}
+
+export function dereferenceFunction(
+    path: NodePath<types.ArrowFunctionExpression | types.FunctionExpression | types.FunctionDeclaration>,
+    internal: Internal,
+) {
+    internal.stack.push();
+
+    const node = path.node;
+
+    for (const param of node.params) {
+        ignoreParams(param, internal);
+    }
+    if (t.isExpression(node.body)) {
+        dereference(path.get("body"), internal);
+    } else {
+        const bodyPath = path.get("body") as NodePath<types.BlockStatement>;
+
+        dereferenceStatement(bodyPath, internal);
+    }
+
+    internal.stack.pop();
+}
+
+export function compose(
+    path: NodePath<types.ArrowFunctionExpression | types.FunctionExpression | types.FunctionDeclaration>,
+    internal: Internal,
+) {
+    internal.stack.push();
+
+    const node = path.node;
+    const params = node.params;
+
+    if (params.length > 1) {
+        throw path.get("params")[1].buildCodeFrameError("Vasille: JSX compoent must have no more then 1 parameter");
+    }
+
+    for (const param of params) {
+        const target = t.isAssignmentPattern(param) ? param.left : param;
+
+        if (t.isIdentifier(target)) {
+            internal.stack.set(target.name, VariableState.ReactiveObject);
+        } else if (t.isObjectPattern(target)) {
+            for (const prop of target.properties) {
+                if (t.isObjectProperty(prop) && t.isIdentifier(prop.value)) {
+                    internal.stack.set(prop.value.name, VariableState.Reactive);
+                } else if (t.isRestElement(prop) && t.isIdentifier(prop.argument)) {
+                    internal.stack.set(prop.argument.name, VariableState.ReactiveObject);
+                }
+            }
+        } else {
+            throw path
+                .get("params")[0]
+                .buildCodeFrameError("Vasille: Parameter must be an identifier of object pattern");
+        }
+    }
+
+    internal.stack.pop();
 }

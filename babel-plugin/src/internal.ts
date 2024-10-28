@@ -1,9 +1,9 @@
 import { types } from "@babel/core";
 
 export const enum VariableState {
-    Ignored = 0,
-    Reactive = 1,
-    Unknown = 2,
+    Ignored = 1,
+    Reactive = 2,
+    ReactiveObject = 3,
 }
 
 export class StackedStates {

@@ -24,7 +24,7 @@ const Component1 = compose((p: { slot: () => void }) => {
 
 // const test = Composed<
 
-const Component2 = compose((p: { slot: (x: number) => void }) => {
+const Component2 = compose((p: { slot: (p: {x: number}) => void }) => {
     const c1 = 3;
     let v1 = 2;
 
@@ -32,9 +32,9 @@ const Component2 = compose((p: { slot: (x: number) => void }) => {
         v1 += c1;
     }
 
-    <Component1>23e2</Component1>;
+    // <Component1>23e2</Component1>;
     // <div class={["23"]} onclick={upd}>sdsdf</div>
-    // <Slot model={p.slot} args={[2]}/>
+    <Slot model={p.slot} x={2}/>
     // <Component3></Component3>
 });
 
