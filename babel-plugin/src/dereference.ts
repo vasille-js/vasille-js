@@ -3,7 +3,6 @@ import * as t from "@babel/types";
 import { Internal, VariableState } from "./internal";
 import { bodyHasJsx } from "./jsx-detect";
 
-
 // function propertyExtractor (expr: types.MemberExpression, internal: Internal) {
 //   const props: types.Expression[] = [];
 //   let o = expr;
@@ -73,159 +72,275 @@ export function dereference(nodePath: NodePath<types.Node | null | undefined>, i
 
     if (!t.isExpression(expr)) {
         if (t.isSpreadElement(expr)) {
-            const path = nodePath as NodePath<types.SpreadElement>
+            const path = nodePath as NodePath<types.SpreadElement>;
 
-            dereference(path.get('argument'), internal);
+            dereference(path.get("argument"), internal);
         }
 
         return;
     }
+    switch (expr.type) {
+        case "TemplateLiteral": {
+            const path = nodePath as NodePath<types.TemplateLiteral>;
 
-    if (t.isTemplateLiteral(expr)) {
-        const path = nodePath as NodePath<types.TemplateLiteral>;
-
-        dereferenceAll(path.get('expressions'), internal);
-    }
-    if (t.isTaggedTemplateExpression(expr)) {
-        const path = nodePath as NodePath<types.TaggedTemplateExpression>;
-
-        dereference(path.get('quasi'), internal);
-    }
-    if (t.isIdentifier(expr)) {
-        const state = internal.stack.get(expr.name);
-
-        if (state === VariableState.Reactive) {
-            nodePath.replaceWith(t.memberExpression(expr, t.identifier('$')));
+            dereferenceAll(path.get("expressions"), internal);
+            break;
         }
-    }
-    if (t.isArrayExpression(expr)) {
-        const path = nodePath as NodePath<types.ArrayExpression>
+        case "TaggedTemplateExpression": {
+            const path = nodePath as NodePath<types.TaggedTemplateExpression>;
 
-        dereferenceAll(path.get('elements'), internal);
-    }
-    if (t.isTupleExpression(expr)) {
-        const path = nodePath as NodePath<types.TupleExpression>
+            dereference(path.get("quasi"), internal);
+            break;
+        }
+        case "Identifier": {
+            const state = internal.stack.get(expr.name);
 
-        dereferenceAll(path.get('elements'), internal);
-    }
-    if (t.isCallExpression(expr)) {
-        const path = nodePath as NodePath<types.CallExpression>
+            if (state === VariableState.Reactive) {
+                nodePath.replaceWith(t.memberExpression(expr, t.identifier("$")));
+            }
+            break;
+        }
+        case "ArrayExpression": {
+            const path = nodePath as NodePath<types.ArrayExpression>;
 
-        dereference(path.get('callee'), internal);
-        dereferenceAll(path.get('arguments'), internal);
-    }
-    if (t.isOptionalCallExpression(expr)) {
-        const path = nodePath as NodePath<types.OptionalCallExpression>
+            dereferenceAll(path.get("elements"), internal);
+            break;
+        }
+        case "TupleExpression": {
+            const path = nodePath as NodePath<types.TupleExpression>;
 
-        dereference(path.get('callee'), internal);
-        dereferenceAll(path.get('arguments'), internal);
-    }
-    if (t.isAssignmentExpression(expr)) {
-        const path = nodePath as NodePath<types.AssignmentExpression>
+            dereferenceAll(path.get("elements"), internal);
+            break;
+        }
+        case "CallExpression": {
+            const path = nodePath as NodePath<types.CallExpression>;
 
-        dereference(path.get('left'), internal);
-        dereference(path.get('right'), internal);
-        // if (!t.isExpression(expr.left)) {
-        //     return t.assignmentExpression(expr.operator, expr.left, dereference(expr.right, internal));
-        // }
+            dereference(path.get("callee"), internal);
+            dereferenceAll(path.get("arguments"), internal);
+            break;
+        }
+        case "OptionalCallExpression": {
+            const path = nodePath as NodePath<types.OptionalCallExpression>;
 
-        // const value = expr.operator !== '=' ? t.binaryExpression(
-        //     expr.operator.substring(0, expr.operator.length -1) as '+',
-        //     dereference(expr.left, internal),
-        //     dereference(expr.right, internal)) : expr.right;
-        
-        // if (t.isMemberExpression(expr.left)) {
-        //     return writeProperty(expr.left, value, internal);
-        // }
+            dereference(path.get("callee"), internal);
+            dereferenceAll(path.get("arguments"), internal);
+            break;
+        }
+        case "AssignmentExpression": {
+            const path = nodePath as NodePath<types.AssignmentExpression>;
 
-        // const name = t.identifier(t.isIdentifier(expr.left) ? `Vasille_${expr.left.name}` : 'Vasille');
+            dereference(path.get("left"), internal);
+            dereference(path.get("right"), internal);
+            break;
+            // if (!t.isExpression(expr.left)) {
+            //     return t.assignmentExpression(expr.operator, expr.left, dereference(expr.right, internal));
+            // }
 
-        // return t.callExpression(
-        //     t.memberExpression(internal.id, t.identifier('sv')),
-        //     [expr.left, value, t.arrowFunctionExpression([name], t.assignmentExpression('=', expr.left, name))]
-        // )
-    }
-    if (t.isMemberExpression(expr)) {
-        const path = nodePath as NodePath<types.MemberExpression>
+            // const value = expr.operator !== '=' ? t.binaryExpression(
+            //     expr.operator.substring(0, expr.operator.length -1) as '+',
+            //     dereference(expr.left, internal),
+            //     dereference(expr.right, internal)) : expr.right;
 
-        dereference(path.get('object'), internal)
-        dereference(path.get('property'), internal)
-    }
-    if (t.isOptionalMemberExpression(expr)) {
-        const path = nodePath as NodePath<types.OptionalMemberExpression>
+            // if (t.isMemberExpression(expr.left)) {
+            //     return writeProperty(expr.left, value, internal);
+            // }
 
-        dereference(path.get('object'), internal)
-        dereference(path.get('property'), internal)
-    }
-    if (t.isBinaryExpression(expr)) {
-        const path = nodePath as NodePath<types.BinaryExpression>
-        
-        dereference(path.get('left'), internal);
-        dereference(path.get('right'), internal);
-    }
-    if (t.isConditionalExpression(expr)) {
-        const path = nodePath as NodePath<types.ConditionalExpression>
+            // const name = t.identifier(t.isIdentifier(expr.left) ? `Vasille_${expr.left.name}` : 'Vasille');
 
-        dereference(path.get('test'), internal);
-        dereference(path.get('consequent'), internal)
-        dereference(path.get('alternate'), internal)
-    }
-    if (t.isLogicalExpression(expr)) {
-        const path = nodePath as NodePath<types.LogicalExpression>
+            // return t.callExpression(
+            //     t.memberExpression(internal.id, t.identifier('sv')),
+            //     [expr.left, value, t.arrowFunctionExpression([name], t.assignmentExpression('=', expr.left, name))]
+            // )
+        }
+        case "MemberExpression": {
+            const path = nodePath as NodePath<types.MemberExpression>;
 
-        dereference(path.get('left'), internal)
-        dereference(path.get('right'), internal)
-    }
-    if (t.isNewExpression(expr)) {
-        const path = nodePath as NodePath<types.NewExpression>
+            dereference(path.get("object"), internal);
+            dereference(path.get("property"), internal);
+            break;
+        }
+        case "OptionalMemberExpression": {
+            const path = nodePath as NodePath<types.OptionalMemberExpression>;
 
-        dereference(path.get('callee'), internal);
-        dereferenceAll(path.get('arguments'), internal);
-    }
-    if (t.isSequenceExpression(expr)) {
-        const path = nodePath as NodePath<types.SequenceExpression>
+            dereference(path.get("object"), internal);
+            dereference(path.get("property"), internal);
+            break;
+        }
+        case "BinaryExpression": {
+            const path = nodePath as NodePath<types.BinaryExpression>;
 
-        dereferenceAll(path.get('expressions'), internal);
-    }
-    if (t.isParenthesizedExpression(expr)) {
-        const path = nodePath as NodePath<types.ParenthesizedExpression>
+            dereference(path.get("left"), internal);
+            dereference(path.get("right"), internal);
+            break;
+        }
+        case "ConditionalExpression": {
+            const path = nodePath as NodePath<types.ConditionalExpression>;
 
-        dereference(path.get('expression'), internal)
-    }
-    if (t.isUnaryExpression(expr)) {
-        const path = nodePath as NodePath<types.UnaryExpression>
+            dereference(path.get("test"), internal);
+            dereference(path.get("consequent"), internal);
+            dereference(path.get("alternate"), internal);
+            break;
+        }
+        case "LogicalExpression": {
+            const path = nodePath as NodePath<types.LogicalExpression>;
 
-        dereference(path.get('argument'), internal);
-    }
-    if (t.isUpdateExpression(expr)) {
-        const path = nodePath as NodePath<types.UpdateExpression>
+            dereference(path.get("left"), internal);
+            dereference(path.get("right"), internal);
+            break;
+        }
+        case "NewExpression": {
+            const path = nodePath as NodePath<types.NewExpression>;
 
-        dereference(path.get('argument'), internal)
-    }
-    if (t.isYieldExpression(expr)) {
-        const path = nodePath as NodePath<types.YieldExpression>
+            dereference(path.get("callee"), internal);
+            dereferenceAll(path.get("arguments"), internal);
+            break;
+        }
+        case "SequenceExpression": {
+            const path = nodePath as NodePath<types.SequenceExpression>;
 
-        dereference(path.get('argument'), internal);
-    }
-    if (t.isAwaitExpression(expr)) {
-        const path = nodePath as NodePath<types.AwaitExpression>
+            dereferenceAll(path.get("expressions"), internal);
+            break;
+        }
+        case "ParenthesizedExpression": {
+            const path = nodePath as NodePath<types.ParenthesizedExpression>;
 
-        dereference(path.get('argument'), internal);
-    }
-    if (t.isFunctionExpression(expr)) {
-        if (!bodyHasJsx(expr.body)) {
+            dereference(path.get("expression"), internal);
+            break;
+        }
+        case "UnaryExpression": {
+            const path = nodePath as NodePath<types.UnaryExpression>;
+
+            dereference(path.get("argument"), internal);
+            break;
+        }
+        case "UpdateExpression": {
+            const path = nodePath as NodePath<types.UpdateExpression>;
+
+            dereference(path.get("argument"), internal);
+            break;
+        }
+        case "YieldExpression": {
+            const path = nodePath as NodePath<types.YieldExpression>;
+
+            dereference(path.get("argument"), internal);
+            break;
+        }
+        case "AwaitExpression": {
+            const path = nodePath as NodePath<types.AwaitExpression>;
+
+            dereference(path.get("argument"), internal);
+            break;
+        }
+        case "TypeCastExpression": {
+            const path = nodePath as NodePath<types.TypeCastExpression>;
+
+            dereference(path.get("expression"), internal);
+            break;
+        }
+        case "BindExpression": {
+            const path = nodePath as NodePath<types.BindExpression>;
+
+            dereference(path.get("callee"), internal);
+            dereference(path.get("object"), internal);
+            break;
+        }
+        case "PipelineTopicExpression": {
+            const path = nodePath as NodePath<types.PipelineTopicExpression>;
+
+            dereference(path.get("expression"), internal);
+            break;
+        }
+        case "PipelineBareFunction": {
+            const path = nodePath as NodePath<types.PipelineBareFunction>;
+
+            dereference(path.get("callee"), internal);
+            break;
+        }
+        case "TSInstantiationExpression": {
+            const path = nodePath as NodePath<types.TSInstantiationExpression>;
+
+            dereference(path.get("expression"), internal);
+            break;
+        }
+        case "TSAsExpression": {
+            const path = nodePath as NodePath<types.TSAsExpression>;
+
+            dereference(path.get("expression"), internal);
+            break;
+        }
+        case "TSSatisfiesExpression": {
+            const path = nodePath as NodePath<types.TSSatisfiesExpression>;
+
+            dereference(path.get("expression"), internal);
+            break;
+        }
+        case "TSTypeAssertion": {
+            const path = nodePath as NodePath<types.TSTypeAssertion>;
+
+            dereference(path.get("expression"), internal);
+            break;
+        }
+        case "ObjectExpression": {
+            const path = nodePath as NodePath<types.ObjectExpression>;
+
+            for (const propPath of path.get("properties")) {
+                const prop = propPath.node;
+
+                if (t.isObjectProperty(prop)) {
+                    const path = nodePath as NodePath<types.ObjectProperty>;
+                    const valuePath = propPath.get("value");
+
+                    if (valuePath instanceof Array) {
+                        dereferenceAll(valuePath, internal);
+                    } else {
+                        dereference(valuePath, internal);
+                    }
+                } else if (t.isObjectMethod(prop)) {
+                    prop.body; // TODO
+                } else {
+                    dereference(propPath, internal);
+                }
+            }
+            break;
+        }
+        case "FunctionExpression": {
+            if (!bodyHasJsx(expr.body)) {
+                // TODO
+            }
             // TODO
+            break;
         }
-        // TODO
-    }
-    if (t.isArrowFunctionExpression(expr)) {
-        // TODO
-    }
-    if (t.isJSXFragment(expr)) {
-        // TODO
-    }
-    if (t.isJSXElement(expr)) {
-        // TODO
+        case "ArrowFunctionExpression": {
+            // TODO
+            break;
+        }
+        case "JSXFragment": {
+            // TODO
+            break;
+        }
+        case "JSXElement": {
+            // TODO
+            break;
+        }
+
+        case "BigIntLiteral":
+        case "BooleanLiteral":
+        case "ClassExpression":
+        case "DecimalLiteral":
+        case "DoExpression":
+        case "Import":
+        case "ImportExpression":
+        case "MetaProperty":
+        case "ModuleExpression":
+        case "NullLiteral":
+        case "NumericLiteral":
+        case "PipelinePrimaryTopicReference":
+        case "RecordExpression":
+        case "RegExpLiteral":
+        case "StringLiteral":
+        case "Super":
+        case "TSNonNullExpression":
+        case "ThisExpression":
+        case "TopicReference":
     }
 }
-
