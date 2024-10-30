@@ -1,4 +1,6 @@
-import * as DX from 'vasille-dx';
-export const C = DX.compose(() => {});
-const a = DX.$.var(2);
-const c = 23;
+import * as DX from "vasille-dx";
+export const C = DX.compose(function VasilleDX_C({
+  a
+}) {
+  a.$ = 3;
+});

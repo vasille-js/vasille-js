@@ -2,6 +2,7 @@ import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { Internal, VariableState } from "./internal";
 import { bodyHasJsx } from "./jsx-detect";
+import { calls } from "./call";
 
 // function propertyExtractor (expr: types.MemberExpression, internal: Internal) {
 //   const props: types.Expression[] = [];
@@ -27,10 +28,11 @@ import { bodyHasJsx } from "./jsx-detect";
 
 function propertyPath(expr: types.MemberExpression | types.OptionalMemberExpression) {
     const props: types.Expression[] = [];
-    let o = expr;
+    let o: types.Expression = expr;
 
     while (t.isMemberExpression(o) && t.isExpression(o.property)) {
         props.unshift(o.property);
+        o = o.object;
     }
 
     return [o, props] as const;
@@ -64,6 +66,41 @@ export function dereferenceAll(nodePaths: NodePath<types.Node | null>[], interna
     }
 }
 
+export function dereferenceComposeCall(
+    call: types.CallExpression,
+    name: types.Identifier | null,
+    nodePath: NodePath<types.Node | null | undefined>,
+    internal: Internal,
+) {
+    const arg = call.arguments[0];
+
+    if (call.arguments.length !== 1 && !(t.isFunctionExpression(arg) || t.isArrowFunctionExpression(arg))) {
+        throw nodePath.buildCodeFrameError("Vasille: Invalid arguments");
+    }
+
+    const fnPath = (nodePath as NodePath<types.CallExpression>).get("arguments")[0] as NodePath<
+        types.FunctionExpression | types.ArrowFunctionExpression
+    >;
+
+    compose(fnPath, internal);
+
+    if (t.isArrowFunctionExpression(arg)) {
+        fnPath.replaceWith(
+            t.functionExpression(
+                t.identifier(internal.prefix + (name ? name.name : "Default")),
+                arg.params,
+                t.isBlockStatement(arg.body) ? arg.body : t.blockStatement([t.returnStatement(arg.body)]),
+                false,
+                arg.async,
+            ),
+        );
+    } else if (t.isFunctionExpression(arg) && name) {
+        const id = arg.id ?? name;
+
+        arg.id = t.identifier(internal.prefix + (name ? name.name : "Default"));
+    }
+}
+
 export function dereference(nodePath: NodePath<types.Node | null | undefined>, internal: Internal) {
     const expr = nodePath.node;
 
@@ -73,6 +110,11 @@ export function dereference(nodePath: NodePath<types.Node | null | undefined>, i
 
             dereference(path.get("argument"), internal);
         }
+
+        return;
+    }
+    if (calls(expr, ["compose", "extend"], internal)) {
+        dereferenceComposeCall(expr as types.CallExpression, null, nodePath, internal);
 
         return;
     }
@@ -286,7 +328,7 @@ export function dereference(nodePath: NodePath<types.Node | null | undefined>, i
                         dereference(valuePath, internal);
                     }
                 } else if (t.isObjectMethod(prop)) {
-                    prop.body; // TODO
+                    dereferenceFunction(propPath as NodePath<types.ObjectMethod>, internal);
                 } else {
                     dereference(propPath, internal);
                 }
@@ -294,24 +336,18 @@ export function dereference(nodePath: NodePath<types.Node | null | undefined>, i
             break;
         }
         case "FunctionExpression": {
-            if (!bodyHasJsx(expr.body)) {
-                // TODO
-                expr.params;
-            }
-            // TODO
+            dereferenceFunction(nodePath as NodePath<types.FunctionExpression>, internal);
             break;
         }
         case "ArrowFunctionExpression": {
-            // TODO
+            dereferenceFunction(nodePath as NodePath<types.ArrowFunctionExpression>, internal);
             break;
         }
         case "JSXFragment": {
-            // TODO
-            break;
+            throw nodePath.buildCodeFrameError("Vasille: JSX fragment is not allowed here");
         }
         case "JSXElement": {
-            // TODO
-            break;
+            throw nodePath.buildCodeFrameError("Vasille: JSX element is not allowed here");
         }
 
         case "BigIntLiteral":
@@ -453,8 +489,10 @@ export function dereferenceStatement(path: NodePath<types.Statement | null | und
             break;
         }
         case "FunctionDeclaration":
-        // TODO
-        case "IfStatement":
+            dereferenceFunction(path as NodePath<types.FunctionDeclaration>, internal);
+            break;
+
+        case "IfStatement": {
             const _path = path as NodePath<types.IfStatement>;
 
             dereference(_path.get("test"), internal);
@@ -465,6 +503,7 @@ export function dereferenceStatement(path: NodePath<types.Statement | null | und
             dereferenceStatement(_path.get("alternate"), internal);
             internal.stack.pop();
             break;
+        }
 
         case "LabeledStatement":
             dereferenceStatement((path as NodePath<types.LabeledStatement>).get("body"), internal);
@@ -498,8 +537,19 @@ export function dereferenceStatement(path: NodePath<types.Statement | null | und
             const _path = path as NodePath<types.VariableDeclaration>;
 
             for (const declaration of _path.get("declarations")) {
-                dereference(declaration.get("init"), internal);
-                ignoreParams(declaration.node.id, internal);
+                const expr = declaration.node.init;
+
+                if (expr && t.isIdentifier(declaration.node.id) && calls(expr, ["compose", "extend"], internal)) {
+                    dereferenceComposeCall(
+                        expr as types.CallExpression,
+                        declaration.node.id,
+                        declaration.get("init"),
+                        internal,
+                    );
+                } else {
+                    dereference(declaration.get("init"), internal);
+                    ignoreParams(declaration.node.id, internal);
+                }
             }
             break;
         }
@@ -521,10 +571,13 @@ export function dereferenceStatement(path: NodePath<types.Statement | null | und
             internal.stack.pop();
             break;
         }
+        case "ExportNamedDeclaration": {
+            dereferenceStatement((path as NodePath<types.ExportNamedDeclaration>).get("declaration"), internal);
+            break;
+        }
 
         // Ignored
         case "ExportDefaultDeclaration":
-        case "ExportNamedDeclaration":
         case "ExportAllDeclaration":
         case "BreakStatement":
         case "ContinueStatement":
@@ -558,7 +611,9 @@ export function dereferenceStatement(path: NodePath<types.Statement | null | und
 }
 
 export function dereferenceFunction(
-    path: NodePath<types.ArrowFunctionExpression | types.FunctionExpression | types.FunctionDeclaration>,
+    path: NodePath<
+        types.ArrowFunctionExpression | types.FunctionExpression | types.FunctionDeclaration | types.ObjectMethod
+    >,
     internal: Internal,
 ) {
     internal.stack.push();
@@ -579,6 +634,196 @@ export function dereferenceFunction(
     internal.stack.pop();
 }
 
+export function composeExpression(path: NodePath<types.Expression | null | undefined>, internal: Internal) {
+    const expr = path.node;
+
+    if (!expr) {
+        return;
+    }
+
+    switch (expr.type) {
+        default:
+            dereference(path, internal);
+    }
+}
+
+export function composeStatements(paths: NodePath<types.Statement | null | undefined>[], internal: Internal) {
+    for (const path of paths) {
+        composeStatement(path, internal);
+    }
+}
+
+export function composeStatement(path: NodePath<types.Statement | null | undefined>, internal: Internal) {
+    const statement = path.node;
+
+    if (!statement) {
+        return;
+    }
+
+    switch (statement.type) {
+        case "FunctionDeclaration": {
+            const _path = path as NodePath<types.FunctionDeclaration>;
+            const fn = _path.node;
+
+            if (bodyHasJsx(fn.body)) {
+                compose(_path, internal);
+            } else {
+                dereferenceFunction(_path, internal);
+            }
+            break;
+        }
+        case "BlockStatement": {
+            internal.stack.push();
+            composeStatements((path as NodePath<types.BlockStatement>).get("body"), internal);
+            internal.stack.pop();
+            break;
+        }
+        case "DoWhileStatement": {
+            const _path = path as NodePath<types.DoWhileStatement>;
+
+            dereference(_path.get("test"), internal);
+            internal.stack.push();
+            composeStatement(_path.get("body"), internal);
+            internal.stack.pop();
+            break;
+        }
+        case "ExpressionStatement": {
+            composeExpression((path as NodePath<types.ExpressionStatement>).get("expression"), internal);
+            break;
+        }
+        case "ForInStatement": {
+            const _path = path as NodePath<types.ForInStatement>;
+            const left = _path.node.left;
+
+            internal.stack.push();
+            dereference(_path.get("right"), internal);
+            if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
+                ignoreParams(left.declarations[0].id, internal);
+            }
+            composeStatement(_path.get("body"), internal);
+            internal.stack.pop();
+            break;
+        }
+        case "ForStatement": {
+            const _path = path as NodePath<types.ForStatement>;
+            const node = _path.node;
+
+            internal.stack.push();
+            if (node.init) {
+                if (t.isExpression(node.init)) {
+                    dereference(_path.get("init"), internal);
+                } else {
+                    const variablePath = _path.get("init") as NodePath<types.VariableDeclaration>;
+
+                    for (const declarationPath of variablePath.get("declarations")) {
+                        dereference(declarationPath.get("init"), internal);
+                        ignoreParams(declarationPath.node.id, internal);
+                    }
+                }
+            }
+
+            dereference(_path.get("test"), internal);
+            dereference(_path.get("update"), internal);
+            composeStatement(_path.get("body"), internal);
+            internal.stack.pop();
+            break;
+        }
+        case "IfStatement": {
+            const _path = path as NodePath<types.IfStatement>;
+
+            dereference(_path.get("test"), internal);
+            internal.stack.push();
+            composeStatement(_path.get("consequent"), internal);
+            internal.stack.pop();
+            internal.stack.push();
+            composeStatement(_path.get("alternate"), internal);
+            internal.stack.pop();
+            break;
+        }
+        case "LabeledStatement":
+            composeStatement((path as NodePath<types.LabeledStatement>).get("body"), internal);
+            break;
+
+        case "ReturnStatement":
+            composeExpression((path as NodePath<types.ReturnStatement>).get("argument"), internal);
+            break;
+
+        case "SwitchStatement": {
+            const _path = path as NodePath<types.SwitchStatement>;
+
+            dereference(_path.get("discriminant"), internal);
+            internal.stack.push();
+            for (const _case of _path.get("cases")) {
+                dereference(_case.get("test"), internal);
+                composeStatements(_case.get("consequent"), internal);
+            }
+            internal.stack.pop();
+            break;
+        }
+        case "TryStatement":
+            composeStatement((path as NodePath<types.TryStatement>).get("block"), internal);
+            break;
+
+        case "VariableDeclaration": {
+            const _path = path as NodePath<types.VariableDeclaration>;
+            const kind = _path.node.kind;
+            const declares = kind === "const" ? VariableState.Ignored : VariableState.Reactive;
+
+            if (kind === "let" || kind === "var") {
+                _path.node.kind = "const";
+            }
+
+            for (const declaration of _path.get("declarations")) {
+                const id = declaration.node.id;
+
+                dereference(declaration.get("init"), internal);
+
+                if (t.isIdentifier(id)) {
+                    internal.stack.set(id.name, declares);
+                    declaration
+                        .get("init")
+                        .replaceWith(
+                            t.callExpression(
+                                t.memberExpression(t.thisExpression(), t.identifier("ref")),
+                                declaration.node.init ? [declaration.node.init] : [],
+                            ),
+                        );
+                }
+
+                ignoreParams(declaration.node.id, internal);
+            }
+            break;
+        }
+        case "WhileStatement": {
+            const _path = path as NodePath<types.WhileStatement>;
+
+            dereference(_path.get("test"), internal);
+            internal.stack.push();
+            composeStatement(_path.get("body"), internal);
+            internal.stack.pop();
+            break;
+        }
+        case "WithStatement": {
+            throw path.buildCodeFrameError("Vasille: Usage of 'with' in components is restricted");
+        }
+        case "ForOfStatement": {
+            const _path = path as NodePath<types.ForOfStatement>;
+            const left = _path.node.left;
+
+            internal.stack.push();
+            dereference(_path.get("right"), internal);
+            if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
+                ignoreParams(left.declarations[0].id, internal);
+            }
+            composeStatement(_path.get("body"), internal);
+            internal.stack.pop();
+            break;
+        }
+        default:
+            dereferenceStatement(path, internal);
+    }
+}
+
 export function compose(
     path: NodePath<types.ArrowFunctionExpression | types.FunctionExpression | types.FunctionDeclaration>,
     internal: Internal,
@@ -587,6 +832,7 @@ export function compose(
 
     const node = path.node;
     const params = node.params;
+    const body = node.body;
 
     if (params.length > 1) {
         throw path.get("params")[1].buildCodeFrameError("Vasille: JSX compoent must have no more then 1 parameter");
@@ -610,6 +856,12 @@ export function compose(
                 .get("params")[0]
                 .buildCodeFrameError("Vasille: Parameter must be an identifier of object pattern");
         }
+    }
+
+    if (t.isExpression(body)) {
+        composeExpression(path.get("body") as NodePath<types.Expression>, internal);
+    } else if (t.isBlockStatement(body)) {
+        composeStatement(path.get("body") as NodePath<types.BlockStatement>, internal);
     }
 
     internal.stack.pop();

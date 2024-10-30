@@ -40,4 +40,6 @@ export interface Internal {
     mapping: Map<string, string>;
     stack: StackedStates;
     id: types.Expression;
+    global: string;
+    prefix: string;
 }
