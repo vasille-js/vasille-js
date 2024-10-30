@@ -74,7 +74,7 @@ export function dereferenceComposeCall(
 ) {
     const arg = call.arguments[0];
 
-    if (call.arguments.length !== 1 && !(t.isFunctionExpression(arg) || t.isArrowFunctionExpression(arg))) {
+    if (call.arguments.length !== 1 || !(t.isFunctionExpression(arg) || t.isArrowFunctionExpression(arg))) {
         throw nodePath.buildCodeFrameError("Vasille: Invalid arguments");
     }
 
@@ -616,9 +616,17 @@ export function dereferenceFunction(
     >,
     internal: Internal,
 ) {
+    if (t.isFunctionDeclaration(path.node) && path.node.id) {
+        internal.stack.set(path.node.id.name, VariableState.Ignored);
+    }
+
     internal.stack.push();
 
     const node = path.node;
+
+    if (t.isFunctionExpression(node) && node.id) {
+        internal.stack.set(node.id.name, VariableState.Ignored);
+    }
 
     for (const param of node.params) {
         ignoreParams(param, internal);
@@ -780,14 +788,16 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
 
                 if (t.isIdentifier(id)) {
                     internal.stack.set(id.name, declares);
-                    declaration
-                        .get("init")
-                        .replaceWith(
-                            t.callExpression(
-                                t.memberExpression(t.thisExpression(), t.identifier("ref")),
-                                declaration.node.init ? [declaration.node.init] : [],
-                            ),
-                        );
+                    if (declares === VariableState.Reactive) {
+                        declaration
+                            .get("init")
+                            .replaceWith(
+                                t.callExpression(
+                                    t.memberExpression(t.thisExpression(), t.identifier("ref")),
+                                    declaration.node.init ? [declaration.node.init] : [],
+                                ),
+                            );
+                    }
                 }
 
                 ignoreParams(declaration.node.id, internal);
@@ -828,11 +838,19 @@ export function compose(
     path: NodePath<types.ArrowFunctionExpression | types.FunctionExpression | types.FunctionDeclaration>,
     internal: Internal,
 ) {
+    if (t.isFunctionDeclaration(path.node) && path.node.id) {
+        internal.stack.set(path.node.id.name, VariableState.Ignored);
+    }
+
     internal.stack.push();
 
     const node = path.node;
     const params = node.params;
     const body = node.body;
+
+    if (t.isFunctionExpression(node) && node.id) {
+        internal.stack.set(node.id.name, VariableState.Ignored);
+    }
 
     if (params.length > 1) {
         throw path.get("params")[1].buildCodeFrameError("Vasille: JSX compoent must have no more then 1 parameter");

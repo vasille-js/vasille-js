@@ -49,7 +49,7 @@ export function trProgram(path: NodePath<types.Program>) {
         stack: new StackedStates(),
         mapping: new Map<string, string>(),
         global: "",
-        prefix: "Vasille_"
+        prefix: "Vasille_",
     };
     let injected = false;
 

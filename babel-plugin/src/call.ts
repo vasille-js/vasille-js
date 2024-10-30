@@ -12,7 +12,12 @@ export function calls(node: types.Expression, names: FnNames[], internal: Intern
         if (t.isIdentifier(callee)) {
             const mapped = internal.mapping.get(callee.name);
 
-            return mapped && set.has(mapped);
+            return mapped && set.has(mapped) && internal.stack.get(callee.name) === undefined;
+        }
+
+        // The global object is overrided
+        if (internal.stack.get(internal.global) !== undefined) {
+          return false;
         }
 
         const propName = t.isMemberExpression(callee)
