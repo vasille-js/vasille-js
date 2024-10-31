@@ -1,6 +1,5 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import internal from "node:stream";
 import { Internal, VariableState } from "./internal";
 import { bodyHasJsx } from "./jsx-detect";
 import { calls } from "./call";
