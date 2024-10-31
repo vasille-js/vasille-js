@@ -60,10 +60,14 @@ function propertyPath(expr: types.MemberExpression | types.OptionalMemberExpress
 //   );
 // }
 
-export function meshOrIgnoreAllExpressions<T extends types.Node>(nodePaths: NodePath<types.Expression | null | T>[], internal: Internal) {
+export function meshOrIgnoreAllExpressions<T extends types.Node>(
+    nodePaths: NodePath<types.Expression | null | T>[],
+    internal: Internal,
+) {
     for (const path of nodePaths) {
-        if (t.isExpression(path.node)){
-        meshExpression(path as NodePath<types.Expression>, internal);}
+        if (t.isExpression(path.node)) {
+            meshExpression(path as NodePath<types.Expression>, internal);
+        }
     }
 }
 
@@ -108,30 +112,42 @@ export function meshComposeCall(
     }
 }
 
-export function meshAllUnknown(paths:NodePath<types.SpreadElement|types.ArgumentPlaceholder|types.Expression|null>[], internal:Internal) {
+export function meshAllUnknown(
+    paths: NodePath<types.SpreadElement | types.ArgumentPlaceholder | types.Expression | null>[],
+    internal: Internal,
+) {
     for (const path of paths) {
         if (t.isSpreadElement(path.node)) {
             meshExpression((path as NodePath<types.SpreadElement>).get("argument"), internal);
-        } 
-        else if (t.isExpression(path.node)) {
+        } else if (t.isExpression(path.node)) {
             meshExpression(path as NodePath<types.Expression>, internal);
         }
     }
 }
 
-export function meshLValue (path: NodePath<types.LVal|types.Expression>, internal: Internal) {
+export function meshLValue(path: NodePath<types.LVal | types.Expression>, internal: Internal) {
     const node = path.node;
 
-    if (t.isArrayPattern(node) || t.isObjectPattern(node) || t.isTSParameterProperty(node)||t.isAssignmentPattern(node)||t.isRestElement(node)) {
+    if (
+        t.isArrayPattern(node) ||
+        t.isObjectPattern(node) ||
+        t.isTSParameterProperty(node) ||
+        t.isAssignmentPattern(node) ||
+        t.isRestElement(node)
+    ) {
         return;
     }
 
-    meshExpression((path as NodePath<typeof node>), internal);
+    meshExpression(path as NodePath<typeof node>, internal);
 }
 
-export function meshOrIgnoreExpression<T extends types.Node>(path: NodePath<types.Expression | null | undefined|T>, internal: Internal){
-if (t.isExpression(path.node)){
-    meshExpression(path as NodePath<types.Expression>, internal);}
+export function meshOrIgnoreExpression<T extends types.Node>(
+    path: NodePath<types.Expression | null | undefined | T>,
+    internal: Internal,
+) {
+    if (t.isExpression(path.node)) {
+        meshExpression(path as NodePath<types.Expression>, internal);
+    }
 }
 
 export function meshExpression(nodePath: NodePath<types.Expression | null | undefined>, internal: Internal) {
@@ -352,7 +368,9 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
                     if (valuePath instanceof Array) {
                         meshAllExpressions(valuePath, internal);
                     } else {
-                        meshOrIgnoreExpression<types.ArrayPattern|types.AssignmentPattern|types.ObjectPattern|types.RestElement>(valuePath, internal);
+                        meshOrIgnoreExpression<
+                            types.ArrayPattern | types.AssignmentPattern | types.ObjectPattern | types.RestElement
+                        >(valuePath, internal);
                     }
                 } else if (t.isObjectMethod(prop)) {
                     meshFunction(propPath as NodePath<types.ObjectMethod>, internal);
