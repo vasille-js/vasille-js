@@ -1,5 +1,6 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
+import internal from "node:stream";
 import { Internal, VariableState } from "./internal";
 import { bodyHasJsx } from "./jsx-detect";
 import { calls } from "./call";
@@ -16,7 +17,7 @@ import { calls } from "./call";
 //           break;
 //       }
 //       else {
-//           props.unshift(dereference(o.property, internal));
+//           props.unshift(mesh(o.property, internal));
 //       }
 //   }
 
@@ -50,7 +51,7 @@ function propertyPath(expr: types.MemberExpression | types.OptionalMemberExpress
 //           break;
 //       }
 //       else {
-//           props.unshift(dereference(o.property, internal));
+//           props.unshift(mesh(o.property, internal));
 //       }
 //   }
 
@@ -60,13 +61,20 @@ function propertyPath(expr: types.MemberExpression | types.OptionalMemberExpress
 //   );
 // }
 
-export function dereferenceAll(nodePaths: NodePath<types.Node | null>[], internal: Internal) {
+export function meshOrIgnoreAllExpressions<T extends types.Node>(nodePaths: NodePath<types.Expression | null | T>[], internal: Internal) {
     for (const path of nodePaths) {
-        dereference(path, internal);
+        if (t.isExpression(path.node)){
+        meshExpression(path as NodePath<types.Expression>, internal);}
     }
 }
 
-export function dereferenceComposeCall(
+export function meshAllExpressions(nodePaths: NodePath<types.Expression | null>[], internal: Internal) {
+    for (const path of nodePaths) {
+        meshExpression(path, internal);
+    }
+}
+
+export function meshComposeCall(
     call: types.CallExpression,
     name: types.Identifier | null,
     nodePath: NodePath<types.Node | null | undefined>,
@@ -101,20 +109,40 @@ export function dereferenceComposeCall(
     }
 }
 
-export function dereference(nodePath: NodePath<types.Node | null | undefined>, internal: Internal) {
+export function meshAllUnknown(paths:NodePath<types.SpreadElement|types.ArgumentPlaceholder|types.Expression|null>[], internal:Internal) {
+    for (const path of paths) {
+        if (t.isSpreadElement(path.node)) {
+            meshExpression((path as NodePath<types.SpreadElement>).get("argument"), internal);
+        } 
+        else if (t.isExpression(path.node)) {
+            meshExpression(path as NodePath<types.Expression>, internal);
+        }
+    }
+}
+
+export function meshLValue (path: NodePath<types.LVal|types.Expression>, internal: Internal) {
+    const node = path.node;
+
+    if (t.isArrayPattern(node) || t.isObjectPattern(node) || t.isTSParameterProperty(node)||t.isAssignmentPattern(node)||t.isRestElement(node)) {
+        return;
+    }
+
+    meshExpression((path as NodePath<typeof node>), internal);
+}
+
+export function meshOrIgnoreExpression<T extends types.Node>(path: NodePath<types.Expression | null | undefined|T>, internal: Internal){
+if (t.isExpression(path.node)){
+    meshExpression(path as NodePath<types.Expression>, internal);}
+}
+
+export function meshExpression(nodePath: NodePath<types.Expression | null | undefined>, internal: Internal) {
     const expr = nodePath.node;
 
-    if (!t.isExpression(expr)) {
-        if (t.isSpreadElement(expr)) {
-            const path = nodePath as NodePath<types.SpreadElement>;
-
-            dereference(path.get("argument"), internal);
-        }
-
+    if (!expr) {
         return;
     }
     if (calls(expr, ["compose", "extend"], internal)) {
-        dereferenceComposeCall(expr as types.CallExpression, null, nodePath, internal);
+        meshComposeCall(expr as types.CallExpression, null, nodePath, internal);
 
         return;
     }
@@ -122,13 +150,13 @@ export function dereference(nodePath: NodePath<types.Node | null | undefined>, i
         case "TemplateLiteral": {
             const path = nodePath as NodePath<types.TemplateLiteral>;
 
-            dereferenceAll(path.get("expressions"), internal);
+            meshOrIgnoreAllExpressions<types.TSType>(path.get("expressions"), internal);
             break;
         }
         case "TaggedTemplateExpression": {
             const path = nodePath as NodePath<types.TaggedTemplateExpression>;
 
-            dereference(path.get("quasi"), internal);
+            meshExpression(path.get("quasi"), internal);
             break;
         }
         case "Identifier": {
@@ -142,27 +170,27 @@ export function dereference(nodePath: NodePath<types.Node | null | undefined>, i
         case "ArrayExpression": {
             const path = nodePath as NodePath<types.ArrayExpression>;
 
-            dereferenceAll(path.get("elements"), internal);
+            meshAllUnknown(path.get("elements"), internal);
             break;
         }
         case "TupleExpression": {
             const path = nodePath as NodePath<types.TupleExpression>;
 
-            dereferenceAll(path.get("elements"), internal);
+            meshAllUnknown(path.get("elements"), internal);
             break;
         }
         case "CallExpression": {
             const path = nodePath as NodePath<types.CallExpression>;
 
-            dereference(path.get("callee"), internal);
-            dereferenceAll(path.get("arguments"), internal);
+            meshOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), internal);
+            meshAllUnknown(path.get("arguments"), internal);
             break;
         }
         case "OptionalCallExpression": {
             const path = nodePath as NodePath<types.OptionalCallExpression>;
 
-            dereference(path.get("callee"), internal);
-            dereferenceAll(path.get("arguments"), internal);
+            meshExpression(path.get("callee"), internal);
+            meshAllUnknown(path.get("arguments"), internal);
             break;
         }
         case "AssignmentExpression": {
@@ -177,10 +205,10 @@ export function dereference(nodePath: NodePath<types.Node | null | undefined>, i
                         path.node.right,
                     ]),
                 );
-                dereference(inserted, internal);
+                meshExpression(inserted, internal);
             } else {
-                dereference(path.get("left"), internal);
-                dereference(path.get("right"), internal);
+                meshLValue(path.get("left"), internal);
+                meshExpression(path.get("right"), internal);
             }
             break;
         }
@@ -189,8 +217,8 @@ export function dereference(nodePath: NodePath<types.Node | null | undefined>, i
             const path = nodePath as NodePath<types.MemberExpression | types.OptionalMemberExpression>;
             const node = path.node;
 
-            dereference(path.get("object"), internal);
-            dereference(path.get("property"), internal);
+            meshExpression(path.get("object"), internal);
+            meshOrIgnoreExpression<types.PrivateName>(path.get("property"), internal);
 
             if (t.isIdentifier(node.object) && internal.stack.get(node.object.name) === VariableState.ReactiveObject) {
                 path.replaceWith(t.memberExpression(node, t.identifier("$")));
@@ -201,115 +229,115 @@ export function dereference(nodePath: NodePath<types.Node | null | undefined>, i
         case "BinaryExpression": {
             const path = nodePath as NodePath<types.BinaryExpression>;
 
-            dereference(path.get("left"), internal);
-            dereference(path.get("right"), internal);
+            meshOrIgnoreExpression<types.PrivateName>(path.get("left"), internal);
+            meshExpression(path.get("right"), internal);
             break;
         }
         case "ConditionalExpression": {
             const path = nodePath as NodePath<types.ConditionalExpression>;
 
-            dereference(path.get("test"), internal);
-            dereference(path.get("consequent"), internal);
-            dereference(path.get("alternate"), internal);
+            meshExpression(path.get("test"), internal);
+            meshExpression(path.get("consequent"), internal);
+            meshExpression(path.get("alternate"), internal);
             break;
         }
         case "LogicalExpression": {
             const path = nodePath as NodePath<types.LogicalExpression>;
 
-            dereference(path.get("left"), internal);
-            dereference(path.get("right"), internal);
+            meshExpression(path.get("left"), internal);
+            meshExpression(path.get("right"), internal);
             break;
         }
         case "NewExpression": {
             const path = nodePath as NodePath<types.NewExpression>;
 
-            dereference(path.get("callee"), internal);
-            dereferenceAll(path.get("arguments"), internal);
+            meshOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), internal);
+            meshAllUnknown(path.get("arguments"), internal);
             break;
         }
         case "SequenceExpression": {
             const path = nodePath as NodePath<types.SequenceExpression>;
 
-            dereferenceAll(path.get("expressions"), internal);
+            meshAllExpressions(path.get("expressions"), internal);
             break;
         }
         case "ParenthesizedExpression": {
             const path = nodePath as NodePath<types.ParenthesizedExpression>;
 
-            dereference(path.get("expression"), internal);
+            meshExpression(path.get("expression"), internal);
             break;
         }
         case "UnaryExpression": {
             const path = nodePath as NodePath<types.UnaryExpression>;
 
-            dereference(path.get("argument"), internal);
+            meshExpression(path.get("argument"), internal);
             break;
         }
         case "UpdateExpression": {
             const path = nodePath as NodePath<types.UpdateExpression>;
 
-            dereference(path.get("argument"), internal);
+            meshExpression(path.get("argument"), internal);
             break;
         }
         case "YieldExpression": {
             const path = nodePath as NodePath<types.YieldExpression>;
 
-            dereference(path.get("argument"), internal);
+            meshExpression(path.get("argument"), internal);
             break;
         }
         case "AwaitExpression": {
             const path = nodePath as NodePath<types.AwaitExpression>;
 
-            dereference(path.get("argument"), internal);
+            meshExpression(path.get("argument"), internal);
             break;
         }
         case "TypeCastExpression": {
             const path = nodePath as NodePath<types.TypeCastExpression>;
 
-            dereference(path.get("expression"), internal);
+            meshExpression(path.get("expression"), internal);
             break;
         }
         case "BindExpression": {
             const path = nodePath as NodePath<types.BindExpression>;
 
-            dereference(path.get("callee"), internal);
-            dereference(path.get("object"), internal);
+            meshExpression(path.get("callee"), internal);
+            meshExpression(path.get("object"), internal);
             break;
         }
         case "PipelineTopicExpression": {
             const path = nodePath as NodePath<types.PipelineTopicExpression>;
 
-            dereference(path.get("expression"), internal);
+            meshExpression(path.get("expression"), internal);
             break;
         }
         case "PipelineBareFunction": {
             const path = nodePath as NodePath<types.PipelineBareFunction>;
 
-            dereference(path.get("callee"), internal);
+            meshExpression(path.get("callee"), internal);
             break;
         }
         case "TSInstantiationExpression": {
             const path = nodePath as NodePath<types.TSInstantiationExpression>;
 
-            dereference(path.get("expression"), internal);
+            meshExpression(path.get("expression"), internal);
             break;
         }
         case "TSAsExpression": {
             const path = nodePath as NodePath<types.TSAsExpression>;
 
-            dereference(path.get("expression"), internal);
+            meshExpression(path.get("expression"), internal);
             break;
         }
         case "TSSatisfiesExpression": {
             const path = nodePath as NodePath<types.TSSatisfiesExpression>;
 
-            dereference(path.get("expression"), internal);
+            meshExpression(path.get("expression"), internal);
             break;
         }
         case "TSTypeAssertion": {
             const path = nodePath as NodePath<types.TSTypeAssertion>;
 
-            dereference(path.get("expression"), internal);
+            meshExpression(path.get("expression"), internal);
             break;
         }
         case "ObjectExpression": {
@@ -319,28 +347,28 @@ export function dereference(nodePath: NodePath<types.Node | null | undefined>, i
                 const prop = propPath.node;
 
                 if (t.isObjectProperty(prop)) {
-                    const path = nodePath as NodePath<types.ObjectProperty>;
-                    const valuePath = propPath.get("value");
+                    const path = propPath as NodePath<types.ObjectProperty>;
+                    const valuePath = path.get("value");
 
                     if (valuePath instanceof Array) {
-                        dereferenceAll(valuePath, internal);
+                        meshAllExpressions(valuePath, internal);
                     } else {
-                        dereference(valuePath, internal);
+                        meshOrIgnoreExpression<types.ArrayPattern|types.AssignmentPattern|types.ObjectPattern|types.RestElement>(valuePath, internal);
                     }
                 } else if (t.isObjectMethod(prop)) {
-                    dereferenceFunction(propPath as NodePath<types.ObjectMethod>, internal);
+                    meshFunction(propPath as NodePath<types.ObjectMethod>, internal);
                 } else {
-                    dereference(propPath, internal);
+                    meshAllUnknown([propPath as NodePath<typeof prop>], internal);
                 }
             }
             break;
         }
         case "FunctionExpression": {
-            dereferenceFunction(nodePath as NodePath<types.FunctionExpression>, internal);
+            meshFunction(nodePath as NodePath<types.FunctionExpression>, internal);
             break;
         }
         case "ArrowFunctionExpression": {
-            dereferenceFunction(nodePath as NodePath<types.ArrowFunctionExpression>, internal);
+            meshFunction(nodePath as NodePath<types.ArrowFunctionExpression>, internal);
             break;
         }
         case "JSXFragment": {
@@ -372,19 +400,19 @@ export function dereference(nodePath: NodePath<types.Node | null | undefined>, i
     }
 }
 
-export function dereferenceBody(path: NodePath<types.BlockStatement | types.Expression>, internal: Internal) {
+export function meshBody(path: NodePath<types.BlockStatement | types.Expression>, internal: Internal) {
     if (t.isExpression(path.node)) {
-        dereference(path, internal);
+        meshExpression(path as NodePath<types.Expression>, internal);
     } else {
         for (const statementPath of (path as NodePath<types.BlockStatement>).get("body")) {
-            dereferenceStatement(statementPath, internal);
+            meshStatement(statementPath, internal);
         }
     }
 }
 
-export function dereferenceStatements(paths: NodePath<types.Statement>[], internal: Internal) {
+export function meshStatements(paths: NodePath<types.Statement>[], internal: Internal) {
     for (const path of paths) {
-        dereferenceStatement(path, internal);
+        meshStatement(path, internal);
     }
 }
 
@@ -411,7 +439,7 @@ export function ignoreParams(val: types.LVal, internal: Internal) {
     }
 }
 
-export function dereferenceStatement(path: NodePath<types.Statement | null | undefined>, internal: Internal) {
+export function meshStatement(path: NodePath<types.Statement | null | undefined>, internal: Internal) {
     const statement = path.node;
 
     if (!statement) {
@@ -421,21 +449,21 @@ export function dereferenceStatement(path: NodePath<types.Statement | null | und
     switch (statement.type) {
         case "BlockStatement":
             internal.stack.push();
-            dereferenceStatements((path as NodePath<types.BlockStatement>).get("body"), internal);
+            meshStatements((path as NodePath<types.BlockStatement>).get("body"), internal);
             internal.stack.pop();
             break;
 
         case "DoWhileStatement": {
             const _path = path as NodePath<types.DoWhileStatement>;
 
-            dereference(_path.get("test"), internal);
+            meshExpression(_path.get("test"), internal);
             internal.stack.push();
-            dereferenceStatement(_path.get("body"), internal);
+            meshStatement(_path.get("body"), internal);
             internal.stack.pop();
             break;
         }
         case "ExpressionStatement":
-            dereference((path as NodePath<types.ExpressionStatement>).get("expression"), internal);
+            meshExpression((path as NodePath<types.ExpressionStatement>).get("expression"), internal);
             break;
 
         case "ForInStatement": {
@@ -443,11 +471,11 @@ export function dereferenceStatement(path: NodePath<types.Statement | null | und
             const left = _path.node.left;
 
             internal.stack.push();
-            dereference(_path.get("right"), internal);
+            meshExpression(_path.get("right"), internal);
             if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
                 ignoreParams(left.declarations[0].id, internal);
             }
-            dereferenceStatement(_path.get("body"), internal);
+            meshStatement(_path.get("body"), internal);
             internal.stack.pop();
             break;
         }
@@ -456,11 +484,11 @@ export function dereferenceStatement(path: NodePath<types.Statement | null | und
             const left = _path.node.left;
 
             internal.stack.push();
-            dereference(_path.get("right"), internal);
+            meshExpression(_path.get("right"), internal);
             if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
                 ignoreParams(left.declarations[0].id, internal);
             }
-            dereferenceStatement(_path.get("body"), internal);
+            meshStatement(_path.get("body"), internal);
             internal.stack.pop();
             break;
         }
@@ -471,66 +499,66 @@ export function dereferenceStatement(path: NodePath<types.Statement | null | und
             internal.stack.push();
             if (node.init) {
                 if (t.isExpression(node.init)) {
-                    dereference(_path.get("init"), internal);
+                    meshExpression(_path.get("init") as NodePath<types.Expression>, internal);
                 } else {
                     const variablePath = _path.get("init") as NodePath<types.VariableDeclaration>;
 
                     for (const declarationPath of variablePath.get("declarations")) {
-                        dereference(declarationPath.get("init"), internal);
+                        meshExpression(declarationPath.get("init"), internal);
                         ignoreParams(declarationPath.node.id, internal);
                     }
                 }
             }
 
-            dereference(_path.get("test"), internal);
-            dereference(_path.get("update"), internal);
-            dereferenceStatement(_path.get("body"), internal);
+            meshExpression(_path.get("test"), internal);
+            meshExpression(_path.get("update"), internal);
+            meshStatement(_path.get("body"), internal);
             internal.stack.pop();
             break;
         }
         case "FunctionDeclaration":
-            dereferenceFunction(path as NodePath<types.FunctionDeclaration>, internal);
+            meshFunction(path as NodePath<types.FunctionDeclaration>, internal);
             break;
 
         case "IfStatement": {
             const _path = path as NodePath<types.IfStatement>;
 
-            dereference(_path.get("test"), internal);
+            meshExpression(_path.get("test"), internal);
             internal.stack.push();
-            dereferenceStatement(_path.get("consequent"), internal);
+            meshStatement(_path.get("consequent"), internal);
             internal.stack.pop();
             internal.stack.push();
-            dereferenceStatement(_path.get("alternate"), internal);
+            meshStatement(_path.get("alternate"), internal);
             internal.stack.pop();
             break;
         }
 
         case "LabeledStatement":
-            dereferenceStatement((path as NodePath<types.LabeledStatement>).get("body"), internal);
+            meshStatement((path as NodePath<types.LabeledStatement>).get("body"), internal);
             break;
 
         case "ReturnStatement":
-            dereference((path as NodePath<types.ReturnStatement>).get("argument"), internal);
+            meshExpression((path as NodePath<types.ReturnStatement>).get("argument"), internal);
             break;
 
         case "SwitchStatement": {
             const _path = path as NodePath<types.SwitchStatement>;
 
-            dereference(_path.get("discriminant"), internal);
+            meshExpression(_path.get("discriminant"), internal);
             internal.stack.push();
             for (const _case of _path.get("cases")) {
-                dereference(_case.get("test"), internal);
-                dereferenceStatements(_case.get("consequent"), internal);
+                meshExpression(_case.get("test"), internal);
+                meshStatements(_case.get("consequent"), internal);
             }
             internal.stack.pop();
             break;
         }
         case "ThrowStatement":
-            dereference((path as NodePath<types.ThrowStatement>).get("argument"), internal);
+            meshExpression((path as NodePath<types.ThrowStatement>).get("argument"), internal);
             break;
 
         case "TryStatement":
-            dereferenceStatement((path as NodePath<types.TryStatement>).get("block"), internal);
+            meshStatement((path as NodePath<types.TryStatement>).get("block"), internal);
             break;
 
         case "VariableDeclaration": {
@@ -540,14 +568,14 @@ export function dereferenceStatement(path: NodePath<types.Statement | null | und
                 const expr = declaration.node.init;
 
                 if (expr && t.isIdentifier(declaration.node.id) && calls(expr, ["compose", "extend"], internal)) {
-                    dereferenceComposeCall(
+                    meshComposeCall(
                         expr as types.CallExpression,
                         declaration.node.id,
                         declaration.get("init"),
                         internal,
                     );
                 } else {
-                    dereference(declaration.get("init"), internal);
+                    meshExpression(declaration.get("init"), internal);
                     ignoreParams(declaration.node.id, internal);
                 }
             }
@@ -556,23 +584,23 @@ export function dereferenceStatement(path: NodePath<types.Statement | null | und
         case "WhileStatement": {
             const _path = path as NodePath<types.WhileStatement>;
 
-            dereference(_path.get("test"), internal);
+            meshExpression(_path.get("test"), internal);
             internal.stack.push();
-            dereferenceStatement(_path.get("body"), internal);
+            meshStatement(_path.get("body"), internal);
             internal.stack.pop();
             break;
         }
         case "WithStatement": {
             const _path = path as NodePath<types.WithStatement>;
 
-            dereference(_path.get("object"), internal);
+            meshExpression(_path.get("object"), internal);
             internal.stack.push();
-            dereferenceStatement(_path.get("body"), internal);
+            meshStatement(_path.get("body"), internal);
             internal.stack.pop();
             break;
         }
         case "ExportNamedDeclaration": {
-            dereferenceStatement((path as NodePath<types.ExportNamedDeclaration>).get("declaration"), internal);
+            meshStatement((path as NodePath<types.ExportNamedDeclaration>).get("declaration"), internal);
             break;
         }
 
@@ -610,7 +638,7 @@ export function dereferenceStatement(path: NodePath<types.Statement | null | und
     }
 }
 
-export function dereferenceFunction(
+export function meshFunction(
     path: NodePath<
         types.ArrowFunctionExpression | types.FunctionExpression | types.FunctionDeclaration | types.ObjectMethod
     >,
@@ -632,11 +660,11 @@ export function dereferenceFunction(
         ignoreParams(param, internal);
     }
     if (t.isExpression(node.body)) {
-        dereference(path.get("body"), internal);
+        meshExpression(path.get("body") as NodePath<types.Expression>, internal);
     } else {
         const bodyPath = path.get("body") as NodePath<types.BlockStatement>;
 
-        dereferenceStatement(bodyPath, internal);
+        meshStatement(bodyPath, internal);
     }
 
     internal.stack.pop();
@@ -651,7 +679,7 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
 
     switch (expr.type) {
         default:
-            dereference(path, internal);
+            meshExpression(path, internal);
     }
 }
 
@@ -676,7 +704,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             if (bodyHasJsx(fn.body)) {
                 compose(_path, internal);
             } else {
-                dereferenceFunction(_path, internal);
+                meshFunction(_path, internal);
             }
             break;
         }
@@ -689,7 +717,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
         case "DoWhileStatement": {
             const _path = path as NodePath<types.DoWhileStatement>;
 
-            dereference(_path.get("test"), internal);
+            meshExpression(_path.get("test"), internal);
             internal.stack.push();
             composeStatement(_path.get("body"), internal);
             internal.stack.pop();
@@ -704,7 +732,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             const left = _path.node.left;
 
             internal.stack.push();
-            dereference(_path.get("right"), internal);
+            meshExpression(_path.get("right"), internal);
             if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
                 ignoreParams(left.declarations[0].id, internal);
             }
@@ -719,19 +747,19 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             internal.stack.push();
             if (node.init) {
                 if (t.isExpression(node.init)) {
-                    dereference(_path.get("init"), internal);
+                    meshExpression(_path.get("init") as NodePath<types.Expression>, internal);
                 } else {
                     const variablePath = _path.get("init") as NodePath<types.VariableDeclaration>;
 
                     for (const declarationPath of variablePath.get("declarations")) {
-                        dereference(declarationPath.get("init"), internal);
+                        meshExpression(declarationPath.get("init"), internal);
                         ignoreParams(declarationPath.node.id, internal);
                     }
                 }
             }
 
-            dereference(_path.get("test"), internal);
-            dereference(_path.get("update"), internal);
+            meshExpression(_path.get("test"), internal);
+            meshExpression(_path.get("update"), internal);
             composeStatement(_path.get("body"), internal);
             internal.stack.pop();
             break;
@@ -739,7 +767,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
         case "IfStatement": {
             const _path = path as NodePath<types.IfStatement>;
 
-            dereference(_path.get("test"), internal);
+            meshExpression(_path.get("test"), internal);
             internal.stack.push();
             composeStatement(_path.get("consequent"), internal);
             internal.stack.pop();
@@ -759,10 +787,10 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
         case "SwitchStatement": {
             const _path = path as NodePath<types.SwitchStatement>;
 
-            dereference(_path.get("discriminant"), internal);
+            meshExpression(_path.get("discriminant"), internal);
             internal.stack.push();
             for (const _case of _path.get("cases")) {
-                dereference(_case.get("test"), internal);
+                meshExpression(_case.get("test"), internal);
                 composeStatements(_case.get("consequent"), internal);
             }
             internal.stack.pop();
@@ -784,7 +812,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             for (const declaration of _path.get("declarations")) {
                 const id = declaration.node.id;
 
-                dereference(declaration.get("init"), internal);
+                meshExpression(declaration.get("init"), internal);
                 ignoreParams(declaration.node.id, internal);
 
                 if (t.isIdentifier(id)) {
@@ -806,7 +834,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
         case "WhileStatement": {
             const _path = path as NodePath<types.WhileStatement>;
 
-            dereference(_path.get("test"), internal);
+            meshExpression(_path.get("test"), internal);
             internal.stack.push();
             composeStatement(_path.get("body"), internal);
             internal.stack.pop();
@@ -820,7 +848,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             const left = _path.node.left;
 
             internal.stack.push();
-            dereference(_path.get("right"), internal);
+            meshExpression(_path.get("right"), internal);
             if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
                 ignoreParams(left.declarations[0].id, internal);
             }
@@ -829,7 +857,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             break;
         }
         default:
-            dereferenceStatement(path, internal);
+            meshStatement(path, internal);
     }
 }
 

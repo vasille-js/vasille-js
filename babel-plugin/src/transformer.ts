@@ -1,7 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { Internal, StackedStates, VariableState } from "./internal";
-import { dereference, dereferenceStatement } from "./dereference";
+import { meshExpression, meshStatement } from "./mesh";
 
 const imports = new Map([["vasille-dx", "VasilleDX"]]);
 
@@ -93,7 +93,7 @@ export function trProgram(path: NodePath<types.Program>, noConflict: boolean) {
                 return;
             }
 
-            dereferenceStatement(statementPath, internal);
+            meshStatement(statementPath, internal);
         }
     }
 
