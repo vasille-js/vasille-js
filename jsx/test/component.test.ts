@@ -151,7 +151,6 @@ it("Watch", function () {
 
     function slot() {
         counter++;
-        console.log(new Error("x"));
     }
 
     Watch.call(node, { model: ref, slot });

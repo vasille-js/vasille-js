@@ -1,4 +1,4 @@
-import { Extension, Fragment, config, App, reportError } from "vasille";
+import { Extension, Fragment, config, App, reportError, IValue, Reference } from "vasille";
 
 interface CompositionProps {
     slot?: (...args: any[]) => void;
@@ -10,6 +10,13 @@ type Composed<In extends CompositionProps, Out> = (
     slot?: In["slot"],
 ) => void;
 
+function proxy(obj: object) {
+    return new Proxy(obj, {
+        get(target: object, p: string | symbol): any {
+            return p in target && target[p] instanceof IValue ? target[p] : new Reference(target[p]);
+        },
+    });
+}
 function create<In extends CompositionProps, Out>(
     renderer: (this: Fragment, input: In) => Out,
     create: (props: In) => Fragment,
@@ -24,7 +31,7 @@ function create<In extends CompositionProps, Out>(
         this.create(frag);
 
         try {
-            const result = renderer.call(frag, props);
+            const result = renderer.call(frag, proxy(props));
 
             if (result !== undefined && props.callback) {
                 props.callback(result);

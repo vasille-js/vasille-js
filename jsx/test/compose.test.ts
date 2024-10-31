@@ -1,11 +1,21 @@
-import { Fragment, setErrorHandler } from "vasille";
+import { Fragment, IValue, Reference, setErrorHandler } from "vasille";
 import { compose, extend, mount } from "../src";
+import { readValue } from "../src/inline";
 import { page } from "./page";
 
-const component = compose(function ($) {
+interface Props {
+    className?: IValue<string>;
+    slot?(): void;
+}
+
+const component = compose(function ($: Props) {
     let div!: Element;
 
-    this.tag("div", { slot: $.slot, callback: node => (div = node) });
+    this.tag("div", {
+        slot: readValue($.slot),
+        class: [readValue($.className) ?? 'class'],
+        callback: node => (div = node)
+    });
 
     return div;
 }, "test");
@@ -51,12 +61,13 @@ it("extend test", function () {
 
     mount(body, component, {
         callback: node => (div = node as Element),
+        className: new Reference('class2'),
         slot(this: Fragment) {
             extension.call(this, {});
         },
     });
 
-    expect(div.className).toBe("ext");
+    expect(div.className).toBe("class2 ext");
 });
 
 it("throw test", function () {

@@ -1,5 +1,6 @@
 import { ArrayModel, Expression, Fragment, IValue, Pointer, Reactive, Reference, userError } from "vasille";
 import { readValue } from "./inline";
+import { ensureIValue } from "./library";
 
 export type Path = (string | number)[];
 
@@ -121,7 +122,7 @@ function proxyObject(obj: object, proxyRef: ProxyReference) {
     });
 }
 
-function proxy(o: unknown, ref?: ProxyReference) {
+export function proxy(o: unknown, ref?: ProxyReference) {
     if (typeof o === "object" && o && o.constructor === Object) {
         if (ref) {
             return proxyObject(o, ref);
@@ -135,17 +136,6 @@ function proxy(o: unknown, ref?: ProxyReference) {
     }
 
     return o;
-}
-
-function ensureIValue(node: unknown, v: unknown) {
-    if (v instanceof IValue) {
-        return v;
-    }
-    if (node instanceof Fragment) {
-        return node.ref(v);
-    }
-
-    return new Reference(v);
 }
 
 export function reactiveObject<T extends object>(

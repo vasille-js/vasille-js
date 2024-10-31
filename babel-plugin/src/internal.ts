@@ -1,4 +1,4 @@
-import { types } from "@babel/core";
+import { NodePath, types } from "@babel/core";
 
 export const enum VariableState {
     Ignored = 1,
@@ -42,4 +42,6 @@ export interface Internal {
     id: types.Expression;
     global: string;
     prefix: string;
+    internalUsed: boolean;
+    importStatement: NodePath<types.ImportDeclaration> | null;
 }

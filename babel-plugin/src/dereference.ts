@@ -785,6 +785,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
                 const id = declaration.node.id;
 
                 dereference(declaration.get("init"), internal);
+                ignoreParams(declaration.node.id, internal);
 
                 if (t.isIdentifier(id)) {
                     internal.stack.set(id.name, declares);
@@ -799,8 +800,6 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
                             );
                     }
                 }
-
-                ignoreParams(declaration.node.id, internal);
             }
             break;
         }

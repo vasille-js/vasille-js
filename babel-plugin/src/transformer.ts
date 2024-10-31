@@ -43,15 +43,24 @@ function extractText(node: types.Identifier | types.StringLiteral) {
 //     return dereference(expr, internal);
 // }
 
-export function trProgram(path: NodePath<types.Program>) {
+export function trProgram(path: NodePath<types.Program>, noConflict: boolean) {
+    let id!: types.Expression;
     const internal: Internal = {
-        id: t.identifier("Vasille"),
+        get id() {
+            this.internalUsed = true;
+
+            return id;
+        },
+        set id(expr: types.Expression) {
+            id = expr;
+        },
         stack: new StackedStates(),
         mapping: new Map<string, string>(),
         global: "",
         prefix: "Vasille_",
+        importStatement: null,
+        internalUsed: false,
     };
-    let injected = false;
 
     for (const statementPath of path.get("body")) {
         const statement = statementPath.node;
@@ -60,43 +69,43 @@ export function trProgram(path: NodePath<types.Program>) {
             const name = imports.get(statement.source.value);
 
             if (name) {
-                let isPartial = false;
-
                 internal.prefix = `${name}_`;
 
                 for (const specifier of statement.specifiers) {
                     if (t.isImportNamespaceSpecifier(specifier)) {
                         internal.global = specifier.local.name;
+                        id = t.memberExpression(t.identifier(internal.global), t.identifier("$"));
                     } else if (t.isImportSpecifier(specifier)) {
                         const imported = extractText(specifier.imported);
                         const local = specifier.local.name;
 
                         internal.mapping.set(local, imported);
-                        isPartial = true;
-                    }
-                }
 
-                if (!injected && isPartial && t.isIdentifier(internal.id)) {
-                    statementPath.replaceWith(
-                        t.importDeclaration(
-                            [...statement.specifiers, t.importSpecifier(internal.id, t.identifier("$"))],
-                            statement.source,
-                        ),
-                    );
-                    injected = true;
+                        if (!id) {
+                            id = t.identifier(noConflict ? name : "$");
+                        }
+                        internal.importStatement = statementPath as NodePath<types.ImportDeclaration>;
+                    }
                 }
             }
         } else {
-            if (!injected) {
-                if (global) {
-                    internal.id = t.memberExpression(t.identifier(internal.global), t.identifier("$"));
-                    injected = true;
-                } else {
-                    return;
-                }
+            if (!id) {
+                return;
             }
 
             dereferenceStatement(statementPath, internal);
         }
+    }
+
+    if (internal.internalUsed && !internal.global && internal.importStatement) {
+        const statementPath = internal.importStatement;
+        const statement = statementPath.node;
+
+        statementPath.replaceWith(
+            t.importDeclaration(
+                [...statement.specifiers, t.importSpecifier(internal.id as types.Identifier, t.identifier("$"))],
+                statement.source,
+            ),
+        );
     }
 }

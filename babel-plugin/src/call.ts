@@ -17,7 +17,7 @@ export function calls(node: types.Expression, names: FnNames[], internal: Intern
 
         // The global object is overrided
         if (internal.stack.get(internal.global) !== undefined) {
-          return false;
+            return false;
         }
 
         const propName = t.isMemberExpression(callee)
