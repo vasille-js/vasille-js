@@ -33,11 +33,17 @@ export function awaited<T>(node: unknown, target: Promise<T> | (() => Promise<T>
     const value = current.ref<unknown>(undefined);
     const err = current.ref<unknown>(undefined);
 
-    if (!(target instanceof Promise)) {
-        target = target();
+    if (typeof target === "function") {
+        try {
+            target = target();
+        } catch (e) {
+            err.$ = e;
+        }
     }
 
-    target.then(result => (value.$ = result)).catch(e => (err.$ = e));
+    if (target instanceof Promise) {
+        target.then(result => (value.$ = result)).catch(e => (err.$ = e));
+    }
 
     return [err, value];
 }

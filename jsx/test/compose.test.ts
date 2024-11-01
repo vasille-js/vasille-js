@@ -13,8 +13,8 @@ const component = compose(function ($: Props) {
 
     this.tag("div", {
         slot: readValue($.slot),
-        class: [readValue($.className) ?? 'class'],
-        callback: node => (div = node)
+        class: [readValue($.className) ?? "class"],
+        callback: node => (div = node),
     });
 
     return div;
@@ -61,7 +61,7 @@ it("extend test", function () {
 
     mount(body, component, {
         callback: node => (div = node as Element),
-        className: new Reference('class2'),
+        className: new Reference("class2"),
         slot(this: Fragment) {
             extension.call(this, {});
         },
