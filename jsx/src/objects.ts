@@ -1,4 +1,4 @@
-import { ArrayModel, Expression, Fragment, IValue, Pointer, Reactive, Reference, userError } from "vasille";
+import { ArrayModel, Expression, Fragment, IValue, Pointer, Reference, userError } from "vasille";
 import { readValue } from "./inline";
 import { ensureIValue } from "./library";
 

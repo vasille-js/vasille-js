@@ -1,4 +1,4 @@
-import { Fragment, IValue, Pointer, userError } from "vasille";
+import { Fragment, IValue, Pointer, Reactive, userError } from "vasille";
 
 export function readValue<T>(v: T | IValue<T>): T {
     return v instanceof IValue ? v.$ : v;
@@ -16,8 +16,8 @@ export function setValue(target: unknown, value: unknown, fallback?: (v: unknown
     }
 }
 
-export function asFragment(node: unknown): Fragment {
-    if (!(node instanceof Fragment)) {
+export function asReactive(node: unknown): Reactive {
+    if (!(node instanceof Reactive)) {
         throw userError("missing context", "out-of-context");
     }
 

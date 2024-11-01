@@ -1,5 +1,5 @@
 import { Fragment, Pointer, Reactive, Reference } from "vasille";
-import { asFragment, readValue, setValue } from "../src/inline";
+import { asReactive, readValue, setValue } from "../src/inline";
 
 it("read value", function () {
     const nr = 4;
@@ -33,8 +33,7 @@ it("set value", function () {
 
 it("as Fragment", function () {
     const reactive = new Reactive({});
-    const fragment = new Fragment({});
 
-    expect(asFragment(fragment)).toBe(fragment);
-    expect(() => asFragment(reactive)).toThrow("out-of-context");
+    expect(asReactive(reactive)).toBe(reactive);
+    expect(() => asReactive({})).toThrow("out-of-context");
 });

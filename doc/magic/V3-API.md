@@ -54,8 +54,11 @@ Component data can contains asynchronous data.
 
 ```typescript jsx
 export const MyComponent = compose(() => {
-  const [fetchError, response] = awaited(fetch('https://..'));
-  const [parseError, data] = awaited(response.json());
+  const [err1, data1] = awaited(new Promise());
+  const [err2, data2] = awaited(async () => {
+    const response = await fetch('https://..');
+    return response.json()
+  });
   // variables will be initially undefined
   // the code must react to data chnages
 });

@@ -1,6 +1,6 @@
-import { AcceptedTagsMap, IValue, Reference, TagOptions, Fragment } from "vasille";
+import { IValue, Reference, Fragment } from "vasille";
 import { PartialExpression } from "./expression";
-import { asFragment, readValue, setValue } from "./inline";
+import { readValue, setValue } from "./inline";
 import { propertyExtractor, reactiveObject, readProperty, writeValue } from "./objects";
 import { ContextArray, ContextMap, ContextSet } from "./models";
 

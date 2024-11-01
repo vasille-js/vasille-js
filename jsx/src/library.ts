@@ -1,17 +1,17 @@
 import { Fragment, IValue, Reference } from "vasille";
-import { asFragment } from "./inline";
+import { asReactive } from "./inline";
 import { internal } from "./internal";
 
 export function forward(node: unknown, value: unknown) {
     if (value instanceof IValue) {
-        return asFragment(node).forward(value as IValue<unknown>);
+        return asReactive(node).forward(value as IValue<unknown>);
     }
 
     return value;
 }
 
 export function point(node: unknown, value: unknown) {
-    const current = asFragment(node);
+    const current = asReactive(node);
 
     if (value instanceof IValue) {
         return current.point(value as IValue<unknown>);
@@ -28,10 +28,14 @@ export function watch(node: unknown, f: (...args: unknown[]) => void, ...args: u
     return internal.expr(node, f, args);
 }
 
-export function awaited<T>(node: unknown, target: Promise<T>) {
-    const current = asFragment(node);
+export function awaited<T>(node: unknown, target: Promise<T> | (() => Promise<T>)) {
+    const current = asReactive(node);
     const value = current.ref<unknown>(undefined);
     const err = current.ref<unknown>(undefined);
+
+    if (!(target instanceof Promise)) {
+        target = target();
+    }
 
     target.then(result => (value.$ = result)).catch(e => (err.$ = e));
 

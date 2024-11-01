@@ -44,7 +44,7 @@ it("test exported functions", function (done) {
         this.tag("div", { callback: n => (el = n as HTMLElement) }, function () {
             Mount.call(this, { bind: true });
             Show.call(this, { bind: true });
-            Slot.call(this, {model: p.slot}, {});
+            Slot.call(this, { model: p.slot }, {});
         });
         Adapter.call(this, { node: new Fragment({}) });
         Debug.call(this, {});
@@ -90,5 +90,5 @@ it("test exported functions", function (done) {
         expect($.rv(err)).toBe(undefined);
         expect($.rv(result)).toBe(2);
         done();
-    })
+    });
 });
