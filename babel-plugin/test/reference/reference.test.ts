@@ -11,3 +11,7 @@ it("let", function () {
 it("let update", function () {
     runTest(__dirname, "let-update");
 });
+
+it("awaited", function () {
+    runTest(__dirname, "awaited");
+});

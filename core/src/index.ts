@@ -3,7 +3,7 @@ import { Destroyable } from "./core/destroyable";
 import { Reactive } from "./core/core";
 import { IValue } from "./core/ivalue";
 import { reportError, setErrorHandler } from "./functional/safety";
-import { ArrayModel } from "./models/array-model";
+import { ArrayModel, proxyArrayModel } from "./models/array-model";
 import { Listener } from "./models/listener";
 import { MapModel } from "./models/map-model";
 import { SetModel } from "./models/set-model";
@@ -30,6 +30,7 @@ export {
     Mirror,
     Pointer,
     ArrayModel,
+    proxyArrayModel,
     MapModel,
     SetModel,
     BaseView,

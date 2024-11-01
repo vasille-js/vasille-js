@@ -3,7 +3,6 @@ import { IValue, Reference } from "vasille";
 export class PartialExpression extends IValue<unknown> {
     private readonly values: unknown[];
     private readonly valuesCache: unknown[];
-    private readonly func: (i?: number) => void;
     private readonly linkedFunc: (() => void)[] = [];
     private readonly sync: Reference<unknown>;
 
@@ -36,7 +35,6 @@ export class PartialExpression extends IValue<unknown> {
         }
 
         this.values = values;
-        this.func = handler;
 
         handler();
     }

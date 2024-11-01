@@ -1,4 +1,5 @@
 import { ArrayModel, Listener, MapModel, SetModel } from "../../src";
+import { proxyArrayModel } from "../../src/models/array-model";
 
 it("listener", function () {
     const listener = new Listener<number, number>();
@@ -34,7 +35,7 @@ it("listener", function () {
 });
 
 it("array model", function () {
-    const array = new ArrayModel<number>([1, 2, 3]);
+    const array = proxyArrayModel(new ArrayModel<number>([1, 2, 3]));
 
     array.fill(0);
     expect(array.join()).toEqual([0, 0, 0].join());
@@ -77,7 +78,7 @@ it("array model", function () {
     array.splice(array.indexOf(-1), 1);
     expect(array.join()).toEqual([3, 2, 1].join());
 
-    array.replace(1, 4);
+    array[1] = 4;
     expect(array.join()).toEqual([3, 4, 1].join());
 
     array.splice(0);

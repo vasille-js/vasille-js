@@ -1,4 +1,4 @@
-import { IValue, Reference, Fragment } from "vasille";
+import { IValue, Reference, Fragment, proxyArrayModel, Reactive } from "vasille";
 import { PartialExpression } from "./expression";
 import { readValue, setValue } from "./inline";
 import { propertyExtractor, reactiveObject, readProperty, writeValue } from "./objects";
@@ -84,7 +84,7 @@ export const internal = {
     sm(node: unknown, data?: unknown[]) {
         const set = new ContextSet(data);
 
-        if (node instanceof Fragment) {
+        if (node instanceof Reactive) {
             node.register(set);
         }
 
@@ -96,7 +96,7 @@ export const internal = {
     mm(node: unknown, data?: [unknown, unknown][]) {
         const map = new ContextMap(data);
 
-        if (node instanceof Fragment) {
+        if (node instanceof Reactive) {
             node.register(map);
         }
 
@@ -106,9 +106,9 @@ export const internal = {
      * translate `[...]` to `$.am(this, [...])`
      */
     am(node: unknown, data?: unknown[]) {
-        const arr = new ContextArray(data);
+        const arr = proxyArrayModel(new ContextArray(data));
 
-        if (node instanceof Fragment) {
+        if (node instanceof Reactive) {
             node.register(arr);
         }
 

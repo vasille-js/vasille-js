@@ -2,9 +2,12 @@ import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { Internal } from "./internal";
 
-export type FnNames = "compose" | "extend" | "awaited" | "calculate" | "ensureIValue" | "forward" | "point" | "watch";
+export type FnNames = "compose" | "extend" | "awaited" | "calculate" | "ensureIValue" | "forward" | "watch";
 
-export function calls(node: types.Expression, names: FnNames[], internal: Internal) {
+export const requiresThis: FnNames[] = ["awaited", "calculate", "ensureIValue", "forward", "watch"];
+const requiresThisSet: Set<string> = new Set(requiresThis);
+
+export function calls(node: types.Expression | null | undefined, names: FnNames[], internal: Internal) {
     const set = new Set<string>(names);
     const callee = t.isCallExpression(node) ? node.callee : null;
 
@@ -12,7 +15,13 @@ export function calls(node: types.Expression, names: FnNames[], internal: Intern
         if (t.isIdentifier(callee)) {
             const mapped = internal.mapping.get(callee.name);
 
-            return mapped && set.has(mapped) && internal.stack.get(callee.name) === undefined;
+            if (mapped && set.has(mapped) && internal.stack.get(callee.name) === undefined) {
+                if (requiresThisSet.has(callee.name) && t.isCallExpression(node)) {
+                    node.arguments.unshift(t.thisExpression());
+                }
+                return mapped;
+            }
+            return false;
         }
 
         // The global object is overrided
@@ -29,7 +38,12 @@ export function calls(node: types.Expression, names: FnNames[], internal: Intern
             : null;
 
         if (t.isMemberExpression(callee) && t.isIdentifier(callee.object) && propName) {
-            return callee.object.name === internal.global && set.has(propName);
+            if (callee.object.name === internal.global && set.has(propName)) {
+                if (requiresThisSet.has(callee.object.name) && t.isCallExpression(node)) {
+                    node.arguments.unshift(t.thisExpression());
+                }
+                return callee.object.name;
+            }
         }
     }
 
