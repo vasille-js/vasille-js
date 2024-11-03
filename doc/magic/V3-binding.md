@@ -33,7 +33,7 @@ export const MyComponent = compose(() => {
 
   let x = "value"; // Reference to "value"
   let y = x;       // Pointer to x value, bind to x
-  const z = x;     // Reference x value on init
+  const z = x;     // Read x value on init
   const zx = z + x;// Rererence to sum of x & z, bind to x
 });
 ```
