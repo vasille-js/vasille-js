@@ -31,9 +31,14 @@ export const MyComponent = compose(() => {
   c = 7;
   sum == 10;
 
-  let x = "value"; // Reference to "value"
-  let y = x;       // Pointer to x value, bind to x
-  const z = x;     // Read x value on init
-  const zx = z + x;// Rererence to sum of x & z, bind to x
+  const w = "world"; // w is a value
+  let x = "value";   // x is a reference
+  let y = x;         // y is a binding
+  const z = x;       // z is a binding
+  const zx = z + x;  // x is a binding
+
+  let q = value(z);  // q is a value
+  let r = ref(x);    // r is a reference
+  let s = bind(2);   // s is a binding
 });
 ```
