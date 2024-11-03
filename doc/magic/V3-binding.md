@@ -31,8 +31,9 @@ export const MyComponent = compose(() => {
   c = 7;
   sum == 10;
 
-  let x = "value"; // Reference
-  let y = x;       // Pointer to x value (forward-only)
-  const z = y;     // Reference y value on init
+  let x = "value"; // Reference to "value"
+  let y = x;       // Pointer to x value, bind to x
+  const z = x;     // Reference x value on init
+  const zx = z + x;// Rererence to sum of x & z, bind to x
 });
 ```
