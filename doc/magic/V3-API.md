@@ -71,7 +71,7 @@ export const MyComponent = compose(() => {
   let a = 1;
   let b = 3;
   // sum will be updated each time when a or b changes it's value
-  let sum = a + b;
+  const sum = a + b;
 });
 ```
 
@@ -84,7 +84,7 @@ export const MyComponent = compose(() => {
   let a = 1;
   let b = 3;
   // sum will be updated each time when a or b changes it's value
-  let sum = calculate(() => {
+  const sum = calculate(() => {
     return a + b;
   });
 });
