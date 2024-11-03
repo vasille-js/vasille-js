@@ -14,10 +14,10 @@ export const MyComponent = compose(() => {
   sum == 5;
 
   sum = b + c;
-  sum == 9;
+  sum == 8;
 
   b = 4;
-  sum == 10;
+  sum == 9;
 
   sum = c;
   sum == 5;
