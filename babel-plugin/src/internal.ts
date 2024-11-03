@@ -4,6 +4,7 @@ export const enum VariableState {
     Ignored = 1,
     Reactive = 2,
     ReactiveObject = 3,
+    ReactivePointer = 4,
 }
 
 export class StackedStates {

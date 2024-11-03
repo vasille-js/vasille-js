@@ -6,45 +6,30 @@ import { notOverwritten } from "./errors";
  * @class IValue
  * @extends Destroyable
  */
-export class IValue<T> extends Destroyable {
-    /**
-     * @param isEnabled {boolean} initial is enabled state
-     */
-    public constructor() {
-        super();
-    }
-
+export abstract class IValue<T> extends Destroyable {
     /**
      * Get the encapsulated value
      * @return {*} the encapsulated value
      */
-    public get $(): T {
-        throw notOverwritten();
-    }
+    public abstract get $(): T;
 
     /**
      * Sets the encapsulated value
      * @param value {*} value to encapsulate
      */
-    public set $(value: T) {
-        throw notOverwritten();
-    }
+    public abstract set $(value: T);
 
     /**
      * Add a new handler to value change
      * @param handler {function(value : *)} the handler to add
      */
-    public on(handler: (value: T) => void): void {
-        throw notOverwritten();
-    }
+    public abstract on(handler: (value: T) => void): void;
 
     /**
      * Removes a handler of value change
      * @param handler {function(value : *)} the handler to remove
      */
-    public off(handler: (value: T) => void): void {
-        throw notOverwritten();
-    }
+    public abstract off(handler: (value: T) => void): void;
 
     public toJSON() {
         return this.$;

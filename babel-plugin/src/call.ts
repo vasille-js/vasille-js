@@ -2,7 +2,17 @@ import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { Internal } from "./internal";
 
-export type FnNames = "compose" | "extend" | "awaited" | "calculate" | "ensureIValue" | "forward" | "watch";
+export type FnNames =
+    | "compose"
+    | "extend"
+    | "awaited"
+    | "calculate"
+    | "ensureIValue"
+    | "forward"
+    | "watch"
+    | "ref"
+    | "bind"
+    | "value";
 
 export const requiresThis: FnNames[] = ["awaited", "calculate", "ensureIValue", "forward", "watch"];
 const requiresThisSet: Set<string> = new Set(requiresThis);

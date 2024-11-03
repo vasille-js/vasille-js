@@ -10,7 +10,6 @@ import { SetModel } from "./models/set-model";
 import { App, Portal } from "./node/app";
 import { Extension, Fragment, INode, Tag, TagOptionsWithSlot } from "./node/node";
 import { Expression, KindOfIValue } from "./value/expression";
-import { Mirror } from "./value/mirror";
 import { Pointer } from "./value/pointer";
 import { Reference } from "./value/reference";
 import { ArrayView } from "./views/array-view";
@@ -27,7 +26,6 @@ export {
     Destroyable,
     IValue,
     Reference,
-    Mirror,
     Pointer,
     ArrayModel,
     proxyArrayModel,

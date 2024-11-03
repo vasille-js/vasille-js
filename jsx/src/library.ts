@@ -43,6 +43,8 @@ export function awaited<T>(node: unknown, target: Promise<T> | (() => Promise<T>
 
     if (target instanceof Promise) {
         target.then(result => (value.$ = result)).catch(e => (err.$ = e));
+    } else {
+        value.$ = target;
     }
 
     return [err, value];

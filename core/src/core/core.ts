@@ -1,11 +1,8 @@
-import { Fragment } from "../node/node";
-import { Destroyable, IDestroyable } from "./destroyable.js";
-import { wrongBinding } from "./errors";
+import { Destroyable } from "./destroyable.js";
 import { IValue } from "./ivalue.js";
 import { Expression, KindOfIValue } from "../value/expression";
 import { Reference } from "../value/reference";
-import { Pointer } from "../value/pointer";
-import { Mirror } from "../value/mirror";
+import { OwningPointer, Pointer } from "../value/pointer";
 
 /**
  * A reactive object
@@ -45,22 +42,11 @@ export class Reactive<T extends object = object> extends Destroyable {
     }
 
     /**
-     * Create a mirror
-     * @param value {IValue} value to mirror
+     * Create a forward-only pointer
+     * @param value {IValue} value to point
      */
-    public mirror<T>(value: IValue<T>): Mirror<T> {
-        const mirror = new Mirror(value, false);
-
-        this._watch.add(mirror);
-        return mirror;
-    }
-
-    /**
-     * Create a forward-only mirror
-     * @param value {IValue} value to mirror
-     */
-    public forward<T>(value: IValue<T>): Mirror<T> {
-        const mirror = new Mirror(value, true);
+    public forward<T>(value: IValue<T>): IValue<T> {
+        const mirror = new Pointer(value);
 
         this._watch.add(mirror);
         return mirror;
@@ -69,17 +55,16 @@ export class Reactive<T extends object = object> extends Destroyable {
     /**
      * Creates a pointer
      * @param value {*} default value to point
-     * @param forwardOnly {boolean} forward only sync
      */
-    public point<T>(value: IValue<T>, forwardOnly = false): Pointer<T> {
-        const pointer = new Pointer(value, forwardOnly);
+    public own<T>(value: IValue<T>): Pointer<T> {
+        const pointer = new OwningPointer(value);
 
         this._watch.add(pointer);
         return pointer;
     }
 
     /**
-     * Register a model/dependecy
+     * Register a model/dependency
      */
     public register<T extends Destroyable>(data: T): T {
         this.bindings.add(data);

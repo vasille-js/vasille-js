@@ -15,3 +15,11 @@ it("let update", function () {
 it("awaited", function () {
     runTest(__dirname, "awaited");
 });
+
+it("static expression", function () {
+    runTest(__dirname, "expr-const");
+});
+
+it("dynamical expression", function () {
+    runTest(__dirname, "expr-let");
+});

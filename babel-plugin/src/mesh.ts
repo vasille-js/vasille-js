@@ -1,8 +1,10 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
+import { calls, requiresThis } from "./call";
+import { checkNode, encodeName } from "./expression";
 import { Internal, VariableState } from "./internal";
 import { bodyHasJsx } from "./jsx-detect";
-import { calls, requiresThis } from "./call";
+import { exprCall, forwardOnlyExpr, own, ref } from "./lib";
 
 // function propertyExtractor (expr: types.MemberExpression, internal: Internal) {
 //   const props: types.Expression[] = [];
@@ -179,6 +181,8 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
 
             if (state === VariableState.Reactive) {
                 nodePath.replaceWith(t.memberExpression(expr, t.identifier("$")));
+            } else if (state === VariableState.ReactivePointer) {
+                nodePath.replaceWith(t.memberExpression(expr, t.identifier("$$")));
             }
             break;
         }
@@ -215,9 +219,21 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
         }
         case "AssignmentExpression": {
             const path = nodePath as NodePath<types.AssignmentExpression>;
+            const left = path.node.left;
 
             meshLValue(path.get("left"), internal);
-            meshExpression(path.get("right"), internal);
+
+            if (t.isIdentifier(left) && internal.stack.get(left.name) === VariableState.ReactivePointer) {
+                const replaceWith = forwardOnlyExpr(path.get("right"), path.node.right, internal);
+
+                if (replaceWith) {
+                    path.get("right").replaceWith(replaceWith);
+                } else {
+                    meshExpression(path.get("right"), internal);
+                }
+            } else {
+                meshExpression(path.get("right"), internal);
+            }
             break;
         }
         case "MemberExpression":
@@ -863,15 +879,45 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
                     meshInit = false;
                 } else if (t.isIdentifier(id)) {
                     internal.stack.set(id.name, declares);
-                    if (declares === VariableState.Reactive) {
+
+                    const init = declaration.node.init;
+
+                    if (calls(init, ["value"], internal)) {
+                        internal.stack.set(id.name, VariableState.Ignored);
+                        declaration.get("init").replaceWith((init as types.CallExpression).arguments[0]);
+                    } else if (calls(init, ["bind"], internal)) {
+                        const replaceWith = forwardOnlyExpr(declaration.get("init"), declaration.node.init, internal);
+                        const argument = (init as types.CallExpression).arguments[0];
+
+                        internal.stack.set(id.name, VariableState.ReactivePointer);
                         declaration
                             .get("init")
-                            .replaceWith(
-                                t.callExpression(
-                                    t.memberExpression(t.thisExpression(), t.identifier("ref")),
-                                    declaration.node.init ? [declaration.node.init] : [],
-                                ),
-                            );
+                            .replaceWith(own(replaceWith ?? ref(t.isExpression(argument) ? argument : null)));
+                        meshInit = !replaceWith;
+                    } else if (calls(init, ["ref"], internal)) {
+                        const argument = (init as types.CallExpression).arguments[0];
+
+                        internal.stack.set(id.name, VariableState.Reactive);
+                        declaration.get("init").replaceWith(ref(t.isExpression(argument) ? argument : null));
+                    } else if (declares === VariableState.Reactive) {
+                        const replaceWith = forwardOnlyExpr(declaration.get("init"), declaration.node.init, internal);
+
+                        meshInit = !replaceWith;
+                        internal.stack.set(
+                            id.name,
+                            replaceWith ? VariableState.ReactivePointer : VariableState.Reactive,
+                        );
+                        declaration
+                            .get("init")
+                            .replaceWith(replaceWith ? own(replaceWith) : ref(declaration.node.init));
+                    } else {
+                        const replaceWith = exprCall(declaration.get("init"), declaration.node.init, internal);
+
+                        if (replaceWith) {
+                            declaration.get("init").replaceWith(replaceWith);
+                        }
+                        internal.stack.set(id.name, replaceWith ? VariableState.Reactive : VariableState.Ignored);
+                        meshInit = !replaceWith;
                     }
                 }
                 if (meshInit) {

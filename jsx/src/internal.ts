@@ -1,4 +1,4 @@
-import { IValue, Reference, Fragment, proxyArrayModel, Reactive } from "vasille";
+import { IValue, Reference, Fragment, proxyArrayModel, Reactive, KindOfIValue, Expression, Pointer } from "vasille";
 import { PartialExpression } from "./expression";
 import { readValue, setValue } from "./inline";
 import { propertyExtractor, reactiveObject, readProperty, writeValue } from "./objects";
@@ -6,23 +6,9 @@ import { ContextArray, ContextMap, ContextSet } from "./models";
 
 export const internal = {
     /**
-     * translate compose local `let a = v` to `const a = $.let(this, v)`
-     */
-    let(node: unknown, v: unknown): unknown {
-        if (!(node instanceof Fragment)) {
-            return readValue(v);
-        }
-
-        if (v instanceof IValue) {
-            return v;
-        }
-
-        return node.ref(v);
-    },
-    /**
      * translate module `var a = v` to `const a = $.var(v)`
      */
-    var(v: unknown): Reference<unknown> {
+    ref(v: unknown): Reference<unknown> {
         if (v instanceof IValue) {
             return new Reference(v.$);
         }
@@ -45,6 +31,14 @@ export const internal = {
         } else {
             return func.apply(null, values);
         }
+    },
+    /** create an expresion (without context), use for OwningPointer */
+    ex<T, Args extends unknown[]>(func: (...args: Args) => T, ...values: KindOfIValue<Args>) {
+        return new Expression(func, ...values);
+    },
+    /** create a forward-only pointer (without context), use for OwningPointer */
+    fo<T>(v: IValue<T>): IValue<T> {
+        return new Pointer(v);
     },
     /**
      * translate object property read from `x.b.c` to `$.rp(x, ['b', 'c'])`
