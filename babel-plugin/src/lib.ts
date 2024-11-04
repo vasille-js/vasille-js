@@ -5,7 +5,7 @@ import { Internal } from "./internal";
 import { calls } from "./call";
 
 export function parseCalculateCall(path: NodePath<types.Expression | null | undefined>, internal: Internal) {
-    if (t.isCallExpression(path.node) && calls(path.node, ["calculate"], internal)) {
+    if (t.isCallExpression(path.node) && calls(path.node, ["calculate", "watch"], internal)) {
         if (path.node.arguments.length !== 1) {
             throw path.buildCodeFrameError("Vasille: Incorrect number of arguments");
         }

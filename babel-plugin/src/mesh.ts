@@ -4,7 +4,7 @@ import { calls, requiresThis } from "./call";
 import { checkNode, encodeName } from "./expression";
 import { Internal, VariableState } from "./internal";
 import { bodyHasJsx } from "./jsx-detect";
-import { exprCall, forwardOnlyExpr, own, ref } from "./lib";
+import { exprCall, forwardOnlyExpr, own, parseCalculateCall, ref } from "./lib";
 
 // function propertyExtractor (expr: types.MemberExpression, internal: Internal) {
 //   const props: types.Expression[] = [];
@@ -209,14 +209,11 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
             meshOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), internal);
             meshAllUnknown(path.get("arguments"), internal);
 
-            if (calls(path.node, ['calculate'], internal)) {
-                if (path.node.arguments.length !==1 && !t.isExpression(path.node.arguments[0])) {
-                    throw path.buildCodeFrameError('Vasille: Incorrect calculae argument');
+            if (calls(path.node, ["calculate"], internal)) {
+                if (path.node.arguments.length !== 1 && !t.isExpression(path.node.arguments[0])) {
+                    throw path.buildCodeFrameError("Vasille: Incorrect calculate argument");
                 }
-                path.replaceWith(t.callExpression(
-                    path.node.arguments[0] as types.Expression,
-                    []
-                ))
+                path.replaceWith(t.callExpression(path.node.arguments[0] as types.Expression, []));
             }
             break;
         }
@@ -742,7 +739,26 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
             }
             break;
         }
+        case "CallExpression":
+        case "OptionalCallExpression": {
+            const call = expr as types.CallExpression | types.OptionalCallExpression;
+            let replaced = false;
 
+            if (calls(call, ["watch"], internal)) {
+                const args = parseCalculateCall(path, internal);
+
+                if (args) {
+                    path.replaceWith(
+                        t.callExpression(t.memberExpression(t.thisExpression(), t.identifier("watch")), args),
+                    );
+                    replaced = true;
+                }
+            }
+            if (!replaced) {
+                meshExpression(path, internal);
+            }
+            break;
+        }
         default:
             meshExpression(path, internal);
     }

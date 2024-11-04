@@ -80,6 +80,46 @@ function addExternalIValue(path: NodePath<types.MemberExpression | types.Optiona
     path.replaceWith(encodeName(name));
 }
 
+function meshIdentifier(path: NodePath<types.Identifier>, internal: Internal) {
+    const state = internal.stack.get(path.node.name);
+
+    if (state === VariableState.Reactive || state === VariableState.ReactivePointer) {
+        path.replaceWith(t.memberExpression(path.node, t.identifier("$")));
+    }
+}
+
+function meshMember(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, internal: Internal) {
+    if (
+        t.isIdentifier(path.node.object) &&
+        internal.stack.get(path.node.object.name) === VariableState.ReactiveObject
+    ) {
+        path.replaceWith(t.memberExpression(path.node, t.identifier("$")));
+    }
+}
+
+function meshLValue(
+    path: NodePath<types.LVal | types.OptionalMemberExpression | null | undefined>,
+    internal: Internal,
+) {
+    if (t.isIdentifier(path.node)) {
+        meshIdentifier(path as NodePath<types.Identifier>, internal);
+    } else if (t.isMemberExpression(path.node) || t.isOptionalMemberExpression(path.node)) {
+        meshMember(path as NodePath<types.MemberExpression | types.OptionalMemberExpression>, internal);
+    } else {
+        path.traverse({
+            Identifier(path) {
+                meshIdentifier(path, internal);
+            },
+            MemberExpression(path) {
+                meshMember(path, internal);
+            },
+            OptionalMemberExpression(path) {
+                meshMember(path, internal);
+            },
+        });
+    }
+}
+
 export function checkNode(path: NodePath<types.Node | null | undefined>, internal: Internal): Search {
     const search: Search = {
         external: internal,
@@ -211,6 +251,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
         }
         case "AssignmentExpression": {
             const path = nodePath as NodePath<types.AssignmentExpression>;
+            meshLValue(path.get("left"), search.external);
             checkExpression(path.get("right"), search);
             break;
         }

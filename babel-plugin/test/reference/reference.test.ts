@@ -27,3 +27,7 @@ it("dynamical expression", function () {
 it("meta expressions", function () {
     runTest(__dirname, "expr-meta");
 });
+
+it("watch", function () {
+    runTest(__dirname, "watch");
+});
