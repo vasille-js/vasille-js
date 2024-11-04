@@ -14,7 +14,7 @@ export type FnNames =
     | "bind"
     | "value";
 
-export const requiresThis: FnNames[] = ["awaited", "calculate", "ensureIValue", "forward", "watch"];
+export const requiresThis: FnNames[] = ["awaited", "ensureIValue", "forward", "watch"];
 const requiresThisSet: Set<string> = new Set(requiresThis);
 
 export function calls(node: types.Expression | null | undefined, names: FnNames[], internal: Internal) {

@@ -4,6 +4,7 @@ import { Internal, StackedStates, VariableState } from "./internal";
 import { meshExpression, meshStatement } from "./mesh";
 
 const imports = new Map([["vasille-dx", "VasilleDX"]]);
+const ignoreMembers = new Set(["value", "ref", "bind", "calculate"]);
 
 function extractText(node: types.Identifier | types.StringLiteral) {
     return t.isIdentifier(node) ? node.name : node.value;
@@ -87,6 +88,13 @@ export function trProgram(path: NodePath<types.Program>, noConflict: boolean) {
                         internal.importStatement = statementPath as NodePath<types.ImportDeclaration>;
                     }
                 }
+                statement.specifiers = statement.specifiers.filter(spec => {
+                    if (!t.isImportSpecifier(spec)) {
+                        return true;
+                    } else {
+                        return !ignoreMembers.has(extractText(spec.imported));
+                    }
+                });
             }
         } else {
             if (!id) {

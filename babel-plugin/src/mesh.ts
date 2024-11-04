@@ -208,6 +208,16 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
 
             meshOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), internal);
             meshAllUnknown(path.get("arguments"), internal);
+
+            if (calls(path.node, ['calculate'], internal)) {
+                if (path.node.arguments.length !==1 && !t.isExpression(path.node.arguments[0])) {
+                    throw path.buildCodeFrameError('Vasille: Incorrect calculae argument');
+                }
+                path.replaceWith(t.callExpression(
+                    path.node.arguments[0] as types.Expression,
+                    []
+                ))
+            }
             break;
         }
         case "OptionalCallExpression": {
@@ -885,14 +895,23 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
                     if (calls(init, ["value"], internal)) {
                         internal.stack.set(id.name, VariableState.Ignored);
                         declaration.get("init").replaceWith((init as types.CallExpression).arguments[0]);
+                        _path.node.kind = kind;
                     } else if (calls(init, ["bind"], internal)) {
-                        const replaceWith = forwardOnlyExpr(declaration.get("init"), declaration.node.init, internal);
-                        const argument = (init as types.CallExpression).arguments[0];
+                        const argument = (init as types.CallExpression).arguments[0] as types.Expression;
+                        const replaceWith =
+                            declares === VariableState.Reactive
+                                ? forwardOnlyExpr(declaration.get("init"), argument, internal)
+                                : exprCall(declaration.get("init"), argument, internal);
+                        let insertNode = replaceWith ?? ref(t.isExpression(argument) ? argument : null);
 
-                        internal.stack.set(id.name, VariableState.ReactivePointer);
-                        declaration
-                            .get("init")
-                            .replaceWith(own(replaceWith ?? ref(t.isExpression(argument) ? argument : null)));
+                        if (declares === VariableState.Reactive) {
+                            internal.stack.set(id.name, VariableState.ReactivePointer);
+                            insertNode = own(insertNode);
+                        } else {
+                            internal.stack.set(id.name, VariableState.Reactive);
+                        }
+
+                        declaration.get("init").replaceWith(insertNode);
                         meshInit = !replaceWith;
                     } else if (calls(init, ["ref"], internal)) {
                         const argument = (init as types.CallExpression).arguments[0];

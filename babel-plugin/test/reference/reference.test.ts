@@ -23,3 +23,7 @@ it("static expression", function () {
 it("dynamical expression", function () {
     runTest(__dirname, "expr-let");
 });
+
+it("meta expressions", function () {
+    runTest(__dirname, "expr-meta");
+});

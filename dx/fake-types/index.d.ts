@@ -22,6 +22,11 @@ declare function mount<T>(
   tag: Element, component: ($: T) => unknown, $: T
 ): void;
 
+declare function value<T>(v: T): T;
+declare function ref<T>(v: T): T;
+declare function bind<T>(v: T): T;
+declare function calculate<T>(fn: () => T): T;
+
 declare function Adapter(
   props: { node: Fragment; slot?: unknown }
 ): void;

@@ -89,12 +89,16 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
     };
 
     if (t.isIdentifier(path.node)) {
-        if (internal.stack.get(path.node.name) === VariableState.Reactive) {
+        const state = internal.stack.get(path.node.name);
+        if (state === VariableState.Reactive || state == VariableState.ReactivePointer) {
             search.self = path.node;
         }
     }
     if (t.isMemberExpression(path.node)) {
-        if (t.isIdentifier(path.node.object) && internal.stack.get(path.node.object.name) === VariableState.Reactive) {
+        if (
+            t.isIdentifier(path.node.object) &&
+            internal.stack.get(path.node.object.name) === VariableState.ReactiveObject
+        ) {
             search.self = path.node;
         }
         if (t.isIdentifier(path.node.property) && path.node.property.name === "$") {

@@ -2,12 +2,46 @@ import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { checkNode, encodeName } from "./expression";
 import { Internal } from "./internal";
+import { calls } from "./call";
+
+export function parseCalculateCall(path: NodePath<types.Expression | null | undefined>, internal: Internal) {
+    if (t.isCallExpression(path.node) && calls(path.node, ["calculate"], internal)) {
+        if (path.node.arguments.length !== 1) {
+            throw path.buildCodeFrameError("Vasille: Incorrect number of arguments");
+        }
+        if (t.isFunctionExpression(path.node.arguments[0]) || t.isArrowFunctionExpression(path.node.arguments[0])) {
+            if (path.node.arguments[0].params.length > 0) {
+                throw path.buildCodeFrameError("Vasille: Argument of calculate cannot have parameters");
+            }
+
+            const exprData = checkNode(
+                (path as NodePath<types.CallExpression>).get("arguments")[0] as NodePath<
+                    types.FunctionExpression | types.ArrowFunctionExpression
+                >,
+                internal,
+            );
+
+            path.node.arguments[0].params = [...exprData.found.keys()].map(name => encodeName(name));
+
+            return [path.node.arguments[0], ...exprData.found.values()];
+        } else {
+            throw path.buildCodeFrameError("Vasille: Argument of calculate must be a function");
+        }
+    }
+    return null;
+}
 
 export function exprCall(
     path: NodePath<types.Expression | null | undefined>,
     expr: types.Expression | null | undefined,
     internal: Internal,
 ) {
+    const calculateCall = parseCalculateCall(path, internal);
+
+    if (calculateCall) {
+        return t.callExpression(t.memberExpression(t.thisExpression(), t.identifier("expr")), calculateCall);
+    }
+
     const exprData = checkNode(path, internal);
 
     return exprData.self
@@ -28,6 +62,38 @@ export function forwardOnlyExpr(
     expr: types.Expression | null | undefined,
     internal: Internal,
 ) {
+    if (t.isCallExpression(path.node) && calls(path.node, ["calculate"], internal)) {
+        if (path.node.arguments.length !== 1) {
+            throw path.buildCodeFrameError("Vasille: Incorrect number of arguments");
+        }
+        if (t.isFunctionExpression(path.node.arguments[0]) || t.isArrowFunctionExpression(path.node.arguments[0])) {
+            if (path.node.arguments[0].params.length > 0) {
+                throw path.buildCodeFrameError("Vasille: Argument of calculate cannot have parameters");
+            }
+
+            const exprData = checkNode(
+                (path as NodePath<types.CallExpression>).get("arguments")[0] as NodePath<
+                    types.FunctionExpression | types.ArrowFunctionExpression
+                >,
+                internal,
+            );
+
+            path.node.arguments[0].params = [...exprData.found.keys()].map(name => encodeName(name));
+
+            return t.callExpression(t.memberExpression(internal.id, t.identifier("ex")), [
+                path.node.arguments[0],
+                ...exprData.found.values(),
+            ]);
+        } else {
+            throw path.buildCodeFrameError("Vasille: Argument of calculate must be a function");
+        }
+    }
+    const calculateCall = parseCalculateCall(path, internal);
+
+    if (calculateCall) {
+        return t.callExpression(t.memberExpression(internal.id, t.identifier("ex")), calculateCall);
+    }
+
     const exprData = checkNode(path, internal);
 
     return exprData.self
