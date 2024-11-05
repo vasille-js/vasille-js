@@ -1,37 +1,16 @@
-import { Fragment, IValue, Reference } from "vasille";
-import { asReactive } from "./inline";
-import { internal } from "./internal";
+import { Fragment, IValue, Reactive, Reference } from "vasille";
 
-export function forward(node: unknown, value: unknown) {
+export function forward(node: Reactive, value: unknown) {
     if (value instanceof IValue) {
-        return asReactive(node).forward(value as IValue<unknown>);
+        return node.forward(value as IValue<unknown>);
     }
 
     return value;
 }
 
-export function point(node: unknown, value: unknown) {
-    const current = asReactive(node);
-
-    if (value instanceof IValue) {
-        return current.point(value as IValue<unknown>);
-    }
-
-    return current.point(current.ref(value));
-}
-
-export function calculate(node: unknown, f: (...args: unknown[]) => unknown, ...args: unknown[]) {
-    return internal.expr(node, f, args);
-}
-
-export function watch(node: unknown, f: (...args: unknown[]) => void, ...args: unknown[]) {
-    return internal.expr(node, f, args);
-}
-
-export function awaited<T>(node: unknown, target: Promise<T> | (() => Promise<T>)) {
-    const current = asReactive(node);
-    const value = current.ref<unknown>(undefined);
-    const err = current.ref<unknown>(undefined);
+export function awaited<T>(node: Reactive, target: Promise<T> | (() => Promise<T>)) {
+    const value = node.ref<unknown>(undefined);
+    const err = node.ref<unknown>(undefined);
 
     if (typeof target === "function") {
         try {

@@ -2,19 +2,10 @@ import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { Internal } from "./internal";
 
-export type FnNames =
-    | "compose"
-    | "extend"
-    | "awaited"
-    | "calculate"
-    | "ensureIValue"
-    | "forward"
-    | "watch"
-    | "ref"
-    | "bind"
-    | "value";
+export type FnNames = "compose" | "extend" | "awaited" | "calculate" | "forward" | "watch" | "ref" | "bind" | "value";
 
-export const requiresThis: FnNames[] = ["awaited", "ensureIValue", "forward", "watch"];
+export const composeOnly: FnNames[] = ["calculate", "forward", "watch", "ref", "bind", "value"];
+export const requiresThis: FnNames[] = ["awaited", "forward"];
 const requiresThisSet: Set<string> = new Set(requiresThis);
 
 export function calls(node: types.Expression | null | undefined, names: FnNames[], internal: Internal) {

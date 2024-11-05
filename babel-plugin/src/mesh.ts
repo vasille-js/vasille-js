@@ -1,32 +1,9 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { calls, requiresThis } from "./call";
-import { checkNode, encodeName } from "./expression";
+import { calls, composeOnly } from "./call";
 import { Internal, VariableState } from "./internal";
 import { bodyHasJsx } from "./jsx-detect";
 import { exprCall, forwardOnlyExpr, own, parseCalculateCall, ref } from "./lib";
-
-// function propertyExtractor (expr: types.MemberExpression, internal: Internal) {
-//   const props: types.Expression[] = [];
-//   let o = expr;
-
-//   while (t.isMemberExpression(o)) {
-//       if (t.isPrivateName(o.property)) {
-//           if (t.isMemberExpression(o.object)){
-//               o = t.memberExpression(propertyExtractor(o.object, internal), o.property);
-//           }
-//           break;
-//       }
-//       else {
-//           props.unshift(mesh(o.property, internal));
-//       }
-//   }
-
-//   return t.callExpression(
-//       t.memberExpression(internal.id, t.identifier("pe")),
-//       [o, t.arrayExpression(props)]
-//   );
-// }
 
 function propertyPath(expr: types.MemberExpression | types.OptionalMemberExpression) {
     const props: types.Expression[] = [];
@@ -39,28 +16,6 @@ function propertyPath(expr: types.MemberExpression | types.OptionalMemberExpress
 
     return [o, props] as const;
 }
-
-// function readProperty (expr: types.MemberExpression | types.OptionalMemberExpression, internal: Internal) {
-//   const props: types.Expression[] = [];
-//   let o = expr;
-
-//   while (t.isMemberExpression(o)) {
-//       if (t.isPrivateName(o.property)) {
-//           if (t.isMemberExpression(o.object)){
-//               o = t.memberExpression(readProperty(o.object, internal), o.property);
-//           }
-//           break;
-//       }
-//       else {
-//           props.unshift(mesh(o.property, internal));
-//       }
-//   }
-
-//   return t.callExpression(
-//       t.memberExpression(internal.id, t.identifier("rp")),
-//       [o, t.arrayExpression(props)]
-//   );
-// }
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
     nodePaths: NodePath<types.Expression | null | T>[],
@@ -200,7 +155,7 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
         }
         case "CallExpression": {
             const path = nodePath as NodePath<types.CallExpression>;
-            const callsFn = calls(path.node, requiresThis, internal);
+            const callsFn = calls(path.node, composeOnly, internal);
 
             if (callsFn) {
                 throw path.buildCodeFrameError(`Vasille: Usage of function "${callsFn}" is restricted here`);

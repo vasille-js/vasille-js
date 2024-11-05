@@ -11,9 +11,12 @@ import {
     Watch as CoreWatch,
     Tag,
 } from "vasille";
-import { readValue } from "./inline";
 
 type Magic<T extends object> = { [K in keyof T]: T[K] | IValue<T[K]> | undefined };
+
+export function readValue<T>(v: T | IValue<T>): T {
+    return v instanceof IValue ? v.$ : v;
+}
 
 export function Adapter(this: Fragment, { node, slot }: Magic<{ node: Fragment; slot?: (this: Fragment) => void }>) {
     const dNode = readValue(node);

@@ -15,7 +15,6 @@ export {
     Watch,
     awaited,
     calculate,
-    ensureIValue,
     forward,
     point,
     watch,
