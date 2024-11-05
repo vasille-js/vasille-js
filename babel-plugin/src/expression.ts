@@ -45,6 +45,7 @@ function extractMemberName(path: NodePath<types.MemberExpression | types.Optiona
             throw path.buildCodeFrameError("Vasille: The reactive/observable value is nested");
         }
 
+        it = it.object;
         names.push();
     }
 

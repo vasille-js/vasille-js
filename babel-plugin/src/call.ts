@@ -4,7 +4,7 @@ import { Internal } from "./internal";
 
 export type FnNames = "compose" | "extend" | "awaited" | "calculate" | "forward" | "watch" | "ref" | "bind" | "value";
 
-export const composeOnly: FnNames[] = ["calculate", "forward", "watch", "ref", "bind", "value"];
+export const composeOnly: FnNames[] = ["forward", "watch", "ref", "bind", "value"];
 export const requiresThis: FnNames[] = ["awaited", "forward"];
 const requiresThisSet: Set<string> = new Set(requiresThis);
 

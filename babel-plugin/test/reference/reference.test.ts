@@ -31,3 +31,7 @@ it("meta expressions", function () {
 it("watch", function () {
     runTest(__dirname, "watch");
 });
+
+it("models", function () {
+    runTest(__dirname, "models");
+});

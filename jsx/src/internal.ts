@@ -19,24 +19,18 @@ export const internal = {
      * translate `new Set(#)` to `$.sm(this, #)`
      */
     sm(node: Reactive, data?: unknown[]) {
-        const set = new ContextSet(data);
-        node.register(set);
-        return set;
+        return node.register(new ContextSet(data));
     },
     /**
      * translate `new Map(#)` to `$.mm(this, #)`
      */
     mm(node: Reactive, data?: [unknown, unknown][]) {
-        const map = new ContextMap(data);
-        node.register(map);
-        return map;
+        return node.register(new ContextMap(data));
     },
     /**
      * translate `[...]` to `$.am(this, [...])`
      */
     am(node: Reactive, data?: unknown[]) {
-        const arr = proxyArrayModel(new ContextArray(data));
-        node.register(arr);
-        return arr;
+        return node.register(proxyArrayModel(new ContextArray(data)));
     },
 };

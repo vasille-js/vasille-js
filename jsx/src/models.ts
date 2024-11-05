@@ -1,12 +1,17 @@
-import { ArrayModel, Destroyable, IValue, MapModel, Reactive, Reference, SetModel } from "vasille";
+import { ArrayModel, Destroyable, IValue, MapModel, Reactive, SetModel } from "vasille";
+import { ProxyReference, proxyObject } from "./objects";
+
+const symbol = Symbol("proxy");
 
 class Context extends Destroyable {
     #ctx = new Reactive({});
 
-    public checkEnable(value: unknown) {
+    public checkEnable<T>(value: T): T {
         if (value && typeof value === "object" && value.constructor === Object) {
-            this.#enableObject(value);
+            return this.#enableObject(value);
         }
+
+        return value;
     }
 
     public checkDisable(value: unknown) {
@@ -15,20 +20,22 @@ class Context extends Destroyable {
         }
     }
 
-    #enableObject(o: object) {
-        for (const key of Object.keys(o)) {
-            if (!(o[key] instanceof IValue)) {
-                o[key] = this.#ctx.register(new Reference(o[key]));
-            }
+    #enableObject<T extends object>(o: T): T {
+        if (symbol in o) {
+            this.#ctx.register(o[symbol] as Destroyable);
+
+            return o;
         }
+        const ref = new ProxyReference(undefined);
+
+        o[symbol] = ref;
+        this.#ctx.register(ref);
+
+        return proxyObject(o, ref) as T;
     }
 
     #disableObject(o: object) {
-        for (const key of Object.keys(o)) {
-            if (o[key] instanceof IValue) {
-                this.#ctx.release(o[key]);
-            }
-        }
+        this.#ctx.release(o[symbol]);
     }
 
     public destroy(): void {
@@ -43,8 +50,8 @@ export class ContextArray<T> extends ArrayModel<T> {
         const ctx = new Context();
 
         if (data instanceof Array) {
-            for (const item of data) {
-                ctx.checkEnable(item);
+            for (let i = 0; i < data.length; i++) {
+                data[i] = ctx.checkEnable(data[i]);
             }
         }
 
@@ -53,7 +60,7 @@ export class ContextArray<T> extends ArrayModel<T> {
     }
 
     public fill(value: T, start?: number, end?: number): this {
-        this.ctx.checkEnable(value);
+        value = this.ctx.checkEnable(value);
 
         return super.fill(value, start, end);
     }
@@ -66,8 +73,8 @@ export class ContextArray<T> extends ArrayModel<T> {
     }
 
     public push(...items: Array<T>): number {
-        for (const item of items) {
-            this.ctx.checkEnable(item);
+        for (let i = 0; i < items.length; i++) {
+            items[i] = this.ctx.checkEnable(items[i]);
         }
         return super.push(...items);
     }
@@ -80,8 +87,8 @@ export class ContextArray<T> extends ArrayModel<T> {
     }
 
     public splice(start: number, deleteCount?: number | undefined, ...items: T[]): ArrayModel<T> {
-        for (const item of items) {
-            this.ctx.checkEnable(item);
+        for (let i = 0; i < items.length; i++) {
+            items[i] = this.ctx.checkEnable(items[i]);
         }
 
         const removed = super.splice(start, deleteCount, ...items);
@@ -94,8 +101,8 @@ export class ContextArray<T> extends ArrayModel<T> {
     }
 
     public unshift(...items: T[]): number {
-        for (const item of items) {
-            this.ctx.checkEnable(item);
+        for (let i = 0; i < items.length; i++) {
+            items[i] = this.ctx.checkEnable(items[i]);
         }
 
         return super.unshift(...items);
@@ -103,7 +110,7 @@ export class ContextArray<T> extends ArrayModel<T> {
 
     public replace(at: number, with_: T): this {
         this.ctx.checkDisable(this[at]);
-        this.ctx.checkEnable(with_);
+        with_ = this.ctx.checkEnable(with_);
 
         return super.replace(at, with_);
     }
@@ -122,7 +129,7 @@ export class ContextMap<K, T> extends MapModel<K, T> {
 
         if (map) {
             for (const item of map) {
-                ctx.checkEnable(item[1]);
+                item[1] = ctx.checkEnable(item[1]);
             }
         }
         super(map);
@@ -145,7 +152,7 @@ export class ContextMap<K, T> extends MapModel<K, T> {
 
     public set(key: K, value: T): this {
         this.ctx.checkDisable(this.get(key));
-        this.ctx.checkEnable(value);
+        value = this.ctx.checkEnable(value);
 
         return super.set(key, value);
     }
@@ -163,8 +170,8 @@ export class ContextSet<T> extends SetModel<T> {
         const ctx = new Context();
 
         if (set) {
-            for (const item of set) {
-                ctx.checkEnable(item);
+            for (let i = 0; i < set.length; i++) {
+                set[i] = ctx.checkEnable(set[i]);
             }
         }
 
@@ -173,7 +180,7 @@ export class ContextSet<T> extends SetModel<T> {
     }
 
     public add(value: T): this {
-        this.ctx.checkEnable(value);
+        value = this.ctx.checkEnable(value);
 
         return super.add(value);
     }

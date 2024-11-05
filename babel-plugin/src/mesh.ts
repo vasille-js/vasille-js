@@ -5,18 +5,6 @@ import { Internal, VariableState } from "./internal";
 import { bodyHasJsx } from "./jsx-detect";
 import { exprCall, forwardOnlyExpr, own, parseCalculateCall, ref } from "./lib";
 
-function propertyPath(expr: types.MemberExpression | types.OptionalMemberExpression) {
-    const props: types.Expression[] = [];
-    let o: types.Expression = expr;
-
-    while (t.isMemberExpression(o) && t.isExpression(o.property)) {
-        props.unshift(o.property);
-        o = o.object;
-    }
-
-    return [o, props] as const;
-}
-
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
     nodePaths: NodePath<types.Expression | null | T>[],
     internal: Internal,
@@ -889,6 +877,50 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
 
                         internal.stack.set(id.name, VariableState.Reactive);
                         declaration.get("init").replaceWith(ref(t.isExpression(argument) ? argument : null));
+                    } else if (t.isObjectExpression(init)) {
+                        if (kind !== "const") {
+                            declaration.buildCodeFrameError(`Vasille: Objects must be must be declared as constants`);
+                        }
+                        declaration
+                            .get("init")
+                            .replaceWith(
+                                t.callExpression(t.memberExpression(internal.id, t.identifier("ro")), [
+                                    t.thisExpression(),
+                                    init,
+                                ]),
+                            );
+                        internal.stack.set(id.name, VariableState.ReactiveObject);
+                    } else if (t.isArrayExpression(init)) {
+                        if (kind !== "const") {
+                            declaration.buildCodeFrameError(`Vasille: Arrays must be must be declared as constants`);
+                        }
+                        declaration
+                            .get("init")
+                            .replaceWith(
+                                t.callExpression(t.memberExpression(internal.id, t.identifier("am")), [
+                                    t.thisExpression(),
+                                    init,
+                                ]),
+                            );
+                    } else if (t.isNewExpression(init) && t.isIdentifier(init.callee)) {
+                        if (init.callee.name === "Map" || init.callee.name === "Set") {
+                            if (kind !== "const") {
+                                declaration.buildCodeFrameError(
+                                    `Vasille: ${init.callee.name === "Map" ? "Maps" : "Sets"} must be declared as constants`,
+                                );
+                            }
+                            declaration
+                                .get("init")
+                                .replaceWith(
+                                    t.callExpression(
+                                        t.memberExpression(
+                                            internal.id,
+                                            t.identifier(init.callee.name === "Map" ? "mm" : "sm"),
+                                        ),
+                                        [t.thisExpression(), ...init.arguments],
+                                    ),
+                                );
+                        }
                     } else if (declares === VariableState.Reactive) {
                         const replaceWith = forwardOnlyExpr(declaration.get("init"), declaration.node.init, internal);
 

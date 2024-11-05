@@ -1,16 +1,16 @@
 import { IValue, Reactive, Reference } from "vasille";
 import { ensureIValue } from "./library";
 
-class ProxyReference extends Reference<unknown> {
+export class ProxyReference extends Reference<unknown> {
     public forceUpdate() {
         this.updateDeps(this.state);
     }
 }
 
-function proxyObject(obj: object, proxyRef: ProxyReference) {
+export function proxyObject(obj: object, proxyRef: ProxyReference) {
     return new Proxy(obj, {
         get(target: object, p: string | symbol, receiver: any): any {
-            return proxy(Reflect.get(target, p, receiver), proxyRef);
+            return proxyObject(Reflect.get(target, p, receiver), proxyRef);
         },
         set(target: object, p: string | symbol, newValue: any, receiver: any): boolean {
             const response = Reflect.set(target, p, newValue, receiver);
