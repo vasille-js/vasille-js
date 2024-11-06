@@ -1,4 +1,4 @@
-import { IValue, proxyArrayModel, Reactive, KindOfIValue, Expression, Pointer } from "vasille";
+import { IValue, proxyArrayModel, Reactive, KindOfIValue, Expression, Pointer, Reference } from "vasille";
 import { reactiveObject } from "./objects";
 import { ContextArray, ContextMap, ContextSet } from "./models";
 
@@ -10,6 +10,9 @@ export const internal = {
     /** create a forward-only pointer (without context), use for OwningPointer */
     fo<T>(v: IValue<T>): IValue<T> {
         return new Pointer(v);
+    },
+    r<T>(v: T): IValue<T> {
+        return new Reference(v);
     },
     /**
      * translate `{...}` to `$.ro(this, {...})`

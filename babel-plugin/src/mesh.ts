@@ -1060,8 +1060,12 @@ export function compose(
             internal.stack.set(target.name, VariableState.ReactiveObject);
         } else if (t.isObjectPattern(target)) {
             for (const prop of target.properties) {
-                if (t.isObjectProperty(prop) && t.isIdentifier(prop.value)) {
-                    internal.stack.set(prop.value.name, VariableState.Reactive);
+                if (t.isObjectProperty(prop)) {
+                    if (t.isIdentifier(prop.value)) {
+                        internal.stack.set(prop.value.name, VariableState.Reactive);
+                    } else if (t.isIdentifier(prop.key)) {
+                        internal.stack.set(prop.key.name, VariableState.Reactive);
+                    }
                 } else if (t.isRestElement(prop) && t.isIdentifier(prop.argument)) {
                     internal.stack.set(prop.argument.name, VariableState.ReactiveObject);
                 }
@@ -1070,6 +1074,26 @@ export function compose(
             throw path
                 .get("params")[0]
                 .buildCodeFrameError("Vasille: Parameter must be an identifier of object pattern");
+        }
+    }
+
+    for (const param of path.get("params")) {
+        if (t.isObjectPattern(param.node)) {
+            for (const prop of (param as NodePath<types.ObjectPattern>).get("properties")) {
+                if (t.isObjectProperty(prop.node) && t.isAssignmentPattern(prop.node.value)) {
+                    const assignPath = (prop as NodePath<types.ObjectProperty>).get(
+                        "value",
+                    ) as NodePath<types.AssignmentPattern>;
+
+                    assignPath
+                        .get("right")
+                        .replaceWith(
+                            t.callExpression(t.memberExpression(internal.id, t.identifier("r")), [
+                                assignPath.node.right,
+                            ]),
+                        );
+                }
+            }
         }
     }
 
