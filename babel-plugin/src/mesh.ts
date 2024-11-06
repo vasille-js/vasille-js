@@ -3,7 +3,17 @@ import * as t from "@babel/types";
 import { calls, composeOnly } from "./call";
 import { Internal, VariableState } from "./internal";
 import { bodyHasJsx } from "./jsx-detect";
-import { exprCall, forwardOnlyExpr, own, parseCalculateCall, ref } from "./lib";
+import {
+    arrayModel,
+    exprCall,
+    forwardOnlyExpr,
+    mapModel,
+    own,
+    parseCalculateCall,
+    reactiveObject,
+    ref,
+    setModel,
+} from "./lib";
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
     nodePaths: NodePath<types.Expression | null | T>[],
@@ -190,9 +200,12 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
         case "OptionalMemberExpression": {
             const path = nodePath as NodePath<types.MemberExpression | types.OptionalMemberExpression>;
             const node = path.node;
+            const property = path.node.property;
 
             meshExpression(path.get("object"), internal);
-            meshOrIgnoreExpression<types.PrivateName>(path.get("property"), internal);
+            if (t.isExpression(property) && !t.isIdentifier(property)) {
+                meshOrIgnoreExpression<types.PrivateName>(path.get("property"), internal);
+            }
 
             if (t.isIdentifier(node.object) && internal.stack.get(node.object.name) === VariableState.ReactiveObject) {
                 path.replaceWith(t.memberExpression(node, t.identifier("$")));
@@ -696,6 +709,21 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
                     );
                     replaced = true;
                 }
+            } else if (calls(call, ["arrayModel"], internal)) {
+                const value = call.arguments[0];
+
+                if (t.isArrayExpression(value)) {
+                    path.replaceWith(arrayModel(value, internal));
+                    replaced = true;
+                } else {
+                    path.buildCodeFrameError(`Vasille: arrayModel requires array expression as argument`);
+                }
+            } else if (calls(call, ["mapModel", "setModel"], internal)) {
+                const args = call.arguments;
+                const name = calls(call, ["mapModel", "setModel"], internal);
+
+                path.replaceWith(name === "mapModel" ? mapModel(args, internal) : setModel(args, internal));
+                replaced = true;
             }
             if (!replaced) {
                 meshExpression(path, internal);
@@ -877,31 +905,60 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
 
                         internal.stack.set(id.name, VariableState.Reactive);
                         declaration.get("init").replaceWith(ref(t.isExpression(argument) ? argument : null));
+                    } else if (calls(init, ["reactiveObject"], internal)) {
+                        const value = (init as types.CallExpression).arguments[0];
+
+                        if (kind !== "const") {
+                            declaration.buildCodeFrameError(
+                                `Vasille: Reactive objects must be must be declared as constants`,
+                            );
+                        }
+                        if (t.isObjectExpression(value)) {
+                            declaration.get("init").replaceWith(reactiveObject(value, internal));
+                            internal.stack.set(id.name, VariableState.ReactiveObject);
+                        } else {
+                            declaration.buildCodeFrameError(
+                                `Vasille: reactiveObject requires object expression as argument`,
+                            );
+                        }
+                    } else if (calls(init, ["arrayModel"], internal)) {
+                        const value = (init as types.CallExpression).arguments[0];
+
+                        if (kind !== "const") {
+                            declaration.buildCodeFrameError(
+                                `Vasille: Array models must be must be declared as constants`,
+                            );
+                        }
+                        if (t.isArrayExpression(value)) {
+                            declaration.get("init").replaceWith(arrayModel(value, internal));
+                        } else {
+                            declaration.buildCodeFrameError(
+                                `Vasille: arrayModel requires array expression as argument`,
+                            );
+                        }
+                    } else if (calls(init, ["mapModel", "setModel"], internal)) {
+                        const args = (init as types.CallExpression).arguments;
+                        const name = calls(init, ["mapModel", "setModel"], internal);
+
+                        if (kind !== "const") {
+                            declaration.buildCodeFrameError(
+                                `Vasille: ${name === "mapModel" ? "Map" : "Set"} models must be declared as constants`,
+                            );
+                        }
+                        declaration
+                            .get("init")
+                            .replaceWith(name === "mapModel" ? mapModel(args, internal) : setModel(args, internal));
                     } else if (t.isObjectExpression(init)) {
                         if (kind !== "const") {
                             declaration.buildCodeFrameError(`Vasille: Objects must be must be declared as constants`);
                         }
-                        declaration
-                            .get("init")
-                            .replaceWith(
-                                t.callExpression(t.memberExpression(internal.id, t.identifier("ro")), [
-                                    t.thisExpression(),
-                                    init,
-                                ]),
-                            );
+                        declaration.get("init").replaceWith(reactiveObject(init, internal));
                         internal.stack.set(id.name, VariableState.ReactiveObject);
                     } else if (t.isArrayExpression(init)) {
                         if (kind !== "const") {
                             declaration.buildCodeFrameError(`Vasille: Arrays must be must be declared as constants`);
                         }
-                        declaration
-                            .get("init")
-                            .replaceWith(
-                                t.callExpression(t.memberExpression(internal.id, t.identifier("am")), [
-                                    t.thisExpression(),
-                                    init,
-                                ]),
-                            );
+                        declaration.get("init").replaceWith(arrayModel(init, internal));
                     } else if (t.isNewExpression(init) && t.isIdentifier(init.callee)) {
                         if (init.callee.name === "Map" || init.callee.name === "Set") {
                             if (kind !== "const") {
@@ -912,13 +969,9 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
                             declaration
                                 .get("init")
                                 .replaceWith(
-                                    t.callExpression(
-                                        t.memberExpression(
-                                            internal.id,
-                                            t.identifier(init.callee.name === "Map" ? "mm" : "sm"),
-                                        ),
-                                        [t.thisExpression(), ...init.arguments],
-                                    ),
+                                    init.callee.name === "Map"
+                                        ? mapModel(init.arguments, internal)
+                                        : setModel(init.arguments, internal),
                                 );
                         }
                     } else if (declares === VariableState.Reactive) {

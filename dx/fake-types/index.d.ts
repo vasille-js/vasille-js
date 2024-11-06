@@ -26,6 +26,10 @@ declare function value<T>(v: T): T;
 declare function ref<T>(v: T): T;
 declare function bind<T>(v: T): T;
 declare function calculate<T>(fn: () => T): T;
+declare function arrayModel<T>(v?: T[]) : T[] & { destroy(): void };
+declare function setModel<T>(v?: T[]): Set<T> & { destroy(): void };
+declare function mapModel<K, T>(v?: [K, T][]): Map<K, T> & { destroy(): void };
+declare function reactiveObject<T extends object>(o: T): T;
 
 declare function Adapter(
   props: { node: Fragment; slot?: unknown }

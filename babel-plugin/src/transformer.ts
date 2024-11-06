@@ -4,7 +4,17 @@ import { Internal, StackedStates, VariableState } from "./internal";
 import { meshExpression, meshStatement } from "./mesh";
 
 const imports = new Map([["vasille-dx", "VasilleDX"]]);
-const ignoreMembers = new Set(["value", "ref", "bind", "calculate", "watch"]);
+const ignoreMembers = new Set([
+    "value",
+    "ref",
+    "bind",
+    "calculate",
+    "watch",
+    "arrayModel",
+    "mapModel",
+    "reactiveObject",
+    "setModel",
+]);
 
 function extractText(node: types.Identifier | types.StringLiteral) {
     return t.isIdentifier(node) ? node.name : node.value;

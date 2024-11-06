@@ -116,3 +116,22 @@ export function own(expr: types.Expression) {
 export function ref(expr: types.Expression | null | undefined) {
     return t.callExpression(t.memberExpression(t.thisExpression(), t.identifier("ref")), expr ? [expr] : []);
 }
+
+export function reactiveObject(init: types.Expression, internal: Internal) {
+    return t.callExpression(t.memberExpression(internal.id, t.identifier("ro")), [t.thisExpression(), init]);
+}
+
+export function arrayModel(init: types.Expression | null | undefined, internal: Internal) {
+    return t.callExpression(t.memberExpression(internal.id, t.identifier("am")), [
+        t.thisExpression(),
+        ...(init ? [init] : []),
+    ]);
+}
+
+export function setModel(args: types.CallExpression["arguments"], internal: Internal) {
+    return t.callExpression(t.memberExpression(internal.id, t.identifier("sm")), [t.thisExpression(), ...args]);
+}
+
+export function mapModel(args: types.CallExpression["arguments"], internal: Internal) {
+    return t.callExpression(t.memberExpression(internal.id, t.identifier("mm")), [t.thisExpression(), ...args]);
+}
