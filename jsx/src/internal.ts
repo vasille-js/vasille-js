@@ -1,8 +1,17 @@
-import { IValue, proxyArrayModel, Reactive, KindOfIValue, Expression, Pointer, Reference } from "vasille";
+import { IValue, proxyArrayModel, Reactive, KindOfIValue, Expression, Pointer, Reference, Fragment } from "vasille";
 import { reactiveObject } from "./objects";
 import { ContextArray, ContextMap, ContextSet } from "./models";
 
 export const internal = {
+    t(frag: Fragment, expr: unknown) {
+        if (typeof expr === "function") {
+            expr = expr.call(frag);
+        }
+
+        if (expr) {
+            frag.text(expr);
+        }
+    },
     /** create an expresion (without context), use for OwningPointer */
     ex<T, Args extends unknown[]>(func: (...args: Args) => T, ...values: KindOfIValue<Args>) {
         return new Expression(func, ...values);

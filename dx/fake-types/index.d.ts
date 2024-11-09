@@ -1,5 +1,6 @@
 import type { Fragment, IValue } from "vasille";
 import type {HtmlTagMap, TagNameMap, SvgTagNameMap, SvgTagMap} from "vasille-jsx";
+import type {StandardPropertiesHyphen, VendorPropertiesHyphen, ObsoletePropertiesHyphen, SvgPropertiesHyphen} from 'csstype';
 
 
 
@@ -73,7 +74,7 @@ declare function Debug(
 ): void;
 
 declare function Mount(
-  mount: { bind: unknown }
+  props: { bind: unknown }
 ): void;
 
 declare function Show(
@@ -104,21 +105,21 @@ type prefixedObject<T, P extends string> = {
 
 type HtmlInput<K extends keyof HTMLElementTagNameMap> = {
     callback?: (node: HTMLElementTagNameMap[K]) => unknown,
-    class?: (string | Record<string, boolean>)[];
-    style?: Record<string, string | number | number[]>;
+    class?: (string | Record<string, boolean> | false)[] | string;
+    style?: StandardPropertiesHyphen<number | number[], string> & VendorPropertiesHyphen & ObsoletePropertiesHyphen;
     slot?: unknown;
 } & Partial<HtmlTagMap[K]['attrs']> & prefixedObject<
     HtmlTagMap[K]['events'], 'on'
-> & prefixedObject<TagNameMap[K], 'node:'>;
+> & {[K in `bind:${string}`]?: unknown};
 
 type SvgInput<K extends keyof SVGElementTagNameMap> = {
     callback?: (node: SVGElementTagNameMap[K]) => unknown
-    class?: (string | Record<string, boolean>)[];
-    style?: Record<string, string | number | number[]>;
+    class?: (string | Record<string, boolean> | false)[] | string;
+    style?: SvgPropertiesHyphen;
     slot?: unknown;
 } & Partial<SvgTagMap[K]["attrs"]> & prefixedObject<
     SvgTagMap[K]['events'], 'on'
-> & prefixedObject<SvgTagNameMap[K], 'node:'>
+> & {[K in `bind:${string}`]?: unknown};
 
 // document.createElement()
 

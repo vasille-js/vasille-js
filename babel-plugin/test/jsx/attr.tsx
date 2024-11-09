@@ -1,6 +1,7 @@
 import { compose } from "vasille-dx";
 
 export const C = compose(() => {
-  const compose = () => 3;
-  const sum = compose() + 2;
+  let a = "a";
+
+  <div dir="ltr" data-let={a} />;
 });

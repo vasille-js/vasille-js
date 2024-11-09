@@ -1,5 +1,5 @@
 import { compose } from "vasille-dx";
-export const C = compose(function VasilleDX_C() {
+export const C = compose(function VasilleDX_C(Vasille) {
   function compose() {
     return 3;
   }

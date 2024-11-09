@@ -25,6 +25,7 @@
   "author": "lixcode",
   "license": "MIT",
   "dependencies": {
+    "csstype": "^3.1.3",
     "vasille": "file:../core",
     "vasille-jsx": "file:../jsx"
   },

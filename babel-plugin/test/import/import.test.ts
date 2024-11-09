@@ -1,25 +1,25 @@
 import { runTest } from "../run-test";
 
 it("global import", function () {
-    runTest(__dirname, "global");
+  runTest(__dirname, "global");
 });
 
 it("selective import", function () {
-    runTest(__dirname, "selective");
+  runTest(__dirname, "selective");
 });
 
 it("override global", function () {
-    runTest(__dirname, "override-global");
+  runTest(__dirname, "override-global");
 });
 
 it("override by let", function () {
-    runTest(__dirname, "override-by-let");
+  runTest(__dirname, "override-by-let");
 });
 
 it("override by function", function () {
-    runTest(__dirname, "override-by-function");
+  runTest(__dirname, "override-by-function");
 });
 
 it("override by function expression", function () {
-    runTest(__dirname, "override-by-fn-expr");
+  runTest(__dirname, "override-by-fn-expr");
 });

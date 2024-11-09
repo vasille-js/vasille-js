@@ -5,125 +5,92 @@ import { meshExpression, meshStatement } from "./mesh";
 
 const imports = new Map([["vasille-dx", "VasilleDX"]]);
 const ignoreMembers = new Set([
-    "value",
-    "ref",
-    "bind",
-    "calculate",
-    "watch",
-    "arrayModel",
-    "mapModel",
-    "reactiveObject",
-    "setModel",
+  "value",
+  "ref",
+  "bind",
+  "calculate",
+  "watch",
+  "arrayModel",
+  "mapModel",
+  "reactiveObject",
+  "setModel",
 ]);
 
 function extractText(node: types.Identifier | types.StringLiteral) {
-    return t.isIdentifier(node) ? node.name : node.value;
+  return t.isIdentifier(node) ? node.name : node.value;
 }
 
-// function possibleModel(expr: types.Expression, internal: Internal) {
-//     if (t.isArrayExpression(expr)) {
-//         return t.callExpression(t.memberExpression(internal.id, t.identifier("am")), [
-//             t.arrayExpression(
-//                 expr.elements.map(item => {
-//                     if (t.isExpression(item)) {
-//                         return dereference(item, internal);
-//                     }
+export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
+  let id!: types.Expression;
+  const internal: Internal = {
+    get id() {
+      this.internalUsed = true;
 
-//                     if (t.isSpreadElement(item)) {
-//                         return t.spreadElement(dereference(item.argument, internal));
-//                     }
+      return id;
+    },
+    set id(expr: types.Expression) {
+      id = expr;
+    },
+    stack: new StackedStates(),
+    mapping: new Map<string, string>(),
+    global: "",
+    prefix: "Vasille_",
+    importStatement: null,
+    internalUsed: false,
+    devMode: devMode,
+  };
 
-//                     return item;
-//                 }),
-//             ),
-//         ]);
-//     }
-//     if (t.isNewExpression(expr)) {
-//         if (t.isIdentifier(expr.callee) && (expr.callee.name === "Set" || expr.callee.name === "Map")) {
-//             const arg = expr.arguments[0];
+  for (const statementPath of path.get("body")) {
+    const statement = statementPath.node;
 
-//             return t.callExpression(
-//                 t.memberExpression(internal.id, t.identifier(expr.callee.name === "Set" ? "sm" : "mm")),
-//                 expr.arguments.map(item => {
-//                     return dereferenceArg(item, internal);
-//                 }),
-//             );
-//         }
-//     }
+    if (t.isImportDeclaration(statement)) {
+      const name = imports.get(statement.source.value);
 
-//     return dereference(expr, internal);
-// }
+      if (name) {
+        internal.prefix = `${name}_`;
 
-export function trProgram(path: NodePath<types.Program>, noConflict: boolean) {
-    let id!: types.Expression;
-    const internal: Internal = {
-        get id() {
-            this.internalUsed = true;
+        for (const specifier of statement.specifiers) {
+          if (t.isImportNamespaceSpecifier(specifier)) {
+            internal.global = specifier.local.name;
+            id = t.memberExpression(t.identifier(internal.global), t.identifier("$"));
+          } else if (t.isImportSpecifier(specifier)) {
+            const imported = extractText(specifier.imported);
+            const local = specifier.local.name;
 
-            return id;
-        },
-        set id(expr: types.Expression) {
-            id = expr;
-        },
-        stack: new StackedStates(),
-        mapping: new Map<string, string>(),
-        global: "",
-        prefix: "Vasille_",
-        importStatement: null,
-        internalUsed: false,
-    };
+            internal.mapping.set(local, imported);
 
-    for (const statementPath of path.get("body")) {
-        const statement = statementPath.node;
-
-        if (t.isImportDeclaration(statement)) {
-            const name = imports.get(statement.source.value);
-
-            if (name) {
-                internal.prefix = `${name}_`;
-
-                for (const specifier of statement.specifiers) {
-                    if (t.isImportNamespaceSpecifier(specifier)) {
-                        internal.global = specifier.local.name;
-                        id = t.memberExpression(t.identifier(internal.global), t.identifier("$"));
-                    } else if (t.isImportSpecifier(specifier)) {
-                        const imported = extractText(specifier.imported);
-                        const local = specifier.local.name;
-
-                        internal.mapping.set(local, imported);
-
-                        if (!id) {
-                            id = t.identifier(noConflict ? name : "$");
-                        }
-                        internal.importStatement = statementPath as NodePath<types.ImportDeclaration>;
-                    }
-                }
-                statement.specifiers = statement.specifiers.filter(spec => {
-                    if (!t.isImportSpecifier(spec)) {
-                        return true;
-                    } else {
-                        return !ignoreMembers.has(extractText(spec.imported));
-                    }
-                });
-            }
-        } else {
             if (!id) {
-                return;
+              id = t.identifier(name);
             }
-
-            meshStatement(statementPath, internal);
+            internal.importStatement = statementPath as NodePath<types.ImportDeclaration>;
+          }
         }
-    }
+        statement.specifiers = statement.specifiers.filter(spec => {
+          if (!t.isImportSpecifier(spec)) {
+            return true;
+          } else {
+            return !ignoreMembers.has(extractText(spec.imported));
+          }
+        });
+      }
+    } else {
+      if (!id) {
+        return;
+      }
 
-    if (internal.internalUsed && !internal.global && internal.importStatement) {
-        const statementPath = internal.importStatement;
-        const statement = statementPath.node;
-
-        statementPath.replaceWith(
-            t.importDeclaration(
-                [...statement.specifiers, t.importSpecifier(internal.id as types.Identifier, t.identifier("$"))],
-                statement.source,
-            ),
-        );
+      meshStatement(statementPath, internal);
     }
+  }
+
+  if (internal.internalUsed && !internal.global && internal.importStatement) {
+    const statementPath = internal.importStatement;
+    const statement = statementPath.node;
+
+    statementPath.replaceWith(
+      t.importDeclaration(
+        [...statement.specifiers, t.importSpecifier(internal.id as types.Identifier, t.identifier("$"))],
+        statement.source,
+      ),
+    );
+  }
 }

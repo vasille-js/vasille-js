@@ -1,5 +1,5 @@
 import { compose } from "vasille-dx";
 
 export const C = compose(() => {
-    let a = 3;
+  let a = 3;
 });
