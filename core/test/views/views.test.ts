@@ -7,12 +7,12 @@ it("array view", function () {
     let element!: Element;
 
     root.register(array);
-    root.tag("div", { callback: node => (element = node) }, function () {
-        this.create(
+    root.tag("div", { callback: node => (element = node) }, function (tag) {
+        tag.create(
             new ArrayView({
                 model: array,
-                slot: function (item) {
-                    this.text(`${item}`);
+                slot: function (f, item) {
+                    f.text(`${item}`);
                 },
             }),
         );
@@ -81,12 +81,12 @@ it("map view", function () {
     let element!: HTMLElement;
 
     root.register(model);
-    root.tag("div", { callback: node => (element = node as HTMLElement) }, function () {
-        this.create(
+    root.tag("div", { callback: node => (element = node as HTMLElement) }, function (tag) {
+        tag.create(
             new MapView({
                 model,
-                slot: function (item) {
-                    this.text(`${item}`);
+                slot: function (f, item) {
+                    f.text(`${item}`);
                 },
             }),
         );
@@ -112,12 +112,12 @@ it("set view", function () {
     let element!: HTMLElement;
 
     root.register(model);
-    root.tag("div", { callback: node => (element = node as HTMLElement) }, function () {
-        this.create(
+    root.tag("div", { callback: node => (element = node as HTMLElement) }, function (f) {
+        f.create(
             new SetView({
                 model,
-                slot: function (item) {
-                    this.text(`${item}`);
+                slot: function (f, item) {
+                    f.text(`${item}`);
                 },
             }),
         );
@@ -143,13 +143,13 @@ it("view timeout test", function (done) {
     global.window = page.window;
 
     root.register(model);
-    root.tag("div", { callback: node => (element = node as HTMLElement) }, function () {
-        this.create(
+    root.tag("div", { callback: node => (element = node as HTMLElement) }, function (f) {
+        f.create(
             new SetView({
                 model,
-                slot: function (item) {
+                slot: function (f, item) {
                     setTimeout(() => {
-                        this.text(`${item}`);
+                        f.text(`${item}`);
                     }, 0);
                 },
             }),
@@ -179,12 +179,12 @@ it("view item id test", function () {
     let run = false;
 
     root.register(model);
-    root.tag("div", {}, function () {
-        this.create(
+    root.tag("div", {}, function (f) {
+        f.create(
             new SetView({
                 model,
-                slot: function (item) {
-                    expect(this.name).toBe(id);
+                slot: function (f, item) {
+                    expect(f.name).toBe(id);
                     run = true;
                 },
             }),

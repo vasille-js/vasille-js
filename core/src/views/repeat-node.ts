@@ -3,7 +3,7 @@ import { Fragment, Root } from "../node/node";
 
 // RNO = RepeatNodeOptions
 export interface RepeatNodeOptions<T, IdT> {
-    slot?: (this: Fragment, value: T, index: IdT) => void;
+    slot?: (ctx: Fragment, value: T, index: IdT) => void;
 }
 
 /**
@@ -47,7 +47,7 @@ export class RepeatNode<
 
         this.lastChild = node;
 
-        opts.slot && opts.slot.call(node, item, id);
+        opts.slot && opts.slot(node, item, id);
 
         this.nodes.set(id, node);
     }

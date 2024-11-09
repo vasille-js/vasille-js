@@ -1,5 +1,5 @@
 import { ArrayModel, Listener, MapModel, SetModel } from "../../src";
-import { proxyArrayModel } from "../../src/models/array-model";
+import { proxyArrayModel } from "../../src";
 
 it("listener", function () {
     const listener = new Listener<number, number>();

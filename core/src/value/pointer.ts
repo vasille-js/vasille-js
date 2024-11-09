@@ -50,13 +50,13 @@ export class Pointer<T> extends IValue<T> {
     }
 
     public set $$(v: T | IValue<T>) {
+        if (this.target !== v) {
+            this.disconnectTarget();
+        }
         if (v instanceof IValue) {
-            if (this.target !== v) {
-                this.disconnectTarget();
-                this.target = v;
-                this.target.on(this.handler);
-                this.reference.$ = v.$;
-            }
+            this.target = v;
+            this.target.on(this.handler);
+            this.reference.$ = v.$;
         } else {
             this.$ = v;
         }

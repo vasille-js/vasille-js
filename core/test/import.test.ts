@@ -12,7 +12,6 @@ import {
     Listener,
     MapModel,
     MapView,
-    Mirror,
     Pointer,
     Reactive,
     Reference,
@@ -35,11 +34,8 @@ class BindingTest extends Binding<any> {
 }
 
 it("import test", function () {
-    const destroyable = new Destroyable();
-    const ivalue = new IValue();
-    const ref = new Reference(ivalue);
-    const mirror = new Mirror(ref);
-    const point = new Pointer(mirror);
+    const ref = new Reference(1);
+    const point = new Pointer(ref);
     const array = new ArrayModel();
     const map = new MapModel();
     const set = new SetModel();
@@ -55,9 +51,26 @@ it("import test", function () {
     const app = new App(page.window.document.body, {});
     const expr = new Expression(v => v, ref);
     const binding = new BindingTest(ref);
-    const reactive = new Reactive({});
     const portal = new Portal({ node: page.window.document.body });
-    const watch = new Watch({ model: ivalue });
+    const watch = new Watch({ model: ref });
 
+    expect(ref instanceof IValue).toBe(true);
+    expect(point instanceof IValue).toBe(true);
+    expect(array instanceof Array).toBe(true);
+    expect(map instanceof Map).toBe(true);
+    expect(set instanceof Set).toBe(true);
+    expect(baseView instanceof Fragment).toBe(true);
+    expect(arrayView instanceof Fragment).toBe(true);
+    expect(mapView instanceof Fragment).toBe(true);
+    expect(setView instanceof Fragment).toBe(true);
+    expect(fragment instanceof Reactive).toBe(true);
+    expect(inode instanceof Fragment).toBe(true);
+    expect(tag instanceof Fragment).toBe(true);
+    expect(ext instanceof Fragment).toBe(true);
+    expect(app instanceof Reactive).toBe(true);
+    expect(expr instanceof IValue).toBe(true);
+    expect(binding instanceof Destroyable).toBe(true);
+    expect(portal instanceof Fragment).toBe(true);
+    expect(watch instanceof Fragment).toBe(true);
     expect(userError("msg", "e")).toBe("e");
 });

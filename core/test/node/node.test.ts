@@ -24,34 +24,34 @@ it("Tag", function () {
     const root = new App(page.window.document.body, { debugUi: true });
     const text = new Reference("test");
 
-    root.tag("div", {}, function () {
-        this.text(text);
-        expect(this.element.childNodes.length).toBe(1);
-        expect(this.element.innerHTML.trim()).toBe("test");
+    root.tag("div", {}, function (div) {
+        div.text(text);
+        expect(div.element.childNodes.length).toBe(1);
+        expect(div.element.innerHTML.trim()).toBe("test");
         text.$ = "new";
-        expect(this.element.innerHTML.trim()).toBe("new");
+        expect(div.element.innerHTML.trim()).toBe("new");
 
-        this.text("test");
-        expect(this.element.childNodes[1] instanceof page.window.Text).toBe(true);
-        expect(this.element.childNodes[1].textContent).toBe("test");
-        this.debug(new Reference<string>("debug"));
-        expect(this.element.childNodes.length).toBe(3);
-        expect(this.element.childNodes[2] instanceof page.window.Comment).toBe(true);
-        expect(this.element.childNodes[2].textContent).toBe("debug");
+        div.text("test");
+        expect(div.element.childNodes[1] instanceof page.window.Text).toBe(true);
+        expect(div.element.childNodes[1].textContent).toBe("test");
+        div.debug(new Reference<string>("debug"));
+        expect(div.element.childNodes.length).toBe(3);
+        expect(div.element.childNodes[2] instanceof page.window.Comment).toBe(true);
+        expect(div.element.childNodes[2].textContent).toBe("debug");
 
         const debugRef = new Reference<string | null>(null);
-        this.debug(debugRef);
-        expect(this.element.childNodes[3] instanceof page.window.Comment).toBe(true);
-        expect(this.element.childNodes[3].textContent).toBe("");
+        div.debug(debugRef);
+        expect(div.element.childNodes[3] instanceof page.window.Comment).toBe(true);
+        expect(div.element.childNodes[3].textContent).toBe("");
         debugRef.$ = "err";
-        expect(this.element.childNodes[3].textContent).toBe("err");
+        expect(div.element.childNodes[3].textContent).toBe("err");
 
         const textRef = new Reference<string | null>(null);
-        this.text(textRef);
-        expect(this.element.childNodes[4] instanceof page.window.Text).toBe(true);
-        expect(this.element.childNodes[4].textContent).toBe("");
+        div.text(textRef);
+        expect(div.element.childNodes[4] instanceof page.window.Text).toBe(true);
+        expect(div.element.childNodes[4].textContent).toBe("");
         textRef.$ = "ok";
-        expect(this.element.childNodes[4].textContent).toBe("ok");
+        expect(div.element.childNodes[4].textContent).toBe("ok");
     });
 
     root.destroy();
@@ -127,8 +127,7 @@ it("switch", function () {
 it("INode", function () {
     const root = new App(page.window.document.body, {});
 
-    root.create(new Fragment({}), function () {
-        const test = this;
+    root.create(new Fragment({}), function (test) {
         // attr
         (function () {
             const attrName = "data-attr";
@@ -202,18 +201,18 @@ it("INode", function () {
                     },
                     callback: node => (el = node as HTMLElement),
                 },
-                function () {
+                function (f) {
                     const error = "non-html-element";
 
-                    this.tag("circle", {}, function () {
+                    f.tag("circle", {}, function (f) {
                         // eslint-disable-next-line
                         // @ts-ignore
-                        this.node = document.createComment("test");
+                        f.node = document.createComment("test");
                         expect(() => {
-                            this.setStyle("display", "none");
+                            f.setStyle("display", "none");
                         }).toThrow(error);
                         expect(() => {
-                            this.style("--p", dyn);
+                            f.style("--p", dyn);
                         }).toThrow(error);
                     });
                 },
@@ -253,18 +252,18 @@ it("Extension test", function () {
             class: [{ xxx: true }],
             callback: node => (div = node as HTMLElement),
         },
-        function () {
-            this.create(new Fragment({}), function () {
+        function (f) {
+            f.create(new Fragment({}), function (f) {
                 const yyy = new Reference("yyy");
 
-                this.create(new MyExtension({}), function () {
-                    this.tag("div", {
+                f.create(new MyExtension({}), function (f) {
+                    f.tag("div", {
                         style: { display: "none" },
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         class: [yyy, { xxx: false }],
-                        slot: function () {
-                            this.setAttr("data-s", "s");
+                        slot: function (f) {
+                            f.setAttr("data-s", "s");
                         },
                     });
                 });
@@ -301,15 +300,15 @@ it("Mount/Show test", function () {
     const root = new App(page.window.document.body, {});
     let showEl!: HTMLElement;
 
-    root.tag("div", { callback: node => (showEl = node as HTMLElement) }, function () {
-        this.bindShow(show);
+    root.tag("div", { callback: node => (showEl = node as HTMLElement) }, function (f) {
+        f.bindShow(show);
 
-        this.tag("div", {}, function () {
-            this.bindMount(mount);
+        f.tag("div", {}, function (f) {
+            f.bindMount(mount);
         });
 
-        this.tag("div", {}, function () {
-            this.addClass("second");
+        f.tag("div", {}, function (f) {
+            f.addClass("second");
         });
 
         // exception test
@@ -406,15 +405,15 @@ it("Error handling", function () {
     const bool = new Reference(true);
     const text = new Reference("text");
 
-    root.tag("div", {}, function () {
+    root.tag("div", {}, function (f) {
         // eslint-disable-next-line
         // @ts-ignore
-        this.node = null;
-        expect(() => this.bindShow(bool)).toThrow("bind-show");
-        expect(() => this.bindDomApi("innerHtml", text)).toThrow("dom-error");
-        expect(() => this.else(() => 0)).toThrow("logic-error");
-        expect(() => this.elif(bool, () => 0)).toThrow("logic-error");
-        expect(() => this.tag("" as unknown as "a", {})).toThrow("internal-error");
+        f.node = null;
+        expect(() => f.bindShow(bool)).toThrow("bind-show");
+        expect(() => f.bindDomApi("innerHtml", text)).toThrow("dom-error");
+        expect(() => f.else(() => 0)).toThrow("logic-error");
+        expect(() => f.elif(bool, () => 0)).toThrow("logic-error");
+        expect(() => f.tag("" as unknown as "a", {})).toThrow("internal-error");
     });
 });
 
@@ -423,25 +422,25 @@ it("INode unmount/mount advanced", function () {
     const mount = new Reference(true);
     let body!: Element;
 
-    root.tag("div", { callback: node => (body = node) }, function () {
-        this.create(new Fragment({}), function () {
-            this.create(new Fragment({}), function () {
-                this.create(new Fragment({}), function () {
-                    this.tag("div", { class: ["0"] }, function () {
-                        this.bindMount(mount);
+    root.tag("div", { callback: node => (body = node) }, function (f) {
+        f.create(new Fragment({}), function (f) {
+            f.create(new Fragment({}), function (f) {
+                f.create(new Fragment({}), function (f) {
+                    f.tag("div", { class: ["0"] }, function (f) {
+                        f.bindMount(mount);
                     });
                 });
-                this.create(new Fragment({}));
+                f.create(new Fragment({}));
             });
-            this.create(new Fragment({}));
-            this.create(new Fragment({}), function () {
-                this.create(new Fragment({}), function () {
-                    this.create(new Fragment({}));
-                    this.tag("div", { class: ["1"] }, function () {
-                        this.bindMount(mount);
+            f.create(new Fragment({}));
+            f.create(new Fragment({}), function (f) {
+                f.create(new Fragment({}), function (f) {
+                    f.create(new Fragment({}));
+                    f.tag("div", { class: ["1"] }, function (f) {
+                        f.bindMount(mount);
                     });
-                    this.create(new Fragment({}), function () {
-                        this.tag("div", { class: ["2"] });
+                    f.create(new Fragment({}), function (f) {
+                        f.tag("div", { class: ["2"] });
                     });
                 });
             });
@@ -464,21 +463,21 @@ it("INode unmount/mount advanced 2", function () {
     const mount = new Reference(true);
     let body!: Element;
 
-    root.tag("div", { callback: node => (body = node) }, function () {
-        this.create(new Fragment({}), function () {
-            this.create(new Fragment({}), function () {
-                this.tag("div", { class: ["0"] }, function () {
-                    this.bindMount(mount);
+    root.tag("div", { callback: node => (body = node) }, function (div) {
+        div.create(new Fragment({}), function (frag) {
+            frag.create(new Fragment({}), function (f2) {
+                f2.tag("div", { class: ["0"] }, function (f) {
+                    f.bindMount(mount);
                 });
-                this.tag("div", { class: ["1"] }, function () {
-                    this.bindMount(mount);
+                f2.tag("div", { class: ["1"] }, function (f) {
+                    f.bindMount(mount);
                 });
-                this.tag("div", { class: ["2"] }, function () {
-                    this.bindMount(mount);
+                f2.tag("div", { class: ["2"] }, function (f) {
+                    f.bindMount(mount);
                 });
             });
-            this.create(new Fragment({}), function () {
-                this.tag("div", { class: ["3"] });
+            frag.create(new Fragment({}), function (f) {
+                f.tag("div", { class: ["3"] });
             });
         });
     });

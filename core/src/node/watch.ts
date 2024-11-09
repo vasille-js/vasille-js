@@ -3,7 +3,7 @@ import { IValue } from "../core/ivalue";
 
 interface WatchOptions<T> {
     model: IValue<T>;
-    slot?: (this: Fragment, value: T) => void;
+    slot?: (ctx: Fragment, value: T) => void;
 }
 /**
  * Watch Node
@@ -22,7 +22,7 @@ export class Watch<T> extends Fragment<WatchOptions<T>> {
             });
             this.children.clear();
             this.lastChild = undefined;
-            this.input.slot?.call(this, value);
+            this.input.slot?.(this, value);
         }, this.input.model);
     }
 }

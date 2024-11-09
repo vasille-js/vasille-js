@@ -80,7 +80,7 @@ export abstract class Root<T extends object = object> extends Reactive<T> {
      * @param input
      * @param cb {function(Tag, *)} callback
      */
-    public tag(tagName: string, input: TagOptionsWithSlot, cb?: (this: Tag) => void): void {
+    public tag(tagName: string, input: TagOptionsWithSlot, cb?: (ctx: Tag) => void): void {
         const tag = new Tag(input, tagName);
 
         input.slot = cb || input.slot;
@@ -93,10 +93,10 @@ export abstract class Root<T extends object = object> extends Reactive<T> {
      * @param node {Fragment} vasille element to insert
      * @param callback {function($ : *)}
      */
-    public create<T extends Fragment>(node: T, callback?: (this: T) => void): void {
+    public create<T extends Fragment>(node: T, callback?: (ctx: T) => void): void {
         this.pushNode(node);
         node.compose();
-        callback?.call(node);
+        callback?.(node);
     }
 
     /**
@@ -556,7 +556,7 @@ export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
 }
 
 export interface TagOptionsWithSlot extends TagOptions {
-    slot?: (this: Tag) => void;
+    slot?: (ctx: Tag) => void;
     callback?: (node: Element) => void;
 }
 
@@ -581,7 +581,7 @@ export class Tag extends INode<TagOptionsWithSlot> {
         this.applyOptions(this.input);
         this.parent.appendNode(node);
         this.input.callback?.(this.node);
-        this.input.slot?.call(this);
+        this.input.slot?.(this);
     }
 
     protected findFirstChild(): Node | undefined {
@@ -653,7 +653,7 @@ export class Extension extends Fragment {
         }
         if (parent instanceof Tag && parent.element.tagName.toLowerCase() === target) {
             parent.extent(input);
-            input.slot?.call(parent);
+            input.slot?.(parent);
         }
     }
 }

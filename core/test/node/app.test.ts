@@ -7,8 +7,8 @@ class MyApp extends App {
     public compose() {
         this.tag("div", { callback: node => (this.div = node as HTMLDivElement) });
 
-        this.create(new Portal({ node: this.div }), function () {
-            this.tag("span", {});
+        this.create(new Portal({ node: this.div }), function (f) {
+            f.tag("span", {});
         });
     }
 }

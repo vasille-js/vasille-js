@@ -10,8 +10,8 @@ it("Watch Test", function () {
     root.create(
         new Watch({
             model,
-            slot: function (input) {
-                this.create(new Fragment({}), () => (test = input));
+            slot: function (node, input) {
+                node.create(new Fragment({}), () => (test = input));
             },
         }),
     );
