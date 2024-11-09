@@ -8,12 +8,53 @@ import { bodyHasJsx } from "./jsx-detect";
 export function transformJsx(
   path: NodePath<types.JSXElement | types.JSXFragment>,
   internal: Internal,
-): types.Statement {
+): types.Statement[] {
   if (t.isJSXElement(path.node)) {
-    return transformJsxElement(path as NodePath<types.JSXElement>, internal);
+    return [transformJsxElement(path as NodePath<types.JSXElement>, internal)];
   }
 
-  throw path.buildCodeFrameError("Vasille: Support missing");
+  return transformJsxArray(path.get("children"), internal);
+}
+
+export function transformJsxArray(
+  paths: NodePath<
+    types.JSXText | types.JSXExpressionContainer | types.JSXSpreadChild | types.JSXElement | types.JSXFragment
+  >[],
+  internal: Internal,
+): types.Statement[] {
+  const result: types.Statement[] = [];
+
+  for (const path of paths) {
+    if (t.isJSXElement(path.node) || t.isJSXFragment(path.node)) {
+      result.push(...transformJsx(path as NodePath<types.JSXElement | types.JSXFragment>, internal));
+    } else if (t.isJSXText(path.node)) {
+      if (!/^\s+$/.test(path.node.value)) {
+        const fixed = path.node.value
+          .replace(/\n\s+$/m, "")
+          .replace(/^\s*\n\s+/m, "")
+          .replace(/\s*\n\s*/gm, "\n");
+
+        result.push(
+          t.expressionStatement(
+            t.callExpression(t.memberExpression(ctx, t.identifier("text")), [t.stringLiteral(fixed)]),
+          ),
+        );
+      }
+    } else if (t.isJSXExpressionContainer(path.node)) {
+      const value = transformJsxExpressionContainer(
+        path as NodePath<types.JSXExpressionContainer>,
+        internal,
+        false,
+        false,
+      );
+
+      result.push(t.expressionStatement(t.callExpression(t.memberExpression(ctx, t.identifier("text")), [value])));
+    } else {
+      throw path.buildCodeFrameError("Vasille: Spread child is not supported");
+    }
+  }
+
+  return result;
 }
 
 function transformJsxExpressionContainer(
@@ -37,15 +78,16 @@ function transformJsxExpressionContainer(
       isInternalSlot,
     );
 
-    return t.isFunctionExpression(path.node.expression)
-      ? path.node.expression
-      : t.functionExpression(
-          null,
-          path.node.expression.params,
-          t.isBlockStatement(path.node.expression.body)
-            ? path.node.expression.body
-            : t.blockStatement([t.returnStatement(path.node.expression.body)]),
-        );
+    if (!isInternalSlot) {
+      if (path.node.expression.params.length < 1) {
+        path.node.expression.params.push(t.identifier(internal.prefix));
+      }
+      path.node.expression.params.push(ctx);
+    } else {
+      path.node.expression.params.unshift(ctx);
+    }
+
+    return path.node.expression;
   }
 
   const call = exprCall(path.get("expression") as NodePath<types.Expression>, path.node.expression, internal);
@@ -339,6 +381,8 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
       );
     }
 
+    const statements = transformJsxArray(path.get("children"), internal);
+
     return t.expressionStatement(
       t.callExpression(t.memberExpression(ctx, t.identifier("tag")), [
         t.stringLiteral(name.name),
@@ -359,9 +403,72 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
             : []),
           ...(styleObject.length > 0 ? [t.objectProperty(t.identifier("style"), t.objectExpression(styleObject))] : []),
         ]),
+        ...(statements.length > 0 ? [t.arrowFunctionExpression([ctx], t.blockStatement(statements))] : []),
       ]),
     );
   }
+  if (t.isJSXIdentifier(name)) {
+    const element = path.node;
+    const opening = path.get("openingElement");
+    const props: (types.ObjectProperty | types.SpreadElement)[] = [];
+    let run: types.FunctionExpression | types.ArrowFunctionExpression | undefined;
 
-  throw new Error("Not supported");
+    for (const attrPath of opening.get("attributes")) {
+      const attr = attrPath.node;
+
+      // <A prop=../>
+      if (t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name)) {
+        // <A prop=".."/>
+        if (t.isStringLiteral(attr.value)) {
+          props.push(t.objectProperty(id(attr.name.name), attr.value));
+        }
+        // <A prop={..}/>
+        else if (t.isJSXExpressionContainer(attr.value)) {
+          const isSystem = internal.mapping.has(name.name);
+          const value = transformJsxExpressionContainer(
+            (attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.JSXExpressionContainer>,
+            internal,
+            !isSystem || attr.name.name === "slot",
+            isSystem && attr.name.name === "slot",
+          );
+
+          props.push(t.objectProperty(id(attr.name.name), value));
+        } else {
+          throw attrPath.buildCodeFrameError("Vasille: JSX Elements/Fragments are not supported here");
+        }
+      }
+      // <A {...arg}/>
+      else if (t.isJSXSpreadAttribute(attr)) {
+        props.push(t.spreadElement(attr.argument));
+      }
+      // <A space:name=../>
+      else {
+        throw attrPath.buildCodeFrameError("Vasille: Namespaced attributes names are not supported");
+      }
+    }
+
+    if (
+      element.children.length === 1 &&
+      t.isJSXExpressionContainer(element.children[0]) &&
+      (t.isFunctionExpression(element.children[0].expression) ||
+        t.isArrowFunctionExpression(element.children[0].expression))
+    ) {
+      run = element.children[0].expression;
+      run.params.push(ctx);
+    } else {
+      const statements = transformJsxArray(path.get("children"), internal);
+
+      if (statements.length > 0) {
+        run = t.arrowFunctionExpression([ctx], t.blockStatement(statements));
+      }
+    }
+
+    return t.expressionStatement(
+      t.callExpression(t.identifier(name.name), [ctx, t.objectExpression(props), ...(run ? [run] : [])]),
+    );
+  }
+
+  throw path.buildCodeFrameError(
+    "Vasille: Unsupported tag detected, html lowercase tagnames and components are accepted",
+  );
 }

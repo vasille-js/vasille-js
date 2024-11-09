@@ -19,3 +19,23 @@ it("events", function () {
 it("style", function () {
   runJsxTest(__dirname, "style");
 });
+
+it("fragment", function () {
+  runJsxTest(__dirname, "fragment");
+});
+
+it("children", function () {
+  runJsxTest(__dirname, "children");
+});
+
+it("nested", function () {
+  runJsxTest(__dirname, "nested");
+});
+
+it("nested-slots", function () {
+  runJsxTest(__dirname, "nested-slots");
+});
+
+it("loop", function () {
+  runJsxTest(__dirname, "loop");
+});

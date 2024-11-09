@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Best Developer eXperience ever with Vasille Framework",
   "main": "src/index.ts",
-  "types": "fake-types/index.d.ts",
+  "types": "./fake-types/index.d.ts",
   "exports": {
     "import": "./lib/index.js",
     "browser": "./lib/index.js",

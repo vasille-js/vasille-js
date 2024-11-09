@@ -26,7 +26,7 @@ export class App<T extends object = object> extends Root<T> {
 
 interface PortalOptions {
     node: Element;
-    slot?: (this: Fragment) => void;
+    slot?: (ctx: Fragment) => void;
 }
 
 export class Portal extends Fragment {

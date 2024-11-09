@@ -725,7 +725,7 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
     }
     case "JSXElement":
     case "JSXFragment":
-      path.replaceWith(transformJsx(path as NodePath<types.JSXElement | types.JSXFragment>, internal));
+      path.replaceWithMultiple(transformJsx(path as NodePath<types.JSXElement | types.JSXFragment>, internal));
       break;
     default:
       meshExpression(path, internal);

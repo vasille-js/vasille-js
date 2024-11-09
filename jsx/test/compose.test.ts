@@ -1,6 +1,5 @@
 import { Fragment, IValue, Reference, setErrorHandler } from "vasille";
 import { compose, extend, mount } from "../src";
-import { readValue } from "../src/inline";
 import { page } from "./page";
 
 interface Props {

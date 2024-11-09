@@ -5,7 +5,7 @@ interface CompositionProps {
 }
 
 type Composed<In extends CompositionProps, Out> = (
-    this: Fragment,
+    node: Fragment,
     $: In & { callback?(data: Out | undefined): void },
     slot?: In["slot"],
 ) => void;
@@ -18,17 +18,17 @@ function proxy(obj: object) {
     });
 }
 function create<In extends CompositionProps, Out>(
-    renderer: (this: Fragment, input: In) => Out,
+    renderer: (node: Fragment, input: In) => Out,
     create: (props: In) => Fragment,
     name: string,
 ): Composed<In, Out> {
-    return function (props, slot) {
+    return function (node, props, slot) {
         const frag = create(props);
 
         if (slot) {
             props.slot = slot;
         }
-        this.create(frag);
+        node.create(frag);
 
         try {
             const result = renderer.call(frag, proxy(props));
@@ -46,7 +46,7 @@ function create<In extends CompositionProps, Out>(
 }
 
 export function compose<In extends CompositionProps, Out>(
-    renderer: (this: Fragment, input: In) => Out,
+    renderer: (node: Fragment, input: In) => Out,
     name: string,
 ): Composed<In, Out> {
     return create<In, Out>(
@@ -59,7 +59,7 @@ export function compose<In extends CompositionProps, Out>(
 }
 
 export function extend<In extends CompositionProps, Out>(
-    renderer: (this: Fragment, input: In) => Out,
+    renderer: (node: Fragment, input: In) => Out,
     name: string,
 ): Composed<In, Out> {
     return create<In, Out>(
@@ -71,11 +71,11 @@ export function extend<In extends CompositionProps, Out>(
     );
 }
 
-export function mount<T>(tag: Element, component: (this: Fragment, $: T) => unknown, $: T) {
+export function mount<T>(tag: Element, component: (node: Fragment, $: T) => unknown, $: T) {
     const root = new App(tag, {});
     const frag = new Fragment({}, ":app-root");
 
     root.create(frag, function () {
-        component.call(this, $);
+        component(this, $);
     });
 }

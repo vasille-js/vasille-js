@@ -18,52 +18,67 @@ export function readValue<T>(v: T | IValue<T>): T {
     return v instanceof IValue ? v.$ : v;
 }
 
-export function Adapter(this: Fragment, { node, slot }: Magic<{ node: Fragment; slot?: (this: Fragment) => void }>) {
+export function Adapter(ctx: Fragment, { node, slot }: Magic<{ node: Fragment; slot?: (ctx: Fragment) => void }>) {
     const dNode = readValue(node);
     const dSlot = readValue(slot);
 
     if (dNode && dSlot) {
-        this.create(dNode, dSlot);
+        ctx.create(dNode, dSlot);
     }
 }
 
 export function Slot<T extends object = {}>(
-    this: Fragment,
+    ctx: Fragment,
     options: Magic<{
-        model?: ((this: Fragment) => void) | ((this: Fragment, input: T) => void);
-        slot?: (this: Fragment) => void;
+        model?: ((input: T, ctx: Fragment) => void);
+        slot?: (ctx: Fragment) => void;
     }> &
         T,
 ) {
     const model = readValue(options.model);
 
     if (model) {
-        model.call(this, options);
+        if (model.length <= 1) {
+            for (const key in options) {
+                if (options[key] instanceof IValue) {
+                    options[key] = options[key].$;
+                }
+            }
+        }
+        else {
+            for (const key in options) {
+                if (!(options[key] instanceof IValue)) {
+                    options[key] = ctx.ref(options[key]);
+                }
+            }
+        }
+
+        model(options, ctx);
     } else {
-        readValue(options.slot)?.call(this);
+        readValue(options.slot)?.(ctx);
     }
 }
 
-export function If(this: Fragment, { condition, slot: magicSlot }: Magic<{ condition: unknown; slot?: () => void }>) {
+export function If(ctx: Fragment, { condition, slot: magicSlot }: Magic<{ condition: unknown; slot?: () => void }>) {
     const slot = readValue(magicSlot);
 
-    this.if(condition instanceof IValue ? (condition as IValue<unknown>) : this.ref(condition), slot ?? (() => {}));
+    ctx.if(condition instanceof IValue ? (condition as IValue<unknown>) : ctx.ref(condition), slot ?? (() => {}));
 }
 
 export function ElseIf(
-    this: Fragment,
+    ctx: Fragment,
     { condition, slot: magicSlot }: Magic<{ condition: unknown; slot?: () => void }>,
 ) {
     const slot = readValue(magicSlot);
 
-    this.elif(condition instanceof IValue ? (condition as IValue<unknown>) : this.ref(condition), slot ?? (() => {}));
+    ctx.elif(condition instanceof IValue ? (condition as IValue<unknown>) : ctx.ref(condition), slot ?? (() => {}));
 }
 
-export function Else(this: Fragment, { slot: magicSlot }: Magic<{ slot?: () => void }>) {
+export function Else(ctx: Fragment, { slot: magicSlot }: Magic<{ slot?: () => void }>) {
     const slot = readValue(magicSlot);
 
     if (slot) {
-        this.else(slot);
+        ctx.else(slot);
     }
 }
 
@@ -71,20 +86,20 @@ export function For<
     T extends Set<unknown> | Map<unknown, unknown> | unknown[],
     K = T extends unknown[] ? number : T extends Set<infer R> ? R : T extends Map<infer R, unknown> ? R : never,
     V = T extends (infer R)[] ? R : T extends Set<infer R> ? R : T extends Map<unknown, infer R> ? R : never,
->(this: Fragment, { of, slot: magicSlot }: Magic<{ of: T; slot?: (this: Fragment, value: T, index: K) => void }>) {
+>(ctx: Fragment, { of, slot: magicSlot }: Magic<{ of: T; slot?: (ctx: Fragment, value: T, index: K) => void }>) {
     const slot = readValue(magicSlot);
 
     if (of instanceof IValue) {
-        this.create(
+        ctx.create(
             new CoreWatch({
                 model: of,
-                slot: function (model) {
-                    create(model, this);
+                slot: function (ctx, model) {
+                    create(model, ctx);
                 },
             }),
         );
     } else if (of) {
-        create(of, this);
+        create(of, ctx);
     }
 
     function create(model: T, node: Fragment) {
@@ -96,27 +111,21 @@ export function For<
             node.create(
                 new ArrayView<V>({
                     model,
-                    slot: function (value, index) {
-                        slot.call(this, value, index);
-                    },
+                    slot: slot as unknown as (ctx: Fragment<object>, value: V, index: V) => void,
                 }),
             );
         } else if (model instanceof MapModel) {
             node.create(
                 new MapView({
                     model,
-                    slot: function (value, index) {
-                        slot.call(this, value, index);
-                    },
+                    slot,
                 }),
             );
         } else if (model instanceof SetModel) {
             node.create(
                 new SetView({
                     model,
-                    slot: function (value, index) {
-                        slot.call(this, value, index);
-                    },
+                    slot,
                 }),
             );
         }
@@ -125,16 +134,16 @@ export function For<
             console.warn("Vasille <For of/> fallback detected. Please provide reactive data.");
 
             if (model instanceof Array) {
-                model.forEach((value: V, index) => {
-                    slot.call(node, value, index);
+                model.forEach((value: V) => {
+                    slot(node, value as unknown as T, value as unknown as K);
                 });
             } else if (model instanceof Map) {
                 for (const [key, value] of model as Map<K, V>) {
-                    slot.call(node, value, key);
+                    slot(node, value as unknown as T, key);
                 }
             } else if (model instanceof Set) {
                 for (const value of model) {
-                    slot.call(node, value, value);
+                    slot(node, value as unknown as T, value as unknown as K);
                 }
             } else {
                 throw userError("wrong use of `<For of/>` component", "wrong-model");
@@ -143,53 +152,49 @@ export function For<
     }
 }
 
-export function Watch<T>(this: Fragment, { model, slot: magicSlot }: Magic<{ model: T; slot?: (value: T) => void }>) {
+export function Watch<T>(ctx: Fragment, { model, slot: magicSlot }: Magic<{ model: T; slot?: (ctx: Fragment, value: T) => void }>) {
     const slot = readValue(magicSlot);
 
     if (slot && model instanceof IValue) {
-        this.create(new CoreWatch({ model, slot }));
+        ctx.create(new CoreWatch({ model, slot }));
     }
 }
 
-export function Debug(this: Fragment, { model }: { model: unknown }) {
-    const value = model instanceof IValue ? model : this.ref(model);
+export function Debug(ctx: Fragment, { model }: { model: unknown }) {
+    const value = model instanceof IValue ? model : ctx.ref(model);
 
-    this.debug(value as IValue<unknown>);
+    ctx.debug(value as IValue<unknown>);
 }
 
-export function Mount(this: Fragment, { bind }: Magic<{ bind: unknown }>) {
-    const node = this;
-
-    if (!(node instanceof Tag)) {
+export function Mount(ctx: Fragment, { bind }: Magic<{ bind: unknown }>) {
+    if (!(ctx instanceof Tag)) {
         throw userError("<Mount bind/> can be used only as direct child of html tags", "context-mismatch");
     }
 
-    node.bindMount(bind instanceof IValue ? (bind as IValue<unknown>) : node.ref(bind));
+    ctx.bindMount(bind instanceof IValue ? (bind as IValue<unknown>) : ctx.ref(bind));
 }
 
-export function Show(this: Fragment, { bind }: Magic<{ bind: unknown }>) {
-    const node = this;
-
-    if (!(node instanceof Tag)) {
+export function Show(ctx: Fragment, { bind }: Magic<{ bind: unknown }>) {
+    if (!(ctx instanceof Tag)) {
         throw userError("<Show bind/> can be used only as direct child of html tags", "context-mismatch");
     }
 
-    node.bindShow(bind instanceof IValue ? (bind as IValue<unknown>) : node.ref(bind));
+    ctx.bindShow(bind instanceof IValue ? (bind as IValue<unknown>) : ctx.ref(bind));
 }
 
-export function Delay(this: Fragment, { time, slot }: Magic<{ time?: number; slot?: (this: Fragment) => {} }>) {
+export function Delay(ctx: Fragment, { time, slot }: Magic<{ time?: number; slot?: (ctx: Fragment) => {} }>) {
     const fragment = new Fragment({}, ":timer");
     const dSlot = readValue(slot);
     let timer: number | undefined;
 
-    this.create(fragment, function () {
+    ctx.create(fragment, function (node) {
         if (dSlot) {
             timer = setTimeout(() => {
-                dSlot.call(this);
+                dSlot(node);
                 timer = undefined;
             }, readValue(time)) as unknown as number;
         }
-        this.runOnDestroy(() => {
+        node.runOnDestroy(() => {
             if (timer !== undefined) {
                 clearTimeout(timer);
             }

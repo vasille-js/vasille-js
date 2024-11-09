@@ -75,7 +75,7 @@ function addExternalIValue(path: NodePath<types.MemberExpression | types.Optiona
   if (!search.found.has(name)) {
     search.found.set(
       name,
-      t.callExpression(t.memberExpression(search.external.id, t.identifier("r$")), [path.node.object]),
+      path.node.object,
     );
   }
   path.replaceWith(encodeName(name));
