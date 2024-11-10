@@ -10,12 +10,12 @@ type Composed<In extends CompositionProps, Out> = (
     slot?: In["slot"],
 ) => void;
 
-function proxy(obj: object) {
+function proxy<T extends object>(obj: T): T {
     return new Proxy(obj, {
         get(target: object, p: string | symbol): any {
             return p in target && target[p] instanceof IValue ? target[p] : new Reference(target[p]);
         },
-    });
+    }) as T;
 }
 function create<In extends CompositionProps, Out>(
     renderer: (node: Fragment, input: In) => Out,
@@ -31,7 +31,7 @@ function create<In extends CompositionProps, Out>(
         node.create(frag);
 
         try {
-            const result = renderer.call(frag, proxy(props));
+            const result = renderer(frag, proxy(props));
 
             if (result !== undefined && props.callback) {
                 props.callback(result);
@@ -76,6 +76,6 @@ export function mount<T>(tag: Element, component: (node: Fragment, $: T) => unkn
     const frag = new Fragment({}, ":app-root");
 
     root.create(frag, function () {
-        component(this, $);
+        component(frag, $);
     });
 }

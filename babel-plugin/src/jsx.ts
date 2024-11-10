@@ -1,6 +1,6 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { Internal, ctx } from "./internal";
+import { Internal, VariableState, ctx } from "./internal";
 import { exprCall } from "./lib";
 import { compose, meshExpression } from "./mesh";
 import { bodyHasJsx } from "./jsx-detect";
@@ -88,9 +88,22 @@ function transformJsxExpressionContainer(
     }
 
     return path.node.expression;
+  } else if (
+    isInternalSlot &&
+    (t.isFunctionExpression(path.node.expression) || t.isArrowFunctionExpression(path.node.expression))
+  ) {
+    path.node.expression.params.unshift(ctx);
   }
 
-  const call = exprCall(path.get("expression") as NodePath<types.Expression>, path.node.expression, internal);
+  let call = exprCall(path.get("expression") as NodePath<types.Expression>, path.node.expression, internal);
+
+  if (
+    !call &&
+    t.isIdentifier(path.node.expression) &&
+    internal.stack.get(path.node.expression.name) === VariableState.ReactiveObject
+  ) {
+    call = t.callExpression(t.memberExpression(internal.id, t.identifier("rop")), [path.node.expression]);
+  }
 
   return call ?? path.node.expression;
 }

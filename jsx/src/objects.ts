@@ -10,7 +10,9 @@ export class ProxyReference extends Reference<unknown> {
 export function proxyObject(obj: object, proxyRef: ProxyReference) {
     return new Proxy(obj, {
         get(target: object, p: string | symbol, receiver: any): any {
-            return proxyObject(Reflect.get(target, p, receiver), proxyRef);
+            const value = Reflect.get(target, p, receiver);
+
+            return value instanceof Object ? proxyObject(value, proxyRef) : value;
         },
         set(target: object, p: string | symbol, newValue: any, receiver: any): boolean {
             const response = Reflect.set(target, p, newValue, receiver);
@@ -42,17 +44,13 @@ export function proxyObject(obj: object, proxyRef: ProxyReference) {
     });
 }
 
-export function proxy(o: unknown, ref?: ProxyReference) {
+export function proxy(o: unknown) {
     if (typeof o === "object" && o && o.constructor === Object) {
-        if (ref) {
-            return proxyObject(o, ref);
-        } else {
-            const proxyRef = new ProxyReference(undefined);
+        const proxyRef = new ProxyReference(undefined);
 
-            proxyRef.$ = proxyObject(o, proxyRef);
+        proxyRef.$ = proxyObject(o, proxyRef);
 
-            return proxyRef;
-        }
+        return proxyRef;
     }
 
     return o;
@@ -73,19 +71,30 @@ export function reactiveObject<T extends object>(
             if (p in o) {
                 return o[p];
             } else {
-                return (o[p] = node.ref(undefined));
+                return (o[p] = node.register(new Reference(undefined)));
             }
         },
-        set(_, p, newValue) {
-            const value = newValue instanceof IValue ? newValue.$ : newValue;
-
-            if (p in o) {
-                o[p].$ = value;
-            } else {
-                o[p] = node.ref(value);
+        deleteProperty(_, p: string | symbol): boolean {
+            if (p in o && o[p] instanceof IValue) {
+                node.release(p[0]);
             }
+
+            return Reflect.deleteProperty(o, p);
+        },
+    }) as { [K in keyof T]: T[K] extends IValue<unknown> ? T[K] : IValue<T[K]> };
+}
+
+export function reactiveObjectProxy<T extends { [k: string | symbol]: IValue<unknown> }>(
+    o: T,
+): { [K in keyof T]: T[K] extends IValue<infer R> ? R : never } {
+    return new Proxy(o, {
+        get(_, p: string | symbol): any {
+            return o[p].$;
+        },
+        set(_, p: string | symbol, newValue: any): boolean {
+            o[p].$ = newValue;
 
             return true;
         },
-    }) as { [K in keyof T]: T[K] extends IValue<unknown> ? T[K] : IValue<T[K]> };
+    }) as { [K in keyof T]: T[K] extends IValue<infer R> ? R : never };
 }

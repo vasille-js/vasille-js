@@ -30,7 +30,7 @@ export function Adapter(ctx: Fragment, { node, slot }: Magic<{ node: Fragment; s
 export function Slot<T extends object = {}>(
     ctx: Fragment,
     options: Magic<{
-        model?: ((input: T, ctx: Fragment) => void);
+        model?: (input: T, ctx: Fragment) => void;
         slot?: (ctx: Fragment) => void;
     }> &
         T,
@@ -44,8 +44,7 @@ export function Slot<T extends object = {}>(
                     options[key] = options[key].$;
                 }
             }
-        }
-        else {
+        } else {
             for (const key in options) {
                 if (!(options[key] instanceof IValue)) {
                     options[key] = ctx.ref(options[key]);
@@ -152,7 +151,10 @@ export function For<
     }
 }
 
-export function Watch<T>(ctx: Fragment, { model, slot: magicSlot }: Magic<{ model: T; slot?: (ctx: Fragment, value: T) => void }>) {
+export function Watch<T>(
+    ctx: Fragment,
+    { model, slot: magicSlot }: Magic<{ model: T; slot?: (ctx: Fragment, value: T) => void }>,
+) {
     const slot = readValue(magicSlot);
 
     if (slot && model instanceof IValue) {
@@ -182,7 +184,7 @@ export function Show(ctx: Fragment, { bind }: Magic<{ bind: unknown }>) {
     ctx.bindShow(bind instanceof IValue ? (bind as IValue<unknown>) : ctx.ref(bind));
 }
 
-export function Delay(ctx: Fragment, { time, slot }: Magic<{ time?: number; slot?: (ctx: Fragment) => {} }>) {
+export function Delay(ctx: Fragment, { time, slot }: Magic<{ time?: number; slot?: (ctx: Fragment) => unknown }>) {
     const fragment = new Fragment({}, ":timer");
     const dSlot = readValue(slot);
     let timer: number | undefined;

@@ -106,8 +106,8 @@ it("Reactive", function () {
     expect(p3.$$).toBe(4);
     expect(p4.$$).toBe(4);
 
-    const bind1 = new Expression((a, b) => a+b, p1, p2);
-    const bind2 = new Expression((a, b) => a+b, p3, p4);
+    const bind1 = new Expression((a, b) => a + b, p1, p2);
+    const bind2 = new Expression((a, b) => a + b, p3, p4);
 
     expect(bind1.$).toBe(8);
     expect(bind2.$).toBe(8);

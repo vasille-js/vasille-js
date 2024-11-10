@@ -21,11 +21,6 @@ class Context extends Destroyable {
     }
 
     #enableObject<T extends object>(o: T): T {
-        if (symbol in o) {
-            this.#ctx.register(o[symbol] as Destroyable);
-
-            return o;
-        }
         const ref = new ProxyReference(undefined);
 
         o[symbol] = ref;
@@ -165,24 +160,35 @@ export class ContextMap<K, T> extends MapModel<K, T> {
 
 export class ContextSet<T> extends SetModel<T> {
     private ctx: Context;
+    private real: Map<T, T>;
 
     public constructor(set?: T[]) {
         const ctx = new Context();
+        const real = new Map<T, T>();
 
         if (set) {
             for (let i = 0; i < set.length; i++) {
-                set[i] = ctx.checkEnable(set[i]);
+                real.set(set[i], (set[i] = ctx.checkEnable(set[i])));
             }
         }
 
         super(set);
         this.ctx = ctx;
+        this.real = real;
     }
 
     public add(value: T): this {
-        value = this.ctx.checkEnable(value);
+        if (!this.real.has(value)) {
+            this.real.set(value, (value = this.ctx.checkEnable(value)));
 
-        return super.add(value);
+            return super.add(value);
+        }
+
+        return this;
+    }
+
+    public has(value: T): boolean {
+        return this.real.has(value);
     }
 
     public clear(): void {
@@ -190,11 +196,19 @@ export class ContextSet<T> extends SetModel<T> {
             this.ctx.checkDisable(item);
         }
         super.clear();
+        this.real.clear();
     }
 
     public delete(value: T): boolean {
-        this.ctx.checkDisable(value);
-        return super.delete(value);
+        const real = this.real.get(value);
+
+        if (real !== undefined) {
+            this.ctx.checkDisable(value);
+            this.real.delete(value);
+            return super.delete(real);
+        }
+
+        return false;
     }
 
     public destroy(): void {

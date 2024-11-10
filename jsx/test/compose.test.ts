@@ -1,16 +1,17 @@
 import { Fragment, IValue, Reference, setErrorHandler } from "vasille";
 import { compose, extend, mount } from "../src";
 import { page } from "./page";
+import { readValue } from "../src/components";
 
 interface Props {
     className?: IValue<string>;
-    slot?(): void;
+    slot?(node: Fragment): void;
 }
 
-const component = compose(function ($: Props) {
+const component = compose(function (f, $: Props) {
     let div!: Element;
 
-    this.tag("div", {
+    f.tag("div", {
         slot: readValue($.slot),
         class: [readValue($.className) ?? "class"],
         callback: node => (div = node),
@@ -29,8 +30,8 @@ it("compose test", function () {
 
     mount(body, component, {
         callback: node => (div = node as Element),
-        slot(this: Fragment) {
-            this.tag("div", { class: ["1"] });
+        slot(f: Fragment) {
+            f.tag("div", { class: ["1"] });
         },
     });
 
@@ -39,9 +40,9 @@ it("compose test", function () {
 
     mount(body, component, {
         callback: node => (div = node as Element),
-        slot(this: Fragment) {
-            component.call(this, {}, function (this: Fragment) {
-                this.tag("div", { class: ["2"] });
+        slot(f: Fragment) {
+            component(f, {}, function (f: Fragment) {
+                f.tag("div", { class: ["2"] });
             });
         },
     });
@@ -52,8 +53,8 @@ it("compose test", function () {
 });
 
 it("extend test", function () {
-    const extension = extend(function () {
-        this.tag("div", { class: ["ext"] });
+    const extension = extend(function (f) {
+        f.tag("div", { class: ["ext"] });
     }, "extension");
     const body = page.window.document.body;
     let div!: Element;
@@ -61,8 +62,8 @@ it("extend test", function () {
     mount(body, component, {
         callback: node => (div = node as Element),
         className: new Reference("class2"),
-        slot(this: Fragment) {
-            extension.call(this, {});
+        slot(f: Fragment) {
+            extension(f, {});
         },
     });
 

@@ -39,3 +39,7 @@ it("nested-slots", function () {
 it("loop", function () {
   runJsxTest(__dirname, "loop");
 });
+
+it("reactive object proxy", function () {
+  runJsxTest(__dirname, "rop");
+});

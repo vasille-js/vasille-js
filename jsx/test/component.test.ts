@@ -1,4 +1,4 @@
-import { Expression, Fragment, Reference } from "vasille";
+import { Expression, Fragment, IValue, Reference } from "vasille";
 import { Adapter, Debug, Delay, Else, ElseIf, For, If, Mount, Show, Slot, Watch } from "../src";
 import { ContextArray, ContextMap, ContextSet } from "../src/models";
 import { createNode } from "./page";
@@ -8,10 +8,10 @@ it("Adapter", function () {
     const frag = new Fragment({});
     let test = false;
 
-    Adapter.call(node, {
+    Adapter(node, {
         node: frag,
-        slot(this: Fragment) {
-            expect(this).toBe(frag);
+        slot(f: Fragment) {
+            expect(f).toBe(frag);
             test = true;
         },
     });
@@ -24,19 +24,21 @@ it("Slot", function () {
     let slotTest = false;
     let modelTest = false;
     let modelTest2 = false;
+    let mustBeValue: unknown = null;
+    let mustBeRef: unknown = null;
 
-    Slot.call(node, {});
-    Slot.call(node, {
+    Slot(node, {});
+    Slot(node, {
         slot() {
             slotTest = true;
         },
     });
-    Slot.call(node, {
+    Slot(node, {
         model() {
             modelTest = true;
         },
     });
-    Slot.call(node, {
+    Slot(node, {
         model() {
             modelTest2 = true;
         },
@@ -44,10 +46,24 @@ it("Slot", function () {
             modelTest2 = false;
         },
     });
+    Slot(node, {
+        model(o: object) {
+            mustBeValue = "a" in o && o.a;
+        },
+        a: new Reference(2),
+    } as any);
+    Slot(node, {
+        model(o: object, node: unknown) {
+            mustBeRef = "a" in o && o.a;
+        },
+        a: 2,
+    } as any);
 
     expect(slotTest).toBe(true);
     expect(modelTest).toBe(true);
     expect(modelTest2).toBe(true);
+    expect(mustBeValue).toBe(2);
+    expect(mustBeRef instanceof IValue).toBe(true);
 });
 
 it("If - ElseIf - Else", function () {
@@ -57,19 +73,19 @@ it("If - ElseIf - Else", function () {
     const elseCond = new Expression((v: number) => v === 2, cond);
     let executed = "none";
 
-    If.call(node, {
+    If(node, {
         condition: ifCont,
         slot() {
             executed = "if";
         },
     });
-    ElseIf.call(node, {
+    ElseIf(node, {
         condition: elseCond,
         slot() {
             executed = "else-if";
         },
     });
-    Else.call(node, {
+    Else(node, {
         slot() {
             executed = "else";
         },
@@ -82,22 +98,21 @@ it("If - ElseIf - Else", function () {
     expect(executed).toBe("else");
 
     // must not trigger errors
-    If.call(node, {});
-    ElseIf.call(node, {});
-    If.call(node, { condition: true });
-    If.call(node, {});
-    ElseIf.call(node, { condition: true });
+    If(node, { condition: undefined });
+    ElseIf(node, { condition: undefined });
+    If(node, { condition: true });
+    If(node, { condition: undefined });
+    ElseIf(node, { condition: true });
 
     let executed2 = "none";
 
-    If.call(node, {
+    If(node, {
         condition: false,
         slot() {
             executed2 = "if";
         },
     });
-    Else.call(node, {
-        condition: true,
+    Else(node, {
         slot() {
             executed2 = "else-if";
         },
@@ -114,14 +129,14 @@ it("For", function () {
         counter++;
     }
 
-    expect(() => For.call(this, { of: 3, slot })).toThrow("wrong-model");
-    For.call(node, { of: 3 });
+    expect(() => For(this, { of: 3 as any, slot })).toThrow("wrong-model");
+    For(node, { of: 3 as any });
     expect(counter).toBe(0);
-    For.call(node, { of: new ContextArray([1, 2, 3]), slot });
+    For(node, { of: new ContextArray([1, 2, 3]), slot });
     expect(counter).toBe(3);
-    For.call(node, { of: new ContextSet([1, 1]), slot });
+    For(node, { of: new ContextSet([1, 1]), slot });
     expect(counter).toBe(4);
-    For.call(node, {
+    For(node, {
         of: new ContextMap([
             [1, 1],
             [2, 2],
@@ -129,16 +144,16 @@ it("For", function () {
         slot,
     });
     expect(counter).toBe(6);
-    For.call(node, { of: [1, 2, 3], slot });
+    For(node, { of: [1, 2, 3], slot });
     expect(counter).toBe(9);
-    For.call(node, { of: new Set([1, 2, 1]), slot });
+    For(node, { of: new Set([1, 2, 1]), slot });
     expect(counter).toBe(11);
-    For.call(node, { of: new Map([[1, 1]]), slot });
+    For(node, { of: new Map([[1, 1]]), slot });
     expect(counter).toBe(12);
 
     const ref = new Reference(new ContextArray([1, 2]));
 
-    For.call(node, { of: ref, slot });
+    For<number[]>(node, { of: ref, slot });
     expect(counter).toBe(14);
     ref.$ = new ContextArray<number>([4]);
     expect(counter).toBe(15);
@@ -153,7 +168,7 @@ it("Watch", function () {
         counter++;
     }
 
-    Watch.call(node, { model: ref, slot });
+    Watch(node, { model: ref, slot });
 
     expect(counter).toBe(1);
     ref.$ = 2;
@@ -167,9 +182,9 @@ it("Debug", function () {
 
     node.tag("div", {
         callback: n => (element = n),
-        slot() {
-            Debug.call(this, { model: ref });
-            Debug.call(this, { model: "x" });
+        slot(node) {
+            Debug(node, { model: ref });
+            Debug(node, { model: "x" });
         },
     });
 
@@ -185,12 +200,12 @@ it("Mount", function () {
     const ref = new Reference(true);
     let element!: Element;
 
-    node.tag("div", { callback: n => (element = n) }, function () {
-        this.tag("div", {}, function () {
-            Mount.call(this, { bind: ref });
+    node.tag("div", { callback: n => (element = n) }, function (f) {
+        f.tag("div", {}, function (f) {
+            Mount(f, { bind: ref });
         });
-        this.tag("div", {}, function () {
-            Mount.call(this, { bind: false });
+        f.tag("div", {}, function (f) {
+            Mount(f, { bind: false });
         });
     });
 
@@ -201,7 +216,7 @@ it("Mount", function () {
     ref.$ = true;
     expect(element.children.length).toBe(1);
 
-    expect(() => Mount.call(null, {})).toThrow("context-mismatch");
+    expect(() => Mount(null as any, {} as any)).toThrow("context-mismatch");
 });
 
 it("Show", function () {
@@ -209,12 +224,12 @@ it("Show", function () {
     const ref = new Reference(true);
     let element!: HTMLElement;
 
-    node.tag("div", { callback: n => (element = n as HTMLElement) }, function () {
-        this.tag("div", { style: { display: "block" } }, function () {
-            Show.call(this, { bind: ref });
+    node.tag("div", { callback: n => (element = n as HTMLElement) }, function (f) {
+        f.tag("div", { style: { display: "block" } }, function (f) {
+            Show(f, { bind: ref });
         });
-        this.tag("div", {}, function () {
-            Show.call(this, { bind: false });
+        f.tag("div", {}, function (f) {
+            Show(f, { bind: false });
         });
     });
 
@@ -226,24 +241,24 @@ it("Show", function () {
     ref.$ = true;
     expect((element.children[0] as HTMLElement).style.display).toBe("block");
 
-    expect(() => Show.call(null, {})).toThrow("context-mismatch");
+    expect(() => Show(null as any, {} as any)).toThrow("context-mismatch");
 });
 
 it("Delay", function (done) {
     const node = createNode();
     let element!: HTMLElement;
 
-    node.tag("div", { callback: n => (element = n as HTMLElement) }, function () {
-        Delay.call(this, {
+    node.tag("div", { callback: n => (element = n as HTMLElement) }, function (f) {
+        Delay(f, {
             time: 10,
-            slot(this: Fragment) {
-                this.tag("div", {});
+            slot(f: Fragment) {
+                f.tag("div", {});
             },
         });
-        Delay.call(this, {
+        Delay(f, {
             time: 20,
-            slot(this: Fragment) {
-                this.tag("div", {});
+            slot(f: Fragment) {
+                f.tag("div", {});
             },
         });
     });

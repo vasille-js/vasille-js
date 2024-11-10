@@ -7,10 +7,6 @@ export default function (): Babel.PluginObj<{ devMode: unknown }> {
     name: "Vasille",
     visitor: {
       Program(path, params) {
-        if (path.node.sourceType !== "module") {
-          return;
-        }
-
         trProgram(path, params.devMode !== false);
       },
     },

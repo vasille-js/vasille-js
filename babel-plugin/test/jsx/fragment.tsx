@@ -6,9 +6,8 @@ export const C = compose(() => {
   <>
     text text2
     <></>
-    {"text"}
-    {a}
-    <></>
+    <>{"text"}</>
+    <>{a}</>
     <div />
     text3
   </>;

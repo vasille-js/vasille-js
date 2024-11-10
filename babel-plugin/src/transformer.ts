@@ -88,13 +88,16 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
 
     statementPath.replaceWith(
       t.importDeclaration(
-        [...statement.specifiers.filter(item => {
+        [
+          ...statement.specifiers.filter(item => {
             if (t.isImportSpecifier(item) && t.isIdentifier(item.local)) {
-                return statementPath.scope.bindings[item.local.name].referenced;
+              return statementPath.scope.bindings[item.local.name].referenced;
             }
 
             return true;
-        }), t.importSpecifier(internal.id as types.Identifier, t.identifier("$"))],
+          }),
+          t.importSpecifier(internal.id as types.Identifier, t.identifier("$")),
+        ],
         statement.source,
       ),
     );
