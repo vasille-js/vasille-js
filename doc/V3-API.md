@@ -1,14 +1,14 @@
-
+# Documentation
 
 The main goal of the Vasille project is to create a framework which just works as expected.
-No special knowledge required, just HTML, CSS, TypeScript, minimal JSX.
+No special knowledge required, just HTML, CSS, JavaScript, minimal JSX.
 
 ## Table of content
 [[_TOC_]]
 
 ## Components
 
-Components are reusable parts of Vasille applications. They are written in `.tsx` files, using a superset of typescript.
+Components are reusable parts of Vasille applications. They are written in `.jsx` or `.tsx` files, using a superset of javascript.
 
 Components are designed as functions, which are executed each time when the component is used.
 
@@ -329,7 +329,7 @@ export const MyApp = compose(() => {
 
 ## Styling
 
-The `webStyleSheet` function will create ready-to-use stylesheet in compile time.
+The `webStyleSheet` function will create ready-to-use stylesheet in compile time (temporary unavailable).
 
 ```typescript jsx
 export const MyComponent = compose(() => {
