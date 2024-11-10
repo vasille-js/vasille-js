@@ -45,9 +45,6 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
 
     if (t.isImportDeclaration(statement)) {
       const name = imports.get(statement.source.value);
-      console.error(statement.source.value);
-      console.error(statement.source.value);
-      console.error(statement.source.value);
 
       if (name) {
         internal.prefix = `${name}_`;
