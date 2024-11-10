@@ -4,7 +4,21 @@ The main goal of the Vasille project is to create a framework which just works a
 No special knowledge required, just HTML, CSS, JavaScript, minimal JSX.
 
 ## Table of content
-[[_TOC_]]
+1. [Components](#components)
+2. [Assignments](#assignments-are-reactive)
+3. [Inline expressions](#inline-expressions-are-reactive)
+4. [Multiline expressions](#multiline-reactive-expression)
+5. [Tags](#tags)
+6. [Attributes](#attributes)
+7. [Properties](#properties)
+8. [Text](#text-expressions)
+9. [Slots](#slots)
+10. [Returns](#returns)
+11. [Logic Blocks](#logic-blocks)
+12. [Loops](#loops)
+13. [Watching](#watching)
+14. [Debug](#debug)
+15. [Styling](#styling)
 
 ## Components
 
