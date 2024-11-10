@@ -1,9 +1,9 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { Internal, StackedStates, VariableState } from "./internal";
-import { meshExpression, meshStatement } from "./mesh";
+import { Internal, StackedStates, VariableState } from "./internal.js";
+import { meshExpression, meshStatement } from "./mesh.js";
 
-const imports = new Map([["vasille-dx", "VasilleDX"]]);
+const imports = new Map([["vasille-dx", "VasilleDX"], ["vasille-web", "VasilleWeb"]]);
 const ignoreMembers = new Set([
   "value",
   "ref",
@@ -45,6 +45,9 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
 
     if (t.isImportDeclaration(statement)) {
       const name = imports.get(statement.source.value);
+      console.error(statement.source.value);
+      console.error(statement.source.value);
+      console.error(statement.source.value);
 
       if (name) {
         internal.prefix = `${name}_`;

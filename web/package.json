@@ -1,0 +1,32 @@
+{
+  "name": "vasille-web",
+  "version": "0.99.0",
+  "description": "Front-end framework with best developer experience ever.",
+  "main": "index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    "import": "./index.js",
+    "browser": "./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/vasille-js/vasille-js.git"
+  },
+  "keywords": [
+    "frontend",
+    "dx",
+    "fast",
+    "simple",
+    "secure"
+  ],
+  "author": "lixcode",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/vasille-js/vasille-js/issues"
+  },
+  "homepage": "https://gitlab.com/vasille-js/vasille-js#readme",
+  "dependencies": {
+    "vasille-babel-plugin": "file:../babel-plugin",
+    "vasille-dx": "file:../dx"
+  }
+}

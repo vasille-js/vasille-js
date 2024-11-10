@@ -14,6 +14,5 @@ export {
     Slot,
     Watch,
     awaited,
-    forward,
     $,
 } from "vasille-jsx";

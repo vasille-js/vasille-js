@@ -1,8 +1,8 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { checkNode, encodeName } from "./expression";
-import { Internal, ctx } from "./internal";
-import { calls } from "./call";
+import { checkNode, encodeName } from "./expression.js";
+import { Internal, ctx } from "./internal.js";
+import { calls } from "./call.js";
 
 export function parseCalculateCall(path: NodePath<types.Expression | null | undefined>, internal: Internal) {
   if (t.isCallExpression(path.node) && calls(path.node, ["calculate", "watch"], internal)) {

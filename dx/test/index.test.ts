@@ -1,5 +1,5 @@
 import { JSDOM } from "jsdom";
-import { Fragment } from "vasille";
+import { Fragment, IValue } from "vasille";
 import {
     compose,
     extend,
@@ -8,11 +8,6 @@ import {
     Slot,
     Watch,
     awaited,
-    calculate,
-    ensureIValue,
-    forward,
-    point,
-    watch,
     $,
     Mount,
     Show,
@@ -40,28 +35,28 @@ global.HTMLElement = page.window.HTMLElement;
  */
 it("test exported functions", function (done) {
     let el!: HTMLElement;
-    const component = compose(function (this: Fragment, p: { slot: () => void }) {
-        this.tag("div", { callback: n => (el = n as HTMLElement) }, function () {
-            Mount.call(this, { bind: true });
-            Show.call(this, { bind: true });
-            Slot.call(this, { model: p.slot }, {});
+    const component = compose(function (f: Fragment, p: { slot: (o: object, f: Fragment) => void }) {
+        f.tag("div", { callback: n => (el = n as HTMLElement) }, function (f) {
+            Mount(f, { bind: true });
+            Show(f, { bind: true });
+            Slot(f, { model: p.slot });
         });
-        Adapter.call(this, { node: new Fragment({}) });
-        Debug.call(this, {});
-        Delay.call(this, {});
-        If.call(this, {});
-        ElseIf.call(this, {});
-        Else.call(this, {});
-        For.call(this, {});
-        Watch.call(this, {});
+        Adapter(f, { node: new Fragment({}) });
+        Debug(f, {} as any);
+        Delay(f, {} as any);
+        If(f, {} as any);
+        ElseIf(f, {} as any);
+        Else(f, {} as any);
+        For(f, {} as any);
+        Watch(f, {} as any);
     }, "test");
-    const extension = extend(function (this: Fragment) {
-        this.tag("div", { class: ["ext"] });
+    const extension = extend(function (f: Fragment) {
+        f.tag("div", { class: ["ext"] });
     }, "ext");
 
     mount(page.window.document.body, component, {
-        slot() {
-            extension.call(this, {});
+        slot(o, f) {
+            extension(f, {});
         },
     });
 
@@ -71,24 +66,14 @@ it("test exported functions", function (done) {
     const promise = new Promise(rv => {
         rv(2);
     });
+    const a = $.r(1);
     const [err, result] = awaited(frag, promise);
-    const a = $.let(frag, 1);
-    const b = $.let(frag, 2);
-    const ab = calculate(frag, (a: number, b: number) => a + b, a, b);
-    const aClone = ensureIValue(frag, a);
-    const aForward = forward(frag, a);
-    const aPoint = point(frag, a);
 
-    watch(frag, () => {}, [a]);
-
-    expect($.rv(ab)).toBe(3);
-    expect($.rv(aClone)).toBe($.rv(a));
-    expect($.rv(aForward)).toBe($.rv(a));
-    expect($.rv(aPoint)).toBe($.rv(a));
+    expect((a as IValue<unknown>).$).toBe(1);
 
     setTimeout(() => {
-        expect($.rv(err)).toBe(undefined);
-        expect($.rv(result)).toBe(2);
+        expect((err.$)).toBe(undefined);
+        expect((result.$)).toBe(2);
         done();
     });
 });

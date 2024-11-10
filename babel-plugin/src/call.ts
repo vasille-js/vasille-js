@@ -1,6 +1,6 @@
-import { NodePath, types } from "@babel/core";
+import { types } from "@babel/core";
 import * as t from "@babel/types";
-import { Internal, ctx } from "./internal";
+import { Internal, ctx } from "./internal.js";
 
 export type FnNames =
   | "compose"

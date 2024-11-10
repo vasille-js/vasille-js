@@ -1,6 +1,5 @@
 import * as Babel from "@babel/core";
-import { trProgram } from "./transformer";
-import jsx from "@babel/plugin-syntax-jsx";
+import { trProgram } from "./transformer.js";
 
 export default function (): Babel.PluginObj<{ devMode: unknown }> {
   return {
@@ -10,6 +9,5 @@ export default function (): Babel.PluginObj<{ devMode: unknown }> {
         trProgram(path, params.devMode !== false);
       },
     },
-    inherits: jsx,
   };
 }

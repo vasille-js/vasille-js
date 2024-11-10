@@ -4,13 +4,15 @@
   "compilerOptions": {
     "allowJs": true,
     "declaration": false,
-    "outDir": "./lib-node",
+    "outDir": "lib",
     "target": "ES2015",
-    "module": "CommonJS",
+    "module": "Node16",
     "moduleResolution": "Node16",
-    "esModuleInterop": true,
+    "jsx": "preserve",
+    "jsxFactory": "tag",
     "skipLibCheck": true,
     "strictNullChecks": true,
-    "types": []
+    "esModuleInterop": true,
+    "types": ["jest", "node"]
   }
 }
