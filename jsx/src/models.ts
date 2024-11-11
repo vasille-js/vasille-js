@@ -4,11 +4,11 @@ import { ProxyReference, proxyObject } from "./objects";
 const symbol = Symbol("proxy");
 
 class Context extends Destroyable {
-    #ctx = new Reactive({});
+    ctx = new Reactive({});
 
     public checkEnable<T>(value: T): T {
         if (value && typeof value === "object" && value.constructor === Object) {
-            return this.#enableObject(value);
+            return this.enableObject(value);
         }
 
         return value;
@@ -16,25 +16,25 @@ class Context extends Destroyable {
 
     public checkDisable(value: unknown) {
         if (value && typeof value === "object" && value.constructor === Object) {
-            this.#disableObject(value);
+            this.disableObject(value);
         }
     }
 
-    #enableObject<T extends object>(o: T): T {
+    private enableObject<T extends object>(o: T): T {
         const ref = new ProxyReference(undefined);
 
         o[symbol] = ref;
-        this.#ctx.register(ref);
+        this.ctx.register(ref);
 
         return proxyObject(o, ref) as T;
     }
 
-    #disableObject(o: object) {
-        this.#ctx.release(o[symbol]);
+    private disableObject(o: object) {
+        this.ctx.release(o[symbol]);
     }
 
     public destroy(): void {
-        this.#ctx.destroy();
+        this.ctx.destroy();
     }
 }
 
