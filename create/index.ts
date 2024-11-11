@@ -60,10 +60,6 @@ async function run(): Promise<void> {
       verbose: true,
     });
 
-    emitter.on('info', info => {
-      console.log(info.message);
-    });
-
     emitter.clone(response.name).then(() => {
       resolve();
     });
@@ -74,6 +70,9 @@ async function run(): Promise<void> {
   data.name = response.name;
 
   fs.writeFileSync(`${response.name}/package.json`, JSON.stringify(data, null, 4));
+
+  console.log('\x1b[32mSuccess!\x1b[0m')
+  console.log(`run\x1b[34m cd ${response.name} && npm i && npm run dev\x1b[0m to start developing.`)
 }
 
 run().catch(e => {

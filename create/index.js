@@ -69,9 +69,6 @@ function run() {
                 cache: false,
                 verbose: true,
             });
-            emitter.on('info', info => {
-                console.log(info.message);
-            });
             emitter.clone(response.name).then(() => {
                 resolve();
             });
@@ -79,6 +76,8 @@ function run() {
         const data = JSON.parse(fs_1.default.readFileSync(`${response.name}/package.json`, { encoding: 'utf8' }));
         data.name = response.name;
         fs_1.default.writeFileSync(`${response.name}/package.json`, JSON.stringify(data, null, 4));
+        console.log('\x1b[32mSuccess!\x1b[0m');
+        console.log(`run\x1b[34m cd ${response.name} && npm i && npm run dev\x1b[0m to start developing.`);
     });
 }
 run().catch(e => {
