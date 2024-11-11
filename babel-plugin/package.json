@@ -1,11 +1,11 @@
 {
   "name": "babel-plugin-vasille",
-  "version": "0.99.0",
+  "version": "0.99.1",
   "description": "",
-  "main": "lib/index.js",
-  "type": "module",
+  "main": "lib-node/index.js",
+  "type": "commonjs",
   "exports": {
-    "import": "./lib/index.js",
+    "import": "./lib-node/index.js",
     "browser": "./lib/index.js",
     "node": "./lib-node/index.js",
     "require": "./lib-node/index.js"
@@ -25,6 +25,10 @@
   ],
   "author": "lixcode",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vasille-js/vasille-js/issues"
+  },
+  "homepage": "https://github.com/vasille-js/vasille-js#readme",
   "dependencies": {
     "vasille-dx": "^3.0.1"
   },

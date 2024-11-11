@@ -41,7 +41,7 @@ it("test exported functions", function (done) {
             Show(f, { bind: true });
             Slot(f, { model: p.slot });
         });
-        Adapter(f, { node: new Fragment({}), slot(){} });
+        Adapter(f, { node: new Fragment({}), slot() {} });
         Debug(f, {} as any);
         Delay(f, {} as any);
         If(f, {} as any);

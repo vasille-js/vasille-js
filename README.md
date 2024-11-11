@@ -29,7 +29,7 @@ npm install vasille-web --save
 Create an app from a template
 
 ```bash
-$ npx create vasille
+$ npm create vasille
 ```
 
 Alternative method to create a TypeScript app.

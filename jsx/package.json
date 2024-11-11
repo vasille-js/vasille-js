@@ -1,6 +1,6 @@
 {
   "name": "vasille-jsx",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Describe Vasille components using JSX",
   "main": "lib/index.js",
   "exports": {
@@ -25,8 +25,16 @@
   ],
   "author": "lixcode",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vasille-js/vasille-js/issues"
+  },
+  "homepage": "https://github.com/vasille-js/vasille-js#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vasille-js/vasille-js.git"
+  },
   "dependencies": {
-    "vasille": "^3.0.0"
+    "vasille": "^3.0.2"
   },
   "devDependencies": {
     "@types/jest": "^29.5.13",

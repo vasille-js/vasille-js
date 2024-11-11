@@ -1,6 +1,6 @@
 {
   "name": "vasille-dx",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Best Developer eXperience ever with Vasille Framework",
   "main": "lib/index.js",
   "types": "./fake-types/index.d.ts",
@@ -25,9 +25,17 @@
   ],
   "author": "lixcode",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vasille-js/vasille-js/issues"
+  },
+  "homepage": "https://github.com/vasille-js/vasille-js#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vasille-js/vasille-js.git"
+  },
   "dependencies": {
-    "vasille": "^3.0.0",
-    "vasille-jsx": "^3.0.1"
+    "vasille": "^3.0.2",
+    "vasille-jsx": "^3.0.2"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

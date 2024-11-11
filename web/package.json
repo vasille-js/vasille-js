@@ -1,14 +1,12 @@
 {
   "name": "vasille-web",
-  "version": "0.99.0",
+  "version": "0.99.1",
   "description": "Front-end framework with best developer experience ever.",
   "main": "index.js",
   "types": "./index.d.ts",
   "exports": {
     "import": "./index.js",
-    "browser": "./index.js",
-    "node": "./index-node.js",
-    "require": "./index-node.js"
+    "browser": "./index.js"
   },
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md"
