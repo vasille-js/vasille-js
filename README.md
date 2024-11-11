@@ -47,7 +47,7 @@ $ npx degit vasille-js/example-javascript my-project
 
 ### Examples
 * [TypeScript Example](https://github.com/vasille-js/example-typescript)
-* [JavaScript Example](https://github.com/vas[README.md](..%2Ftest%2Fmy-app%2FREADME.md)ille-js/example-javascript)
+* [JavaScript Example](https://github.com/vasille-js/example-javascript)
 
 <hr>
 
