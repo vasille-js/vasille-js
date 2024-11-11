@@ -1,8 +1,0 @@
-# Specify filepatterns you want git to ignore.
-
-node_modules
-package-lock.json
-lib
-test/*.d.ts
-test/*.js
-*.tgz

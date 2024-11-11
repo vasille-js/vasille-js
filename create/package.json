@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
+    "prepack": "cp -f ../README.md ./README.md",
     "build": "tsc"
   },
   "repository": {

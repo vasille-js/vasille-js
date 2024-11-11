@@ -1,10 +1,9 @@
 {
   "name": "babel-plugin-vasille",
-  "version": "1.0.0",
+  "version": "0.99.0",
   "description": "",
-  "main": "src/index.ts",
+  "main": "lib/index.js",
   "type": "module",
-  "types": "fake-types/index.d.ts",
   "exports": {
     "import": "./lib/index.js",
     "browser": "./lib/index.js",
@@ -12,12 +11,12 @@
     "require": "./lib-node/index.js"
   },
   "scripts": {
+    "prepack": "cp -f ../README.md ./README.md",
     "prettier": "prettier src test/**/*.ts* --write",
     "build": "tsc --build tsconfig-build.json",
     "build-node": "tsc --build tsconfig-build-node.json",
     "test": "jest",
-    "test-coverage": "jest --coverage",
-    "parse": "node ./run/parse.mjs"
+    "test-coverage": "jest --coverage"
   },
   "keywords": [
     "front-end",
@@ -27,7 +26,7 @@
   "author": "lixcode",
   "license": "MIT",
   "dependencies": {
-    "vasille-dx": "file:../dx"
+    "vasille-dx": "^3.0.1"
   },
   "devDependencies": {
     "@babel/parser": "^7.26.1",

@@ -1,8 +1,8 @@
 {
   "name": "vasille-dx",
-  "version": "1.0.0",
+  "version": "3.0.1",
   "description": "Best Developer eXperience ever with Vasille Framework",
-  "main": "src/index.ts",
+  "main": "lib/index.js",
   "types": "./fake-types/index.d.ts",
   "exports": {
     "import": "./lib/index.js",
@@ -11,6 +11,7 @@
     "require": "./lib-node/index.js"
   },
   "scripts": {
+    "prepack": "cp -f ../README.md ./README.md",
     "prettier": "prettier src test --write",
     "build": "tsc --build tsconfig.json",
     "build-node": "tsc --build tsconfig-build-node.json",
@@ -25,8 +26,8 @@
   "author": "lixcode",
   "license": "MIT",
   "dependencies": {
-    "vasille": "file:../core",
-    "vasille-jsx": "file:../jsx"
+    "vasille": "^3.0.0",
+    "vasille-jsx": "^3.0.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

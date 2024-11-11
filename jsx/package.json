@@ -1,8 +1,8 @@
 {
   "name": "vasille-jsx",
-  "version": "1.0.0",
+  "version": "3.0.1",
   "description": "Describe Vasille components using JSX",
-  "main": "src/index.ts",
+  "main": "lib/index.js",
   "exports": {
     "import": "./lib/index.js",
     "browser": "./lib/index.js",
@@ -26,7 +26,7 @@
   "author": "lixcode",
   "license": "MIT",
   "dependencies": {
-    "vasille": "file:../core"
+    "vasille": "^3.0.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.13",

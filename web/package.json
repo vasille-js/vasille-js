@@ -6,11 +6,16 @@
   "types": "./index.d.ts",
   "exports": {
     "import": "./index.js",
-    "browser": "./index.js"
+    "browser": "./index.js",
+    "node": "./index-node.js",
+    "require": "./index-node.js"
+  },
+  "scripts": {
+    "prepack": "cp -f ../README.md ./README.md"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.com/vasille-js/vasille-js.git"
+    "url": "git+https://github.com/vasille-js/vasille-js.git"
   },
   "keywords": [
     "frontend",
@@ -22,11 +27,11 @@
   "author": "lixcode",
   "license": "MIT",
   "bugs": {
-    "url": "https://gitlab.com/vasille-js/vasille-js/issues"
+    "url": "https://github.com/vasille-js/vasille-js/issues"
   },
-  "homepage": "https://gitlab.com/vasille-js/vasille-js#readme",
+  "homepage": "https://github.com/vasille-js/vasille-js#readme",
   "dependencies": {
-    "vasille-babel-plugin": "file:../babel-plugin",
-    "vasille-dx": "file:../dx"
+    "babel-plugin-vasille": "^0.99.0",
+    "vasille-dx": "^3.0.1"
   }
 }

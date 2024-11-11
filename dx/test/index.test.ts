@@ -41,7 +41,7 @@ it("test exported functions", function (done) {
             Show(f, { bind: true });
             Slot(f, { model: p.slot });
         });
-        Adapter(f, { node: new Fragment({}) });
+        Adapter(f, { node: new Fragment({}), slot(){} });
         Debug(f, {} as any);
         Delay(f, {} as any);
         If(f, {} as any);
@@ -72,8 +72,8 @@ it("test exported functions", function (done) {
     expect((a as IValue<unknown>).$).toBe(1);
 
     setTimeout(() => {
-        expect((err.$)).toBe(undefined);
-        expect((result.$)).toBe(2);
+        expect(err.$).toBe(undefined);
+        expect(result.$).toBe(2);
         done();
     });
 });

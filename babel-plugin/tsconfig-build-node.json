@@ -7,7 +7,7 @@
     "outDir": "./lib-node",
     "target": "ES2015",
     "module": "CommonJS",
-    "moduleResolution": "Node16",
+    "moduleResolution": "Node",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strictNullChecks": true,

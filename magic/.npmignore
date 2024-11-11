@@ -1,7 +1,0 @@
-/test
-/.idea
-*.tgz
-/src
-tsconfig*.json
-/pages
-/lib/compile*
