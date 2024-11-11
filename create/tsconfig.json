@@ -1,0 +1,17 @@
+{
+  "include": ["index.ts"],
+  "exclude": [],
+
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": false,
+    "outDir": ".",
+    "target": "ES2015",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "types": ["node"]
+  }
+}
