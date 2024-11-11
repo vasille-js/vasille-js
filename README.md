@@ -26,20 +26,18 @@ npm install vasille-web --save
 
 ## How to use Vasille
 
-There are several modes to use Vasille.
-
-### To create the first project run
+Create an app from a template
 
 ```bash
 $ npx create vasille
 ```
 
-There are alternative methods. The next command will create a TypeScript project.
+Alternative method to create a TypeScript app.
 ```bash
 $ npx degit vasille-js/example-typescript my-project
 ```
 
-The next command will create a JavaScript project.
+Alternative method to create a JavaScript app.
 ```bash
 $ npx degit vasille-js/example-javascript my-project
 ```
@@ -49,7 +47,7 @@ $ npx degit vasille-js/example-javascript my-project
 
 ### Examples
 * [TypeScript Example](https://github.com/vasille-js/example-typescript)
-* [JavaScript Example](https://github.com/vasille-js/example-javascript)
+* [JavaScript Example](https://github.com/vas[README.md](..%2Ftest%2Fmy-app%2FREADME.md)ille-js/example-javascript)
 
 <hr>
 
