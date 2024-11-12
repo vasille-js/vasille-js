@@ -6,7 +6,7 @@
     "declaration": false,
     "outDir": "lib",
     "target": "ES2015",
-    "module": "Node16",
+    "module": "CommonJS",
     "moduleResolution": "Node16",
     "jsx": "preserve",
     "jsxFactory": "tag",

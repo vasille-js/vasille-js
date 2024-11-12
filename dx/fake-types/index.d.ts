@@ -87,15 +87,11 @@ declare function Delay(
 
 declare function forward<T>(value: T): T;
 
-declare function point<T>(value: T): T;
-
 declare function calculate<T>(f: () => T): T;
 
 declare function watch(f: () => void): void;
 
 declare function awaited<T>(target: Promise<T> | (() => Promise<T>)): [unknown, T|undefined];
-
-declare function ensureIValue<T>(value: T): IValue<T>;
 
 // jsx types
 

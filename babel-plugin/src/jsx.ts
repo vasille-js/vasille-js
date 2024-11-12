@@ -1,9 +1,9 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { Internal, VariableState, ctx } from "./internal.js";
-import { exprCall } from "./lib.js";
-import { compose, meshExpression } from "./mesh.js";
-import { bodyHasJsx } from "./jsx-detect.js";
+import { Internal, VariableState, ctx } from "./internal";
+import { exprCall } from "./lib";
+import { compose, meshExpression } from "./mesh";
+import { bodyHasJsx } from "./jsx-detect";
 
 export function transformJsx(
   path: NodePath<types.JSXElement | types.JSXFragment>,
@@ -33,12 +33,26 @@ export function transformJsxArray(
           .replace(/\n\s+$/m, "")
           .replace(/^\s*\n\s+/m, "")
           .replace(/\s*\n\s*/gm, "\n");
+        const call = t.callExpression(t.memberExpression(ctx, t.identifier("text")), [t.stringLiteral(fixed)]);
 
-        result.push(
-          t.expressionStatement(
-            t.callExpression(t.memberExpression(ctx, t.identifier("text")), [t.stringLiteral(fixed)]),
-          ),
-        );
+        call.loc = path.node.loc;
+
+        if (call.loc) {
+          for (const char of path.node.value) {
+            if (!/\s/.test(char)) {
+              break;
+            }
+            if (char === "\n") {
+              call.loc.start.column = 0;
+              call.loc.start.line++;
+            } else {
+              call.loc.start.column++;
+            }
+            call.loc.start.index++;
+          }
+        }
+
+        result.push(t.expressionStatement(call));
       }
     } else if (t.isJSXExpressionContainer(path.node)) {
       const value = transformJsxExpressionContainer(
@@ -47,8 +61,10 @@ export function transformJsxArray(
         false,
         false,
       );
+      const call = t.callExpression(t.memberExpression(ctx, t.identifier("text")), [value]);
 
-      result.push(t.expressionStatement(t.callExpression(t.memberExpression(ctx, t.identifier("text")), [value])));
+      call.loc = value.loc;
+      result.push(t.expressionStatement(call));
     } else {
       throw path.buildCodeFrameError("Vasille: Spread child is not supported");
     }
@@ -66,6 +82,8 @@ function transformJsxExpressionContainer(
   if (!t.isExpression(path.node.expression)) {
     return t.booleanLiteral(true);
   }
+
+  const loc = path.node.expression.loc;
 
   if (
     acceptSlots &&
@@ -87,6 +105,8 @@ function transformJsxExpressionContainer(
       path.node.expression.params.unshift(ctx);
     }
 
+    path.node.expression.loc = loc;
+
     return path.node.expression;
   } else if (
     isInternalSlot &&
@@ -105,18 +125,37 @@ function transformJsxExpressionContainer(
     call = t.callExpression(t.memberExpression(internal.id, t.identifier("rop")), [path.node.expression]);
   }
 
-  return call ?? path.node.expression;
+  const result = call ?? path.node.expression;
+
+  result.loc = loc;
+
+  return result;
 }
 
-function id(str: string) {
-  if (/^[\w_]+$/.test(str)) {
-    return t.identifier(str);
-  } else {
-    return t.stringLiteral(str);
+function idToProp(
+  id: types.JSXIdentifier | types.Identifier | types.StringLiteral,
+  value: types.Expression,
+  from?: number,
+) {
+  let str = t.isIdentifier(id) || t.isJSXIdentifier(id) ? id.name : id.value;
+  let expr: types.Expression;
+
+  if (from) {
+    str = str.substring(from);
   }
+
+  if (/^[\w_]+$/.test(str)) {
+    expr = t.identifier(str);
+  } else {
+    expr = t.stringLiteral(str);
+  }
+
+  expr.loc = id.loc;
+
+  return t.objectProperty(expr, value);
 }
 
-function transformJsxElement(path: NodePath<types.JSXElement>, internal: Internal): types.ExpressionStatement {
+function transformJsxElement(path: NodePath<types.JSXElement>, internal: Internal): types.Statement {
   const name = path.node.openingElement.name;
 
   if (t.isJSXIdentifier(name) && name.name[0].toLowerCase() === name.name[0]) {
@@ -126,7 +165,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
     const bind: types.ObjectProperty[] = [];
     const classElements: types.ArrayExpression["elements"] = [];
     const classObject: (types.ObjectProperty | types.SpreadElement)[] = [];
-    const classStatic: string[] = [];
+    const classStatic: types.StringLiteral[] = [];
     const styleObject: (types.ObjectProperty | types.SpreadElement)[] = [];
     const styleStatic: [types.Identifier, types.StringLiteral][] = [];
 
@@ -147,7 +186,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
                 meshExpression(path.get("expression") as NodePath<types.Expression>, internal);
               }
 
-              events.push(t.objectProperty(id(name.name.substring(2)), path.node.expression as types.Expression));
+              events.push(idToProp(name, path.node.expression as types.Expression, 2));
             } else {
               throw (attrPath as NodePath<types.JSXAttribute>)
                 .get("value")
@@ -173,7 +212,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
                       internal,
                     );
 
-                    classObject.push(t.objectProperty(id(item.right.value), call ?? item.left));
+                    classObject.push(idToProp(item.right, call ?? item.left));
                   }
                   // class={[{..}]}
                   else if (t.isObjectExpression(item)) {
@@ -206,7 +245,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
                   }
                   // class={[".."]}
                   else if (t.isStringLiteral(elementPath.node)) {
-                    classStatic.push(elementPath.node.value);
+                    classStatic.push(elementPath.node);
                   }
                   // class={[..]}
                   else {
@@ -242,11 +281,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
             }
             // class="a b"
             else if (t.isStringLiteral(attr.value)) {
-              const splitted = attr.value.value.split(" ");
-
-              for (const item of splitted) {
-                classStatic.push(item);
-              }
+              classStatic.push(attr.value);
             }
             // class=<div/>
             else {
@@ -339,13 +374,10 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
           } else {
             if (t.isJSXExpressionContainer(attr.value)) {
               attrs.push(
-                t.objectProperty(
-                  id(name.name),
-                  t.isExpression(attr.value.expression) ? attr.value.expression : t.booleanLiteral(true),
-                ),
+                idToProp(name, t.isExpression(attr.value.expression) ? attr.value.expression : t.booleanLiteral(true)),
               );
             } else if (t.isStringLiteral(attr.value)) {
-              attrs.push(t.objectProperty(id(name.name), attr.value));
+              attrs.push(idToProp(name, attr.value));
             } else {
               throw attrPath.buildCodeFrameError("Vasille: Value of bind must be an expression or string");
             }
@@ -363,13 +395,13 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
                 : undefined;
 
               bind.push(
-                t.objectProperty(
-                  id(name.name.name),
+                idToProp(
+                  name.name,
                   value ?? (t.isExpression(attr.value.expression) ? attr.value.expression : t.booleanLiteral(true)),
                 ),
               );
             } else if (t.isStringLiteral(attr.value)) {
-              bind.push(t.objectProperty(id(name.name.name), attr.value));
+              bind.push(idToProp(name.name, attr.value));
             } else {
               throw attrPath.buildCodeFrameError("Vasille: Value of bind must be an expression or string");
             }
@@ -383,7 +415,13 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
     }
 
     if (classStatic.length > 0) {
-      attrs.push(t.objectProperty(t.identifier("class"), t.stringLiteral(classStatic.join(" "))));
+      const first = classStatic[0];
+      const value =
+        classStatic.length === 1 ? classStatic[0] : t.stringLiteral(classStatic.map(item => item.value).join(" "));
+
+      value.loc = first.loc;
+
+      attrs.push(t.objectProperty(t.identifier("class"), value));
     }
     if (styleStatic.length > 0) {
       attrs.push(
@@ -395,36 +433,42 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
     }
 
     const statements = transformJsxArray(path.get("children"), internal);
-
-    return t.expressionStatement(
-      t.callExpression(t.memberExpression(ctx, t.identifier("tag")), [
-        t.stringLiteral(name.name),
-        t.objectExpression([
-          ...(attrs.length > 0 ? [t.objectProperty(t.identifier("attr"), t.objectExpression(attrs))] : []),
-          ...(events.length > 0 ? [t.objectProperty(t.identifier("events"), t.objectExpression(events))] : []),
-          ...(bind.length > 0 ? [t.objectProperty(t.identifier("bind"), t.objectExpression(bind))] : []),
-          ...(classElements.length > 0 || classObject.length
-            ? [
-                t.objectProperty(
-                  t.identifier("class"),
-                  t.arrayExpression([
-                    ...classElements,
-                    ...(classObject.length > 0 ? [t.objectExpression(classObject)] : []),
-                  ]),
-                ),
-              ]
-            : []),
-          ...(styleObject.length > 0 ? [t.objectProperty(t.identifier("style"), t.objectExpression(styleObject))] : []),
-        ]),
-        ...(statements.length > 0 ? [t.arrowFunctionExpression([ctx], t.blockStatement(statements))] : []),
+    const call = t.callExpression(t.memberExpression(ctx, t.identifier("tag")), [
+      t.stringLiteral(name.name),
+      t.objectExpression([
+        ...(attrs.length > 0 ? [t.objectProperty(t.identifier("attr"), t.objectExpression(attrs))] : []),
+        ...(events.length > 0 ? [t.objectProperty(t.identifier("events"), t.objectExpression(events))] : []),
+        ...(bind.length > 0 ? [t.objectProperty(t.identifier("bind"), t.objectExpression(bind))] : []),
+        ...(classElements.length > 0 || classObject.length
+          ? [
+              t.objectProperty(
+                t.identifier("class"),
+                t.arrayExpression([
+                  ...classElements,
+                  ...(classObject.length > 0 ? [t.objectExpression(classObject)] : []),
+                ]),
+              ),
+            ]
+          : []),
+        ...(styleObject.length > 0 ? [t.objectProperty(t.identifier("style"), t.objectExpression(styleObject))] : []),
       ]),
-    );
+      ...(statements.length > 0 ? [t.arrowFunctionExpression([ctx], t.blockStatement(statements))] : []),
+    ]);
+
+    call.loc = path.node.loc;
+
+    return t.expressionStatement(call);
   }
   if (t.isJSXIdentifier(name)) {
     const element = path.node;
     const opening = path.get("openingElement");
     const props: (types.ObjectProperty | types.SpreadElement)[] = [];
     let run: types.FunctionExpression | types.ArrowFunctionExpression | undefined;
+    const mapped = internal.mapping.get(name.name);
+
+    if (mapped === "Debug" && internal.stack.get(name.name) === undefined && !internal.devMode) {
+      return t.emptyStatement();
+    }
 
     for (const attrPath of opening.get("attributes")) {
       const attr = attrPath.node;
@@ -433,7 +477,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
       if (t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name)) {
         // <A prop=".."/>
         if (t.isStringLiteral(attr.value)) {
-          props.push(t.objectProperty(id(attr.name.name), attr.value));
+          props.push(idToProp(attr.name, attr.value));
         }
         // <A prop={..}/>
         else if (t.isJSXExpressionContainer(attr.value)) {
@@ -445,7 +489,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
             isSystem && attr.name.name === "slot",
           );
 
-          props.push(t.objectProperty(id(attr.name.name), value));
+          props.push(idToProp(attr.name, value));
         } else {
           throw attrPath.buildCodeFrameError("Vasille: JSX Elements/Fragments are not supported here");
         }
@@ -476,9 +520,11 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
       }
     }
 
-    return t.expressionStatement(
-      t.callExpression(t.identifier(name.name), [ctx, t.objectExpression(props), ...(run ? [run] : [])]),
-    );
+    const call = t.callExpression(t.identifier(name.name), [ctx, t.objectExpression(props), ...(run ? [run] : [])]);
+
+    call.loc = path.node.loc;
+
+    return t.expressionStatement(call);
   }
 
   throw path.buildCodeFrameError(

@@ -1,8 +1,8 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { calls, composeOnly } from "./call.js";
-import { Internal, VariableState, ctx } from "./internal.js";
-import { bodyHasJsx } from "./jsx-detect.js";
+import { calls, composeOnly } from "./call";
+import { Internal, VariableState, ctx } from "./internal";
+import { bodyHasJsx } from "./jsx-detect";
 import {
   arrayModel,
   exprCall,
@@ -13,8 +13,8 @@ import {
   reactiveObject,
   ref,
   setModel,
-} from "./lib.js";
-import { transformJsx } from "./jsx.js";
+} from "./lib";
+import { transformJsx } from "./jsx";
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
   nodePaths: NodePath<types.Expression | null | T>[],

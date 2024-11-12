@@ -1,6 +1,6 @@
 import { types } from "@babel/core";
 import * as t from "@babel/types";
-import { Internal, ctx } from "./internal.js";
+import { Internal, ctx } from "./internal";
 
 export type FnNames =
   | "compose"

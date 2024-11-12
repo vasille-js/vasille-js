@@ -1,9 +1,12 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { Internal, StackedStates, VariableState } from "./internal.js";
-import { meshExpression, meshStatement } from "./mesh.js";
+import { Internal, StackedStates, VariableState } from "./internal";
+import { meshExpression, meshStatement } from "./mesh";
 
-const imports = new Map([["vasille-dx", "VasilleDX"], ["vasille-web", "VasilleWeb"]]);
+const imports = new Map([
+  ["vasille-dx", "VasilleDX"],
+  ["vasille-web", "VasilleWeb"],
+]);
 const ignoreMembers = new Set([
   "value",
   "ref",

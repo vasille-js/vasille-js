@@ -1,6 +1,6 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { Internal, StackedStates, VariableState } from "./internal.js";
+import { Internal, StackedStates, VariableState } from "./internal";
 
 interface Search {
   found: Map<string, types.Expression>;
