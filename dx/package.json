@@ -1,6 +1,6 @@
 {
   "name": "vasille-dx",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Best Developer eXperience ever with Vasille Framework",
   "main": "lib/index.js",
   "types": "./fake-types/index.d.ts",

@@ -1,7 +1,7 @@
 import * as Babel from "@babel/core";
 import { trProgram } from "./transformer";
 
-export default function (): Babel.PluginObj<{opts: { devMode: unknown }}> {
+export default function (): Babel.PluginObj<{ opts: { devMode: unknown } }> {
   return {
     name: "Vasille",
     visitor: {

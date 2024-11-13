@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-vasille",
-  "version": "0.99.1",
+  "version": "0.99.2",
   "description": "",
   "main": "lib-node/index.js",
   "type": "commonjs",
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/vasille-js/vasille-js#readme",
   "dependencies": {
-    "vasille-dx": "^3.0.1"
+    "vasille-dx": "^3.0.3"
   },
   "devDependencies": {
     "@babel/parser": "^7.26.1",
