@@ -13,11 +13,11 @@ type PseudoSet = PropsSet & {
 type MediaSet = PseudoSet & {
     [k: `@${string}`]: PseudoSet;
 };
-export declare function webStyleSheet<T = {
+export declare function webStyleSheet<T extends {
     [k: string]: MediaSet;
 }>(styles: T): {
     [K in keyof T]: string;
-} | undefined;
+};
 
 // fake functions
 export declare function theme<T>(name: string, value: T): T;

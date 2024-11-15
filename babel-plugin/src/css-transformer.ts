@@ -142,22 +142,25 @@ function processValue(
       return composeRules(path.node.elements.map(item => `${(item as types.NumericLiteral).value}px`).join(" "));
     } else if (allowFallback) {
       return [
-        ...(path as NodePath<types.ArrayExpression>).get("elements").map(path => {
-          if (t.isExpression(path.node)) {
-            return processValue(
-              name,
-              path as NodePath<types.Expression>,
-              pseudo,
-              theme,
-              media,
-              mediaDefault,
-              false,
-              internal,
-            );
-          } else {
-            throw path.buildCodeFrameError("Vasille: Exprected expression");
-          }
-        }).flat(1),
+        ...(path as NodePath<types.ArrayExpression>)
+          .get("elements")
+          .map(path => {
+            if (t.isExpression(path.node)) {
+              return processValue(
+                name,
+                path as NodePath<types.Expression>,
+                pseudo,
+                theme,
+                media,
+                mediaDefault,
+                false,
+                internal,
+              );
+            } else {
+              throw path.buildCodeFrameError("Vasille: Exprected expression");
+            }
+          })
+          .flat(1),
       ];
     } else {
       throw path.buildCodeFrameError("Vasille: Only numbers arrays are suppored here");
@@ -183,9 +186,12 @@ function processProp(path: NodePath<types.ObjectProperty>, pseudo: string, media
       throw path.get("key").buildCodeFrameError("Vasille: Media queries allowed inly in the root of style");
     }
     if (t.isObjectExpression(path.node.value)) {
-      return (path.get("value") as NodePath<types.ObjectExpression>).get("properties").map(item => {
-        return tryProcessProp(item, "", name, internal);
-      }).flat(1);
+      return (path.get("value") as NodePath<types.ObjectExpression>)
+        .get("properties")
+        .map(item => {
+          return tryProcessProp(item, "", name, internal);
+        })
+        .flat(1);
     } else {
       throw path.get("value").buildCodeFrameError("Vasille: Exprected object expression");
     }
@@ -195,9 +201,12 @@ function processProp(path: NodePath<types.ObjectProperty>, pseudo: string, media
       throw path.get("key").buildCodeFrameError("Recursive pseudo classes are restriced");
     }
     if (t.isObjectExpression(path.node.value)) {
-      return (path.get("value") as NodePath<types.ObjectExpression>).get("properties").map(item => {
-        return tryProcessProp(item, name, media, internal);
-      }).flat(1);
+      return (path.get("value") as NodePath<types.ObjectExpression>)
+        .get("properties")
+        .map(item => {
+          return tryProcessProp(item, name, media, internal);
+        })
+        .flat(1);
     } else {
       throw path.get("value").buildCodeFrameError("Vasille: Exprected object expression");
     }
@@ -292,12 +301,12 @@ export function findStyleInNode(path: NodePath<types.Node | null | undefined>, i
           for (const theme in sorted[defaultMediaRule][mediaRule]) {
             for (const pseudo in sorted[defaultMediaRule][mediaRule][theme]) {
               const rulePack = sorted[defaultMediaRule][mediaRule][theme][pseudo].join(";");
-              const pseudoPack = pseudo ? `{}${pseudo}{${rulePack}}` : `{}{${rulePack}}`;
+              const pseudoPack = pseudo ? `.{}${pseudo}{${rulePack}}` : `.{}{${rulePack}}`;
               const themePack = theme ? `${theme} ${pseudoPack}` : pseudoPack;
               const mediaRulePack = t.stringLiteral(mediaRule ? `${mediaRule}{${themePack}}` : themePack);
 
               expressions.push(
-                defaultMediaRule !== '0'
+                defaultMediaRule !== "0"
                   ? t.arrayExpression([t.numericLiteral(parseInt(defaultMediaRule)), mediaRulePack])
                   : mediaRulePack,
               );

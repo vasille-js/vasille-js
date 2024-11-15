@@ -10,7 +10,7 @@ const styles = webStyleSheet({
     ":hover": {
       margin: 0,
       padding: [10, 5],
-      display: "block"
+      display: "block",
     },
   },
   c3: {
@@ -38,6 +38,6 @@ const styles = webStyleSheet({
     color: [theme("red", "#f00"), theme("green", "#0f0"), theme("blue", "#00f")],
   },
   c9: {
-    display: ["block", "flex"]
-  }
+    display: ["block", "flex"],
+  },
 });
