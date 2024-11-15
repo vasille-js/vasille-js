@@ -47,14 +47,14 @@ function insertRule(target: number, rule: string) {
 
         case 2:
             if (!tablet) {
-                tablet = createStyleSheet(`(min-width:${mobileMaxWidth}px)and(max-width:${tabletMaxWidth}px)`);
+                tablet = createStyleSheet(`(min-width:${mobileMaxWidth}px) and (max-width:${tabletMaxWidth}px)`);
             }
             sheet = tablet;
             break;
 
         case 3:
             if (!desktop) {
-                desktop = createStyleSheet(`(min-width:${tabletMaxWidth}px)and(max-width:${laptopMaxWidth}px)`);
+                desktop = createStyleSheet(`(min-width:${tabletMaxWidth}px) and (max-width:${laptopMaxWidth}px)`);
             }
             sheet = desktop;
             break;

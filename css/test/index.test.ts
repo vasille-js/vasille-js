@@ -38,8 +38,8 @@ it("calculted style test", function () {
     expect(page.window.document.head.children.length).toBe(6);
     expect(style(0).media).toBe("");
     expect(style(1).media).toBe("(max-width:400px)");
-    expect(style(2).media).toBe("(min-width:400px)and(max-width:800px)");
-    expect(style(3).media).toBe("(min-width:800px)and(max-width:1200px)");
+    expect(style(2).media).toBe("(min-width:400px) and (max-width:800px)");
+    expect(style(3).media).toBe("(min-width:800px) and (max-width:1200px)");
     expect(style(4).media).toBe("(prefers-color-scheme:dark)");
     expect(style(5).media).toBe("(prefers-color-scheme:light)");
 

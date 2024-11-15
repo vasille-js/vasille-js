@@ -1,6 +1,6 @@
 {
   "name": "vasille-css",
-  "version": "3.0.3",
+  "version": "3.0.5",
   "description": "Add module CSS styles to Vasille Components",
   "main": "./lib/index.js",
   "types": "./fake-types/index.d.ts",
