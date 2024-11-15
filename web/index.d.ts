@@ -24,4 +24,17 @@ export {
   reactiveObject,
   value,
   watch,
-} from "vasille-dx";  
+} from "vasille-dx";
+export {
+  theme,
+  tablet,
+  dark,
+  mobile,
+  laptop,
+  prefersLight,
+  prefersDark,
+  webStyleSheet,
+  setMobileMaxWidth,
+  setTabletMaxWidth,
+  setLaptopMaxWidth,
+} from "vasille-css";

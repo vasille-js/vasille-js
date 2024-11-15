@@ -15,4 +15,10 @@ export {
   Watch,
   awaited,
   $,
-} from "vasille-dx"; 
+} from "vasille-dx";
+export {
+  webStyleSheet,
+  setMobileMaxWidth,
+  setTabletMaxWidth,
+  setLaptopMaxWidth,
+} from "vasille-css";

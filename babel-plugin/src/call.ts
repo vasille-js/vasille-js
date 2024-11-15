@@ -15,7 +15,15 @@ export type FnNames =
   | "arrayModel"
   | "setModel"
   | "mapModel"
-  | "reactiveObject";
+  | "reactiveObject"
+  | "theme"
+  | "dark"
+  | "mobile"
+  | "tablet"
+  | "laptop"
+  | "prefersDark"
+  | "prefersLight"
+  | "webStyleSheet";
 
 export const composeOnly: FnNames[] = [
   "forward",
@@ -27,6 +35,16 @@ export const composeOnly: FnNames[] = [
   "mapModel",
   "setModel",
   "reactiveObject",
+];
+export const styleOnly: FnNames[] = [
+  "theme",
+  "dark",
+  "mobile",
+  "tablet",
+  "laptop",
+  "prefersDark",
+  "prefersLight",
+  "webStyleSheet",
 ];
 export const requiresContext: FnNames[] = ["awaited", "forward"];
 const requiresContextSet: Set<string> = new Set(requiresContext);
@@ -48,9 +66,11 @@ export function calls(node: types.Expression | null | undefined, names: FnNames[
       return false;
     }
 
-    // The global object is overrided
-    if (internal.stack.get(internal.global) !== undefined) {
-      return false;
+    const global = internal.stack.get(internal.global) === undefined;
+    const cssGlobal = internal.stack.get(internal.cssGlobal) === undefined;
+
+    if (!global && !cssGlobal) {
+      return;
     }
 
     const propName = t.isMemberExpression(callee)
@@ -62,10 +82,13 @@ export function calls(node: types.Expression | null | undefined, names: FnNames[
       : null;
 
     if (t.isMemberExpression(callee) && t.isIdentifier(callee.object) && propName) {
-      if (callee.object.name === internal.global && set.has(propName)) {
+      if (global && callee.object.name === internal.global && set.has(propName)) {
         if (requiresContextSet.has(callee.object.name) && t.isCallExpression(node)) {
           node.arguments.unshift(ctx);
         }
+        return callee.object.name;
+      }
+      if (cssGlobal && callee.object.name === internal.cssGlobal && set.has(propName)) {
         return callee.object.name;
       }
     }

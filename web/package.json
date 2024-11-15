@@ -1,6 +1,6 @@
 {
   "name": "vasille-web",
-  "version": "0.99.2",
+  "version": "0.99.3",
   "description": "Front-end framework with best developer experience ever.",
   "main": "index.js",
   "types": "./index.d.ts",
@@ -30,6 +30,7 @@
   "homepage": "https://github.com/vasille-js/vasille-js#readme",
   "dependencies": {
     "babel-plugin-vasille": "^0.99.2",
+    "vasille-css": "^3.0.3",
     "vasille-dx": "^3.0.3"
   }
 }

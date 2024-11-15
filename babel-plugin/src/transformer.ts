@@ -2,6 +2,7 @@ import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { Internal, StackedStates, VariableState } from "./internal";
 import { meshExpression, meshStatement } from "./mesh";
+import { findStyleInNode } from "./css-transformer";
 
 const imports = new Map([
   ["vasille-dx", "VasilleDX"],
@@ -17,6 +18,13 @@ const ignoreMembers = new Set([
   "mapModel",
   "reactiveObject",
   "setModel",
+  "theme",
+  "dark",
+  "mobile",
+  "tablet",
+  "laptop",
+  "prefersDark",
+  "prefersLight",
 ]);
 
 function extractText(node: types.Identifier | types.StringLiteral) {
@@ -25,6 +33,7 @@ function extractText(node: types.Identifier | types.StringLiteral) {
 
 export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
   let id!: types.Expression;
+  let stylesConnected = false;
   const internal: Internal = {
     get id() {
       this.internalUsed = true;
@@ -37,6 +46,7 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
     stack: new StackedStates(),
     mapping: new Map<string, string>(),
     global: "",
+    cssGlobal: "",
     prefix: "Vasille_",
     importStatement: null,
     internalUsed: false,
@@ -55,12 +65,19 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
         for (const specifier of statement.specifiers) {
           if (t.isImportNamespaceSpecifier(specifier)) {
             internal.global = specifier.local.name;
+            if (statement.source.value === "vasille-web") {
+              internal.cssGlobal = internal.global;
+              stylesConnected = true;
+            }
             id = t.memberExpression(t.identifier(internal.global), t.identifier("$"));
           } else if (t.isImportSpecifier(specifier)) {
             const imported = extractText(specifier.imported);
             const local = specifier.local.name;
 
             internal.mapping.set(local, imported);
+            if (imported === "webStyleSheet") {
+              stylesConnected = true;
+            }
 
             if (!id) {
               id = t.identifier(name);
@@ -75,13 +92,34 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
             return !ignoreMembers.has(extractText(spec.imported));
           }
         });
+      } else if (statement.source.value === "vasille-css") {
+        for (const specifier of statement.specifiers) {
+          if (t.isImportSpecifier(specifier)) {
+            internal.mapping.set(specifier.local.name, extractText(specifier.imported));
+          } else if (t.isImportNamespaceSpecifier(specifier)) {
+            internal.cssGlobal = specifier.local.name;
+          }
+        }
+        statement.specifiers = statement.specifiers.filter(spec => {
+          if (!t.isImportSpecifier(spec)) {
+            return true;
+          } else {
+            return !ignoreMembers.has(extractText(spec.imported));
+          }
+        });
+        stylesConnected = true;
       }
     } else {
       if (!id) {
+        if (stylesConnected) {
+          findStyleInNode(statementPath, internal);
+        }
         return;
       }
 
-      meshStatement(statementPath, internal);
+      if (!stylesConnected || !findStyleInNode(statementPath, internal)) {
+        meshStatement(statementPath, internal);
+      }
     }
   }
 

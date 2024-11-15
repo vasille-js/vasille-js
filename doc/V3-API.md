@@ -343,7 +343,7 @@ export const MyApp = compose(() => {
 
 ## Styling
 
-The `webStyleSheet` function will create ready-to-use stylesheet in compile time (temporary unavailable).
+The `webStyleSheet` function will create ready-to-use stylesheet in compile time.
 
 ```typescript jsx
 export const MyComponent = compose(() => {
@@ -356,18 +356,33 @@ export const MyComponent = compose(() => {
 
 const styles = webStyleSheet({
   root: {
-    width: 23,
-    height: 42,
-    padding: 12,
+    display: "block",
+    // shortcut for 0px
+    margin: 0,
+    // shortcut for "10px 5px"
+    padding: [10, 5],
+    // Styles can be declared for any pseudo-selector
+    ":hover": {
+      margin: 5,
+    },
   },
   container: {
-    padding: 10,
-    color: "black",
-    ":hover": {
-      color: "red"
-    }
+    // Custom media quesries are supported
+    "@media (max-width: 1000px)": {
+      margin: 20,
+    },
+    // fallback with custom values for laptops, tablets and phones
+    margin: [100, laptop(40), tablet(20), mobile(10)],
+    // use same fallback for tablets and phones
+    padding: [[50, 45], tablet(mobile([10, 5]))],
+    // stylish your application by user requiments
+    color: [prefersLight("#fff"), prefersDark("#222")],
+    // support dark mode which can be switched from javascript
+    background: ["#fff", dark("#000")],
+    // suppoert custom themes
+    "border-color": [theme("red", "#f00"), theme("green", "#0f0"), theme("blue", "#00f")],
   },
-})
+});
 ```
 
 Dynamical styles can be added using style attribute on elements. To define styles, you can use *object notation* or classic *string notation*.

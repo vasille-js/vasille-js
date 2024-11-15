@@ -43,6 +43,7 @@ export interface Internal {
   stack: StackedStates;
   id: types.Expression;
   global: string;
+  cssGlobal: string;
   prefix: string;
   internalUsed: boolean;
   importStatement: NodePath<types.ImportDeclaration> | null;

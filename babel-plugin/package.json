@@ -1,7 +1,7 @@
 {
   "name": "babel-plugin-vasille",
-  "version": "0.99.2",
-  "description": "",
+  "version": "0.99.3",
+  "description": "Convert Vasille Meta Language code to pure JavaScript",
   "main": "lib-node/index.js",
   "type": "commonjs",
   "exports": {
@@ -21,7 +21,9 @@
   "keywords": [
     "front-end",
     "framework",
-    "dx"
+    "web",
+    "compiler",
+    "babel"
   ],
   "author": "lixcode",
   "license": "MIT",
@@ -29,9 +31,6 @@
     "url": "https://github.com/vasille-js/vasille-js/issues"
   },
   "homepage": "https://github.com/vasille-js/vasille-js#readme",
-  "dependencies": {
-    "vasille-dx": "^3.0.3"
-  },
   "devDependencies": {
     "@babel/parser": "^7.26.1",
     "@babel/plugin-syntax-jsx": "^7.25.9",
@@ -46,6 +45,8 @@
     "path": "^0.12.7",
     "prettier": "^3.3.3",
     "ts-jest": "^29.2.5",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vasille-css": "^3.0.3",
+    "vasille-dx": "^3.0.3"
   }
 }

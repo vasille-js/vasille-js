@@ -1,6 +1,6 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { calls, composeOnly } from "./call";
+import { calls, composeOnly, styleOnly } from "./call";
 import { Internal, VariableState, ctx } from "./internal";
 import { bodyHasJsx } from "./jsx-detect";
 import {
@@ -151,12 +151,21 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       meshAllUnknown(path.get("elements"), internal);
       break;
     }
-    case "CallExpression": {
+    case "CallExpression":
+    case "OptionalCallExpression": {
       const path = nodePath as NodePath<types.CallExpression>;
       const callsFn = calls(path.node, composeOnly, internal);
+      const callsStyleHint = calls(path.node, styleOnly, internal);
+      const callsStyleCreate = calls(path.node, ["webStyleSheet"], internal);
 
       if (callsFn) {
-        throw path.buildCodeFrameError(`Vasille: Usage of function "${callsFn}" is restricted here`);
+        throw path.buildCodeFrameError(`Vasille: Usage of hint "${callsFn}" is restricted here`);
+      }
+      if (callsStyleHint) {
+        throw path.buildCodeFrameError(`Vasille: Usage of style hint "${callsStyleHint}" is restricted here`);
+      }
+      if (callsStyleCreate) {
+        throw path.buildCodeFrameError("Vasille: Styles can be created in moldule level code only");
       }
 
       meshOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), internal);
@@ -168,13 +177,6 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
         }
         path.replaceWith(t.callExpression(path.node.arguments[0] as types.Expression, []));
       }
-      break;
-    }
-    case "OptionalCallExpression": {
-      const path = nodePath as NodePath<types.OptionalCallExpression>;
-
-      meshExpression(path.get("callee"), internal);
-      meshAllUnknown(path.get("arguments"), internal);
       break;
     }
     case "AssignmentExpression": {
