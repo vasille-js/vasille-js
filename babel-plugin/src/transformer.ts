@@ -113,11 +113,10 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
       if (!id) {
         if (stylesConnected) {
           findStyleInNode(statementPath, internal);
+        } else {
+          return;
         }
-        return;
-      }
-
-      if (!stylesConnected || !findStyleInNode(statementPath, internal)) {
+      } else if (!stylesConnected || !findStyleInNode(statementPath, internal)) {
         meshStatement(statementPath, internal);
       }
     }
@@ -134,8 +133,6 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
             if (t.isImportSpecifier(item) && t.isIdentifier(item.local)) {
               return statementPath.scope.bindings[item.local.name].referenced;
             }
-
-            return true;
           }),
           t.importSpecifier(internal.id as types.Identifier, t.identifier("$")),
         ],
