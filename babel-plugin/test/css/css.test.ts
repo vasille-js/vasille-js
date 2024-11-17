@@ -40,10 +40,6 @@ it('incompatible key', function() {
   throwTest(__dirname, "incompatible-key", 'Incompatible key, expect identifier or string literal');
 })
 
-it('computed key', function() {
-  throwTest(__dirname, "computed-key", 'Computed keys are not supported');
-})
-
 it('nested media queries', function() {
   throwTest(__dirname, "nested-media-queries", 'Media queries allowed only in the root of style');
 })
@@ -58,4 +54,24 @@ it('recursive pseudos', function() {
 
 it('pseudo value is not object', function() {
   throwTest(__dirname, "pseudo-not-object", 'Expected object expression');
+})
+
+it('missing argument', function() {
+  throwTest(__dirname, "no-args", 'webStyleSheet function has 1 parameter');
+})
+
+it('arg is not an object', function() {
+  throwTest(__dirname, "arg-not-object", 'Expected object expression');
+})
+
+it('arg object contains wrong values', function() {
+  throwTest(__dirname, "arg-wrong-object", 'Expected object property');
+})
+
+it('arg property value is not object', function() {
+  throwTest(__dirname, "arg-wrong-value", 'Expected object expression');
+})
+
+it('arg key is not valid', function() {
+  throwTest(__dirname, "arg-wrong-key", 'Expected identifier of string literal');
 })

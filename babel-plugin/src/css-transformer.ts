@@ -173,16 +173,12 @@ function processValue(
 function processProp(path: NodePath<types.ObjectProperty>, pseudo: string, media: string, internal: Internal): Rule[] {
   let name: string;
 
-  if (t.isIdentifier(path.node.key)) {
+  if (t.isIdentifier(path.node.key) && !path.node.computed) {
     name = path.node.key.name;
   } else if (t.isStringLiteral(path.node.key)) {
     name = path.node.key.value;
   } else {
     throw path.get("key").buildCodeFrameError("Vasille: Incompatible key, expect identifier or string literal");
-  }
-
-  if (path.node.computed && !t.isStringLiteral(path.node.key)) {
-    throw path.get('key').buildCodeFrameError('Vasille: Computed keys are not supported');
   }
 
   if (name.startsWith("@")) {
@@ -242,7 +238,7 @@ export function findStyleInNode(path: NodePath<types.Node | null | undefined>, i
       throw callPath.buildCodeFrameError("Vasille: webStyleSheet function has 1 parameter");
     }
     if (!t.isObjectExpression(call.arguments[0])) {
-      throw objPath.buildCodeFrameError("Vasille: expected object expression");
+      throw objPath.buildCodeFrameError("Vasille: Expected object expression");
     }
 
     for (const path of objPath.get("properties")) {
@@ -254,7 +250,7 @@ export function findStyleInNode(path: NodePath<types.Node | null | undefined>, i
       if (!t.isObjectExpression(prop.node.value)) {
         throw prop.get("value").buildCodeFrameError("Vasille: Expected object expression");
       }
-      if (!(t.isIdentifier(prop.node.key) || t.isStringLiteral(prop.node.key))) {
+      if (!(t.isIdentifier(prop.node.key) && !prop.node.computed || t.isStringLiteral(prop.node.key))) {
         throw prop.get("key").buildCodeFrameError("Vasille: Expected identifier of string literal");
       }
 
