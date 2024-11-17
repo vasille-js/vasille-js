@@ -216,9 +216,6 @@ function processProp(path: NodePath<types.ObjectProperty>, pseudo: string, media
 }
 
 export function findStyleInNode(path: NodePath<types.Node | null | undefined>, internal: Internal) {
-  if (t.isExpressionStatement(path.node)) {
-    return findStyleInNode((path as NodePath<types.ExpressionStatement>).get("expression"), internal);
-  }
   if (t.isExportNamedDeclaration(path.node)) {
     return findStyleInNode((path as NodePath<types.ExportNamedDeclaration>).get("declaration"), internal);
   }

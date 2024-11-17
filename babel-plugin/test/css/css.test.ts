@@ -25,7 +25,7 @@ it('dark conflict with themes', function() {
 })
 
 it('spread element in array', function() {
-  throwTest(__dirname, "dark-vs-theme", 'The theme seem the be defined twice');
+  throwTest(__dirname, "array-spread-element", 'Expected expression');
 })
 
 it('wrong array value', function() {

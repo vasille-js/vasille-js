@@ -1,6 +1,6 @@
 import { webStyleSheet, dark, prefersDark, prefersLight, mobile, laptop, tablet, theme } from "vasille-css";
 
-const styles = webStyleSheet({
+export const styles = webStyleSheet({
   c1: {
     margin: 0,
     padding: [10, 5],
@@ -26,7 +26,7 @@ const styles = webStyleSheet({
     margin: [laptop(40), tablet(20), mobile(10)],
   },
   c5: {
-    padding: [laptop([50, 45]), tablet(mobile([10, 5]))],
+    padding: [laptop(laptop([50, 45])), tablet(mobile([10, 5]))],
   },
   c6: {
     color: [prefersLight("#fff"), prefersDark("#222")],
