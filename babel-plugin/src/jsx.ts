@@ -239,7 +239,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
                       }
                       // class={[{a(){}}]}
                       else {
-                        throw propPath.buildCodeFrameError("Vasille: Methods are not alllowed here");
+                        throw propPath.buildCodeFrameError("Vasille: Methods are not allowed here");
                       }
                     }
                   }
@@ -346,7 +346,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
                 }
                 // style={{a(){}}}
                 else {
-                  throw propPath.buildCodeFrameError("Vasille: Methods are not alllowed here");
+                  throw propPath.buildCodeFrameError("Vasille: Methods are not allowed here");
                 }
               }
             }
@@ -528,6 +528,6 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
   }
 
   throw path.buildCodeFrameError(
-    "Vasille: Unsupported tag detected, html lowercase tagnames and components are accepted",
+    "Vasille: Unsupported tag detected, html lowercase tag names and components are accepted",
   );
 }

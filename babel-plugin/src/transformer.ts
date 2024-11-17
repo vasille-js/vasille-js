@@ -1,7 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { Internal, StackedStates, VariableState } from "./internal";
-import { meshExpression, meshStatement } from "./mesh";
+import { Internal, StackedStates } from "./internal";
+import { meshStatement } from "./mesh";
 import { findStyleInNode } from "./css-transformer";
 
 const imports = new Map([

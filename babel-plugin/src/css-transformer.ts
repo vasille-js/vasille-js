@@ -10,10 +10,10 @@ function tryProcessProp(
   internal: Internal,
 ): Rule[] {
   if (t.isObjectMethod(path.node)) {
-    throw path.buildCodeFrameError("Object methods not supported here");
+    throw path.buildCodeFrameError("Vasille: Object methods not supported here");
   }
   if (t.isSpreadElement(path.node)) {
-    throw path.buildCodeFrameError("Spread element not suppored here");
+    throw path.buildCodeFrameError("Vasille: Spread element not supported here");
   }
 
   return processProp(path as NodePath<types.ObjectProperty>, pseudo, media, internal);
@@ -43,7 +43,7 @@ function processValue(
     const call = path.node as types.CallExpression;
 
     if (theme) {
-      throw path.buildCodeFrameError("Vasille: Theme seem the be defined twince");
+      throw path.buildCodeFrameError("Vasille: The theme seems the be defined twice");
     }
     if (t.isStringLiteral(call.arguments[0])) {
       return processValue(
@@ -64,7 +64,7 @@ function processValue(
   }
   if (calls(path.node, ["dark"], internal)) {
     if (theme) {
-      throw path.buildCodeFrameError("Vasille: Theme seem the be defined twince");
+      throw path.buildCodeFrameError("Vasille: The theme seem the be defined twice");
     }
 
     return processValue(
@@ -157,13 +157,13 @@ function processValue(
                 internal,
               );
             } else {
-              throw path.buildCodeFrameError("Vasille: Exprected expression");
+              throw path.buildCodeFrameError("Vasille: Expected expression");
             }
           })
           .flat(1),
       ];
     } else {
-      throw path.buildCodeFrameError("Vasille: Only numbers arrays are suppored here");
+      throw path.buildCodeFrameError("Vasille: Only numbers arrays are supported here");
     }
   }
 
@@ -178,12 +178,16 @@ function processProp(path: NodePath<types.ObjectProperty>, pseudo: string, media
   } else if (t.isStringLiteral(path.node.key)) {
     name = path.node.key.value;
   } else {
-    throw path.get("key").buildCodeFrameError("Vasille: Incompaible key, exprect idenifier or string literal");
+    throw path.get("key").buildCodeFrameError("Vasille: Incompatible key, expect identifier or string literal");
+  }
+
+  if (path.node.computed && !t.isStringLiteral(path.node.key)) {
+    throw path.get('key').buildCodeFrameError('Vasille: Computed keys are not supported');
   }
 
   if (name.startsWith("@")) {
     if (media || pseudo) {
-      throw path.get("key").buildCodeFrameError("Vasille: Media queries allowed inly in the root of style");
+      throw path.get("key").buildCodeFrameError("Vasille: Media queries allowed only in the root of style");
     }
     if (t.isObjectExpression(path.node.value)) {
       return (path.get("value") as NodePath<types.ObjectExpression>)
@@ -193,12 +197,12 @@ function processProp(path: NodePath<types.ObjectProperty>, pseudo: string, media
         })
         .flat(1);
     } else {
-      throw path.get("value").buildCodeFrameError("Vasille: Exprected object expression");
+      throw path.get("value").buildCodeFrameError("Vasille: Expected object expression");
     }
   }
   if (name.startsWith(":")) {
     if (pseudo) {
-      throw path.get("key").buildCodeFrameError("Recursive pseudo classes are restriced");
+      throw path.get("key").buildCodeFrameError("Vasille: Recursive pseudo classes are restricted");
     }
     if (t.isObjectExpression(path.node.value)) {
       return (path.get("value") as NodePath<types.ObjectExpression>)
@@ -208,7 +212,7 @@ function processProp(path: NodePath<types.ObjectProperty>, pseudo: string, media
         })
         .flat(1);
     } else {
-      throw path.get("value").buildCodeFrameError("Vasille: Exprected object expression");
+      throw path.get("value").buildCodeFrameError("Vasille: Expected object expression");
     }
   }
 
@@ -248,7 +252,7 @@ export function findStyleInNode(path: NodePath<types.Node | null | undefined>, i
       const prop = path as NodePath<types.ObjectProperty>;
 
       if (!t.isObjectExpression(prop.node.value)) {
-        throw prop.get("value").buildCodeFrameError("Vasille: Exprected object expression");
+        throw prop.get("value").buildCodeFrameError("Vasille: Expected object expression");
       }
       if (!(t.isIdentifier(prop.node.key) || t.isStringLiteral(prop.node.key))) {
         throw prop.get("key").buildCodeFrameError("Vasille: Expected identifier of string literal");

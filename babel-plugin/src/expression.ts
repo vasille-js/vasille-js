@@ -182,7 +182,7 @@ export function checkAllUnknown(
   }
 }
 
-export function chekOrIgnoreExpression<T extends types.Node>(
+export function checkOrIgnoreExpression<T extends types.Node>(
   path: NodePath<types.Expression | null | undefined | T>,
   search: Search,
 ) {
@@ -233,7 +233,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     case "CallExpression": {
       const path = nodePath as NodePath<types.CallExpression>;
 
-      chekOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), search);
+      checkOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), search);
       checkAllUnknown(path.get("arguments"), search);
       break;
     }
@@ -256,7 +256,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       const node = path.node;
 
       checkExpression(path.get("object"), search);
-      chekOrIgnoreExpression<types.PrivateName>(path.get("property"), search);
+      checkOrIgnoreExpression<types.PrivateName>(path.get("property"), search);
 
       if (t.isIdentifier(node.object) && search.external.stack.get(node.object.name) === VariableState.ReactiveObject) {
         addMemberExpr(path, search);
@@ -269,7 +269,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     case "BinaryExpression": {
       const path = nodePath as NodePath<types.BinaryExpression>;
 
-      chekOrIgnoreExpression<types.PrivateName>(path.get("left"), search);
+      checkOrIgnoreExpression<types.PrivateName>(path.get("left"), search);
       checkExpression(path.get("right"), search);
       break;
     }
@@ -291,7 +291,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     case "NewExpression": {
       const path = nodePath as NodePath<types.NewExpression>;
 
-      chekOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), search);
+      checkOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), search);
       checkAllUnknown(path.get("arguments"), search);
       break;
     }
@@ -393,7 +393,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
           if (valuePath instanceof Array) {
             checkAllExpressions(valuePath, search);
           } else {
-            chekOrIgnoreExpression<
+            checkOrIgnoreExpression<
               types.ArrayPattern | types.AssignmentPattern | types.ObjectPattern | types.RestElement
             >(valuePath, search);
           }

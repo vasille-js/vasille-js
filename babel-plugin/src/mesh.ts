@@ -165,7 +165,7 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
         throw path.buildCodeFrameError(`Vasille: Usage of style hint "${callsStyleHint}" is restricted here`);
       }
       if (callsStyleCreate) {
-        throw path.buildCodeFrameError("Vasille: Styles can be created in moldule level code only");
+        throw path.buildCodeFrameError("Vasille: Styles can be created in module level code only");
       }
 
       meshOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), internal);
@@ -446,6 +446,35 @@ export function reactiveArrayPattern(expr: types.LVal | types.OptionalMemberExpr
   return true;
 }
 
+function meshForEachHeader(path: NodePath<types.ForInStatement|types.ForOfStatement>, internal:Internal) {
+  const left = path.node.left;
+
+  meshExpression(path.get("right"), internal);
+  if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
+    ignoreParams(left.declarations[0].id, internal);
+  }
+}
+
+function meshForHeader(path: NodePath<types.ForStatement>, internal: Internal) {
+  const node = path.node;
+
+  if (node.init) {
+    if (t.isExpression(node.init)) {
+      meshExpression(path.get("init") as NodePath<types.Expression>, internal);
+    } else {
+      const variablePath = path.get("init") as NodePath<types.VariableDeclaration>;
+
+      for (const declarationPath of variablePath.get("declarations")) {
+        meshExpression(declarationPath.get("init"), internal);
+        ignoreParams(declarationPath.node.id, internal);
+      }
+    }
+  }
+
+  meshExpression(path.get("test"), internal);
+  meshExpression(path.get("update"), internal);
+}
+
 export function meshStatement(path: NodePath<types.Statement | null | undefined>, internal: Internal) {
   const statement = path.node;
 
@@ -475,50 +504,27 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
 
     case "ForInStatement": {
       const _path = path as NodePath<types.ForInStatement>;
-      const left = _path.node.left;
 
       internal.stack.push();
-      meshExpression(_path.get("right"), internal);
-      if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
-        ignoreParams(left.declarations[0].id, internal);
-      }
+      meshForEachHeader(_path, internal);
       meshStatement(_path.get("body"), internal);
       internal.stack.pop();
       break;
     }
     case "ForOfStatement": {
       const _path = path as NodePath<types.ForOfStatement>;
-      const left = _path.node.left;
 
       internal.stack.push();
-      meshExpression(_path.get("right"), internal);
-      if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
-        ignoreParams(left.declarations[0].id, internal);
-      }
+      meshForEachHeader(_path, internal);
       meshStatement(_path.get("body"), internal);
       internal.stack.pop();
       break;
     }
     case "ForStatement": {
       const _path = path as NodePath<types.ForStatement>;
-      const node = _path.node;
 
       internal.stack.push();
-      if (node.init) {
-        if (t.isExpression(node.init)) {
-          meshExpression(_path.get("init") as NodePath<types.Expression>, internal);
-        } else {
-          const variablePath = _path.get("init") as NodePath<types.VariableDeclaration>;
-
-          for (const declarationPath of variablePath.get("declarations")) {
-            meshExpression(declarationPath.get("init"), internal);
-            ignoreParams(declarationPath.node.id, internal);
-          }
-        }
-      }
-
-      meshExpression(_path.get("test"), internal);
-      meshExpression(_path.get("update"), internal);
+      meshForHeader(_path, internal);
       meshStatement(_path.get("body"), internal);
       internal.stack.pop();
       break;
@@ -780,37 +786,18 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
     }
     case "ForInStatement": {
       const _path = path as NodePath<types.ForInStatement>;
-      const left = _path.node.left;
 
       internal.stack.push();
-      meshExpression(_path.get("right"), internal);
-      if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
-        ignoreParams(left.declarations[0].id, internal);
-      }
+      meshForEachHeader(_path, internal);
       composeStatement(_path.get("body"), internal);
       internal.stack.pop();
       break;
     }
     case "ForStatement": {
       const _path = path as NodePath<types.ForStatement>;
-      const node = _path.node;
 
       internal.stack.push();
-      if (node.init) {
-        if (t.isExpression(node.init)) {
-          meshExpression(_path.get("init") as NodePath<types.Expression>, internal);
-        } else {
-          const variablePath = _path.get("init") as NodePath<types.VariableDeclaration>;
-
-          for (const declarationPath of variablePath.get("declarations")) {
-            meshExpression(declarationPath.get("init"), internal);
-            ignoreParams(declarationPath.node.id, internal);
-          }
-        }
-      }
-
-      meshExpression(_path.get("test"), internal);
-      meshExpression(_path.get("update"), internal);
+      meshForHeader(_path, internal);
       composeStatement(_path.get("body"), internal);
       internal.stack.pop();
       break;
@@ -996,13 +983,9 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
     }
     case "ForOfStatement": {
       const _path = path as NodePath<types.ForOfStatement>;
-      const left = _path.node.left;
 
       internal.stack.push();
-      meshExpression(_path.get("right"), internal);
-      if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
-        ignoreParams(left.declarations[0].id, internal);
-      }
+      meshForEachHeader(_path, internal);
       composeStatement(_path.get("body"), internal);
       internal.stack.pop();
       break;
@@ -1032,7 +1015,7 @@ export function compose(
   }
 
   if (params.length > 1) {
-    throw path.get("params")[1].buildCodeFrameError("Vasille: JSX compoent must have no more then 1 parameter");
+    throw path.get("params")[1].buildCodeFrameError("Vasille: JSX component must have no more then 1 parameter");
   }
 
   for (const param of params) {

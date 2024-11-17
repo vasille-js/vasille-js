@@ -62,32 +62,6 @@ export function forwardOnlyExpr(
   expr: types.Expression | null | undefined,
   internal: Internal,
 ) {
-  if (t.isCallExpression(path.node) && calls(path.node, ["calculate"], internal)) {
-    if (path.node.arguments.length !== 1) {
-      throw path.buildCodeFrameError("Vasille: Incorrect number of arguments");
-    }
-    if (t.isFunctionExpression(path.node.arguments[0]) || t.isArrowFunctionExpression(path.node.arguments[0])) {
-      if (path.node.arguments[0].params.length > 0) {
-        throw path.buildCodeFrameError("Vasille: Argument of calculate cannot have parameters");
-      }
-
-      const exprData = checkNode(
-        (path as NodePath<types.CallExpression>).get("arguments")[0] as NodePath<
-          types.FunctionExpression | types.ArrowFunctionExpression
-        >,
-        internal,
-      );
-
-      path.node.arguments[0].params = [...exprData.found.keys()].map(name => encodeName(name));
-
-      return t.callExpression(t.memberExpression(internal.id, t.identifier("ex")), [
-        path.node.arguments[0],
-        ...exprData.found.values(),
-      ]);
-    } else {
-      throw path.buildCodeFrameError("Vasille: Argument of calculate must be a function");
-    }
-  }
   const calculateCall = parseCalculateCall(path, internal);
 
   if (calculateCall) {
