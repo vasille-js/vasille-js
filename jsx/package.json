@@ -9,6 +9,7 @@
     "node": "./lib-node/index.js",
     "require": "./lib-node/index.js"
   },
+  "types": "./types/index.d.ts",
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
     "prettier": "npx prettier src test --write",

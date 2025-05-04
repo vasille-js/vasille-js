@@ -279,6 +279,10 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
                 console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
               }
             }
+            // class={name}
+            else if (t.isJSXExpressionContainer(attr.value) && t.isIdentifier(attr.value.expression)) {
+              attrs.push(t.objectProperty(t.identifier("class"), attr.value.expression));
+            }
             // class="a b"
             else if (t.isStringLiteral(attr.value)) {
               classStatic.push(attr.value);

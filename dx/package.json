@@ -15,6 +15,7 @@
     "prettier": "prettier src test --write",
     "build": "tsc --build tsconfig.json",
     "build-node": "tsc --build tsconfig-build-node.json",
+    "test-types": "tsc --noEmit ./fake-types/index.d.ts",
     "test": "jest",
     "test-coverage": "jest --coverage"
   },

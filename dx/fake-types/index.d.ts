@@ -1,21 +1,30 @@
-import type { Fragment, IValue } from "vasille";
-import type {HtmlTagMap, TagNameMap, SvgTagNameMap, SvgTagMap} from "vasille-jsx";
-import type {StandardPropertiesHyphen, VendorPropertiesHyphen, ObsoletePropertiesHyphen, SvgPropertiesHyphen} from 'csstype';
+import type { Fragment } from "vasille";
+import type {HtmlTagMap, SvgTagMap} from "vasille-jsx";
+import type {
+  StandardPropertiesHyphen,
+  VendorPropertiesHyphen,
+  ObsoletePropertiesHyphen,
+  SvgPropertiesHyphen
+} from 'csstype';
 
 
 
-declare type Composed<In, Out> = (
+declare interface Params {
+  slot?(...args: unknown[]): unknown;
+}
+
+declare type Composed<In extends Params, Out> = (
   this: Fragment,
   $: (In['slot'] extends () => unknown ? Omit<In, 'slot'>& {slot?: unknown} : (In))
       & { callback?(data: Out | undefined): void },
   slot?: In['slot'],
 ) => void;
 
-declare function compose<In, Out>(
+declare function compose<In extends Params, Out>(
   renderer: (input: In) => Out
 ): Composed<In, Out>;
 
-declare function extend<In, Out>(
+declare function extend<In extends Params, Out>(
   renderer: (input: In) => Out
 ): Composed<In, Out>;
 
@@ -99,10 +108,12 @@ type prefixedObject<T, P extends string> = {
     [K in keyof T as K extends string ? `${P}${K}` : never]?: T[K]
 }
 
-type HtmlInput<K extends keyof HTMLElementTagNameMap> = {
+type HtmlInput<K extends keyof HTMLElementTagNameMap & keyof HtmlTagMap> = {
     callback?: (node: HTMLElementTagNameMap[K]) => unknown,
     class?: (string | Record<string, boolean> | false)[] | string;
-    style?: StandardPropertiesHyphen<number | number[], string> & VendorPropertiesHyphen & ObsoletePropertiesHyphen;
+    style?: StandardPropertiesHyphen<string | number | number[], string> &
+      VendorPropertiesHyphen<string | number | number[], string> &
+      ObsoletePropertiesHyphen<string | number | number[], string>;
     slot?: unknown;
 } & Partial<HtmlTagMap[K]['attrs']> & prefixedObject<
     HtmlTagMap[K]['events'], 'on'
@@ -111,7 +122,7 @@ type HtmlInput<K extends keyof HTMLElementTagNameMap> = {
 type SvgInput<K extends keyof SVGElementTagNameMap> = {
     callback?: (node: SVGElementTagNameMap[K]) => unknown
     class?: (string | Record<string, boolean> | false)[] | string;
-    style?: SvgPropertiesHyphen;
+    style?: SvgPropertiesHyphen<string | number | number[], string>;
     slot?: unknown;
 } & Partial<SvgTagMap[K]["attrs"]> & prefixedObject<
     SvgTagMap[K]['events'], 'on'
@@ -205,7 +216,6 @@ declare global {
             "option": HtmlInput<"option">
             "output": HtmlInput<"output">
             "p": HtmlInput<"p">
-            "param": HtmlInput<"param">
             "picture": HtmlInput<"picture">
             "pre": HtmlInput<"pre">
             "progress": HtmlInput<"progress">
