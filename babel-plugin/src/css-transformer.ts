@@ -247,7 +247,7 @@ export function findStyleInNode(path: NodePath<types.Node | null | undefined>, i
       if (!t.isObjectExpression(prop.node.value)) {
         throw prop.get("value").buildCodeFrameError("Vasille: Expected object expression");
       }
-      if (!(t.isIdentifier(prop.node.key) && !prop.node.computed || t.isStringLiteral(prop.node.key))) {
+      if (!((t.isIdentifier(prop.node.key) && !prop.node.computed) || t.isStringLiteral(prop.node.key))) {
         throw prop.get("key").buildCodeFrameError("Vasille: Expected identifier of string literal");
       }
 

@@ -15,7 +15,7 @@
     "prettier": "prettier src test/**/*.ts* --write",
     "build": "tsc --build tsconfig-build.json",
     "build-node": "tsc --build tsconfig-build-node.json",
-    "tsc-test": "tsc --build tsconfig-tsc-tests.json",
+    "tsc-tests": "tsc --build tsconfig-tsc-tests.json",
     "test": "jest",
     "test-coverage": "jest --coverage"
   },

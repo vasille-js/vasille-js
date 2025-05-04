@@ -446,7 +446,7 @@ export function reactiveArrayPattern(expr: types.LVal | types.OptionalMemberExpr
   return true;
 }
 
-function meshForEachHeader(path: NodePath<types.ForInStatement|types.ForOfStatement>, internal:Internal) {
+function meshForEachHeader(path: NodePath<types.ForInStatement | types.ForOfStatement>, internal: Internal) {
   const left = path.node.left;
 
   meshExpression(path.get("right"), internal);
