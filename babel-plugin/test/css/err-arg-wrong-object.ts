@@ -1,5 +1,6 @@
 import { webStyleSheet } from "vasille-css";
 
 const s = webStyleSheet({
-  a() {}
-})
+  // @ts-expect-error
+  a() {},
+});

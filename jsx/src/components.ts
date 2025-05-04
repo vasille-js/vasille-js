@@ -53,8 +53,17 @@ export function Slot<T extends object = {}>(
         }
 
         model(options, ctx);
+    } else if (options.slot instanceof IValue) {
+        ctx.create(
+            new Watch(ctx, {
+                model: options.slot,
+                slot: (ctx, fn) => {
+                    fn?.(ctx);
+                },
+            }),
+        );
     } else {
-        readValue(options.slot)?.(ctx);
+        options.slot?.(ctx);
     }
 }
 

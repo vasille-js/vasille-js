@@ -36,6 +36,23 @@ export function exprCall(
   expr: types.Expression | null | undefined,
   internal: Internal,
 ) {
+  if (calls(expr, ["bind"], internal)) {
+    const call = expr as types.CallExpression;
+    const arg = call.arguments[0];
+
+    if (call.arguments.length !== 1) {
+      path.buildCodeFrameError("`bind` call requires 1 argument");
+    } else if (!t.isExpression(arg)) {
+      path.buildCodeFrameError("`bind` call argument is not an expression");
+    } else {
+      return exprCall(
+        (path as NodePath<types.CallExpression>).get("arguments")[0] as NodePath<types.Expression>,
+        arg as types.Expression,
+        internal,
+      );
+    }
+  }
+
   const calculateCall = parseCalculateCall(path, internal);
 
   if (calculateCall) {

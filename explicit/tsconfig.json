@@ -1,0 +1,16 @@
+{
+  "include": ["src/**/*"],
+
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": false,
+    "outDir": "lib",
+    "target": "ES2015",
+    "module": "ES6",
+    "moduleResolution": "Node",
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "types": ["jest"]
+  }
+}

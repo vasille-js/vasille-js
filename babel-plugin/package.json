@@ -48,6 +48,7 @@
     "ts-jest": "^29.2.5",
     "typescript": "^5.6.3",
     "vasille-css": "^3.0.3",
-    "vasille-dx": "^3.0.3"
+    "vasille-dx": "^3.0.3",
+    "vasille-explicit": "file:../explicit"
   }
 }

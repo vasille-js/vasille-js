@@ -7,11 +7,13 @@ import { findStyleInNode } from "./css-transformer";
 const imports = new Map([
   ["vasille-dx", "VasilleDX"],
   ["vasille-web", "VasilleWeb"],
+  ["vasille-explicit", "VasilleEX"],
 ]);
 const ignoreMembers = new Set([
   "value",
   "ref",
   "bind",
+  "own",
   "calculate",
   "watch",
   "arrayModel",
@@ -50,6 +52,7 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
     prefix: "Vasille_",
     importStatement: null,
     internalUsed: false,
+    strongExplicit: false,
     devMode: devMode,
   };
 
@@ -61,6 +64,7 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
 
       if (name) {
         internal.prefix = `${name}_`;
+        internal.strongExplicit = name === "VasilleEX";
 
         for (const specifier of statement.specifiers) {
           if (t.isImportNamespaceSpecifier(specifier)) {

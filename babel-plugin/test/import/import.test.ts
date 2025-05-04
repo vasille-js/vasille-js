@@ -8,6 +8,10 @@ it("selective import", function () {
   runTest(__dirname, "selective");
 });
 
+it("selective explicit import", function () {
+  runTest(__dirname, "selective-explicit");
+});
+
 it("override global", function () {
   runTest(__dirname, "override-global");
 });

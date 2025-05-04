@@ -26,3 +26,13 @@ export function awaited<T>(node: Reactive, target: Promise<T> | (() => Promise<T
 export function ensureIValue<T>(node: Reactive, value: T | IValue<T>): IValue<T> {
     return value instanceof IValue ? value : node.ref(value);
 }
+
+export function reactiveFields<T extends object>(object: T): T {
+    for (const key in object) {
+        if (!(object[key] instanceof IValue)) {
+            object[key] = new Reference(object[key]) as unknown as T[typeof key];
+        }
+    }
+
+    return object;
+}

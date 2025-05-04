@@ -47,6 +47,7 @@ export interface Internal {
   prefix: string;
   internalUsed: boolean;
   importStatement: NodePath<types.ImportDeclaration> | null;
+  strongExplicit: boolean;
   devMode: boolean;
 }
 

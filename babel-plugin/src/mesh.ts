@@ -446,7 +446,7 @@ export function reactiveArrayPattern(expr: types.LVal | types.OptionalMemberExpr
   return true;
 }
 
-function meshForEachHeader(path: NodePath<types.ForInStatement|types.ForOfStatement>, internal:Internal) {
+function meshForEachHeader(path: NodePath<types.ForInStatement | types.ForOfStatement>, internal: Internal) {
   const left = path.node.left;
 
   meshExpression(path.get("right"), internal);
@@ -691,7 +691,10 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
   switch (expr.type) {
     case "AssignmentExpression": {
       const assign = expr as types.AssignmentExpression;
-      if (calls(assign.right, ["awaited"], internal)) {
+
+      if (internal.strongExplicit) {
+        meshExpression(path, internal);
+      } else if (calls(assign.right, ["awaited"], internal) && !internal.strongExplicit) {
         reactiveArrayPattern(assign.left, internal);
       } else {
         meshExpression(path, internal);
@@ -841,9 +844,9 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
     case "VariableDeclaration": {
       const _path = path as NodePath<types.VariableDeclaration>;
       const kind = _path.node.kind;
-      const declares = kind === "const" ? VariableState.Ignored : VariableState.Reactive;
+      const declares = internal.strongExplicit || kind === "const" ? VariableState.Ignored : VariableState.Reactive;
 
-      if (kind === "let" || kind === "var") {
+      if (!internal.strongExplicit && (kind === "let" || kind === "var")) {
         _path.node.kind = "const";
       }
 
@@ -853,7 +856,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
 
         ignoreParams(declaration.node.id, internal);
 
-        if (calls(declaration.node.init, ["awaited"], internal)) {
+        if (calls(declaration.node.init, ["awaited"], internal) && !internal.strongExplicit) {
           reactiveArrayPattern(declaration.node.id, internal);
           meshAllUnknown((declaration.get("init") as NodePath<types.CallExpression>).get("arguments"), internal);
           meshInit = false;
@@ -878,7 +881,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
               internal.stack.set(id.name, VariableState.ReactivePointer);
               insertNode = own(insertNode);
             } else {
-              internal.stack.set(id.name, VariableState.Reactive);
+              internal.stack.set(id.name, internal.strongExplicit ? VariableState.Ignored : VariableState.Reactive);
             }
 
             declaration.get("init").replaceWith(insertNode);
@@ -886,9 +889,31 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
           } else if (calls(init, ["ref"], internal)) {
             const argument = (init as types.CallExpression).arguments[0];
 
-            internal.stack.set(id.name, VariableState.Reactive);
+            internal.stack.set(id.name, internal.strongExplicit ? VariableState.Ignored : VariableState.Reactive);
             declaration.get("init").replaceWith(ref(t.isExpression(argument) ? argument : null));
-          } else if (calls(init, ["reactiveObject"], internal)) {
+          } else if (calls(init, ["own"], internal) && internal.strongExplicit) {
+            const value = (init as types.CallExpression).arguments[0];
+
+            if (t.isExpression(value)) {
+              const call = exprCall(
+                (declaration.get("init") as NodePath<types.CallExpression>).get(
+                  "arguments",
+                )[0] as NodePath<types.Expression>,
+                value,
+                internal,
+              );
+
+              declaration.get("init").replaceWith(own(call ? call : value));
+              meshInit = !call;
+            }
+          } else if (calls(init, ["calculate"], internal) && internal.strongExplicit) {
+            const expr = exprCall(declaration.get("init"), init, internal);
+
+            if (expr) {
+              declaration.get("init").replaceWith(expr);
+              meshInit = false;
+            }
+          } else if (calls(init, ["reactiveObject"], internal) && !internal.strongExplicit) {
             const value = (init as types.CallExpression).arguments[0];
 
             if (kind !== "const") {
@@ -903,7 +928,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
           } else if (calls(init, ["arrayModel"], internal)) {
             const value = (init as types.CallExpression).arguments[0];
 
-            if (kind !== "const") {
+            if (kind !== "const" && !internal.strongExplicit) {
               declaration.buildCodeFrameError(`Vasille: Array models must be must be declared as constants`);
             }
             if (t.isArrayExpression(value)) {
@@ -915,7 +940,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             const args = (init as types.CallExpression).arguments;
             const name = calls(init, ["mapModel", "setModel"], internal);
 
-            if (kind !== "const") {
+            if (kind !== "const" && !internal.strongExplicit) {
               declaration.buildCodeFrameError(
                 `Vasille: ${name === "mapModel" ? "Map" : "Set"} models must be declared as constants`,
               );
@@ -923,18 +948,18 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             declaration
               .get("init")
               .replaceWith(name === "mapModel" ? mapModel(args, internal) : setModel(args, internal));
-          } else if (t.isObjectExpression(init)) {
+          } else if (t.isObjectExpression(init) && !internal.strongExplicit) {
             if (kind !== "const") {
               declaration.buildCodeFrameError(`Vasille: Objects must be must be declared as constants`);
             }
             declaration.get("init").replaceWith(reactiveObject(init, internal));
             internal.stack.set(id.name, VariableState.ReactiveObject);
-          } else if (t.isArrayExpression(init)) {
-            if (kind !== "const") {
+          } else if (t.isArrayExpression(init) && !internal.strongExplicit) {
+            if (kind !== "const" && !internal.strongExplicit) {
               declaration.buildCodeFrameError(`Vasille: Arrays must be must be declared as constants`);
             }
             declaration.get("init").replaceWith(arrayModel(init, internal));
-          } else if (t.isNewExpression(init) && t.isIdentifier(init.callee)) {
+          } else if (t.isNewExpression(init) && t.isIdentifier(init.callee) && !internal.strongExplicit) {
             if (init.callee.name === "Map" || init.callee.name === "Set") {
               if (kind !== "const") {
                 declaration.buildCodeFrameError(
@@ -953,7 +978,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             meshInit = !replaceWith;
             internal.stack.set(id.name, replaceWith ? VariableState.ReactivePointer : VariableState.Reactive);
             declaration.get("init").replaceWith(replaceWith ? own(replaceWith) : ref(declaration.node.init));
-          } else {
+          } else if (!internal.strongExplicit) {
             const replaceWith = exprCall(declaration.get("init"), declaration.node.init, internal);
 
             if (replaceWith) {
@@ -1009,6 +1034,7 @@ export function compose(
   const node = path.node;
   const params = node.params;
   const body = node.body;
+  const ignore = isInternalSlot || internal.strongExplicit;
 
   if (t.isFunctionExpression(node) && node.id) {
     internal.stack.set(node.id.name, VariableState.Ignored);
@@ -1022,17 +1048,17 @@ export function compose(
     const target = t.isAssignmentPattern(param) ? param.left : param;
 
     if (t.isIdentifier(target)) {
-      internal.stack.set(target.name, isInternalSlot ? VariableState.Ignored : VariableState.ReactiveObject);
+      internal.stack.set(target.name, ignore ? VariableState.Ignored : VariableState.ReactiveObject);
     } else if (t.isObjectPattern(target)) {
       for (const prop of target.properties) {
         if (t.isObjectProperty(prop)) {
           if (t.isIdentifier(prop.value)) {
-            internal.stack.set(prop.value.name, isInternalSlot ? VariableState.Ignored : VariableState.Reactive);
+            internal.stack.set(prop.value.name, ignore ? VariableState.Ignored : VariableState.Reactive);
           } else if (t.isIdentifier(prop.key)) {
-            internal.stack.set(prop.key.name, isInternalSlot ? VariableState.Ignored : VariableState.Reactive);
+            internal.stack.set(prop.key.name, ignore ? VariableState.Ignored : VariableState.Reactive);
           }
         } else if (t.isRestElement(prop) && t.isIdentifier(prop.argument)) {
-          internal.stack.set(prop.argument.name, isInternalSlot ? VariableState.Ignored : VariableState.ReactiveObject);
+          internal.stack.set(prop.argument.name, ignore ? VariableState.Ignored : VariableState.ReactiveObject);
         }
       }
     } else {
@@ -1040,15 +1066,17 @@ export function compose(
     }
   }
 
-  for (const param of path.get("params")) {
-    if (t.isObjectPattern(param.node)) {
-      for (const prop of (param as NodePath<types.ObjectPattern>).get("properties")) {
-        if (t.isObjectProperty(prop.node) && t.isAssignmentPattern(prop.node.value)) {
-          const assignPath = (prop as NodePath<types.ObjectProperty>).get("value") as NodePath<types.AssignmentPattern>;
+  if (!internal.strongExplicit) {
+    for (const param of path.get("params")) {
+      if (t.isObjectPattern(param.node)) {
+        for (const prop of (param as NodePath<types.ObjectPattern>).get("properties")) {
+          if (t.isObjectProperty(prop.node) && t.isAssignmentPattern(prop.node.value)) {
+            const assignPath = (prop as NodePath<types.ObjectProperty>).get("value") as NodePath<types.AssignmentPattern>;
 
-          assignPath
-            .get("right")
-            .replaceWith(t.callExpression(t.memberExpression(internal.id, t.identifier("r")), [assignPath.node.right]));
+            assignPath
+              .get("right")
+              .replaceWith(t.callExpression(t.memberExpression(internal.id, t.identifier("r")), [assignPath.node.right]));
+          }
         }
       }
     }

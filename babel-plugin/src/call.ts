@@ -10,6 +10,7 @@ export type FnNames =
   | "forward"
   | "watch"
   | "ref"
+  | "own"
   | "bind"
   | "value"
   | "arrayModel"
@@ -29,6 +30,7 @@ export const composeOnly: FnNames[] = [
   "forward",
   "watch",
   "ref",
+  "own",
   "bind",
   "value",
   "arrayModel",

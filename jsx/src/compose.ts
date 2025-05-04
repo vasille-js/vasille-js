@@ -1,4 +1,4 @@
-import { Extension, Fragment, config, App, reportError, IValue, Reference } from "vasille";
+import { Extension, Fragment, config, App, reportError, IValue } from "vasille";
 
 interface CompositionProps {
     slot?: (...args: any[]) => void;
@@ -10,10 +10,20 @@ type Composed<In extends CompositionProps, Out> = (
     slot?: In["slot"],
 ) => void;
 
-function proxy<T extends object>(obj: T): T {
+function refactor<T extends object>(frag: Fragment, obj: T): T {
+    for (const key in obj) {
+        if (!(obj[key] instanceof IValue)) {
+            obj[key] = frag.ref(obj[key]) as unknown as T[typeof key];
+        }
+    }
+
+    return obj;
+}
+
+function proxy<T extends object>(frag: Fragment, obj: T): T {
     return new Proxy(obj, {
         get(target: object, p: string | symbol): any {
-            return p in target && target[p] instanceof IValue ? target[p] : new Reference(target[p]);
+            return p in target && target[p] instanceof IValue ? target[p] : target[p] = frag.ref(target[p]);
         },
     }) as T;
 }
@@ -21,6 +31,7 @@ function create<In extends CompositionProps, Out>(
     renderer: (node: Fragment, input: In) => Out,
     create: (props: In) => Fragment,
     name: string,
+    isExplicit: boolean,
 ): Composed<In, Out> {
     return function (node, props, slot) {
         const frag = create(props);
@@ -31,10 +42,11 @@ function create<In extends CompositionProps, Out>(
         node.create(frag);
 
         try {
-            const result = renderer(frag, proxy(props));
+            const callback = props.callback;
+            const result = renderer(frag, isExplicit ? refactor(frag, props) : proxy(frag, props));
 
-            if (result !== undefined && props.callback) {
-                props.callback(result);
+            if (result !== undefined && callback) {
+                callback(result);
             }
         } catch (e) {
             if (config.debugUi) {
@@ -48,6 +60,7 @@ function create<In extends CompositionProps, Out>(
 export function compose<In extends CompositionProps, Out>(
     renderer: (node: Fragment, input: In) => Out,
     name: string,
+    isExplicit: boolean,
 ): Composed<In, Out> {
     return create<In, Out>(
         renderer,
@@ -55,12 +68,14 @@ export function compose<In extends CompositionProps, Out>(
             return new Fragment<object>(props, name);
         },
         name,
+        isExplicit,
     );
 }
 
 export function extend<In extends CompositionProps, Out>(
     renderer: (node: Fragment, input: In) => Out,
     name: string,
+    isExplicit: boolean,
 ): Composed<In, Out> {
     return create<In, Out>(
         renderer,
@@ -68,6 +83,7 @@ export function extend<In extends CompositionProps, Out>(
             return new Extension(props, name);
         },
         name,
+        isExplicit,
     );
 }
 

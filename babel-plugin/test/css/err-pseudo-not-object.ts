@@ -2,6 +2,6 @@ import { webStyleSheet } from "vasille-css";
 
 const s = webStyleSheet({
   c: {
-    ":hover": [23]
-  }
-})
+    ":hover": [23],
+  },
+});
