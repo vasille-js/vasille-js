@@ -69,21 +69,20 @@ export function calls(node: types.Expression | null | undefined, names: FnNames[
     const global = internal.stack.get(internal.global) === undefined;
     const cssGlobal = internal.stack.get(internal.cssGlobal) === undefined;
 
-    if (!global && !cssGlobal) {
-      return;
-    }
+    let propName : string|null = null;
 
-    const propName = t.isMemberExpression(callee)
-      ? t.isIdentifier(callee.property)
-        ? callee.property.name
-        : t.isStringLiteral(callee.property)
-          ? callee.property.value
-          : null
-      : null;
+    if (t.isMemberExpression(callee)) {
+      if (t.isIdentifier(callee.property)) {
+        propName = callee.property.name;
+      }
+      else if (t.isStringLiteral(callee.property)) {
+        propName = callee.property.value
+      }
+    }
 
     if (t.isMemberExpression(callee) && t.isIdentifier(callee.object) && propName) {
       if (global && callee.object.name === internal.global && set.has(propName)) {
-        if (requiresContextSet.has(callee.object.name) && t.isCallExpression(node)) {
+        if (requiresContextSet.has(propName) && t.isCallExpression(node)) {
           node.arguments.unshift(ctx);
         }
         return callee.object.name;

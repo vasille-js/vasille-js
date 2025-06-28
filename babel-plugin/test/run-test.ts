@@ -8,7 +8,7 @@ export function runTest(dir: string, name: string) {
     const result = babel.transformSync(input, { plugins: [vasillePlugin, "@babel/plugin-transform-typescript"] });
     const expected = fs.readFileSync(path.join(dir, `${name}.js`), { encoding: "utf8" });
 
-    expect(result?.code).toBe(expected);
+    expect(result?.code).toBe(expected.replace(/\n$/, ''));
 }
 
 export function throwTest(dir: string, name: string, err: string) {
@@ -35,5 +35,5 @@ export function runJsxTest(dir: string, name: string) {
     });
     const expected = fs.readFileSync(path.join(dir, `${name}.js`), { encoding: "utf8" });
 
-    expect(result?.code).toBe(expected);
+    expect(result?.code).toBe(expected.replace(/\n$/, ''));
 }
