@@ -1,4 +1,5 @@
 import { NodePath, types } from "@babel/core";
+import { TraverseOptions } from "@babel/traverse";
 import * as t from "@babel/types";
 import { Internal, StackedStates, VariableState } from "./internal";
 
@@ -46,7 +47,7 @@ function extractMemberName(path: NodePath<types.MemberExpression | types.Optiona
     }
 
     it = it.object;
-    names.push();
+    names.push(name);
   }
 
   names.push(stringify(it));
@@ -101,17 +102,27 @@ function meshLValue(
   } else if (t.isMemberExpression(path.node) || t.isOptionalMemberExpression(path.node)) {
     meshMember(path as NodePath<types.MemberExpression | types.OptionalMemberExpression>, internal);
   } else {
+    const ids: NodePath<types.Identifier>[] = [];
+    const members: NodePath<types.MemberExpression|types.OptionalMemberExpression>[] = [];
+
     path.traverse({
       Identifier(path) {
-        meshIdentifier(path, internal);
+        ids.push(path);
       },
       MemberExpression(path) {
-        meshMember(path, internal);
+        members.push(path);
       },
       OptionalMemberExpression(path) {
-        meshMember(path, internal);
-      },
-    });
+        members.push(path);
+      }
+    } as TraverseOptions);
+
+    for (const id of ids) {
+      meshIdentifier(id, internal);
+    }
+    for (const member of members) {
+      meshMember(member, internal);
+    }
   }
 }
 
@@ -191,13 +202,12 @@ export function checkOrIgnoreExpression<T extends types.Node>(
   }
 }
 
+const REACTIVE_STATES: (VariableState|undefined)[] = [VariableState.Reactive, VariableState.ReactivePointer];
+
 export function checkExpression(nodePath: NodePath<types.Expression | null | undefined>, search: Search) {
   const expr = nodePath.node;
 
-  if (!expr) {
-    return;
-  }
-  switch (expr.type) {
+  switch (expr && expr.type) {
     case "TemplateLiteral": {
       const path = nodePath as NodePath<types.TemplateLiteral>;
 
@@ -208,11 +218,12 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       const path = nodePath as NodePath<types.TaggedTemplateExpression>;
 
       checkExpression(path.get("quasi"), search);
+      path.get('')
       break;
     }
     case "Identifier": {
-      if (search.stack.get(expr.name) !== VariableState.Ignored) {
-        if (search.external.stack.get(expr.name) === VariableState.Reactive) {
+      if (expr && "name" in expr && search.stack.get(expr.name) !== VariableState.Ignored) {
+        if (REACTIVE_STATES.includes(search.external.stack.get(expr.name))) {
           addIdentifier(nodePath as NodePath<types.Identifier>, search);
         }
       }
@@ -220,12 +231,6 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     }
     case "ArrayExpression": {
       const path = nodePath as NodePath<types.ArrayExpression>;
-
-      checkAllUnknown(path.get("elements"), search);
-      break;
-    }
-    case "TupleExpression": {
-      const path = nodePath as NodePath<types.TupleExpression>;
 
       checkAllUnknown(path.get("elements"), search);
       break;
@@ -301,12 +306,6 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       checkAllExpressions(path.get("expressions"), search);
       break;
     }
-    case "ParenthesizedExpression": {
-      const path = nodePath as NodePath<types.ParenthesizedExpression>;
-
-      checkExpression(path.get("expression"), search);
-      break;
-    }
     case "UnaryExpression": {
       const path = nodePath as NodePath<types.UnaryExpression>;
 
@@ -329,31 +328,6 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       const path = nodePath as NodePath<types.AwaitExpression>;
 
       checkExpression(path.get("argument"), search);
-      break;
-    }
-    case "TypeCastExpression": {
-      const path = nodePath as NodePath<types.TypeCastExpression>;
-
-      checkExpression(path.get("expression"), search);
-      break;
-    }
-    case "BindExpression": {
-      const path = nodePath as NodePath<types.BindExpression>;
-
-      checkExpression(path.get("callee"), search);
-      checkExpression(path.get("object"), search);
-      break;
-    }
-    case "PipelineTopicExpression": {
-      const path = nodePath as NodePath<types.PipelineTopicExpression>;
-
-      checkExpression(path.get("expression"), search);
-      break;
-    }
-    case "PipelineBareFunction": {
-      const path = nodePath as NodePath<types.PipelineBareFunction>;
-
-      checkExpression(path.get("callee"), search);
       break;
     }
     case "TSInstantiationExpression": {
@@ -390,17 +364,16 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
           const path = propPath as NodePath<types.ObjectProperty>;
           const valuePath = path.get("value");
 
-          if (valuePath instanceof Array) {
-            checkAllExpressions(valuePath, search);
-          } else {
-            checkOrIgnoreExpression<
-              types.ArrayPattern | types.AssignmentPattern | types.ObjectPattern | types.RestElement
-            >(valuePath, search);
+          if (path.node.computed) {
+            checkOrIgnoreExpression(path.get('key'), search);
           }
+          checkOrIgnoreExpression<
+            types.ArrayPattern | types.AssignmentPattern | types.ObjectPattern | types.RestElement
+          >(valuePath, search);
         } else if (t.isObjectMethod(prop)) {
           checkFunction(propPath as NodePath<types.ObjectMethod>, search);
         } else {
-          checkAllUnknown([propPath as NodePath<typeof prop>], search);
+          checkAllUnknown([propPath as NodePath<t.SpreadElement>], search);
         }
       }
       break;
@@ -573,8 +546,6 @@ export function checkStatement(path: NodePath<types.Statement | null | undefined
       const _path = path as NodePath<types.VariableDeclaration>;
 
       for (const declaration of _path.get("declarations")) {
-        const expr = declaration.node.init;
-
         ignoreLocals(declaration.node.id, search);
         checkExpression(declaration.get("init"), search);
       }
