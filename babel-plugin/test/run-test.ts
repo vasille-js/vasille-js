@@ -11,11 +11,14 @@ export function runTest(dir: string, name: string) {
     expect(result?.code).toBe(expected.replace(/\n$/, ''));
 }
 
-export function throwTest(dir: string, name: string, err: string) {
-    const input = fs.readFileSync(path.join(dir, `err-${name}.ts`), { encoding: "utf8" });
+export function throwTest(dir: string, name: string, err: string, isTsx?: boolean) {
+    const input = fs.readFileSync(path.join(dir, `err-${name}.${isTsx ? "tsx" : "ts"}`), { encoding: "utf8" });
 
     try {
-        babel.transformSync(input, { plugins: [vasillePlugin, "@babel/plugin-transform-typescript"] });
+        babel.transformSync(input, { plugins: [
+            vasillePlugin,
+            ["@babel/plugin-transform-typescript", {isTSX: isTsx}]
+        ]});
         // Throw error if that was not done by
         throw new Error('Babel didn\'t thrown');
     }

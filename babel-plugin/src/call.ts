@@ -69,14 +69,13 @@ export function calls(node: types.Expression | null | undefined, names: FnNames[
     const global = internal.stack.get(internal.global) === undefined;
     const cssGlobal = internal.stack.get(internal.cssGlobal) === undefined;
 
-    let propName : string|null = null;
+    let propName: string | null = null;
 
     if (t.isMemberExpression(callee)) {
       if (t.isIdentifier(callee.property)) {
         propName = callee.property.name;
-      }
-      else if (t.isStringLiteral(callee.property)) {
-        propName = callee.property.value
+      } else if (t.isStringLiteral(callee.property)) {
+        propName = callee.property.value;
       }
     }
 

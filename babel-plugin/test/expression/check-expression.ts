@@ -13,7 +13,7 @@ export const C = compose(() => {
   let a = 3;
   let b = bind(a + 1);
   let s = "s";
-  let f : ((a: number) => void) | null = null;
+  let f: ((a: number) => void) | null = null;
   let o = { m: { n: 0 } };
   const r = new Reference(0);
 
@@ -24,7 +24,7 @@ export const C = compose(() => {
     const v5 = new Number(a);
     const v6 = !b;
     const v7 = (a, ++b);
-    const v8 = await <Promise<number>>a;
+    const v8 = await (<Promise<number>>a);
     const v9 = tag.bind(null, s);
     const VMap = Map<string, number>;
     const v10 = new VMap([[s, a]]);
@@ -38,8 +38,8 @@ export const C = compose(() => {
       getA() {
         return a;
       },
-      ...{s: s},
-    }
+      ...{ s: s },
+    };
 
     function* generator(i) {
       yield i + a;

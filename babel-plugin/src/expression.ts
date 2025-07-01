@@ -103,7 +103,7 @@ function meshLValue(
     meshMember(path as NodePath<types.MemberExpression | types.OptionalMemberExpression>, internal);
   } else {
     const ids: NodePath<types.Identifier>[] = [];
-    const members: NodePath<types.MemberExpression|types.OptionalMemberExpression>[] = [];
+    const members: NodePath<types.MemberExpression | types.OptionalMemberExpression>[] = [];
 
     path.traverse({
       Identifier(path) {
@@ -114,7 +114,7 @@ function meshLValue(
       },
       OptionalMemberExpression(path) {
         members.push(path);
-      }
+      },
     } as TraverseOptions);
 
     for (const id of ids) {
@@ -202,7 +202,7 @@ export function checkOrIgnoreExpression<T extends types.Node>(
   }
 }
 
-const REACTIVE_STATES: (VariableState|undefined)[] = [VariableState.Reactive, VariableState.ReactivePointer];
+const REACTIVE_STATES: (VariableState | undefined)[] = [VariableState.Reactive, VariableState.ReactivePointer];
 
 export function checkExpression(nodePath: NodePath<types.Expression | null | undefined>, search: Search) {
   const expr = nodePath.node;
@@ -218,7 +218,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       const path = nodePath as NodePath<types.TaggedTemplateExpression>;
 
       checkExpression(path.get("quasi"), search);
-      path.get('')
+      path.get("");
       break;
     }
     case "Identifier": {
@@ -314,8 +314,11 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     }
     case "UpdateExpression": {
       const path = nodePath as NodePath<types.UpdateExpression>;
+      const arg = path.node.argument;
 
-      checkExpression(path.get("argument"), search);
+      if (t.isLVal(arg)) {
+        meshLValue(path.get("argument") as NodePath<types.LVal>, search.external);
+      }
       break;
     }
     case "YieldExpression": {
@@ -365,7 +368,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
           const valuePath = path.get("value");
 
           if (path.node.computed) {
-            checkOrIgnoreExpression(path.get('key'), search);
+            checkOrIgnoreExpression(path.get("key"), search);
           }
           checkOrIgnoreExpression<
             types.ArrayPattern | types.AssignmentPattern | types.ObjectPattern | types.RestElement
@@ -539,7 +542,13 @@ export function checkStatement(path: NodePath<types.Statement | null | undefined
       break;
 
     case "TryStatement":
+      const handlerPath = (path as NodePath<types.TryStatement>).get("handler");
+
       checkStatement((path as NodePath<types.TryStatement>).get("block"), search);
+      if (handlerPath.node) {
+        checkStatement((handlerPath as NodePath<types.CatchClause>).get("body"), search);
+      }
+      checkStatement((path as NodePath<types.TryStatement>).get("finalizer"), search);
       break;
 
     case "VariableDeclaration": {
@@ -558,19 +567,6 @@ export function checkStatement(path: NodePath<types.Statement | null | undefined
       search.stack.push();
       checkStatement(_path.get("body"), search);
       search.stack.pop();
-      break;
-    }
-    case "WithStatement": {
-      const _path = path as NodePath<types.WithStatement>;
-
-      checkExpression(_path.get("object"), search);
-      search.stack.push();
-      checkStatement(_path.get("body"), search);
-      search.stack.pop();
-      break;
-    }
-    case "ExportNamedDeclaration": {
-      checkStatement((path as NodePath<types.ExportNamedDeclaration>).get("declaration"), search);
       break;
     }
   }
