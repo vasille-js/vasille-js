@@ -98,7 +98,7 @@ function transformJsxExpressionContainer(
 
     if (!isInternalSlot) {
       if (path.node.expression.params.length < 1) {
-        path.node.expression.params.push(t.identifier(internal.prefix));
+        path.node.expression.params.push(t.identifier(`_${internal.prefix}`));
       }
       path.node.expression.params.push(ctx);
     } else {

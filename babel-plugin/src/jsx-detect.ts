@@ -11,15 +11,6 @@ export function exprHasJsx(node: types.Expression): boolean {
   if (t.isLogicalExpression(node)) {
     return exprHasJsx(node.left) || exprHasJsx(node.right);
   }
-  if (t.isSequenceExpression(node)) {
-    return node.expressions.some(item => exprHasJsx(item));
-  }
-  if (t.isParenthesizedExpression(node)) {
-    return exprHasJsx(node.expression);
-  }
-  if (t.isDoExpression(node)) {
-    return bodyHasJsx(node.body);
-  }
 
   return t.isJSXElement(node) || t.isJSXFragment(node);
 }
@@ -53,6 +44,19 @@ export function statementHasJsx(statement: types.Statement): boolean {
   }
   if (t.isReturnStatement(statement)) {
     return !!statement.argument && exprHasJsx(statement.argument);
+  }
+  if (t.isTryStatement(statement)) {
+    return (
+      statementHasJsx(statement.block) ||
+      (!!statement.handler && statementHasJsx(statement.handler.body)) ||
+      (!!statement.finalizer && statementHasJsx(statement.finalizer))
+    );
+  }
+  if (t.isIfStatement(statement)) {
+    return statementHasJsx(statement.consequent) || (!!statement.alternate && statementHasJsx(statement.alternate));
+  }
+  if (t.isForStatement(statement)) {
+    return statementHasJsx(statement.body);
   }
 
   return false;

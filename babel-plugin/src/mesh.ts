@@ -734,6 +734,15 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
       }
       break;
     }
+    case "LogicalExpression":
+      composeExpression((path as NodePath<types.LogicalExpression>).get("left"), internal);
+      composeExpression((path as NodePath<types.LogicalExpression>).get("right"), internal);
+      break;
+    case "ConditionalExpression":
+      meshExpression((path as NodePath<types.ConditionalExpression>).get("test"), internal);
+      composeExpression((path as NodePath<types.ConditionalExpression>).get("consequent"), internal);
+      composeExpression((path as NodePath<types.ConditionalExpression>).get("alternate"), internal);
+      break;
     case "JSXElement":
     case "JSXFragment":
       path.replaceWithMultiple(transformJsx(path as NodePath<types.JSXElement | types.JSXFragment>, internal));
@@ -838,7 +847,11 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
       break;
     }
     case "TryStatement":
+      const tryHandler = (path as NodePath<types.TryStatement>).get("handler");
+
       composeStatement((path as NodePath<types.TryStatement>).get("block"), internal);
+      tryHandler.node && composeStatement((tryHandler as NodePath<types.CatchClause>).get("body"), internal);
+      composeStatement((path as NodePath<types.TryStatement>).get("finalizer"), internal);
       break;
 
     case "VariableDeclaration": {

@@ -27,7 +27,7 @@ export const C2 = compose(Vasille => {
     }
   });
   C1(Vasille, {
-    slot: (VasilleDX, Vasille) => {
+    slot: (_VasilleDX, Vasille) => {
       Vasille.tag("div", {});
     }
   });
