@@ -1,5 +1,5 @@
 import { compose, $ as VasilleDX } from "vasille-dx";
-export const C = compose(function VasilleDX_C(Vasille) {
+export const C = compose(Vasille => {
   const a = Vasille.ref(3);
   const b = VasilleDX.am(Vasille, [1, 2, a.$]);
   const c = VasilleDX.sm(Vasille, [1, 2, a.$]);
@@ -20,4 +20,4 @@ export const C = compose(function VasilleDX_C(Vasille) {
   const n = Vasille.ref(new Map([[1, [2]]]));
   console.log(a.$, b[0], c.has(a.$), d.get(1), e.g.$);
   console.log(f.a.$, g[0], h.has(2), i.get(1), k.$[0], m.$.has(2), n.$.get(1));
-});
+}, "VasilleDX:C");

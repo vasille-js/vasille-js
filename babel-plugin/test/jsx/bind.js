@@ -1,5 +1,5 @@
 import { compose } from "vasille-dx";
-export const C = compose(function VasilleDX_C(Vasille) {
+export const C = compose(Vasille => {
   const a = Vasille.ref(0.5);
   const b = 0;
   Vasille.tag("video", {
@@ -17,4 +17,4 @@ export const C = compose(function VasilleDX_C(Vasille) {
       volume: 1
     }
   });
-});
+}, "VasilleDX:C");

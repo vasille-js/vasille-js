@@ -1,7 +1,7 @@
 import { Slot, compose } from "vasille-dx";
-export const C1 = compose(function VasilleDX_C1(Vasille, {
+export const C1 = compose((Vasille, {
   slot
-}) {
+}) => {
   const a = Vasille.ref(0);
   Vasille.tag("div", {}, Vasille => {
     Slot(Vasille, {
@@ -9,8 +9,8 @@ export const C1 = compose(function VasilleDX_C1(Vasille, {
       a: a
     });
   });
-});
-export const C2 = compose(function VasilleDX_C2(Vasille) {
+}, "VasilleDX:C1");
+export const C2 = compose(Vasille => {
   C1(Vasille, {
     slot: ({
       a
@@ -27,8 +27,8 @@ export const C2 = compose(function VasilleDX_C2(Vasille) {
     }
   });
   C1(Vasille, {
-    slot: (VasilleDX_, Vasille) => {
+    slot: (VasilleDX, Vasille) => {
       Vasille.tag("div", {});
     }
   });
-});
+}, "VasilleDX:C2");

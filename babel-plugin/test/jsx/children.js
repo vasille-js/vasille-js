@@ -1,5 +1,5 @@
 import { compose } from "vasille-dx";
-export const C = compose(function VasilleDX_C(Vasille) {
+export const C = compose(Vasille => {
   const a = Vasille.ref("text");
   Vasille.tag("div", {}, Vasille => {
     Vasille.text("text1 Hello ");
@@ -8,4 +8,4 @@ export const C = compose(function VasilleDX_C(Vasille) {
     Vasille.text(" is text");
     Vasille.tag("div", {});
   });
-});
+}, "VasilleDX:C");

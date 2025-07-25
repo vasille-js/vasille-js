@@ -8,7 +8,7 @@ export const C = compose(() => {
     o.b++;
 
     do {
-      a++
+      a++;
     } while (a < 1);
 
     for (const i in [0, 1]) {
@@ -39,11 +39,9 @@ export const C = compose(() => {
 
     try {
       throw a;
-    }
-    catch (e) {
+    } catch (e) {
       a++;
-    }
-    finally {
+    } finally {
       a++;
     }
 

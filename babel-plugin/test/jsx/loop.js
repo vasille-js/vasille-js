@@ -1,5 +1,5 @@
 import { For, compose, $ as VasilleDX } from "vasille-dx";
-export const C = compose(function VasilleDX_C(Vasille) {
+export const C = compose(Vasille => {
   const a = VasilleDX.am(Vasille, [1, 2, 3]);
   For(Vasille, {
     of: a,
@@ -7,4 +7,4 @@ export const C = compose(function VasilleDX_C(Vasille) {
       console.log(value);
     }
   });
-});
+}, "VasilleDX:C");

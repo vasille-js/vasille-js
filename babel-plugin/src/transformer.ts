@@ -60,7 +60,7 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
       const name = imports.get(statement.source.value);
 
       if (name) {
-        internal.prefix = `${name}_`;
+        internal.prefix = name;
 
         for (const specifier of statement.specifiers) {
           if (t.isImportNamespaceSpecifier(specifier)) {

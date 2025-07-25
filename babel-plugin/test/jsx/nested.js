@@ -1,10 +1,10 @@
 import { compose } from "vasille-dx";
-export const C1 = compose(function VasilleDX_C1(Vasille) {
+export const C1 = compose(Vasille => {
   Vasille.tag("div", {});
-});
-export const C2 = compose(function VasilleDX_C2(Vasille) {
+}, "VasilleDX:C1");
+export const C2 = compose(Vasille => {
   Vasille.tag("div", {}, Vasille => {
     C1(Vasille, {});
   });
   C1(Vasille, {});
-});
+}, "VasilleDX:C2");

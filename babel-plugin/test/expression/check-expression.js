@@ -6,7 +6,7 @@ function tag(arg) {
 function tag2(a1, a2) {
   return a1 + a2;
 }
-export const C = compose(function VasilleDX_C(Vasille) {
+export const C = compose(Vasille => {
   const a = Vasille.ref(3);
   const b = Vasille.own(VasilleDX.ex(Vasille_a => Vasille_a + 1, a));
   const s = Vasille.ref("s");
@@ -51,4 +51,4 @@ export const C = compose(function VasilleDX_C(Vasille) {
     (null, tag)("test");
     return 2;
   }, a, b, s, o.m, r, f);
-});
+}, "VasilleDX:C");

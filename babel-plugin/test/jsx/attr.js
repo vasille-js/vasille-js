@@ -1,5 +1,5 @@
 import { compose } from "vasille-dx";
-export const C = compose(function VasilleDX_C(Vasille) {
+export const C = compose(Vasille => {
   const a = Vasille.ref("a");
   Vasille.tag("div", {
     attr: {
@@ -7,4 +7,4 @@ export const C = compose(function VasilleDX_C(Vasille) {
       "data-let": a
     }
   });
-});
+}, "VasilleDX:C");

@@ -2,6 +2,7 @@ import { NodePath, types } from "@babel/core";
 import { TraverseOptions } from "@babel/traverse";
 import * as t from "@babel/types";
 import { Internal, StackedStates, VariableState } from "./internal";
+import { meshExpression } from "./mesh";
 
 interface Search {
   found: Map<string, types.Expression>;
@@ -22,17 +23,19 @@ function addIdentifier(path: NodePath<types.Identifier>, search: Search) {
 }
 
 function stringify(node: types.Expression | types.PrivateName) {
-  if (t.isIdentifier(node)) {
-    return node.name;
-  }
+  let name = "";
+
   if (t.isStringLiteral(node)) {
-    return node.value;
+    name = node.value;
   }
   if (t.isPrivateName(node)) {
-    return node.id.name;
+    name = node.id.name;
+  }
+  if (t.isIdentifier(node)) {
+    name = node.name;
   }
 
-  return "$";
+  return name;
 }
 
 function extractMemberName(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, search: Search) {
@@ -97,32 +100,18 @@ function meshLValue(
   path: NodePath<types.LVal | types.OptionalMemberExpression | null | undefined>,
   internal: Internal,
 ) {
-  if (t.isIdentifier(path.node)) {
+  const node = path.node;
+
+  if (t.isIdentifier(node)) {
     meshIdentifier(path as NodePath<types.Identifier>, internal);
-  } else if (t.isMemberExpression(path.node) || t.isOptionalMemberExpression(path.node)) {
+  } else if (t.isMemberExpression(node) || t.isOptionalMemberExpression(node)) {
     meshMember(path as NodePath<types.MemberExpression | types.OptionalMemberExpression>, internal);
-  } else {
-    const ids: NodePath<types.Identifier>[] = [];
-    const members: NodePath<types.MemberExpression | types.OptionalMemberExpression>[] = [];
-
-    path.traverse({
-      Identifier(path) {
-        ids.push(path);
-      },
-      MemberExpression(path) {
-        members.push(path);
-      },
-      OptionalMemberExpression(path) {
-        members.push(path);
-      },
-    } as TraverseOptions);
-
-    for (const id of ids) {
-      meshIdentifier(id, internal);
+  } else if (t.isArrayPattern(node)) {
+    for (const item of (path as NodePath<types.ArrayPattern>).get("elements")) {
+      meshLValue(item, internal);
     }
-    for (const member of members) {
-      meshMember(member, internal);
-    }
+  } else if (t.isRestElement(node)) {
+    meshLValue((path as NodePath<types.RestElement>).get("argument"), internal);
   }
 }
 
@@ -260,13 +249,13 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       const path = nodePath as NodePath<types.MemberExpression | types.OptionalMemberExpression>;
       const node = path.node;
 
-      checkExpression(path.get("object"), search);
-      checkOrIgnoreExpression<types.PrivateName>(path.get("property"), search);
-
       if (t.isIdentifier(node.object) && search.external.stack.get(node.object.name) === VariableState.ReactiveObject) {
         addMemberExpr(path, search);
       } else if (t.isIdentifier(node.property) && node.property.name === "$") {
         addExternalIValue(path, search);
+      } else {
+        checkExpression(path.get("object"), search);
+        checkOrIgnoreExpression<types.PrivateName>(path.get("property"), search);
       }
 
       break;
@@ -405,9 +394,6 @@ export function checkStatements(paths: NodePath<types.Statement>[], search: Sear
 }
 
 function ignoreLocals(val: types.LVal | types.VariableDeclaration, search: Search) {
-  if (t.isAssignmentPattern(val)) {
-    val = val.left;
-  }
   if (t.isIdentifier(val)) {
     search.stack.set(val.name, VariableState.Ignored);
   } else if (t.isObjectPattern(val)) {
@@ -416,6 +402,8 @@ function ignoreLocals(val: types.LVal | types.VariableDeclaration, search: Searc
         search.stack.set(prop.value.name, VariableState.Ignored);
       } else if (t.isRestElement(prop) && t.isIdentifier(prop.argument)) {
         search.stack.set(prop.argument.name, VariableState.Ignored);
+      } else if (t.isObjectProperty(prop) && t.isAssignmentPattern(prop.value)) {
+        ignoreLocals(prop.value.left, search);
       }
     }
   } else if (t.isArrayPattern(val)) {

@@ -52,18 +52,8 @@ export function meshComposeCall(
   compose(fnPath, internal, false);
   arg.params.unshift(ctx);
 
-  if (t.isArrowFunctionExpression(arg) && internal.devMode) {
-    fnPath.replaceWith(
-      t.functionExpression(
-        t.identifier(internal.prefix + (name ? name.name : "Default")),
-        arg.params,
-        t.isBlockStatement(arg.body) ? arg.body : t.blockStatement([t.returnStatement(arg.body)]),
-        false,
-        arg.async,
-      ),
-    );
-  } else if (t.isFunctionExpression(arg) && name && internal.devMode) {
-    arg.id = t.identifier(internal.prefix + name.name);
+  if (internal.devMode) {
+    call.arguments.push(t.stringLiteral(`${internal.prefix}:${name ? name.name : "#anonymouse"}`));
   }
 }
 
@@ -614,6 +604,15 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
       meshStatement((path as NodePath<types.ExportNamedDeclaration>).get("declaration"), internal);
       break;
     }
+    case "ClassDeclaration":
+      const bodyPath = (path as NodePath<types.ClassDeclaration>).get("body");
+
+      for (const item of bodyPath.get("body")) {
+        if (t.isClassMethod(item.node) || t.isClassPrivateMethod(item.node)) {
+          meshFunction(item as NodePath<types.ClassMethod | types.ClassPrivateMethod>, internal);
+        }
+      }
+      break;
 
     // Ignored
     case "ExportDefaultDeclaration":
@@ -622,7 +621,6 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
     case "ContinueStatement":
     case "DebuggerStatement":
     case "EmptyStatement":
-    case "ClassDeclaration":
     case "ImportDeclaration":
     case "DeclareClass":
     case "DeclareFunction":
@@ -651,7 +649,12 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
 
 export function meshFunction(
   path: NodePath<
-    types.ArrowFunctionExpression | types.FunctionExpression | types.FunctionDeclaration | types.ObjectMethod
+    | types.ArrowFunctionExpression
+    | types.FunctionExpression
+    | types.FunctionDeclaration
+    | types.ObjectMethod
+    | types.ClassMethod
+    | types.ClassPrivateMethod
   >,
   internal: Internal,
 ) {
