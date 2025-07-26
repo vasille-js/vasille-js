@@ -17,4 +17,24 @@ export const C = compose(Vasille => {
       volume: 1
     }
   });
+  Vasille.tag("video", {
+    bind: {
+      volume: Vasille.expr(Vasille_a => Vasille_a + 0.1, [a])
+    }
+  });
+  Vasille.tag("video", {
+    bind: {
+      volume: b + 0.1
+    }
+  });
+  Vasille.tag("video", {
+    bind: {
+      volume: true
+    }
+  });
+  Vasille.tag("input", {
+    bind: {
+      value: "value"
+    }
+  });
 }, "VasilleDX:C");

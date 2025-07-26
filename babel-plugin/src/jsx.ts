@@ -351,6 +351,10 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
                 }
               }
             }
+            // style=".."
+            else if (t.isStringLiteral(attr.value)) {
+              attrs.push(t.objectProperty(t.identifier("style"), attr.value));
+            }
             // style={".."}
             else if (t.isJSXExpressionContainer(attr.value) && t.isStringLiteral(attr.value.expression)) {
               attrs.push(t.objectProperty(t.identifier("style"), attr.value.expression));
@@ -386,10 +390,11 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
         }
         if (t.isJSXNamespacedName(name)) {
           if (name.namespace.name === "bind") {
-            if (t.isJSXExpressionContainer(attr.value)) {
-              const value = t.isExpression(attr.value.expression)
+            if (t.isJSXExpressionContainer(attr.value) || !attr.value) {
+              const value = t.isExpression(attr.value?.expression)
                 ? exprCall(
-                    (attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.Expression>,
+                    ((attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.JSXExpressionContainer>)
+                      .get('expression') as NodePath<types.Expression>,
                     attr.value.expression,
                     internal,
                   )
@@ -398,7 +403,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
               bind.push(
                 idToProp(
                   name.name,
-                  value ?? (t.isExpression(attr.value.expression) ? attr.value.expression : t.booleanLiteral(true)),
+                  value ?? (t.isExpression(attr.value?.expression) ? attr.value.expression : t.booleanLiteral(true)),
                 ),
               );
             } else if (t.isStringLiteral(attr.value)) {
