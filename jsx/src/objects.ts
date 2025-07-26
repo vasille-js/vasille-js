@@ -59,11 +59,16 @@ export function proxy(o: unknown) {
 export function reactiveObject<T extends object>(
     node: Reactive,
     o: T,
+    name?: string,
 ): { [K in keyof T]: T[K] extends IValue<unknown> ? T[K] : IValue<T[K]> } {
     for (const key of Object.keys(o)) {
         if (!(o[key] instanceof IValue)) {
             o[key] = ensureIValue(node, proxy(o[key]));
         }
+    }
+
+    if (name) {
+        node.addState("reactiveObject", name, o);
     }
 
     return new Proxy(o, {

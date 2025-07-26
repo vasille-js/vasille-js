@@ -1,8 +1,8 @@
-import { Fragment, IValue, Reactive, Reference } from "vasille";
+import { IValue, Reactive } from "vasille";
 
-export function awaited<T>(node: Reactive, target: Promise<T> | (() => Promise<T>)) {
-    const value = node.ref<unknown>(undefined);
-    const err = node.ref<unknown>(undefined);
+export function awaited<T>(node: Reactive, target: Promise<T> | (() => Promise<T>), names?: [string, string]) {
+    const value = node.ref<unknown>(undefined, names?.[0]);
+    const err = node.ref<unknown>(undefined, names?.[1]);
     let current: Promise<T> | (() => Promise<T>) | undefined = target;
 
     if (typeof current === "function") {

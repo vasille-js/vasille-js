@@ -4,8 +4,8 @@ import { ContextArray, ContextMap, ContextSet } from "./models";
 
 export const internal = {
     /** create an expression (without context), use it for OwningPointer */
-    ex<T, Args extends unknown[]>(func: (...args: Args) => T, ...values: KindOfIValue<Args>) {
-        return new Expression(func, ...values);
+    ex<T, Args extends unknown[]>(func: (...args: Args) => T, values: KindOfIValue<Args>) {
+        return new Expression(func, values);
     },
     /** create a forward-only pointer (without context), use it for OwningPointer */
     fo<T>(v: IValue<T>): IValue<T> {
@@ -28,19 +28,19 @@ export const internal = {
     /**
      * translate `new Set(#)` to `$.sm(this, #)`
      */
-    sm(node: Reactive, data?: unknown[]) {
-        return node.register(new ContextSet(data));
+    sm(node: Reactive, data?: unknown[], name?: string) {
+        return node.register(new ContextSet(data), name);
     },
     /**
      * translate `new Map(#)` to `$.mm(this, #)`
      */
-    mm(node: Reactive, data?: [unknown, unknown][]) {
-        return node.register(new ContextMap(data));
+    mm(node: Reactive, data?: [unknown, unknown][], name?: string) {
+        return node.register(new ContextMap(data), name);
     },
     /**
      * translate `[...]` to `$.am(this, [...])`
      */
-    am(node: Reactive, data?: unknown[]) {
-        return node.register(proxyArrayModel(new ContextArray(data)));
+    am(node: Reactive, data?: unknown[], name?: string) {
+        return node.register(proxyArrayModel(new ContextArray(data)), name);
     },
 };

@@ -69,8 +69,8 @@ it("Slot", function () {
 it("If - ElseIf - Else", function () {
     const node = createNode();
     const cond = new Reference(1);
-    const ifCont = new Expression((v: number) => v === 1, cond);
-    const elseCond = new Expression((v: number) => v === 2, cond);
+    const ifCont = new Expression((v: number) => v === 1, [cond]);
+    const elseCond = new Expression((v: number) => v === 2, [cond]);
     let executed = "none";
 
     If(node, {

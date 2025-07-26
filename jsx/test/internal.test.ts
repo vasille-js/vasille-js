@@ -38,7 +38,7 @@ it("model functions", function () {
 it("no context helpers", function () {
     const a = $.r<number>(2);
     const b = $.fo<number>(a);
-    const ex = $.ex<number, [number, number]>((a, b) => a + b, a, b);
+    const ex = $.ex<number, [number, number]>((a, b) => a + b, [a, b]);
 
     expect(a.$).toBe(2);
     expect(b.$).toBe(2);

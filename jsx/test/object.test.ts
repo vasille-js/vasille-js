@@ -20,7 +20,7 @@ it("proxy object", function () {
         },
         b: ref,
         c: 3,
-    });
+    }, "r1");
     const r2: {
         a: IValue<number>;
         b: IValue<number>;

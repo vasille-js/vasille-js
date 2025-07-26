@@ -136,6 +136,10 @@ export class Reactive<T extends object = object> extends Destroyable {
         this.onDestroy = func;
     }
 
+    public addState(method: string, name: string, state: unknown) {
+        this.state[name === "#" ? `#${Object.keys(this.state).length}` : name] = [method, state];
+    }
+
     public destroy() {
         super.destroy();
         this._watch.forEach(value => value.destroy());
@@ -145,9 +149,5 @@ export class Reactive<T extends object = object> extends Destroyable {
         this.bindings.clear();
 
         this.onDestroy?.();
-    }
-
-    protected addState(method: string, name: string, state: unknown) {
-        this.state[name === "#" ? `#${Object.keys(this.state).length}` : name] = [method, state];
     }
 }
