@@ -1,6 +1,7 @@
 import { compose } from "vasille-dx";
 export const C = compose(Vasille => {
   const a = Vasille.ref("auto", "a");
+  const b = "auto";
   Vasille.tag("div", {
     attr: {
       style: "width:100px;height:50px;padding:1px 2px 3px 4px"
@@ -25,6 +26,11 @@ export const C = compose(Vasille => {
   Vasille.tag("div", {
     attr: {
       style: Vasille.expr(Vasille_a => `margin: ${Vasille_a}`, [a])
+    }
+  });
+  Vasille.tag("div", {
+    attr: {
+      style: `margin: ${b}`
     }
   });
 }, "VasilleDX:C");

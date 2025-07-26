@@ -2,6 +2,7 @@ import { compose } from "vasille-dx";
 
 export const C = compose(() => {
   let a = "auto";
+  const b = "auto";
 
   <div
     style={{
@@ -15,4 +16,5 @@ export const C = compose(() => {
   <div style="margin: 20px;" />;
   <div style={"margin: 20px;"} />;
   <div style={`margin: ${a}`} />;
+  <div style={`margin: ${b}`} />;
 });

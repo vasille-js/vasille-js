@@ -1,4 +1,4 @@
-import { compose } from "vasille-dx";
+import { compose, If } from "vasille-dx";
 export const C1 = compose((Vasille, props) => {
   Vasille.tag("div", {});
 }, "VasilleDX:C1");
@@ -8,7 +8,8 @@ export const C2 = compose(Vasille => {
     C1(Vasille, {
       bool: true,
       a: 1,
-      b: 2
+      b: 2,
+      c: "text"
     }, (_VasilleDX, Vasille) => {
       C1(Vasille, {
         ...{
@@ -28,5 +29,10 @@ export const C2 = compose(Vasille => {
     slot: (_VasilleDX, Vasille) => {
       C1(Vasille, {});
     }
+  });
+  If(Vasille, {
+    condition: Vasille.expr(Vasille_a => Vasille_a > 1, [a])
+  }, Vasille => {
+    C1(Vasille, {});
   });
 }, "VasilleDX:C2");

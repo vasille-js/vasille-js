@@ -277,10 +277,6 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
             else if (t.isStringLiteral(attr.value)) {
               classStatic.push(attr.value);
             }
-            // class=<div/>
-            else {
-              throw attrPath.buildCodeFrameError('Vasille: Value of "class" attribute must be an array expression');
-            }
           } else if (name.name === "style") {
             // style={{..}}
             if (t.isJSXExpressionContainer(attr.value) && t.isObjectExpression(attr.value.expression)) {
@@ -365,10 +361,6 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
                 console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
               }
             }
-            // style=<div/>
-            else {
-              throw attrPath.buildCodeFrameError('Vasille: Value of "style" attribute must be an object expression');
-            }
           } else {
             if (!attr.value || t.isJSXExpressionContainer(attr.value)) {
               attrs.push(
@@ -376,8 +368,6 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
               );
             } else if (t.isStringLiteral(attr.value)) {
               attrs.push(idToProp(name, attr.value));
-            } else {
-              throw attrPath.buildCodeFrameError("Vasille: Value of bind must be an expression or string");
             }
           }
         }
@@ -402,8 +392,6 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
               );
             } else if (t.isStringLiteral(attr.value)) {
               bind.push(idToProp(name.name, attr.value));
-            } else {
-              throw attrPath.buildCodeFrameError("Vasille: Value of bind must be an expression or string");
             }
           } else {
             throw attrPath.buildCodeFrameError("Vasille: only bind namespace is supported");
@@ -492,8 +480,6 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
           props.push(idToProp(attr.name, value));
         } else if (!attr.value) {
           props.push(idToProp(attr.name, t.booleanLiteral(true)));
-        } else {
-          throw attrPath.buildCodeFrameError("Vasille: JSX Elements/Fragments are not supported here");
         }
       }
       // <A {...arg}/>
@@ -513,6 +499,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
 
       return !!item.value.trim();
     });
+    const isInternal = internal.mapping.has(name.name);
 
     if (
       filteredChildren.length === 1 &&
@@ -524,14 +511,20 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
         path.get("children")[element.children.indexOf(filteredChildren[0])] as NodePath<types.JSXExpressionContainer>,
         internal,
         true,
-        internal.mapping.has(name.name),
+        isInternal,
       );
       run = filteredChildren[0].expression;
     } else {
       const statements = transformJsxArray(path.get("children"), internal);
 
       if (statements.length > 0) {
-        run = t.arrowFunctionExpression([t.identifier(`_${internal.prefix}`), ctx], t.blockStatement(statements));
+        const params: types.Identifier[] = [ctx];
+
+        if (!isInternal) {
+          params.unshift(t.identifier(`_${internal.prefix}`));
+        }
+
+        run = t.arrowFunctionExpression(params, t.blockStatement(statements));
       }
     }
 

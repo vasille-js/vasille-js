@@ -1,6 +1,6 @@
-import { compose } from "vasille-dx";
+import { compose, If } from "vasille-dx";
 
-export const C1 = compose((props: { bool?: boolean; a?: number; b?: number; slot?(): void }) => {
+export const C1 = compose((props: { bool?: boolean; a?: number; b?: number; c?: string; slot?(): void }) => {
   <div />;
 });
 
@@ -8,7 +8,7 @@ export const C2 = compose(() => {
   let a = 1;
 
   <div>
-    <C1 bool a={1} b={2}>
+    <C1 bool a={1} b={2} c="text">
       {() => {
         <C1 {...{ a: 1 }} b={a + 1} bool={true}>
           <div />
@@ -22,4 +22,7 @@ export const C2 = compose(() => {
       <C1 />;
     }}
   />;
+  <If condition={a > 1}>
+    <C1/>
+  </If>;
 });
