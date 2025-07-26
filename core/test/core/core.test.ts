@@ -18,20 +18,23 @@ class CoreTest extends Reactive {
     constructor() {
         super({});
 
-        this.ref0 = super.ref(1);
-        this.forward0 = super.forward(this.ref0);
-        this.point0 = super.own(this.forward(this.forward0));
+        this.ref0 = super.ref(1, "ref0");
+        this.forward0 = super.forward(this.ref0, "forward0");
+        this.point0 = super.own(this.forward(this.forward0), "point0");
 
-        super.watch(v => {
-            this.watch_test = v;
-        }, this.ref0);
+        super.watch(
+            v => {
+                this.watch_test = v;
+            },
+            [this.ref0],
+        );
 
         this.bind0 = super.expr(
             (x, y) => {
                 return x + y;
             },
-            this.ref0,
-            this.forward0,
+            [this.ref0, this.forward0],
+            "bind0",
         );
 
         this.freeze_test = super.ref(false);
@@ -106,8 +109,8 @@ it("Reactive", function () {
     expect(p3.$$).toBe(4);
     expect(p4.$$).toBe(4);
 
-    const bind1 = new Expression((a, b) => a + b, p1, p2);
-    const bind2 = new Expression((a, b) => a + b, p3, p4);
+    const bind1 = new Expression((a, b) => a + b, [p1, p2]);
+    const bind2 = new Expression((a, b) => a + b, [p3, p4]);
 
     expect(bind1.$).toBe(8);
     expect(bind2.$).toBe(8);

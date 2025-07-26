@@ -278,6 +278,7 @@ interface TextProps {
  */
 export class TextNode extends Fragment<TextProps> {
     private node: Text;
+    private handler: ((v: unknown) => void) | null;
 
     public constructor(input: TextProps) {
         super(input, ":text");
@@ -289,11 +290,10 @@ export class TextNode extends Fragment<TextProps> {
         this.node = document.createTextNode((text instanceof IValue ? text.$ : text)?.toString() ?? "");
 
         if (text instanceof IValue) {
-            this.register(
-                new Expression((v: unknown) => {
-                    this.node.replaceData(0, -1, v?.toString() ?? "");
-                }, text),
-            );
+            this.handler = (v: unknown) => {
+                this.node.replaceData(0, -1, v?.toString() ?? "");
+            };
+            text.on(this.handler);
         }
         this.parent.appendNode(this.node);
     }
@@ -303,6 +303,12 @@ export class TextNode extends Fragment<TextProps> {
     }
 
     public destroy(): void {
+        const text = this.input.text;
+
+        if (text instanceof IValue && this.handler) {
+            text.off(this.handler);
+        }
+
         this.node.remove();
         super.destroy();
     }
@@ -445,18 +451,21 @@ export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
             const htmlNode: HTMLElement = node;
 
             this.register(
-                new Expression(cond => {
-                    if (cond) {
-                        if (htmlNode.style.display === "none") {
-                            htmlNode.style.display = lastDisplay;
+                new Expression(
+                    cond => {
+                        if (cond) {
+                            if (htmlNode.style.display === "none") {
+                                htmlNode.style.display = lastDisplay;
+                            }
+                        } else {
+                            if (htmlNode.style.display !== "none") {
+                                lastDisplay = htmlNode.style.display;
+                                htmlNode.style.display = "none";
+                            }
                         }
-                    } else {
-                        if (htmlNode.style.display !== "none") {
-                            lastDisplay = htmlNode.style.display;
-                            htmlNode.style.display = "none";
-                        }
-                    }
-                }, cond),
+                    },
+                    [cond],
+                ),
             );
         } else {
             throw userError("the element must be a html element", "bind-show");
@@ -465,16 +474,18 @@ export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
 
     /**
      * bind HTML
-     * @param value {IValue}
      */
     public bindDomApi(name: string, value: IValue<string>) {
         const node = this.node;
 
         if (node instanceof HTMLElement) {
             node[name] = value.$;
-            this.watch((v: string) => {
-                node[name] = v;
-            }, value);
+            this.watch(
+                (v: string) => {
+                    node[name] = v;
+                },
+                [value],
+            );
         } else {
             throw userError("HTML can be bound for HTML nodes only", "dom-error");
         }
@@ -512,10 +523,9 @@ export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
 
             if (!(value instanceof IValue)) {
                 inode[k] = value;
-                return;
+            } else {
+                this.bindDomApi(k, value);
             }
-
-            this.bindDomApi(k, value);
         }
     }
 
@@ -614,19 +624,22 @@ export class Tag extends INode<TagOptionsWithSlot> {
      */
     public bindMount(cond: IValue<unknown>) {
         this.register(
-            new Expression(cond => {
-                if (cond) {
-                    if (this.unmounted) {
-                        this.insertAdjacent(this.node);
-                        this.unmounted = false;
+            new Expression(
+                cond => {
+                    if (cond) {
+                        if (this.unmounted) {
+                            this.insertAdjacent(this.node);
+                            this.unmounted = false;
+                        }
+                    } else {
+                        if (!this.unmounted) {
+                            this.node.remove();
+                            this.unmounted = true;
+                        }
                     }
-                } else {
-                    if (!this.unmounted) {
-                        this.node.remove();
-                        this.unmounted = true;
-                    }
-                }
-            }, cond),
+                },
+                [cond],
+            ),
         );
     }
 
@@ -765,9 +778,12 @@ export class DebugNode extends Fragment<DebugProps> {
 
         this.node = document.createComment(text.$?.toString() ?? "");
         this.register(
-            new Expression((v: unknown) => {
-                this.node.replaceData(0, -1, v?.toString() ?? "");
-            }, text),
+            new Expression(
+                (v: unknown) => {
+                    this.node.replaceData(0, -1, v?.toString() ?? "");
+                },
+                [text],
+            ),
         );
         this.parent.appendNode(this.node);
     }

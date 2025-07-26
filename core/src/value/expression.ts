@@ -44,7 +44,7 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
      * @param values
      * @param link {Boolean} links immediately if true
      */
-    public constructor(func: (...args: Args) => T, ...values: KindOfIValue<Args>) {
+    public constructor(func: (...args: Args) => T, values: KindOfIValue<Args>) {
         super();
         const handler = (i?: number) => {
             if (typeof i === "number") {

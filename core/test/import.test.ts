@@ -49,7 +49,7 @@ it("import test", function () {
     const tag = new Tag({}, "div");
     const ext = new Extension({});
     const app = new App(page.window.document.body, {});
-    const expr = new Expression(v => v, ref);
+    const expr = new Expression(v => v, [ref]);
     const binding = new BindingTest(ref);
     const portal = new Portal({ node: page.window.document.body });
     const watch = new Watch({ model: ref });

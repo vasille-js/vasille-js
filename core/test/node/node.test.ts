@@ -52,6 +52,8 @@ it("Tag", function () {
         expect(div.element.childNodes[4].textContent).toBe("");
         textRef.$ = "ok";
         expect(div.element.childNodes[4].textContent).toBe("ok");
+        textRef.$ = null;
+        expect(div.element.childNodes[4].textContent).toBe("");
     });
 
     root.destroy();
@@ -102,9 +104,9 @@ it("switch", function () {
     const v2 = new Reference(false);
     let check = 0;
 
-    root.if(new Expression(v => v == 1, v), () => (check = 1));
-    root.elif(new Expression(v => v == 2, v), () => (check = 2));
-    root.elif(new Expression(v => v == 3, v), () => (check = 3));
+    root.if(new Expression(v => v == 1, [v]), () => (check = 1));
+    root.elif(new Expression(v => v == 2, [v]), () => (check = 2));
+    root.elif(new Expression(v => v == 3, [v]), () => (check = 3));
     root.elif(v2, () => (check = -2));
     root.else(() => (check = 4));
 
@@ -140,9 +142,12 @@ it("INode", function () {
                     "data-checked2": root.ref(true),
                     "data-set": "test",
                     [attrName]: attrValue,
-                    "data-bind": root.expr((str: string) => {
-                        return str.length > 1 ? str : "alternative";
-                    }, attrValue),
+                    "data-bind": root.expr(
+                        (str: string) => {
+                            return str.length > 1 ? str : "alternative";
+                        },
+                        [attrValue],
+                    ),
                 },
                 callback: node => (el = node),
             });
@@ -186,7 +191,7 @@ it("INode", function () {
         //style
         (function () {
             const dyn = new Reference("0px");
-            const num = new Expression(x => parseFloat(x) + 10, dyn);
+            const num = new Expression(x => parseFloat(x) + 10, [dyn]);
             let el!: HTMLElement;
 
             test.tag(

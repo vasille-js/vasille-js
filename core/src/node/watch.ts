@@ -16,13 +16,16 @@ export class Watch<T> extends Fragment<WatchOptions<T>> {
     }
 
     public compose() {
-        this.watch(value => {
-            this.children.forEach(child => {
-                child.destroy();
-            });
-            this.children.clear();
-            this.lastChild = undefined;
-            this.input.slot?.(this, value);
-        }, this.input.model);
+        this.watch(
+            value => {
+                this.children.forEach(child => {
+                    child.destroy();
+                });
+                this.children.clear();
+                this.lastChild = undefined;
+                this.input.slot?.(this, value);
+            },
+            [this.input.model],
+        );
     }
 }

@@ -6,7 +6,7 @@ it("array view", function () {
     const array = new ArrayModel<number>([1]);
     let element!: Element;
 
-    root.register(array);
+    root.register(array, "#");
     root.tag("div", { callback: node => (element = node) }, function (tag) {
         tag.create(
             new ArrayView({
