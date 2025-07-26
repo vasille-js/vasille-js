@@ -8,5 +8,7 @@ export const C = compose(Vasille => {
   }, [a, c], "d");
   const e = Vasille.own(VasilleDX.ex(Vasille_a => Vasille_a + b, [a]), "e");
   let f = (() => a.$ + b)();
+  // @ts-expect-error
+  const g = Vasille.ref(void 0, "g");
   console.log(a.$, b, c.$, d.$, e.$$, f);
 }, "VasilleDX:C");

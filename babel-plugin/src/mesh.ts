@@ -943,7 +943,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             if (t.isArrayExpression(value)) {
               declaration.get("init").replaceWith(arrayModel(value, internal, idName()));
             } else {
-              declaration.buildCodeFrameError(`Vasille: arrayModel requires array expression as argument`);
+              declaration.get("init").replaceWith(arrayModel(null, internal, idName()));
             }
           } else if (calls(init, ["mapModel", "setModel"], internal)) {
             const args = (init as types.CallExpression).arguments;

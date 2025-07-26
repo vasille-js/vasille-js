@@ -6,5 +6,7 @@ export const C = compose(Vasille => {
   const sum = Vasille.own(VasilleDX.ex((Vasille_a, Vasille_b) => Vasille_a + Vasille_b, [a, b]), "sum");
   console.log(sum.$$);
   sum.$$ = VasilleDX.fo(b);
-  sum.$$ = VasilleDX.ex((Vasille_b, Vasille_c) => Vasille_b + Vasille_c, [b, c]);
+  sum.$$ = VasilleDX.ex((Vasille_b, Vasille_c) => {
+    return Vasille_b + Vasille_c;
+  }, [b, c]);
 }, "VasilleDX:C");

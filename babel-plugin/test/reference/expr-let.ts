@@ -1,4 +1,4 @@
-import { compose } from "vasille-dx";
+import { calculate, compose } from "vasille-dx";
 
 export const C = compose(() => {
   let a = 2;
@@ -9,5 +9,7 @@ export const C = compose(() => {
   console.log(sum);
 
   sum = b;
-  sum = b + c;
+  sum = calculate(() => {
+    return b + c;
+  });
 });

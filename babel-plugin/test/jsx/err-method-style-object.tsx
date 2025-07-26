@@ -1,5 +1,5 @@
 import { compose } from "vasille-dx";
 
 const C = compose(() => {
-  <div style={{a(){}}}/>
-})
+  <div style={{ a() {} }} />;
+});

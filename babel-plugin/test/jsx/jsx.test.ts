@@ -44,34 +44,39 @@ it("reactive object proxy", function () {
   runJsxTest(__dirname, "rop");
 });
 
-it ("spread child error", function() {
+it("spread child error", function () {
   throwTest(__dirname, "spread-child", "Spread child is not supported", true);
 });
 
-it ("expected event handler error", function() {
+it("expected event handler error", function () {
   throwTest(__dirname, "expected-event-handler", "Expected event handler", true);
 });
 
-it ("method in class object error", function() {
+it("method in class object error", function () {
   throwTest(__dirname, "method-class-object", "Methods are not allowed here", true);
 });
 
-it ("method in style object error", function() {
+it("method in style object error", function () {
   throwTest(__dirname, "method-style-object", "Methods are not allowed here", true);
 });
 
-it ("wrong namespace error", function() {
+it("wrong namespace error", function () {
   throwTest(__dirname, "wrong-namespace", "only bind namespace is supported", true);
 });
 
-it ("tag spread attribute error", function() {
+it("tag spread attribute error", function () {
   throwTest(__dirname, "tag-spread-attr", "Spread attribute is not allowed on HTML tags", true);
 });
 
-it ("namespaced props error", function() {
+it("namespaced props error", function () {
   throwTest(__dirname, "namespace-props", "Namespaced attributes names are not supported", true);
 });
 
-it ("namespaced tag name error", function() {
-  throwTest(__dirname, "namespaced-name", "Unsupported tag detected, html lowercase tag names and components are accepted", true);
+it("namespaced tag name error", function () {
+  throwTest(
+    __dirname,
+    "namespaced-name",
+    "Unsupported tag detected, html lowercase tag names and components are accepted",
+    true,
+  );
 });

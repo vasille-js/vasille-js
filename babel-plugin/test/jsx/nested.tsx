@@ -23,6 +23,6 @@ export const C2 = compose(() => {
     }}
   />;
   <If condition={a > 1}>
-    <C1/>
+    <C1 />
   </If>;
 });

@@ -18,6 +18,7 @@ export const C = compose(Vasille => {
   const k = Vasille.ref([1], "k");
   const m = Vasille.ref(new Set([2]), "m");
   const n = Vasille.ref(new Map([[1, [2]]]), "n");
+  const z = VasilleDX.am(Vasille, void 0, "z");
   console.log(a.$, b[0], c.has(a.$), d.get(1), e.g.$);
   console.log(f.a.$, g[0], h.has(2), i.get(1), k.$[0], m.$.has(2), n.$.get(1));
 }, "VasilleDX:C");

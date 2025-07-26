@@ -112,7 +112,7 @@ export function own(expr: types.Expression, internal: Internal, name?: string) {
 }
 
 export function ref(expr: types.Expression | null | undefined, internal: Internal, name?: string) {
-  return named(t.callExpression(t.memberExpression(ctx, t.identifier("ref")), expr ? [expr] : []), name, internal);
+  return named(t.callExpression(t.memberExpression(ctx, t.identifier("ref")), expr ? [expr] : []), name, internal, 1);
 }
 
 export function reactiveObject(init: types.Expression, internal: Internal, name?: string) {
@@ -124,6 +124,7 @@ export function arrayModel(init: types.Expression | null | undefined, internal: 
     t.callExpression(t.memberExpression(internal.id, t.identifier("am")), [ctx, ...(init ? [init] : [])]),
     name,
     internal,
+    2,
   );
 }
 
