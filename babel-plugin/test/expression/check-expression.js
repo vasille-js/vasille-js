@@ -7,15 +7,15 @@ function tag2(a1, a2) {
   return a1 + a2;
 }
 export const C = compose(Vasille => {
-  const a = Vasille.ref(3);
-  const b = Vasille.own(VasilleDX.ex(Vasille_a => Vasille_a + 1, a));
-  const s = Vasille.ref("s");
-  const f = Vasille.ref(null);
+  const a = Vasille.ref(3, "a");
+  const b = Vasille.own(VasilleDX.ex(Vasille_a => Vasille_a + 1, [a]), "b");
+  const s = Vasille.ref("s", "s");
+  const f = Vasille.ref(null, "f");
   const o = VasilleDX.ro(Vasille, {
     m: {
       n: 0
     }
-  });
+  }, "o");
   const r = new Reference(0);
   const calc = Vasille.expr(async (Vasille_a, Vasille_b, Vasille_s, Vasille_o_m, Vasille_r_$, Vasille_f) => {
     const v1 = tag`${Vasille_a}1`;
@@ -50,5 +50,5 @@ export const C = compose(Vasille => {
     [a.$, b.$] = [Vasille_b, Vasille_a];
     (null, tag)("test");
     return 2;
-  }, a, b, s, o.m, r, f);
+  }, [a, b, s, o.m, r, f], "calc");
 }, "VasilleDX:C");

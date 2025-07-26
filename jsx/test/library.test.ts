@@ -5,7 +5,7 @@ it("awaited", function (done) {
     const frag = createNode();
     const promise = new Promise(rv => setTimeout(() => rv(2)));
     const errPromise = new Promise((_, rj) => setTimeout(() => rj(4)));
-    const [successErr, successResult] = awaited(frag, promise, ["successErr", "successResult"]);
+    const [successErr, successResult] = awaited(frag, promise, "successErr", "successResult");
     const [mustFailErr, mustFailResult] = awaited(frag, errPromise);
 
     expect(successErr.$).toBeUndefined();

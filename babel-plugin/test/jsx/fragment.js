@@ -1,6 +1,6 @@
 import { compose } from "vasille-dx";
 export const C = compose(Vasille => {
-  const a = Vasille.ref("text");
+  const a = Vasille.ref("text", "a");
   Vasille.text("text text2");
   Vasille.text("text");
   Vasille.text(a);

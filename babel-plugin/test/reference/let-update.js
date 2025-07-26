@@ -1,6 +1,6 @@
 import { compose } from "vasille-dx";
 export const C = compose(Vasille => {
-  const count = Vasille.ref(1);
+  const count = Vasille.ref(1, "count");
   function inc() {
     count.$ += 1;
     count.$ = count.$ + 1;

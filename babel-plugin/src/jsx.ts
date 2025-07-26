@@ -79,16 +79,13 @@ function transformJsxExpressionContainer(
   acceptSlots: boolean,
   isInternalSlot: boolean,
 ): types.Expression {
-  if (!t.isExpression(path.node.expression)) {
-    return t.booleanLiteral(true);
-  }
-
-  const loc = path.node.expression.loc;
+  const expression = path.node.expression as types.Expression;
+  const loc = expression.loc;
 
   if (
     acceptSlots &&
-    (t.isFunctionExpression(path.node.expression) || t.isArrowFunctionExpression(path.node.expression)) &&
-    bodyHasJsx(path.node.expression.body)
+    (t.isFunctionExpression(expression) || t.isArrowFunctionExpression(expression)) &&
+    bodyHasJsx(expression.body)
   ) {
     compose(
       path.get("expression") as NodePath<types.FunctionExpression | types.ArrowFunctionExpression>,
@@ -97,35 +94,35 @@ function transformJsxExpressionContainer(
     );
 
     if (!isInternalSlot) {
-      if (path.node.expression.params.length < 1) {
-        path.node.expression.params.push(t.identifier(`_${internal.prefix}`));
+      if (expression.params.length < 1) {
+        expression.params.push(t.identifier(`_${internal.prefix}`));
       }
-      path.node.expression.params.push(ctx);
+      expression.params.push(ctx);
     } else {
-      path.node.expression.params.unshift(ctx);
+      expression.params.unshift(ctx);
     }
 
-    path.node.expression.loc = loc;
+    expression.loc = loc;
 
-    return path.node.expression;
+    return expression;
   } else if (
     isInternalSlot &&
-    (t.isFunctionExpression(path.node.expression) || t.isArrowFunctionExpression(path.node.expression))
+    (t.isFunctionExpression(expression) || t.isArrowFunctionExpression(expression))
   ) {
-    path.node.expression.params.unshift(ctx);
+    expression.params.unshift(ctx);
   }
 
-  let call = exprCall(path.get("expression") as NodePath<types.Expression>, path.node.expression, internal);
+  let call = exprCall(path.get("expression") as NodePath<types.Expression>, expression, internal);
 
   if (
     !call &&
-    t.isIdentifier(path.node.expression) &&
-    internal.stack.get(path.node.expression.name) === VariableState.ReactiveObject
+    t.isIdentifier(expression) &&
+    internal.stack.get(expression.name) === VariableState.ReactiveObject
   ) {
-    call = t.callExpression(t.memberExpression(internal.id, t.identifier("rop")), [path.node.expression]);
+    call = t.callExpression(t.memberExpression(internal.id, t.identifier("rop")), [expression]);
   }
 
-  const result = call ?? path.node.expression;
+  const result = call ?? expression;
 
   result.loc = loc;
 
@@ -376,9 +373,9 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
               throw attrPath.buildCodeFrameError('Vasille: Value of "style" attribute must be an object expression');
             }
           } else {
-            if (t.isJSXExpressionContainer(attr.value)) {
+            if (!attr.value || t.isJSXExpressionContainer(attr.value)) {
               attrs.push(
-                idToProp(name, t.isExpression(attr.value.expression) ? attr.value.expression : t.booleanLiteral(true)),
+                idToProp(name, t.isExpression(attr.value?.expression) ? attr.value.expression : t.booleanLiteral(true)),
               );
             } else if (t.isStringLiteral(attr.value)) {
               attrs.push(idToProp(name, attr.value));

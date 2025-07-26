@@ -7,7 +7,7 @@ import {
   arrayModel,
   exprCall,
   forwardOnlyExpr,
-  mapModel,
+  mapModel, named,
   own,
   parseCalculateCall,
   reactiveObject,
@@ -867,11 +867,29 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
         const id = declaration.node.id;
         let meshInit = true;
 
+
+        function idName (target: types.LVal|types.PatternLike|null = id): string {
+          if (t.isIdentifier(target)) {
+            return target.name;
+          }
+
+          return '#';
+        }
+
+        function idDoubleName (): [string, string] {
+          if (t.isArrayPattern(id) && id.elements.length === 2) {
+            return [idName(id.elements[0]), idName(id.elements[1])];
+          }
+
+          return ['#', '#'];
+        }
+
         ignoreParams(declaration.node.id, internal);
 
         if (calls(declaration.node.init, ["awaited"], internal)) {
           reactiveArrayPattern(declaration.node.id, internal);
           meshAllUnknown((declaration.get("init") as NodePath<types.CallExpression>).get("arguments"), internal);
+          named((declaration.node.init as types.CallExpression), idDoubleName(), internal);
           meshInit = false;
         } else if (t.isIdentifier(id)) {
           internal.stack.set(id.name, declares);
@@ -887,12 +905,12 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             const replaceWith =
               declares === VariableState.Reactive
                 ? forwardOnlyExpr(declaration.get("init"), argument, internal)
-                : exprCall(declaration.get("init"), argument, internal);
-            let insertNode = replaceWith ?? ref(t.isExpression(argument) ? argument : null);
+                : exprCall(declaration.get("init"), argument, internal, idName());
+            let insertNode = replaceWith ?? ref(t.isExpression(argument) ? argument : null, internal, idName());
 
             if (declares === VariableState.Reactive) {
               internal.stack.set(id.name, VariableState.ReactivePointer);
-              insertNode = own(insertNode);
+              insertNode = own(insertNode, internal, idName());
             } else {
               internal.stack.set(id.name, VariableState.Reactive);
             }
@@ -903,7 +921,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             const argument = (init as types.CallExpression).arguments[0];
 
             internal.stack.set(id.name, VariableState.Reactive);
-            declaration.get("init").replaceWith(ref(t.isExpression(argument) ? argument : null));
+            declaration.get("init").replaceWith(ref(t.isExpression(argument) ? argument : null, internal, idName()));
           } else if (calls(init, ["reactiveObject"], internal)) {
             const value = (init as types.CallExpression).arguments[0];
 
@@ -911,7 +929,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
               declaration.buildCodeFrameError(`Vasille: Reactive objects must be must be declared as constants`);
             }
             if (t.isObjectExpression(value)) {
-              declaration.get("init").replaceWith(reactiveObject(value, internal));
+              declaration.get("init").replaceWith(reactiveObject(value, internal, idName()));
               internal.stack.set(id.name, VariableState.ReactiveObject);
             } else {
               declaration.buildCodeFrameError(`Vasille: reactiveObject requires object expression as argument`);
@@ -923,7 +941,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
               declaration.buildCodeFrameError(`Vasille: Array models must be must be declared as constants`);
             }
             if (t.isArrayExpression(value)) {
-              declaration.get("init").replaceWith(arrayModel(value, internal));
+              declaration.get("init").replaceWith(arrayModel(value, internal, idName()));
             } else {
               declaration.buildCodeFrameError(`Vasille: arrayModel requires array expression as argument`);
             }
@@ -938,18 +956,18 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             }
             declaration
               .get("init")
-              .replaceWith(name === "mapModel" ? mapModel(args, internal) : setModel(args, internal));
+              .replaceWith(name === "mapModel" ? mapModel(args, internal, idName()) : setModel(args, internal, idName()));
           } else if (t.isObjectExpression(init)) {
             if (kind !== "const") {
               declaration.buildCodeFrameError(`Vasille: Objects must be must be declared as constants`);
             }
-            declaration.get("init").replaceWith(reactiveObject(init, internal));
+            declaration.get("init").replaceWith(reactiveObject(init, internal, idName()));
             internal.stack.set(id.name, VariableState.ReactiveObject);
           } else if (t.isArrayExpression(init)) {
             if (kind !== "const") {
               declaration.buildCodeFrameError(`Vasille: Arrays must be must be declared as constants`);
             }
-            declaration.get("init").replaceWith(arrayModel(init, internal));
+            declaration.get("init").replaceWith(arrayModel(init, internal, idName()));
           } else if (t.isNewExpression(init) && t.isIdentifier(init.callee)) {
             if (init.callee.name === "Map" || init.callee.name === "Set") {
               if (kind !== "const") {
@@ -960,7 +978,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
               declaration
                 .get("init")
                 .replaceWith(
-                  init.callee.name === "Map" ? mapModel(init.arguments, internal) : setModel(init.arguments, internal),
+                  init.callee.name === "Map" ? mapModel(init.arguments, internal, idName()) : setModel(init.arguments, internal, idName()),
                 );
             }
           } else if (declares === VariableState.Reactive) {
@@ -968,9 +986,9 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
 
             meshInit = !replaceWith;
             internal.stack.set(id.name, replaceWith ? VariableState.ReactivePointer : VariableState.Reactive);
-            declaration.get("init").replaceWith(replaceWith ? own(replaceWith) : ref(declaration.node.init));
+            declaration.get("init").replaceWith(replaceWith ? own(replaceWith, internal, idName()) : ref(declaration.node.init, internal, idName()));
           } else {
-            const replaceWith = exprCall(declaration.get("init"), declaration.node.init, internal);
+            const replaceWith = exprCall(declaration.get("init"), declaration.node.init, internal, idName());
 
             if (replaceWith) {
               declaration.get("init").replaceWith(replaceWith);

@@ -2,7 +2,7 @@ import { Slot, compose } from "vasille-dx";
 export const C1 = compose((Vasille, {
   slot
 }) => {
-  const a = Vasille.ref(0);
+  const a = Vasille.ref(0, "a");
   Vasille.tag("div", {}, Vasille => {
     Slot(Vasille, {
       model: slot,

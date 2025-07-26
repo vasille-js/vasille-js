@@ -1,9 +1,9 @@
 import { compose, $ as VasilleDX } from "vasille-dx";
 export const C = compose(Vasille => {
-  const a = Vasille.ref(1);
+  const a = Vasille.ref(1, "a");
   const o = VasilleDX.ro(Vasille, {
     b: 1
-  });
+  }, "o");
   const c = Vasille.expr(Vasille_a => {
     o.b.$++;
     do {
@@ -40,5 +40,5 @@ export const C = compose(Vasille => {
       a.$++;
     }
     return 0;
-  }, a);
+  }, [a], "c");
 }, "VasilleDX:C");

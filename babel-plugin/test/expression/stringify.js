@@ -8,7 +8,7 @@ class Class {
     return compose(Vasille => {
       Vasille.watch(Vasille__obj_prop_$ => {
         let x = [Vasille__obj_prop_$, Vasille__obj_prop_$];
-      }, this.#obj.prop);
+      }, [this.#obj.prop]);
     }, "VasilleDX:#anonymouse");
   }
 }

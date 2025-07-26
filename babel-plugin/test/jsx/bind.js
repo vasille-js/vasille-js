@@ -1,6 +1,6 @@
 import { compose } from "vasille-dx";
 export const C = compose(Vasille => {
-  const a = Vasille.ref(0.5);
+  const a = Vasille.ref(0.5, "a");
   const b = 0;
   Vasille.tag("video", {
     bind: {

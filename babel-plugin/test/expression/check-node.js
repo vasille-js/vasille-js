@@ -6,8 +6,8 @@ let o = {
 const c = compose(Vasille => {
   const o1 = VasilleDX.ro(Vasille, {
     a: 1
-  });
+  }, "o1");
   const c1 = o.a;
   const c2 = o1.a;
-  const s = Vasille.expr((Vasille_c1, Vasille_c2) => Vasille_c1 + Vasille_c2, c1, c2);
+  const s = Vasille.expr((Vasille_c1, Vasille_c2) => Vasille_c1 + Vasille_c2, [c1, c2], "s");
 }, "VasilleDX:c");

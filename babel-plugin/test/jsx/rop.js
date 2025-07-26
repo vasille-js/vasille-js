@@ -7,7 +7,7 @@ export const C1 = compose((Vasille, {
 export const C2 = compose(Vasille => {
   const o = VasilleDX.ro(Vasille, {
     b: 1
-  });
+  }, "o");
   C1(Vasille, {
     a: VasilleDX.rop(o)
   });
