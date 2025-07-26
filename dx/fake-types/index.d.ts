@@ -15,7 +15,7 @@ declare interface Params {
 
 declare type Composed<In extends Params, Out> = (
   this: Fragment,
-  $: (In['slot'] extends () => unknown ? Omit<In, 'slot'>& {slot?: unknown} : (In))
+  $: (In['slot'] extends (() => unknown) | undefined ? Omit<In, 'slot'>& {slot?: unknown} : (In))
       & { callback?(data: Out | undefined): void },
   slot?: In['slot'],
 ) => void;

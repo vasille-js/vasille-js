@@ -496,6 +496,8 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
           );
 
           props.push(idToProp(attr.name, value));
+        } else if (!attr.value) {
+          props.push(idToProp(attr.name, t.booleanLiteral(true)));
         } else {
           throw attrPath.buildCodeFrameError("Vasille: JSX Elements/Fragments are not supported here");
         }
@@ -510,19 +512,32 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
       }
     }
 
+    const filteredChildren = element.children.filter(item => {
+      if (!t.isJSXText(item)) {
+        return true;
+      }
+
+      return !!item.value.trim();
+    })
+
     if (
-      element.children.length === 1 &&
-      t.isJSXExpressionContainer(element.children[0]) &&
-      (t.isFunctionExpression(element.children[0].expression) ||
-        t.isArrowFunctionExpression(element.children[0].expression))
+      filteredChildren.length === 1 &&
+      t.isJSXExpressionContainer(filteredChildren[0]) &&
+      (t.isFunctionExpression(filteredChildren[0].expression) ||
+        t.isArrowFunctionExpression(filteredChildren[0].expression))
     ) {
-      run = element.children[0].expression;
-      run.params.push(ctx);
+      transformJsxExpressionContainer(
+        path.get("children")[element.children.indexOf(filteredChildren[0])] as NodePath<types.JSXExpressionContainer>,
+        internal,
+        true,
+        internal.mapping.has(name.name),
+      )
+      run = filteredChildren[0].expression;
     } else {
       const statements = transformJsxArray(path.get("children"), internal);
 
       if (statements.length > 0) {
-        run = t.arrowFunctionExpression([ctx], t.blockStatement(statements));
+        run = t.arrowFunctionExpression([t.identifier(`_${internal.prefix}`), ctx], t.blockStatement(statements));
       }
     }
 
