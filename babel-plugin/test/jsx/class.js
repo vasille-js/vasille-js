@@ -1,5 +1,5 @@
 import { compose } from "vasille-dx";
-let c = 'c';
+let c = "c";
 export const C = compose(Vasille => {
   const a = Vasille.ref("a", "a");
   const b = Vasille.ref(false, "b");

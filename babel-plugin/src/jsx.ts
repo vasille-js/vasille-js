@@ -105,20 +105,13 @@ function transformJsxExpressionContainer(
     expression.loc = loc;
 
     return expression;
-  } else if (
-    isInternalSlot &&
-    (t.isFunctionExpression(expression) || t.isArrowFunctionExpression(expression))
-  ) {
+  } else if (isInternalSlot && (t.isFunctionExpression(expression) || t.isArrowFunctionExpression(expression))) {
     expression.params.unshift(ctx);
   }
 
   let call = exprCall(path.get("expression") as NodePath<types.Expression>, expression, internal);
 
-  if (
-    !call &&
-    t.isIdentifier(expression) &&
-    internal.stack.get(expression.name) === VariableState.ReactiveObject
-  ) {
+  if (!call && t.isIdentifier(expression) && internal.stack.get(expression.name) === VariableState.ReactiveObject) {
     call = t.callExpression(t.memberExpression(internal.id, t.identifier("rop")), [expression]);
   }
 
@@ -393,8 +386,9 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
             if (t.isJSXExpressionContainer(attr.value) || !attr.value) {
               const value = t.isExpression(attr.value?.expression)
                 ? exprCall(
-                    ((attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.JSXExpressionContainer>)
-                      .get('expression') as NodePath<types.Expression>,
+                    (
+                      (attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.JSXExpressionContainer>
+                    ).get("expression") as NodePath<types.Expression>,
                     attr.value.expression,
                     internal,
                   )
@@ -518,7 +512,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
       }
 
       return !!item.value.trim();
-    })
+    });
 
     if (
       filteredChildren.length === 1 &&
@@ -531,7 +525,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
         internal,
         true,
         internal.mapping.has(name.name),
-      )
+      );
       run = filteredChildren[0].expression;
     } else {
       const statements = transformJsxArray(path.get("children"), internal);

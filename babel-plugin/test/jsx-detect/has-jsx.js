@@ -1,9 +1,9 @@
 import { compose, Slot } from "vasille-dx";
 export const C = compose((Vasille, {
-  slot1
+  slot01
 }) => {
   Slot(Vasille, {
-    model: slot1,
+    model: slot01,
     a: 1,
     b: 2
   });

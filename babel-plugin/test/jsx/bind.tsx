@@ -10,5 +10,5 @@ export const C = compose(() => {
   <video bind:volume={a + 0.1} />;
   <video bind:volume={b + 0.1} />;
   <video bind:volume />;
-  <input bind:value="value"/>
+  <input bind:value="value" />;
 });

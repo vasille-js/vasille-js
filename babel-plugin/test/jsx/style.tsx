@@ -12,7 +12,7 @@ export const C = compose(() => {
       "margin-left": a,
     }}
   />;
-  <div style="margin: 20px;"/>;
-  <div style={"margin: 20px;"}/>;
-  <div style={`margin: ${a}`}/>;
+  <div style="margin: 20px;" />;
+  <div style={"margin: 20px;"} />;
+  <div style={`margin: ${a}`} />;
 });

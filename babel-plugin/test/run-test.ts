@@ -32,10 +32,10 @@ export function throwTest(dir: string, name: string, err: string, isTsx?: boolea
     }
 }
 
-export function runJsxTest(dir: string, name: string) {
+export function runJsxTest(dir: string, name: string, devMode = true) {
     const input = fs.readFileSync(path.join(dir, `${name}.tsx`), { encoding: "utf8" });
     const result = babel.transformSync(input, {
-        plugins: [vasillePlugin, ["@babel/plugin-transform-typescript", {isTSX: true}]],
+        plugins: [[vasillePlugin, {devMode}], ["@babel/plugin-transform-typescript", {isTSX: true}]],
     });
     const expected = fs.readFileSync(path.join(dir, `${name}.js`), { encoding: "utf8" });
 

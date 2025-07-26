@@ -4,15 +4,20 @@ import { checkNode, encodeName } from "./expression";
 import { Internal, ctx } from "./internal";
 import { calls } from "./call";
 
-export function named (call: types.CallExpression, name: undefined|string|string[], internal: Internal, argPos?: number) {
+export function named(
+  call: types.CallExpression,
+  name: undefined | string | string[],
+  internal: Internal,
+  argPos?: number,
+) {
   if (internal.devMode && name) {
     while (argPos && call.arguments.length < argPos) {
       call.arguments.push(t.buildUndefinedNode());
     }
 
     call.arguments.push(
-      ...typeof name === "string" ? [t.stringLiteral(name)] : name.map(item => t.stringLiteral(item))
-    )
+      ...(typeof name === "string" ? [t.stringLiteral(name)] : name.map(item => t.stringLiteral(item))),
+    );
   }
 
   return call;
@@ -62,13 +67,17 @@ export function exprCall(
   return exprData.self
     ? exprData.self
     : exprData.found.size > 0 && expr
-      ? named(t.callExpression(t.memberExpression(ctx, t.identifier("expr")), [
-        t.arrowFunctionExpression(
-          [...exprData.found.keys()].map(name => encodeName(name)),
-          expr,
-        ),
-        t.arrayExpression([...exprData.found.values()]),
-      ]), name, internal)
+      ? named(
+          t.callExpression(t.memberExpression(ctx, t.identifier("expr")), [
+            t.arrowFunctionExpression(
+              [...exprData.found.keys()].map(name => encodeName(name)),
+              expr,
+            ),
+            t.arrayExpression([...exprData.found.values()]),
+          ]),
+          name,
+          internal,
+        )
       : null;
 }
 
@@ -111,7 +120,11 @@ export function reactiveObject(init: types.Expression, internal: Internal, name?
 }
 
 export function arrayModel(init: types.Expression | null | undefined, internal: Internal, name?: string) {
-  return named(t.callExpression(t.memberExpression(internal.id, t.identifier("am")), [ctx, ...(init ? [init] : [])]), name, internal);
+  return named(
+    t.callExpression(t.memberExpression(internal.id, t.identifier("am")), [ctx, ...(init ? [init] : [])]),
+    name,
+    internal,
+  );
 }
 
 export function setModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {

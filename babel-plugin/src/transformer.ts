@@ -89,7 +89,10 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
           if (!t.isImportSpecifier(spec)) {
             return true;
           } else {
-            return !ignoreMembers.has(extractText(spec.imported));
+            return !(
+              ignoreMembers.has(extractText(spec.imported)) ||
+              (!internal.devMode && extractText(spec.imported) === "Debug")
+            );
           }
         });
       } else if (statement.source.value === "vasille-css") {

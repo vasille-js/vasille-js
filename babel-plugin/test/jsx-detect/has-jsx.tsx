@@ -2,7 +2,7 @@ import { compose, Slot } from "vasille-dx";
 
 export const C = compose(
   ({
-    slot1,
+    slot01,
   }: {
     slot01(props: { a: number; b: number }): void;
     slot02?(props: { a: number; b: number }): void;
@@ -24,7 +24,7 @@ export const C = compose(
     slot18?(props: { a: number; b: number }): void;
     slot19?(props: { a: number; b: number }): void;
   }) => {
-    <Slot model={slot1} a={1} b={2} />;
+    <Slot model={slot01} a={1} b={2} />;
   },
 );
 
