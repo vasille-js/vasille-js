@@ -5,5 +5,6 @@ const C = compose((props: { a: unknown }) => {
 });
 
 const D = compose(() => {
+  // @ts-expect-error
   <C bind:a />;
 });

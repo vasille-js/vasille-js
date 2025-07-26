@@ -14,7 +14,7 @@ export const C = compose(() => {
   let b = bind(a + 1);
   let s = "s";
   let f: ((a: number) => void) | null = null;
-  let o = { m: { n: 0 } };
+  const o = { m: { n: 0 } };
   const r = new Reference(0);
 
   const calc = calculate(async () => {

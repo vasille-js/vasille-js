@@ -28,7 +28,8 @@ const ignoreMembers = new Set([
 ]);
 
 function extractText(node: types.Identifier | types.StringLiteral) {
-  return t.isIdentifier(node) ? node.name : node.value;
+  // no case found for string literal
+  return (node as types.Identifier).name;
 }
 
 export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
@@ -69,7 +70,7 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
               internal.cssGlobal = internal.global;
               stylesConnected = true;
             }
-            id = t.memberExpression(t.identifier(internal.global), t.identifier("$"));
+            internal.id = t.memberExpression(t.identifier(internal.global), t.identifier("$"));
           } else if (t.isImportSpecifier(specifier)) {
             const imported = extractText(specifier.imported);
             const local = specifier.local.name;
@@ -80,7 +81,7 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
             }
 
             if (!id) {
-              id = t.identifier(name);
+              internal.id = t.identifier(name);
             }
             internal.importStatement = statementPath as NodePath<types.ImportDeclaration>;
           }
