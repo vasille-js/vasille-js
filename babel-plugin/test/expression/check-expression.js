@@ -1,7 +1,7 @@
 import { compose, $ as VasilleDX } from "vasille-dx";
 import { Reference } from "vasille";
-function tag(arg) {
-  return arg;
+function tag(args, count) {
+  return args.join("");
 }
 function tag2(a1, a2) {
   return a1 + a2;
@@ -23,6 +23,7 @@ export const C = compose(Vasille => {
     const v4 = (Vasille_a || Vasille_b) & Vasille_a;
     const v5 = new Number(Vasille_a);
     const v6 = !Vasille_b;
+    // @ts-ignore
     const v7 = (Vasille_a, ++b.$);
     const v8 = await Vasille_a;
     const v9 = tag.bind(null, Vasille_s);
@@ -46,9 +47,12 @@ export const C = compose(Vasille => {
       yield i + Vasille_a;
       yield i + 10 + Vasille_a;
     }
+
+    // @ts-ignore
     Vasille_f?.(Vasille_a);
     [a.$, b.$] = [Vasille_b, Vasille_a];
-    (null, tag)("test");
+    // @ts-ignore
+    (null, tag2)("test", "2");
     return 2;
   }, [a, b, s, o.m, r, f], "calc");
 }, "VasilleDX:C");

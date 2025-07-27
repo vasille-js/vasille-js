@@ -11,6 +11,8 @@ export const C = compose(() => {
   let f = value(calculate(() => a + b));
   // @ts-expect-error
   let g = ref();
+  let h = bind(3);
+  const j = bind(4);
 
-  console.log(a, b, c, d, e, f);
+  console.log(a, b, c, d, e, f, g, h, j);
 });

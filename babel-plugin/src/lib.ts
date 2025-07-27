@@ -1,5 +1,6 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
+import exp from "node:constants";
 import { checkNode, encodeName } from "./expression";
 import { Internal, ctx } from "./internal";
 import { calls } from "./call";
@@ -10,7 +11,7 @@ export function named(
   internal: Internal,
   argPos?: number,
 ) {
-  if (internal.devMode && name) {
+  if (internal.devMode && !internal.stateOnly && name) {
     while (argPos && call.arguments.length < argPos) {
       call.arguments.push(t.buildUndefinedNode());
     }
@@ -23,13 +24,18 @@ export function named(
   return call;
 }
 
-export function parseCalculateCall(path: NodePath<types.Expression | null | undefined>, internal: Internal) {
+export function parseCalculateCall(
+  path: NodePath<types.Expression | null | undefined>,
+  internal: Internal,
+): [types.FunctionExpression | types.ArrowFunctionExpression, types.ArrayExpression] | null {
   if (t.isCallExpression(path.node) && calls(path.node, ["calculate", "watch"], internal)) {
+    const call = path.node.arguments[0];
+
     if (path.node.arguments.length !== 1) {
       throw path.buildCodeFrameError("Vasille: Incorrect number of arguments");
     }
-    if (t.isFunctionExpression(path.node.arguments[0]) || t.isArrowFunctionExpression(path.node.arguments[0])) {
-      if (path.node.arguments[0].params.length > 0) {
+    if (t.isFunctionExpression(call) || t.isArrowFunctionExpression(call)) {
+      if (call.params.length > 0) {
         throw path.buildCodeFrameError("Vasille: Argument of calculate cannot have parameters");
       }
 
@@ -40,9 +46,9 @@ export function parseCalculateCall(path: NodePath<types.Expression | null | unde
         internal,
       );
 
-      path.node.arguments[0].params = [...exprData.found.keys()].map(name => encodeName(name));
+      call.params = [...exprData.found.keys()].map(name => encodeName(name));
 
-      return [path.node.arguments[0], t.arrayExpression([...exprData.found.values()])];
+      return [call, t.arrayExpression([...exprData.found.values()])];
     } else {
       throw path.buildCodeFrameError("Vasille: Argument of calculate must be a function");
     }
@@ -59,26 +65,41 @@ export function exprCall(
   const calculateCall = parseCalculateCall(path, internal);
 
   if (calculateCall) {
-    return named(t.callExpression(t.memberExpression(ctx, t.identifier("expr")), calculateCall), name, internal);
+    return named(
+      t.callExpression(
+        internal.stateOnly
+          ? t.memberExpression(internal.id, t.identifier("ex"))
+          : t.memberExpression(ctx, t.identifier("expr")),
+        calculateCall,
+      ),
+      name,
+      internal,
+    );
   }
 
   const exprData = checkNode(path, internal);
 
-  return exprData.self
-    ? exprData.self
-    : exprData.found.size > 0 && expr
-      ? named(
-          t.callExpression(t.memberExpression(ctx, t.identifier("expr")), [
-            t.arrowFunctionExpression(
-              [...exprData.found.keys()].map(name => encodeName(name)),
-              expr,
-            ),
-            t.arrayExpression([...exprData.found.values()]),
-          ]),
-          name,
-          internal,
-        )
-      : null;
+  if (exprData.self) {
+    return exprData.self;
+  }
+
+  const names = [...exprData.found.keys()].map(name => encodeName(name));
+  const dependencies = t.arrayExpression([...exprData.found.values()]);
+
+  if (names.length > 0 && expr) {
+    return named(
+      t.callExpression(
+        internal.stateOnly
+          ? t.memberExpression(internal.id, t.identifier("ex"))
+          : t.memberExpression(ctx, t.identifier("expr")),
+        [t.arrowFunctionExpression(names, expr), dependencies],
+      ),
+      name,
+      internal,
+    );
+  }
+
+  return null;
 }
 
 export function forwardOnlyExpr(
@@ -108,20 +129,49 @@ export function forwardOnlyExpr(
 }
 
 export function own(expr: types.Expression, internal: Internal, name?: string) {
-  return named(t.callExpression(t.memberExpression(ctx, t.identifier("own")), [expr]), name, internal);
+  return named(
+    t.callExpression(
+      internal.stateOnly
+        ? t.memberExpression(internal.id, t.identifier("fo"))
+        : t.memberExpression(ctx, t.identifier("own")),
+      [expr],
+    ),
+    name,
+    internal,
+  );
 }
 
 export function ref(expr: types.Expression | null | undefined, internal: Internal, name?: string) {
-  return named(t.callExpression(t.memberExpression(ctx, t.identifier("ref")), expr ? [expr] : []), name, internal, 1);
+  return named(
+    t.callExpression(
+      internal.stateOnly
+        ? t.memberExpression(internal.id, t.identifier("r"))
+        : t.memberExpression(ctx, t.identifier("ref")),
+      expr ? [expr] : [],
+    ),
+    name,
+    internal,
+    1,
+  );
 }
 
 export function reactiveObject(init: types.Expression, internal: Internal, name?: string) {
-  return named(t.callExpression(t.memberExpression(internal.id, t.identifier("ro")), [ctx, init]), name, internal);
+  return named(
+    t.callExpression(
+      t.memberExpression(internal.id, t.identifier(internal.stateOnly ? "sro" : "ro")),
+      internal.stateOnly ? [init] : [ctx, init],
+    ),
+    name,
+    internal,
+  );
 }
 
 export function arrayModel(init: types.Expression | null | undefined, internal: Internal, name?: string) {
   return named(
-    t.callExpression(t.memberExpression(internal.id, t.identifier("am")), [ctx, ...(init ? [init] : [])]),
+    t.callExpression(
+      t.memberExpression(internal.id, t.identifier(internal.stateOnly ? "sam" : "am")),
+      internal.stateOnly ? (init ? [init] : []) : [ctx, ...(init ? [init] : [])],
+    ),
     name,
     internal,
     2,
@@ -129,9 +179,23 @@ export function arrayModel(init: types.Expression | null | undefined, internal: 
 }
 
 export function setModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
-  return named(t.callExpression(t.memberExpression(internal.id, t.identifier("sm")), [ctx, ...args]), name, internal);
+  return named(
+    t.callExpression(
+      t.memberExpression(internal.id, t.identifier(internal.stateOnly ? "ssm" : "sm")),
+      internal.stateOnly ? args : [ctx, ...args],
+    ),
+    name,
+    internal,
+  );
 }
 
 export function mapModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
-  return named(t.callExpression(t.memberExpression(internal.id, t.identifier("mm")), [ctx, ...args]), name, internal);
+  return named(
+    t.callExpression(
+      t.memberExpression(internal.id, t.identifier(internal.stateOnly ? "smm" : "mm")),
+      internal.stateOnly ? args : [ctx, ...args],
+    ),
+    name,
+    internal,
+  );
 }

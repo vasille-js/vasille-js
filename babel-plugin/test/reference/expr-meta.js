@@ -10,5 +10,7 @@ export const C = compose(Vasille => {
   let f = (() => a.$ + b)();
   // @ts-expect-error
   const g = Vasille.ref(void 0, "g");
-  console.log(a.$, b, c.$, d.$, e.$$, f);
+  const h = Vasille.own(VasilleDX.r(3), "h");
+  const j = Vasille.ref(4, "j");
+  console.log(a.$, b, c.$, d.$, e.$$, f, g.$, h.$$, j.$);
 }, "VasilleDX:C");

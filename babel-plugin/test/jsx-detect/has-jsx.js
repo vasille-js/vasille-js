@@ -133,6 +133,9 @@ export const C1 = compose(Vasille => {
         Vasille.tag("div", {});
       }
     },
+    slot14: (_VasilleDX, Vasille) => {
+      return Vasille.tag("div", {});
+    },
     slot19: (_VasilleDX, Vasille) => Vasille.tag("div", {})
   });
 }, "VasilleDX:C1");

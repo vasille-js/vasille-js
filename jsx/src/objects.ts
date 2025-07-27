@@ -103,3 +103,24 @@ export function reactiveObjectProxy<T extends { [k: string | symbol]: IValue<unk
         },
     }) as { [K in keyof T]: T[K] extends IValue<infer R> ? R : never };
 }
+
+
+export function stateReactiveObject<T extends object>(
+    o: T,
+): { [K in keyof T]: T[K] extends IValue<unknown> ? T[K] : IValue<T[K]> } {
+    for (const key of Object.keys(o)) {
+        if (!(o[key] instanceof IValue)) {
+            o[key] = new Reference(proxy(o[key]));
+        }
+    }
+
+    return new Proxy(o, {
+        get(_, p) {
+            if (p in o) {
+                return o[p];
+            } else {
+                return (o[p] = new Reference(undefined));
+            }
+        },
+    }) as { [K in keyof T]: T[K] extends IValue<unknown> ? T[K] : IValue<T[K]> };
+}

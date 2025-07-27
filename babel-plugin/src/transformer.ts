@@ -25,6 +25,7 @@ const ignoreMembers = new Set([
   "laptop",
   "prefersDark",
   "prefersLight",
+  "state",
 ]);
 
 function extractText(node: types.Identifier | types.StringLiteral) {
@@ -51,6 +52,7 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
     prefix: "Vasille_",
     importStatement: null,
     internalUsed: false,
+    stateOnly: false,
     devMode: devMode,
   };
 

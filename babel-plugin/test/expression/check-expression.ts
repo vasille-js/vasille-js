@@ -1,8 +1,8 @@
 import { bind, calculate, compose } from "vasille-dx";
 import { Reference } from "vasille";
 
-function tag(arg: string): string {
-  return arg;
+function tag(args: TemplateStringsArray, count: number): string {
+  return args.join("");
 }
 
 function tag2(a1: string, a2: string) {
@@ -23,8 +23,9 @@ export const C = compose(() => {
     const v4 = (a || b) & a;
     const v5 = new Number(a);
     const v6 = !b;
+    // @ts-ignore
     const v7 = (a, ++b);
-    const v8 = await (<Promise<number>>a);
+    const v8 = await (<Promise<number>>(a as unknown));
     const v9 = tag.bind(null, s);
     const VMap = Map<string, number>;
     const v10 = new VMap([[s, a]]);
@@ -46,9 +47,11 @@ export const C = compose(() => {
       yield i + 10 + a;
     }
 
+    // @ts-ignore
     f?.(a);
     [a, b] = [b, a];
-    (null, tag)("test");
+    // @ts-ignore
+    (null, tag2)("test", "2");
 
     return 2;
   });

@@ -1,8 +1,9 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { calls, composeOnly, styleOnly } from "./call";
-import { Internal, VariableState, ctx } from "./internal";
-import { bodyHasJsx } from "./jsx-detect";
+import { memberIsIValue } from "./expression";
+import { ctx, Internal, VariableState } from "./internal";
+import { transformJsx } from "./jsx";
 import {
   arrayModel,
   exprCall,
@@ -15,7 +16,6 @@ import {
   ref,
   setModel,
 } from "./lib";
-import { transformJsx } from "./jsx";
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
   nodePaths: NodePath<types.Expression | null | T>[],
@@ -51,10 +51,15 @@ export function meshComposeCall(
   >;
 
   compose(fnPath, internal, false);
-  arg.params.unshift(ctx);
+  if (!internal.stateOnly) {
+    arg.params.unshift(ctx);
+  }
 
   if (internal.devMode) {
     call.arguments.push(t.stringLiteral(`${internal.prefix}:${name ? name.name : "#anonymouse"}`));
+  }
+  if (t.isIdentifier(call.callee) && call.callee.name === "state") {
+    nodePath.replaceWith(call.arguments[0]);
   }
 }
 
@@ -96,13 +101,17 @@ export function meshOrIgnoreExpression<T extends types.Node>(
   }
 }
 
-export function meshExpression(nodePath: NodePath<types.Expression | null | undefined>, internal: Internal) {
+export function meshExpression(
+  nodePath: NodePath<types.Expression | null | undefined>,
+  internal: Internal,
+  isRoot?: boolean,
+) {
   const expr = nodePath.node;
 
   if (!expr) {
     return;
   }
-  if (calls(expr, ["compose", "extend"], internal)) {
+  if (calls(expr, ["compose", "extend", "state"], internal)) {
     meshComposeCall(expr as types.CallExpression, null, nodePath, internal);
 
     return;
@@ -136,12 +145,6 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       meshAllUnknown(path.get("elements"), internal);
       break;
     }
-    case "TupleExpression": {
-      const path = nodePath as NodePath<types.TupleExpression>;
-
-      meshAllUnknown(path.get("elements"), internal);
-      break;
-    }
     case "CallExpression":
     case "OptionalCallExpression": {
       const path = nodePath as NodePath<types.CallExpression>;
@@ -163,10 +166,11 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       meshAllUnknown(path.get("arguments"), internal);
 
       if (calls(path.node, ["calculate"], internal)) {
-        if (path.node.arguments.length !== 1 && !t.isExpression(path.node.arguments[0])) {
+        if (path.node.arguments.length === 1 && t.isExpression(path.node.arguments[0])) {
+          path.replaceWith(t.callExpression(path.node.arguments[0] as types.Expression, []));
+        } else {
           throw path.buildCodeFrameError("Vasille: Incorrect calculate argument");
         }
-        path.replaceWith(t.callExpression(path.node.arguments[0] as types.Expression, []));
       }
       break;
     }
@@ -200,7 +204,7 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
         meshOrIgnoreExpression<types.PrivateName>(path.get("property"), internal);
       }
 
-      if (t.isIdentifier(node.object) && internal.stack.get(node.object.name) === VariableState.ReactiveObject) {
+      if (memberIsIValue(node, internal)) {
         path.replaceWith(t.memberExpression(node, t.identifier("$")));
       }
 
@@ -271,31 +275,6 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       meshExpression(path.get("argument"), internal);
       break;
     }
-    case "TypeCastExpression": {
-      const path = nodePath as NodePath<types.TypeCastExpression>;
-
-      meshExpression(path.get("expression"), internal);
-      break;
-    }
-    case "BindExpression": {
-      const path = nodePath as NodePath<types.BindExpression>;
-
-      meshExpression(path.get("callee"), internal);
-      meshExpression(path.get("object"), internal);
-      break;
-    }
-    case "PipelineTopicExpression": {
-      const path = nodePath as NodePath<types.PipelineTopicExpression>;
-
-      meshExpression(path.get("expression"), internal);
-      break;
-    }
-    case "PipelineBareFunction": {
-      const path = nodePath as NodePath<types.PipelineBareFunction>;
-
-      meshExpression(path.get("callee"), internal);
-      break;
-    }
     case "TSInstantiationExpression": {
       const path = nodePath as NodePath<types.TSInstantiationExpression>;
 
@@ -329,16 +308,41 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
         if (t.isObjectProperty(prop)) {
           const path = propPath as NodePath<types.ObjectProperty>;
           const valuePath = path.get("value");
+          let replaced = false;
 
-          if (valuePath instanceof Array) {
-            meshAllExpressions(valuePath, internal);
-          } else {
+          if (
+            isRoot &&
+            internal.stateOnly &&
+            !path.node.computed &&
+            t.isIdentifier(path.node.key) &&
+            t.isExpression(valuePath.node)
+          ) {
+            const call = exprCall(valuePath as NodePath<types.Expression>, valuePath.node, internal);
+
+            if (call) {
+              if (path.node.key.name.startsWith("$")) {
+                valuePath.replaceWith(call);
+              } else {
+                throw path.buildCodeFrameError("Vasille: Reactive value property name must start with $");
+              }
+              replaced = true;
+            } else if (
+              t.isIdentifier(valuePath.node) &&
+              internal.stack.get(valuePath.node.name) === VariableState.ReactiveObject &&
+              !path.node.key.name.startsWith("$$")
+            ) {
+              throw path.buildCodeFrameError("Vasille: Reactive object property name must start with $$");
+            }
+          }
+          if (!replaced) {
             meshOrIgnoreExpression<
               types.ArrayPattern | types.AssignmentPattern | types.ObjectPattern | types.RestElement
             >(valuePath, internal);
           }
         } else if (t.isObjectMethod(prop)) {
           meshFunction(propPath as NodePath<types.ObjectMethod>, internal);
+        } else if (isRoot && internal.stateOnly && t.isSpreadElement(prop)) {
+          throw propPath.buildCodeFrameError("Vasille: Spread element is not allowed here");
         } else {
           meshAllUnknown([propPath as NodePath<typeof prop>], internal);
         }
@@ -353,41 +357,15 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       meshFunction(nodePath as NodePath<types.ArrowFunctionExpression>, internal);
       break;
     }
+    case "ClassExpression": {
+      meshClassBody((nodePath as NodePath<types.ClassExpression>).get("body"), internal);
+      break;
+    }
     case "JSXFragment": {
       throw nodePath.buildCodeFrameError("Vasille: JSX fragment is not allowed here");
     }
     case "JSXElement": {
       throw nodePath.buildCodeFrameError("Vasille: JSX element is not allowed here");
-    }
-
-    case "BigIntLiteral":
-    case "BooleanLiteral":
-    case "ClassExpression":
-    case "DecimalLiteral":
-    case "DoExpression":
-    case "Import":
-    case "ImportExpression":
-    case "MetaProperty":
-    case "ModuleExpression":
-    case "NullLiteral":
-    case "NumericLiteral":
-    case "PipelinePrimaryTopicReference":
-    case "RecordExpression":
-    case "RegExpLiteral":
-    case "StringLiteral":
-    case "Super":
-    case "TSNonNullExpression":
-    case "ThisExpression":
-    case "TopicReference":
-  }
-}
-
-export function meshBody(path: NodePath<types.BlockStatement | types.Expression>, internal: Internal) {
-  if (t.isExpression(path.node)) {
-    meshExpression(path as NodePath<types.Expression>, internal);
-  } else {
-    for (const statementPath of (path as NodePath<types.BlockStatement>).get("body")) {
-      meshStatement(statementPath, internal);
     }
   }
 }
@@ -405,18 +383,29 @@ export function ignoreParams(val: types.LVal, internal: Internal) {
   if (t.isIdentifier(val)) {
     internal.stack.set(val.name, VariableState.Ignored);
   } else if (t.isObjectPattern(val)) {
-    for (const prop of val.properties) {
-      if (t.isObjectProperty(prop) && t.isIdentifier(prop.value)) {
-        internal.stack.set(prop.value.name, VariableState.Ignored);
-      } else if (t.isRestElement(prop) && t.isIdentifier(prop.argument)) {
-        internal.stack.set(prop.argument.name, VariableState.Ignored);
-      }
-    }
+    ignoreObjectPattern(val, internal);
   } else if (t.isArrayPattern(val)) {
     for (const element of val.elements) {
       if (element) {
         ignoreParams(element, internal);
       }
+    }
+  }
+}
+
+function ignoreObjectPattern(pattern: types.ObjectPattern, internal: Internal) {
+  for (const property of pattern.properties) {
+    if (t.isObjectProperty(property)) {
+      if (t.isObjectPattern(property.value)) {
+        ignoreObjectPattern(property.value, internal);
+      } else if (t.isAssignmentPattern(property.value)) {
+        ignoreParams(property.value, internal);
+      } else if (t.isIdentifier(property.value)) {
+        internal.stack.set(property.value.name, VariableState.Ignored);
+      }
+    }
+    if (t.isRestElement(property)) {
+      internal.stack.set((property.argument as types.Identifier).name, VariableState.Ignored);
     }
   }
 }
@@ -430,11 +419,7 @@ export function reactiveArrayPattern(expr: types.LVal | types.OptionalMemberExpr
     }
   } else if (t.isIdentifier(expr)) {
     internal.stack.set(expr.name, VariableState.ReactiveObject);
-  } else {
-    return false;
   }
-
-  return true;
 }
 
 function meshForEachHeader(path: NodePath<types.ForInStatement | types.ForOfStatement>, internal: Internal) {
@@ -466,14 +451,18 @@ function meshForHeader(path: NodePath<types.ForStatement>, internal: Internal) {
   meshExpression(path.get("update"), internal);
 }
 
+function meshClassBody(path: NodePath<types.ClassBody>, internal: Internal) {
+  for (const item of path.get("body")) {
+    if (t.isClassMethod(item.node) || t.isClassPrivateMethod(item.node)) {
+      meshFunction(item as NodePath<types.ClassMethod | types.ClassPrivateMethod>, internal);
+    }
+  }
+}
+
 export function meshStatement(path: NodePath<types.Statement | null | undefined>, internal: Internal) {
   const statement = path.node;
 
-  if (!statement) {
-    return;
-  }
-
-  switch (statement.type) {
+  switch (statement && statement.type) {
     case "BlockStatement":
       internal.stack.push();
       meshStatements((path as NodePath<types.BlockStatement>).get("body"), internal);
@@ -563,6 +552,13 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
 
     case "TryStatement":
       meshStatement((path as NodePath<types.TryStatement>).get("block"), internal);
+      if ((path as NodePath<types.TryStatement>).node.handler) {
+        meshStatement(
+          ((path as NodePath<types.TryStatement>).get("handler") as NodePath<types.CatchClause>).get("body"),
+          internal,
+        );
+      }
+      meshStatement((path as NodePath<types.TryStatement>).get("finalizer"), internal);
       break;
 
     case "VariableDeclaration": {
@@ -570,15 +566,12 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
 
       for (const declaration of _path.get("declarations")) {
         const expr = declaration.node.init;
-        let ignore = true;
 
-        if (expr && t.isIdentifier(declaration.node.id) && calls(expr, ["compose", "extend"], internal)) {
+        if (expr && t.isIdentifier(declaration.node.id) && calls(expr, ["compose", "extend", "state"], internal)) {
           meshComposeCall(expr as types.CallExpression, declaration.node.id, declaration.get("init"), internal);
         } else {
           meshExpression(declaration.get("init"), internal);
-          if (ignore) {
-            ignoreParams(declaration.node.id, internal);
-          }
+          ignoreParams(declaration.node.id, internal);
         }
       }
       break;
@@ -592,59 +585,25 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
       internal.stack.pop();
       break;
     }
-    case "WithStatement": {
-      const _path = path as NodePath<types.WithStatement>;
-
-      meshExpression(_path.get("object"), internal);
-      internal.stack.push();
-      meshStatement(_path.get("body"), internal);
-      internal.stack.pop();
-      break;
-    }
     case "ExportNamedDeclaration": {
       meshStatement((path as NodePath<types.ExportNamedDeclaration>).get("declaration"), internal);
       break;
     }
     case "ClassDeclaration":
-      const bodyPath = (path as NodePath<types.ClassDeclaration>).get("body");
-
-      for (const item of bodyPath.get("body")) {
-        if (t.isClassMethod(item.node) || t.isClassPrivateMethod(item.node)) {
-          meshFunction(item as NodePath<types.ClassMethod | types.ClassPrivateMethod>, internal);
-        }
-      }
+      meshClassBody((path as NodePath<types.ClassDeclaration>).get("body"), internal);
       break;
 
-    // Ignored
-    case "ExportDefaultDeclaration":
-    case "ExportAllDeclaration":
-    case "BreakStatement":
-    case "ContinueStatement":
-    case "DebuggerStatement":
-    case "EmptyStatement":
-    case "ImportDeclaration":
-    case "DeclareClass":
-    case "DeclareFunction":
-    case "DeclareInterface":
-    case "DeclareModule":
-    case "DeclareModuleExports":
-    case "DeclareTypeAlias":
-    case "DeclareOpaqueType":
-    case "DeclareVariable":
-    case "DeclareExportDeclaration":
-    case "DeclareExportAllDeclaration":
-    case "InterfaceDeclaration":
-    case "OpaqueType":
-    case "TypeAlias":
-    case "EnumDeclaration":
-    case "TSDeclareFunction":
-    case "TSInterfaceDeclaration":
-    case "TSTypeAliasDeclaration":
-    case "TSEnumDeclaration":
-    case "TSModuleDeclaration":
-    case "TSImportEqualsDeclaration":
-    case "TSExportAssignment":
-    case "TSNamespaceExportDeclaration":
+    case "ExportDefaultDeclaration": {
+      const declarationPath = (path as NodePath<types.ExportDefaultDeclaration>).get("declaration");
+
+      if (t.isExpression(declarationPath.node)) {
+        meshExpression(declarationPath as NodePath<types.Expression>, internal);
+      } else if (t.isFunctionDeclaration(declarationPath.node)) {
+        meshFunction(declarationPath as NodePath<types.FunctionDeclaration>, internal);
+      } else if (t.isClassDeclaration(declarationPath.node)) {
+        meshClassBody((declarationPath as NodePath<types.ClassDeclaration>).get("body"), internal);
+      }
+    }
   }
 }
 
@@ -685,52 +644,33 @@ export function meshFunction(
   internal.stack.pop();
 }
 
-export function composeExpression(path: NodePath<types.Expression | null | undefined>, internal: Internal) {
+export function composeExpression(
+  path: NodePath<types.Expression | null | undefined>,
+  internal: Internal,
+  isRoot?: boolean,
+) {
   const expr = path.node;
 
-  if (!expr) {
-    return;
-  }
-
-  switch (expr.type) {
+  switch (expr && expr.type) {
     case "AssignmentExpression": {
-      const assign = expr as types.AssignmentExpression;
-      if (calls(assign.right, ["awaited"], internal)) {
-        reactiveArrayPattern(assign.left, internal);
-      } else {
-        meshExpression(path, internal);
-      }
+      meshExpression(path, internal);
       break;
     }
     case "CallExpression":
     case "OptionalCallExpression": {
       const call = expr as types.CallExpression | types.OptionalCallExpression;
-      let replaced = false;
 
       if (calls(call, ["watch"], internal)) {
         const args = parseCalculateCall(path, internal);
 
         if (args) {
-          path.replaceWith(t.callExpression(t.memberExpression(ctx, t.identifier("watch")), args));
-          replaced = true;
+          if (args[1].elements.length > 0) {
+            path.replaceWith(t.callExpression(t.memberExpression(ctx, t.identifier("watch")), args));
+          } else {
+            path.replaceWith(t.callExpression(args[0], []));
+          }
         }
-      } else if (calls(call, ["arrayModel"], internal)) {
-        const value = call.arguments[0];
-
-        if (t.isArrayExpression(value)) {
-          path.replaceWith(arrayModel(value, internal));
-          replaced = true;
-        } else {
-          throw path.buildCodeFrameError(`Vasille: arrayModel requires array expression as argument`);
-        }
-      } else if (calls(call, ["mapModel", "setModel"], internal)) {
-        const args = call.arguments;
-        const name = calls(call, ["mapModel", "setModel"], internal);
-
-        path.replaceWith(name === "mapModel" ? mapModel(args, internal) : setModel(args, internal));
-        replaced = true;
-      }
-      if (!replaced) {
+      } else {
         meshExpression(path, internal);
       }
       break;
@@ -746,20 +686,31 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
       break;
     case "JSXElement":
     case "JSXFragment":
+      if (internal.stateOnly) {
+        throw path.buildCodeFrameError("Vasille: JSX is not allowed in states");
+      }
       path.replaceWithMultiple(transformJsx(path as NodePath<types.JSXElement | types.JSXFragment>, internal));
       break;
     default:
-      meshExpression(path, internal);
+      meshExpression(path, internal, isRoot);
   }
 }
 
-export function composeStatements(paths: NodePath<types.Statement | null | undefined>[], internal: Internal) {
+export function composeStatements(
+  paths: NodePath<types.Statement | null | undefined>[],
+  internal: Internal,
+  isRoot?: boolean,
+) {
   for (const path of paths) {
-    composeStatement(path, internal);
+    composeStatement(path, internal, isRoot);
   }
 }
 
-export function composeStatement(path: NodePath<types.Statement | null | undefined>, internal: Internal) {
+export function composeStatement(
+  path: NodePath<types.Statement | null | undefined>,
+  internal: Internal,
+  isRoot?: boolean,
+) {
   const statement = path.node;
 
   if (!statement) {
@@ -768,19 +719,12 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
 
   switch (statement.type) {
     case "FunctionDeclaration": {
-      const _path = path as NodePath<types.FunctionDeclaration>;
-      const fn = _path.node;
-
-      if (bodyHasJsx(fn.body)) {
-        compose(_path, internal, false);
-      } else {
-        meshFunction(_path, internal);
-      }
+      meshFunction(path as NodePath<types.FunctionDeclaration>, internal);
       break;
     }
     case "BlockStatement": {
       internal.stack.push();
-      composeStatements((path as NodePath<types.BlockStatement>).get("body"), internal);
+      composeStatements((path as NodePath<types.BlockStatement>).get("body"), internal, isRoot);
       internal.stack.pop();
       break;
     }
@@ -832,7 +776,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
       break;
 
     case "ReturnStatement":
-      composeExpression((path as NodePath<types.ReturnStatement>).get("argument"), internal);
+      composeExpression((path as NodePath<types.ReturnStatement>).get("argument"), internal, isRoot);
       break;
 
     case "SwitchStatement": {
@@ -869,11 +813,13 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
         let meshInit = true;
 
         function idName(target: types.LVal | types.PatternLike | null = id): string {
+          let name = "#";
+
           if (t.isIdentifier(target)) {
-            return target.name;
+            name = target.name;
           }
 
-          return "#";
+          return name;
         }
 
         function idDoubleName(): [string, string] {
@@ -902,20 +848,25 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             _path.node.kind = kind;
           } else if (calls(init, ["bind"], internal)) {
             const argument = (init as types.CallExpression).arguments[0] as types.Expression;
-            const replaceWith =
+            let replaceWith =
               declares === VariableState.Reactive
                 ? forwardOnlyExpr(declaration.get("init"), argument, internal)
                 : exprCall(declaration.get("init"), argument, internal, idName());
-            let insertNode = replaceWith ?? ref(t.isExpression(argument) ? argument : null, internal, idName());
+            if (!replaceWith) {
+              replaceWith =
+                declares === VariableState.Reactive
+                  ? t.callExpression(t.memberExpression(internal.id, t.identifier("r")), [argument])
+                  : ref(argument, internal, idName());
+            }
 
             if (declares === VariableState.Reactive) {
               internal.stack.set(id.name, VariableState.ReactivePointer);
-              insertNode = own(insertNode, internal, idName());
+              replaceWith = own(replaceWith, internal, idName());
             } else {
               internal.stack.set(id.name, VariableState.Reactive);
             }
 
-            declaration.get("init").replaceWith(insertNode);
+            declaration.get("init").replaceWith(replaceWith);
             meshInit = !replaceWith;
           } else if (calls(init, ["ref"], internal)) {
             const argument = (init as types.CallExpression).arguments[0];
@@ -1020,9 +971,6 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
       internal.stack.pop();
       break;
     }
-    case "WithStatement": {
-      throw path.buildCodeFrameError("Vasille: Usage of 'with' in components is restricted");
-    }
     case "ForOfStatement": {
       const _path = path as NodePath<types.ForOfStatement>;
 
@@ -1042,10 +990,6 @@ export function compose(
   internal: Internal,
   isInternalSlot: boolean,
 ) {
-  if (t.isFunctionDeclaration(path.node) && path.node.id) {
-    internal.stack.set(path.node.id.name, VariableState.Ignored);
-  }
-
   internal.stack.push();
 
   const node = path.node;
@@ -1060,46 +1004,61 @@ export function compose(
     throw path.get("params")[1].buildCodeFrameError("Vasille: JSX component must have no more then 1 parameter");
   }
 
-  for (const param of params) {
-    const target = t.isAssignmentPattern(param) ? param.left : param;
+  for (const param of path.get("params")) {
+    const node = param.node;
 
-    if (t.isIdentifier(target)) {
-      internal.stack.set(target.name, isInternalSlot ? VariableState.Ignored : VariableState.ReactiveObject);
-    } else if (t.isObjectPattern(target)) {
-      for (const prop of target.properties) {
-        if (t.isObjectProperty(prop)) {
-          if (t.isIdentifier(prop.value)) {
-            internal.stack.set(prop.value.name, isInternalSlot ? VariableState.Ignored : VariableState.Reactive);
-          } else if (t.isIdentifier(prop.key)) {
-            internal.stack.set(prop.key.name, isInternalSlot ? VariableState.Ignored : VariableState.Reactive);
+    if (t.isAssignmentPattern(node)) {
+      throw param.buildCodeFrameError("Vasille: No default value allowed here");
+    }
+    if (t.isIdentifier(node)) {
+      internal.stack.set(node.name, isInternalSlot ? VariableState.Ignored : VariableState.ReactiveObject);
+    } else if (isInternalSlot && t.isObjectPattern(node)) {
+      ignoreObjectPattern(node, internal);
+    } else if (t.isObjectPattern(node)) {
+      for (const prop of (param as NodePath<types.ObjectPattern>).get("properties")) {
+        const node = prop.node;
+
+        if (t.isObjectProperty(node)) {
+          const key = node.key;
+          let keyName: string;
+
+          if (t.isIdentifier(node.value)) {
+            keyName = node.value.name;
+          } else if (t.isIdentifier(key) && !node.computed) {
+            keyName = key.name;
+          } else {
+            throw prop.buildCodeFrameError("Vasille: The key name must be static in compile time");
           }
-        } else if (t.isRestElement(prop) && t.isIdentifier(prop.argument)) {
-          internal.stack.set(prop.argument.name, isInternalSlot ? VariableState.Ignored : VariableState.ReactiveObject);
+
+          internal.stack.set(keyName, VariableState.Reactive);
+
+          if (t.isAssignmentPattern(node.value)) {
+            const assignPath = (prop as NodePath<types.ObjectProperty>).get(
+              "value",
+            ) as NodePath<types.AssignmentPattern>;
+
+            assignPath
+              .get("right")
+              .replaceWith(
+                t.callExpression(t.memberExpression(internal.id, t.identifier("r")), [assignPath.node.right]),
+              );
+          } else if (!t.isIdentifier(node.value)) {
+            throw prop.buildCodeFrameError("Vasille: Value decomposition is not allowed here");
+          }
+        }
+        if (t.isRestElement(node)) {
+          internal.stack.set((node.argument as types.Identifier).name, VariableState.ReactiveObject);
         }
       }
     } else {
-      throw path.get("params")[0].buildCodeFrameError("Vasille: Parameter must be an identifier of object pattern");
-    }
-  }
-
-  for (const param of path.get("params")) {
-    if (t.isObjectPattern(param.node)) {
-      for (const prop of (param as NodePath<types.ObjectPattern>).get("properties")) {
-        if (t.isObjectProperty(prop.node) && t.isAssignmentPattern(prop.node.value)) {
-          const assignPath = (prop as NodePath<types.ObjectProperty>).get("value") as NodePath<types.AssignmentPattern>;
-
-          assignPath
-            .get("right")
-            .replaceWith(t.callExpression(t.memberExpression(internal.id, t.identifier("r")), [assignPath.node.right]));
-        }
-      }
+      throw param.buildCodeFrameError("Vasille: Expected identifier or object pattern");
     }
   }
 
   if (t.isExpression(body)) {
-    composeExpression(path.get("body") as NodePath<types.Expression>, internal);
+    composeExpression(path.get("body") as NodePath<types.Expression>, internal, true);
   } else if (t.isBlockStatement(body)) {
-    composeStatement(path.get("body") as NodePath<types.BlockStatement>, internal);
+    composeStatement(path.get("body") as NodePath<types.BlockStatement>, internal, true);
   }
 
   internal.stack.pop();

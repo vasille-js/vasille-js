@@ -13,6 +13,9 @@ declare interface Params {
   slot?(...args: unknown[]): unknown;
 }
 
+declare function state<Out extends object>(f: () => Out): () => Out;
+declare function state<In, Out extends object>(f: (state: In) => Out): (state: In) => Out;
+
 declare type Composed<In extends Params, Out> = (
   this: Fragment,
   $: (In['slot'] extends (() => unknown) | undefined ? Omit<In, 'slot'>& {slot?: unknown} : (In))

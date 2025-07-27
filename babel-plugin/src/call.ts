@@ -5,6 +5,7 @@ import { Internal, ctx } from "./internal";
 export type FnNames =
   | "compose"
   | "extend"
+  | "state"
   | "awaited"
   | "calculate"
   | "forward"
@@ -31,6 +32,7 @@ export const composeOnly: FnNames[] = [
   "ref",
   "bind",
   "value",
+  "awaited",
   "arrayModel",
   "mapModel",
   "setModel",
@@ -61,6 +63,13 @@ export function calls(node: types.Expression | null | undefined, names: FnNames[
         if (requiresContextSet.has(callee.name) && t.isCallExpression(node)) {
           node.arguments.unshift(ctx);
         }
+        if (mapped === "state") {
+          internal.stateOnly = true;
+        }
+        if (mapped === "compose" || mapped === "extend") {
+          internal.stateOnly = false;
+        }
+
         return mapped;
       }
       return false;

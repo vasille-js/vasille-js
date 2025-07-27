@@ -5,7 +5,7 @@ export const C = compose(Vasille => {
   const c = Vasille.ref(2, "c");
   const d = Vasille.ref(4, "d");
   const e = Vasille.ref(5, "e");
-  Vasille.watch(() => {
+  (() => {
     const a = 1;
     const {
       b,
@@ -18,5 +18,5 @@ export const C = compose(Vasille => {
 
     // all variables must be ignored
     console.log(a, b, c, d, e);
-  }, []);
+  })();
 }, "VasilleDX:C");

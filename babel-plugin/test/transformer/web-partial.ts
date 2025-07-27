@@ -1,8 +1,8 @@
 // @ts-expect-error
-import {webStyleSheet} from "vasille-web";
+import { webStyleSheet } from "vasille-web";
 
 export const styleSheet = webStyleSheet({
   a: {
-    margin: [1, 2]
-  }
+    margin: [1, 2],
+  },
 });

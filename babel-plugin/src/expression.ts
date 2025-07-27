@@ -1,6 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import { TraverseOptions } from "@babel/traverse";
 import * as t from "@babel/types";
+import internal from "node:stream";
 import { Internal, StackedStates, VariableState } from "./internal";
 import { meshExpression } from "./mesh";
 
@@ -90,8 +91,22 @@ function meshIdentifier(path: NodePath<types.Identifier>, internal: Internal) {
   }
 }
 
+export function memberIsIValue(node: types.MemberExpression | types.OptionalMemberExpression, internal: Internal) {
+  return (
+    (t.isIdentifier(node.object) &&
+      (internal.stack.get(node.object.name) === VariableState.ReactiveObject ||
+        (t.isIdentifier(node.property) &&
+          node.property.name.startsWith("$") &&
+          !node.property.name.startsWith("$$") &&
+          node.property.name !== "$"))) ||
+    (t.isMemberExpression(node.object) &&
+      t.isIdentifier(node.object.property) &&
+      node.object.property.name.startsWith("$$"))
+  );
+}
+
 function meshMember(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, internal: Internal) {
-  if (t.isIdentifier(path.node.object) && internal.stack.get(path.node.object.name) === VariableState.ReactiveObject) {
+  if (memberIsIValue(path.node, internal)) {
     path.replaceWith(t.memberExpression(path.node, t.identifier("$")));
   }
 }
@@ -130,13 +145,9 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
     }
   }
   if (t.isMemberExpression(path.node)) {
-    if (
-      t.isIdentifier(path.node.object) &&
-      internal.stack.get(path.node.object.name) === VariableState.ReactiveObject
-    ) {
+    if (memberIsIValue(path.node, internal)) {
       search.self = path.node;
-    }
-    if (t.isIdentifier(path.node.property) && path.node.property.name === "$") {
+    } else if (t.isIdentifier(path.node.property) && path.node.property.name === "$") {
       search.self = path.node.object;
     }
   }
@@ -249,7 +260,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       const path = nodePath as NodePath<types.MemberExpression | types.OptionalMemberExpression>;
       const node = path.node;
 
-      if (t.isIdentifier(node.object) && search.external.stack.get(node.object.name) === VariableState.ReactiveObject) {
+      if (memberIsIValue(node, search.external)) {
         addMemberExpr(path, search);
       } else if (t.isIdentifier(node.property) && node.property.name === "$") {
         addExternalIValue(path, search);

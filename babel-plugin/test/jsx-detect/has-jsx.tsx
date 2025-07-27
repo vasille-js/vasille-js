@@ -126,6 +126,9 @@ export const C1 = compose(() => {
         <div />;
       }
     }}
+    slot14={() => {
+      return <div />;
+    }}
     slot19={() => <div />}
   />;
 });

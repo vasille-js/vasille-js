@@ -1,5 +1,5 @@
 import { IValue, proxyArrayModel, Reactive, KindOfIValue, Expression, Pointer, Reference, Fragment } from "vasille";
-import { reactiveObject, reactiveObjectProxy } from "./objects";
+import { reactiveObject, reactiveObjectProxy, stateReactiveObject } from "./objects";
 import { ContextArray, ContextMap, ContextSet } from "./models";
 
 export const internal = {
@@ -21,26 +21,32 @@ export const internal = {
     ): { [K in keyof T]: T[K] extends IValue<infer R> ? R : never } {
         return reactiveObjectProxy(o);
     },
-    /**
-     * translate `{...}` to `$.ro(this, {...})`
-     */
+    /** translate `{...}` to `$.ro(this, {...})` */
     ro: reactiveObject,
-    /**
-     * translate `new Set(#)` to `$.sm(this, #)`
-     */
+    /** translate `new Set(#)` to `$.sm(this, #)` */
     sm(node: Reactive, data?: unknown[], name?: string) {
         return node.register(new ContextSet(data), name);
     },
-    /**
-     * translate `new Map(#)` to `$.mm(this, #)`
-     */
+    /** translate `new Map(#)` to `$.mm(this, #)` */
     mm(node: Reactive, data?: [unknown, unknown][], name?: string) {
         return node.register(new ContextMap(data), name);
     },
-    /**
-     * translate `[...]` to `$.am(this, [...])`
-     */
+    /** translate `[...]` to `$.am(this, [...])` */
     am(node: Reactive, data?: unknown[], name?: string) {
         return node.register(proxyArrayModel(new ContextArray(data)), name);
+    },
+    /** translate `{...} to $.sro({...})` */
+    sro: stateReactiveObject,
+    /** translate `new Set(#)` to `$.ssm(#)` */
+    ssm(data?: unknown[]) {
+        return new ContextSet(data);
+    },
+    /** translate `new Map(#)` to `$.smm(#)` */
+    smm(data?: [unknown, unknown][]) {
+        return new ContextMap(data);
+    },
+    /** translate `[...]` to `$.sam([...])` */
+    sam(data?: unknown[]) {
+        return proxyArrayModel(new ContextArray(data));
     },
 };
