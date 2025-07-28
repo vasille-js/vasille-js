@@ -17,8 +17,12 @@ import {
     Portal,
     Watch,
     userError,
+    Destroyable,
+    DebugNode,
+    Tag,
+    TextNode,
 } from "../src";
-import { Runner } from "../src/runner/web/runner";
+import { Runner, TagOptions } from "../src/runner/web/runner";
 import { page } from "./page";
 
 it("import test", function () {
@@ -31,6 +35,7 @@ it("import test", function () {
     const map = new MapModel();
     const set = new SetModel();
     const listener = new Listener();
+    const destroyable = new Destroyable();
     const baseView = new BaseView({ model: array }, runner);
     const arrayView = new ArrayView({ model: array }, runner);
     const mapView = new MapView({ model: map }, runner);

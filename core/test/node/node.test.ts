@@ -1,5 +1,6 @@
-import { App, Expression, Fragment, Reference } from "../../src";
-import { Runner } from "../../src/runner/web/runner";
+import { DOMWindow } from "jsdom";
+import { App, Expression, Fragment, IValue, Reference, Tag } from "../../src";
+import { DebugNode, Runner } from "../../src/runner/web/runner";
 import { page } from "../page";
 
 let compose = false;
@@ -246,7 +247,7 @@ it("INode Events", function () {
     root.destroy();
 });
 
-it("bind DON api test", function () {
+it("bind DOM api test", function () {
     const window = page();
     const root = new App(window.document.body, new Runner(true, window.document), {});
     const html = new Reference("test me now");
@@ -285,8 +286,8 @@ it("bind DON api test", function () {
 
     expect(el.innerHTML).toBe("test me now");
 
-    html.$ = "<b>b</b><i>i</i>";
-    expect(el.innerHTML).toBe("<b>b</b><i>i</i>");
+    html.$ = "<i>i</i><b>b</b>";
+    expect(el.innerHTML).toBe("<i>i</i><b>b</b>");
 
     html.$ = "1";
     expect(input.value).toBe("1");
@@ -320,5 +321,108 @@ it("Error handling", function () {
         expect(() => f.else(() => 0)).toThrow("logic-error");
         expect(() => f.elif(bool, () => 0)).toThrow("logic-error");
         expect(() => f.tag("" as unknown as "a", {})).toThrow("internal-error");
+    });
+});
+
+it("Debug node order", function () {
+    const window = page();
+    const runner = new Runner(true, window.document);
+    const root = new App(window.document.body, runner, {});
+    const bool = new Reference(true);
+    const text = new Reference<string | null>("test me now");
+
+    root.tag("div", {}, function (f) {
+        f.if(bool, node => {
+            node.text(text);
+        });
+        f.create(new DebugNode({ text }, runner));
+
+        expect(f.element.childNodes.length).toBe(2);
+        expect(f.element.childNodes[0]).toBeInstanceOf(window.Text);
+        expect(f.element.childNodes[1]).toBeInstanceOf(window.Comment);
+
+        bool.$ = false;
+        expect(f.element.childNodes.length).toBe(1);
+        expect(f.element.childNodes[0]).toBeInstanceOf(window.Comment);
+
+        bool.$ = true;
+        expect(f.element.childNodes.length).toBe(2);
+        expect(f.element.childNodes[0]).toBeInstanceOf(window.Text);
+        expect(f.element.childNodes[1]).toBeInstanceOf(window.Comment);
+
+        text.$ = null;
+        expect(f.element.childNodes[0].textContent).toBe("");
+    });
+});
+
+it("Class add/removing test", function () {
+    const window = page();
+    const runner = new Runner(false, window.document);
+    const root = new App(window.document.body, runner, {});
+
+    root.tag(
+        "div",
+        {
+            class: [
+                "remove",
+                "keep",
+                {
+                    add: true,
+                    remove: false,
+                },
+            ],
+        },
+        function (f) {
+            expect(f.element.className).toBe("keep add");
+        },
+    );
+});
+
+function checkSpanAfterDiv(node: Tag<Node, Element, object>, bool: IValue<boolean>, window: DOMWindow) {
+    expect(node.element.childNodes.length).toBe(2);
+    expect(node.element.childNodes[0]).toBeInstanceOf(window.HTMLDivElement);
+    expect(node.element.childNodes[1]).toBeInstanceOf(window.HTMLSpanElement);
+
+    bool.$ = false;
+    expect(node.element.childNodes.length).toBe(1);
+    expect(node.element.childNodes[0]).toBeInstanceOf(window.HTMLSpanElement);
+
+    bool.$ = true;
+    expect(node.element.childNodes.length).toBe(2);
+    expect(node.element.childNodes[0]).toBeInstanceOf(window.HTMLDivElement);
+    expect(node.element.childNodes[1]).toBeInstanceOf(window.HTMLSpanElement);
+}
+
+it("Insert adjacent", function () {
+    const window = page();
+    const runner = new Runner(true, window.document);
+    const root = new App(window.document.body, runner, {});
+    const bool = new Reference(true);
+
+    root.tag("div", {}, function (node) {
+        node.if(bool, node => {
+            node.tag("div", {});
+        });
+        node.tag("span", {});
+
+        checkSpanAfterDiv(node, bool, window);
+    });
+});
+
+it("Find first child of tag", function () {
+    const window = page();
+    const runner = new Runner(true, window.document);
+    const root = new App(window.document.body, runner, {});
+    const bool = new Reference(true);
+
+    root.tag("div", {}, function (node) {
+        node.if(bool, node => {
+            node.tag("div", {});
+        });
+        node.create(new Fragment({}, runner), node => {
+            node.tag("span", {});
+        });
+
+        checkSpanAfterDiv(node, bool, window);
     });
 });

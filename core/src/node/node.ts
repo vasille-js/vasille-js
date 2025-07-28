@@ -44,9 +44,13 @@ export abstract class Root<Node, Element, TagOptions extends object, T extends o
     protected findFirstChild(): Node | Element | undefined {
         let first: Node | Element | undefined;
 
-        this.children.forEach(child => {
-            first = first || child.findFirstChild();
-        });
+        for (const child of this.children) {
+            first = child.findFirstChild();
+
+            if (first) {
+                break;
+            }
+        }
 
         return first;
     }
@@ -202,7 +206,7 @@ export class Fragment<Node, Element, TagOptions extends object, T extends object
     }
 
     /**
-     * Append a node to end of element
+     * Append a node to the end of element
      * @param node {Node} node to insert
      */
     public appendNode(node: Node): void {

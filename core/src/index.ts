@@ -7,7 +7,7 @@ import { Listener } from "./models/listener";
 import { MapModel } from "./models/map-model";
 import { SetModel } from "./models/set-model";
 import { App, Portal } from "./node/app";
-import { Fragment, INode, Tag, TextNode, DebugNode } from "./node/node";
+import { Fragment, Tag, TextNode, DebugNode } from "./node/node";
 import { Expression, KindOfIValue } from "./value/expression";
 import { Pointer } from "./value/pointer";
 import { Reference } from "./value/reference";
@@ -35,7 +35,6 @@ export {
     MapView,
     SetView,
     Fragment,
-    INode,
     Tag,
     App,
     Portal,

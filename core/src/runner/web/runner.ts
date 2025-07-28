@@ -146,7 +146,7 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
 
                         if (value instanceof IValue) {
                             this.register(new StaticClassBinding(this, name, value));
-                        } else if (value && name !== "$") {
+                        } else if (value) {
                             this.node.classList.add(name);
                         } else {
                             this.node.classList.remove(name);
@@ -200,9 +200,9 @@ export class Runner implements IRunner<Node, Element, TagOptions> {
     public readonly debugUi: boolean;
     public readonly document: Document;
 
-    public constructor(debugUi: boolean, customDocument?: Document) {
+    public constructor(debugUi: boolean, document: Document) {
         this.debugUi = debugUi;
-        this.document = customDocument ?? document;
+        this.document = document;
     }
 
     insertBefore(node: Node, before: Element | Node): void {
