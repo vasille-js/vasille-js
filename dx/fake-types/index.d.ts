@@ -26,8 +26,14 @@ declare type Composed<In extends Params, Out> = (
 declare function compose<In extends Params, Out>(
   renderer: (input: In) => Out
 ): Composed<In, Out>;
+declare function compose<In, Out>(
+  renderer: (input: In) => Out
+): Composed<In, Out>;
 
 declare function extend<In extends Params, Out>(
+  renderer: (input: In) => Out
+): Composed<In, Out>;
+declare function extend<In, Out>(
   renderer: (input: In) => Out
 ): Composed<In, Out>;
 

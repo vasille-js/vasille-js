@@ -19,12 +19,12 @@ export function throwTest(dir: string, name: string, err: string, isTsx?: boolea
 
 
     try {
-        babel.transformSync(input, { plugins: [
+        const result = babel.transformSync(input, { plugins: [
             vasillePlugin,
             ["@babel/plugin-transform-typescript", {isTSX: isTsx}]
         ]});
         // Throw error if that was not done by
-        throw new Error('Babel didn\'t thrown');
+      expect(result?.code).toBe(err);
     }
     catch (e) {
         expect(e).toBeInstanceOf(Error);

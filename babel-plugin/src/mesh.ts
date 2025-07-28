@@ -79,17 +79,9 @@ export function meshAllUnknown(
 export function meshLValue(path: NodePath<types.LVal | types.Expression>, internal: Internal) {
   const node = path.node;
 
-  if (
-    t.isArrayPattern(node) ||
-    t.isObjectPattern(node) ||
-    t.isTSParameterProperty(node) ||
-    t.isAssignmentPattern(node) ||
-    t.isRestElement(node)
-  ) {
-    return;
+  if (t.isExpression(node)) {
+    meshExpression(path as NodePath<typeof node>, internal);
   }
-
-  meshExpression(path as NodePath<typeof node>, internal);
 }
 
 export function meshOrIgnoreExpression<T extends types.Node>(
@@ -150,7 +142,6 @@ export function meshExpression(
       const path = nodePath as NodePath<types.CallExpression>;
       const callsFn = calls(path.node, composeOnly, internal);
       const callsStyleHint = calls(path.node, styleOnly, internal);
-      const callsStyleCreate = calls(path.node, ["webStyleSheet"], internal);
 
       if (callsFn) {
         throw path.buildCodeFrameError(`Vasille: Usage of hint "${callsFn}" is restricted here`);
@@ -158,15 +149,15 @@ export function meshExpression(
       if (callsStyleHint) {
         throw path.buildCodeFrameError(`Vasille: Usage of style hint "${callsStyleHint}" is restricted here`);
       }
-      if (callsStyleCreate) {
-        throw path.buildCodeFrameError("Vasille: Styles can be created in module level code only");
-      }
 
       meshOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), internal);
       meshAllUnknown(path.get("arguments"), internal);
 
       if (calls(path.node, ["calculate"], internal)) {
-        if (path.node.arguments.length === 1 && t.isExpression(path.node.arguments[0])) {
+        if (
+          path.node.arguments.length === 1 &&
+          (t.isFunctionExpression(path.node.arguments[0]) || t.isArrowFunctionExpression(path.node.arguments[0]))
+        ) {
           path.replaceWith(t.callExpression(path.node.arguments[0] as types.Expression, []));
         } else {
           throw path.buildCodeFrameError("Vasille: Incorrect calculate argument");
@@ -177,6 +168,7 @@ export function meshExpression(
     case "AssignmentExpression": {
       const path = nodePath as NodePath<types.AssignmentExpression>;
       const left = path.node.left;
+      let replaced = false;
 
       meshLValue(path.get("left"), internal);
 
@@ -185,10 +177,10 @@ export function meshExpression(
 
         if (replaceWith) {
           path.get("right").replaceWith(replaceWith);
-        } else {
-          meshExpression(path.get("right"), internal);
+          replaced = true;
         }
-      } else {
+      }
+      if (!replaced) {
         meshExpression(path.get("right"), internal);
       }
       break;
@@ -243,12 +235,6 @@ export function meshExpression(
       const path = nodePath as NodePath<types.SequenceExpression>;
 
       meshAllExpressions(path.get("expressions"), internal);
-      break;
-    }
-    case "ParenthesizedExpression": {
-      const path = nodePath as NodePath<types.ParenthesizedExpression>;
-
-      meshExpression(path.get("expression"), internal);
       break;
     }
     case "UnaryExpression": {
@@ -1010,7 +996,7 @@ export function compose(
     internal.stack.set(node.id.name, VariableState.Ignored);
   }
 
-  if (params.length > 1) {
+  if (params.length > 1 && !isInternalSlot) {
     throw path.get("params")[1].buildCodeFrameError("Vasille: JSX component must have no more then 1 parameter");
   }
 
@@ -1030,14 +1016,12 @@ export function compose(
 
         if (t.isObjectProperty(node)) {
           const key = node.key;
-          let keyName: string;
+          let keyName: string = "";
 
           if (t.isIdentifier(node.value)) {
             keyName = node.value.name;
           } else if (t.isIdentifier(key) && !node.computed) {
             keyName = key.name;
-          } else {
-            throw prop.buildCodeFrameError("Vasille: The key name must be static in compile time");
           }
 
           internal.stack.set(keyName, VariableState.Reactive);
