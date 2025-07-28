@@ -129,10 +129,7 @@ export function nodeIsReactiveObject(path: NodePath<types.Expression | null | un
   const node = path.node;
 
   if (t.isIdentifier(node)) {
-    return (
-      (!t.isMemberExpression(path.parent) || path.parent.object === node) &&
-      internal.stack.get(node.name) === VariableState.ReactiveObject
-    );
+    return internal.stack.get(node.name) === VariableState.ReactiveObject;
   }
   if (t.isOptionalMemberExpression(node) || t.isMemberExpression(node)) {
     return (

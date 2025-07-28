@@ -1,4 +1,4 @@
-import { arrayModel, calculate, compose, ref, state, watch } from "vasille-dx";
+import { arrayModel, calculate, compose, forward, ref, state, watch } from "vasille-dx";
 
 export const C = state(() => {
   let a = 2;
@@ -33,7 +33,7 @@ export const C = state(() => {
 const c = C();
 
 const Component = compose(() => {
-  console.log(c.$a, c.$b, c.$c, c.$d, c.e, c.f, c.g, c.$$h.a, c.$i, c.j, c.$k, c.$o.a.b);
+  console.log(c["$a"], c.$b, c.$c, c.$d, c.e, c.f, c.g, c["$$h"].a, c.$i, c.j, c.$k, c.$o.a.b);
 
   watch(() => {
     console.log(c.$a, c.$b, c.$c, c.$d);

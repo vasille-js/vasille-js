@@ -43,3 +43,7 @@ it("check node", function () {
 it("ignore locals", function () {
   runTest(__dirname, "ignore-locals");
 });
+
+it("restricted hints error", function () {
+  throwTest(__dirname, "restricted-hint", "Usage of hints is restricted here");
+});

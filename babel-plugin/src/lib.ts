@@ -92,8 +92,6 @@ export function exprCall(
     if (data && !t.isCallExpression(data)) {
       return t.callExpression(t.memberExpression(internal.id, t.identifier("fo")), [data]);
     }
-
-    return data;
   }
 
   const exprData = checkNode(path, internal);

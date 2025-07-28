@@ -19,19 +19,21 @@ const s = S();
 const Component = compose(() => {
   const a = s.$a;
   const b = s.$b;
-  const o = s.$$o;
+  const o0 = s["$$o"];
+  const o1 = s.$$o;
   const o2 = obj;
 
-  console.log(a, b, o.b.c, o2.a);
+  console.log(a, b, o0.b.c, o1.a, o2.a);
 
   watch(() => {
-    console.log(a, b, o.b.c, o2.a);
+    console.log(a, b, o0.b.c, o1.a, o2.a);
   });
 
   <div>
     {a}
     {b}
-    {o.b.c}
+    {o0.b.c}
+    {o1.a}
     {o2.a}
   </div>;
 });
