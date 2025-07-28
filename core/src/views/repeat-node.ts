@@ -1,9 +1,9 @@
-import { config } from "../core/config";
-import { Fragment, Root } from "../node/node";
+import { Fragment } from "../node/node";
+import { Runner } from "../node/runner";
 
 // RNO = RepeatNodeOptions
-export interface RepeatNodeOptions<T, IdT> {
-    slot?: (ctx: Fragment, value: T, index: IdT) => void;
+export interface RepeatNodeOptions<Node, Element, TagOptions extends object, T, IdT> {
+    slot?: (ctx: Fragment<Node, Element, TagOptions>, value: T, index: IdT) => void;
 }
 
 /**
@@ -12,23 +12,32 @@ export interface RepeatNodeOptions<T, IdT> {
  * @extends Fragment
  */
 export class RepeatNode<
+    Node,
+    Element,
+    TagOptions extends object,
     IdT,
     T,
-    Opts extends RepeatNodeOptions<T, IdT> = RepeatNodeOptions<T, IdT>,
-> extends Fragment<Opts> {
+    Opts extends RepeatNodeOptions<Node, Element, TagOptions, T, IdT> = RepeatNodeOptions<
+        Node,
+        Element,
+        TagOptions,
+        T,
+        IdT
+    >,
+> extends Fragment<Node, Element, TagOptions, Opts> {
     /**
      * Children node hash
      * @type {Map}
      */
-    protected nodes: Map<IdT, Fragment> = new Map();
+    protected nodes: Map<IdT, Fragment<Node, Element, TagOptions>> = new Map();
 
-    public constructor(input: Opts, name?: string) {
-        super(input, name);
+    public constructor(input: Opts, runner: Runner<Node, Element, TagOptions>, name?: string) {
+        super(input, runner, name);
     }
 
-    public createChild(opts: Opts, id: IdT, item: T, before?: Fragment): any {
-        const _id = id && typeof id === "object" && "id" in id ? id.id : config.debugUi ? JSON.stringify(id) : id;
-        const node = new Fragment({}, `${_id}`);
+    public createChild(opts: Opts, id: IdT, item: T, before?: Fragment<Node, Element, TagOptions>): any {
+        const _id = id && typeof id === "object" && "id" in id ? id.id : id;
+        const node = new Fragment({}, this.runner, `${_id}`);
 
         node.parent = this;
         this.destroyChild(id, item);

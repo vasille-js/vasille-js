@@ -6,7 +6,14 @@ import { MapModel } from "../models/map-model";
  * @class MapView
  * @extends BaseView
  */
-export class MapView<K, T> extends BaseView<K, T, MapModel<K, T>> {
+export class MapView<Node, Element, TagOptions extends object, K, T> extends BaseView<
+    Node,
+    Element,
+    TagOptions,
+    K,
+    T,
+    MapModel<K, T>
+> {
     public compose() {
         super.compose();
         this.input.model.forEach((value, key) => {

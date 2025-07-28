@@ -1,13 +1,16 @@
-import { JSDOM } from "jsdom";
+import { JSDOM, DOMWindow } from "jsdom";
 
-export const page = new JSDOM(`
-<html>
-    <head>
-    </head>
-    <body>
-    </body>
-</html>
-`);
+export function page() {
+    const page = new JSDOM(`
+        <html>
+            <head>
+            </head>
+            <body>
+            </body>
+        </html>
+    `);
 
-global.document = page.window.document;
-global.HTMLElement = page.window.HTMLElement;
+    global.HTMLElement = page.window.HTMLElement;
+
+    return page.window;
+}

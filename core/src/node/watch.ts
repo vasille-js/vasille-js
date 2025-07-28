@@ -1,18 +1,24 @@
 import { Fragment } from "./node";
 import { IValue } from "../core/ivalue";
+import { Runner } from "./runner";
 
-interface WatchOptions<T> {
+interface WatchOptions<Node, Element, TagOptions extends object, T> {
     model: IValue<T>;
-    slot?: (ctx: Fragment, value: T) => void;
+    slot?: (ctx: Fragment<Node, Element, TagOptions>, value: T) => void;
 }
 /**
  * Watch Node
  * @class Watch
  * @extends Fragment
  */
-export class Watch<T> extends Fragment<WatchOptions<T>> {
-    public constructor(input: WatchOptions<T>) {
-        super(input, ":watch");
+export class Watch<Node, Element, TagOptions extends object, T> extends Fragment<
+    Node,
+    Element,
+    TagOptions,
+    WatchOptions<Node, Element, TagOptions, T>
+> {
+    public constructor(input: WatchOptions<Node, Element, TagOptions, T>, runner: Runner<Node, Element, TagOptions>) {
+        super(input, runner, ":watch");
     }
 
     public compose() {

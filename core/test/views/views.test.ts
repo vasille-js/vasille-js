@@ -1,20 +1,26 @@
-import { App, ArrayModel, ArrayView, config, Fragment, MapModel, MapView, SetModel, SetView } from "../../src";
+import { App, ArrayModel, ArrayView, Fragment, MapModel, MapView, SetModel, SetView } from "../../src";
+import { Runner } from "../../src/runner/web/runner";
 import { page } from "../page";
 
 it("array view", function () {
-    const root = new App(page.window.document.body, {});
+    const window = page();
+    const runner = new Runner(true, window.document);
+    const root = new App(window.document.body, runner, {});
     const array = new ArrayModel<number>([1]);
     let element!: Element;
 
     root.register(array, "#");
     root.tag("div", { callback: node => (element = node) }, function (tag) {
         tag.create(
-            new ArrayView({
-                model: array,
-                slot: function (f, item) {
-                    f.text(`${item}`);
+            new ArrayView(
+                {
+                    model: array,
+                    slot: function (f, item) {
+                        f.text(`${item}`);
+                    },
                 },
-            }),
+                runner,
+            ),
         );
     });
 
@@ -72,7 +78,9 @@ it("array view", function () {
 });
 
 it("map view", function () {
-    const root = new App(page.window.document.body, {});
+    const window = page();
+    const runner = new Runner(true, window.document);
+    const root = new App(window.document.body, runner, {});
     const model = new MapModel<number, number>([
         [1, 2],
         [2, 3],
@@ -83,12 +91,15 @@ it("map view", function () {
     root.register(model);
     root.tag("div", { callback: node => (element = node as HTMLElement) }, function (tag) {
         tag.create(
-            new MapView({
-                model,
-                slot: function (f, item) {
-                    f.text(`${item}`);
+            new MapView(
+                {
+                    model,
+                    slot: function (f, item) {
+                        f.text(`${item}`);
+                    },
                 },
-            }),
+                runner,
+            ),
         );
     });
 
@@ -107,19 +118,24 @@ it("map view", function () {
 });
 
 it("set view", function () {
-    const root = new App(page.window.document.body, {});
+    const window = page();
+    const runner = new Runner(true, window.document);
+    const root = new App(window.document.body, runner, {});
     const model = new SetModel([1, 2, 3]);
     let element!: HTMLElement;
 
     root.register(model);
     root.tag("div", { callback: node => (element = node as HTMLElement) }, function (f) {
         f.create(
-            new SetView({
-                model,
-                slot: function (f, item) {
-                    f.text(`${item}`);
+            new SetView(
+                {
+                    model,
+                    slot: function (f, item) {
+                        f.text(`${item}`);
+                    },
                 },
-            }),
+                runner,
+            ),
         );
     });
 
@@ -135,24 +151,26 @@ it("set view", function () {
 });
 
 it("view timeout test", function (done) {
-    const root = new App(page.window.document.body, {});
+    const window = page();
+    const runner = new Runner(true, window.document);
+    const root = new App(window.document.body, runner, {});
     const model = new SetModel([1, 2, 3]);
     let element!: HTMLElement;
-
-    // @ts-ignore
-    global.window = page.window;
 
     root.register(model);
     root.tag("div", { callback: node => (element = node as HTMLElement) }, function (f) {
         f.create(
-            new SetView({
-                model,
-                slot: function (f, item) {
-                    setTimeout(() => {
-                        f.text(`${item}`);
-                    }, 0);
+            new SetView(
+                {
+                    model,
+                    slot: function (f, item) {
+                        setTimeout(() => {
+                            f.text(`${item}`);
+                        }, 0);
+                    },
                 },
-            }),
+                runner,
+            ),
         );
     });
 
@@ -173,7 +191,9 @@ it("view timeout test", function (done) {
 });
 
 it("view item id test", function () {
-    const root = new App(page.window.document.body, {});
+    const window = page();
+    const runner = new Runner(true, window.document);
+    const root = new App(window.document.body, runner, {});
     const model = new SetModel<unknown>();
     let id: unknown;
     let run = false;
@@ -181,13 +201,16 @@ it("view item id test", function () {
     root.register(model);
     root.tag("div", {}, function (f) {
         f.create(
-            new SetView({
-                model,
-                slot: function (f, item) {
-                    expect(f.name).toBe(id);
-                    run = true;
+            new SetView(
+                {
+                    model,
+                    slot: function (f, item) {
+                        expect(f.name).toBe(id);
+                        run = true;
+                    },
                 },
-            }),
+                runner,
+            ),
         );
     });
 
@@ -196,7 +219,7 @@ it("view item id test", function () {
     model.add({ id: "field" });
     expect(run).toBe(true);
 
-    id = '{"v":2}';
+    id = "[object Object]";
     run = false;
     model.add({ v: 2 });
     expect(run).toBe(true);
@@ -208,7 +231,6 @@ it("view item id test", function () {
 
     id = "[object Object]";
     run = false;
-    config.debugUi = false;
     model.add({ v: 2 });
     expect(run).toBe(true);
 });

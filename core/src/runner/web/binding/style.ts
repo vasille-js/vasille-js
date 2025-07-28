@@ -1,6 +1,6 @@
 import { Binding } from "./binding";
-import type { INode } from "../node/node";
-import type { IValue } from "../core/ivalue";
+import type { INode } from "../../../node/node";
+import type { IValue } from "../../../core/ivalue";
 
 export function stringifyStyleValue(value: string | number | number[]): string {
     if (value instanceof Array) {
@@ -25,7 +25,7 @@ export class StyleBinding extends Binding<string | number | number[]> {
      * @param name {string} the name of style property
      * @param value {IValue} the value to bind
      */
-    public constructor(node: INode, name: string, value: IValue<string | number | number[]>) {
+    public constructor(node: INode<Node, Element, object>, name: string, value: IValue<string | number | number[]>) {
         super(value);
         this.init(value => {
             if (node.element instanceof HTMLElement) {

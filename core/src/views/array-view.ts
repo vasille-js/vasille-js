@@ -7,8 +7,20 @@ import { Fragment } from "../node/node";
  * @class ArrayView
  * @extends BaseView
  */
-export class ArrayView<T> extends BaseView<T, T, ArrayModel<T>> {
-    public createChild(input: BaseViewOptions<T, T, ArrayModel<T>>, id: T, item: T, before?: Fragment): any {
+export class ArrayView<Node, Element, TagOptions extends object, T> extends BaseView<
+    Node,
+    Element,
+    TagOptions,
+    T,
+    T,
+    ArrayModel<T>
+> {
+    public createChild(
+        input: BaseViewOptions<Node, Element, TagOptions, T, T, ArrayModel<T>>,
+        id: T,
+        item: T,
+        before?: Fragment<Node, Element, TagOptions>,
+    ): any {
         super.createChild(input, item, item, before || this.nodes.get(id));
     }
 

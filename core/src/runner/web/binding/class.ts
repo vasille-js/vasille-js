@@ -1,19 +1,19 @@
 import { Binding } from "./binding";
-import type { INode } from "../node/node";
-import type { IValue } from "../core/ivalue";
+import type { INode } from "../../../node/node";
+import type { IValue } from "../../../core/ivalue";
 
-function addClass(node: INode, cl: string) {
+function addClass(node: INode<Node, Element, object>, cl: string) {
     node.element.classList.add(cl);
 }
 
-function removeClass(node: INode, cl: string) {
+function removeClass(node: INode<Node, Element, object>, cl: string) {
     node.element.classList.remove(cl);
 }
 
 export class StaticClassBinding extends Binding<boolean> {
     private current = false;
 
-    constructor(node: INode, name: string, value: IValue<boolean>) {
+    constructor(node: INode<Node, Element, object>, name: string, value: IValue<boolean>) {
         super(value);
         this.init((value: boolean) => {
             if (value !== this.current) {
@@ -31,7 +31,7 @@ export class StaticClassBinding extends Binding<boolean> {
 export class DynamicalClassBinding extends Binding<string> {
     private current = "";
 
-    constructor(node: INode, value: IValue<string>) {
+    constructor(node: INode<Node, Element, object>, value: IValue<string>) {
         super(value);
         this.init((value: string) => {
             if (this.current != value) {

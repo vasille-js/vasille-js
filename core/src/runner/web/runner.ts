@@ -1,0 +1,235 @@
+import {
+    TextNode as AbstractTextNode,
+    DebugNode as AbstractDebugNode,
+    Tag as AbstractTag,
+    Runner as IRunner,
+    IValue,
+    userError,
+} from "../..";
+import { internalError } from "../../core/errors";
+import { DebugProps, TextProps } from "../../node/node";
+import { AttributeBinding } from "./binding/attribute";
+import { DynamicalClassBinding, StaticClassBinding } from "./binding/class";
+import { stringifyStyleValue, StyleBinding } from "./binding/style";
+
+export type AttrType<T> = IValue<T | string | null> | T | string | null | undefined;
+export type StyleType<T> = T | number | number[] | IValue<string | number | number[]>;
+
+export interface TagOptions {
+    attr?: Record<string, AttrType<number | boolean>>;
+    class?: (string | IValue<string> | Record<string, boolean | IValue<boolean>>)[];
+    style?: Record<string, StyleType<string>>;
+    events?: Record<string, (...args: unknown[]) => unknown>;
+    bind?: Record<string, any>;
+    slot?: (ctx: Tag) => void;
+    callback?: (node: Element) => void;
+}
+
+export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
+    protected node: Text;
+    protected runner: Runner;
+
+    public constructor(props: TextProps, runner: Runner) {
+        super(props, runner);
+        this.runner = runner;
+    }
+
+    public compose(): void {
+        const text = this.input.text;
+
+        this.node = this.runner.document.createTextNode((text instanceof IValue ? text.$ : text)?.toString() ?? "");
+
+        if (text instanceof IValue) {
+            this.handler = (v: unknown) => {
+                this.node.replaceData(0, -1, v?.toString() ?? "");
+            };
+            text.on(this.handler);
+        }
+        this.parent.appendNode(this.node);
+    }
+
+    public destroy() {
+        this.node.remove();
+        super.destroy();
+    }
+
+    protected findFirstChild(): Node {
+        return this.node;
+    }
+}
+
+export class DebugNode extends AbstractDebugNode<Node, Element, TagOptions> {
+    protected node: Comment;
+    protected runner: Runner;
+
+    public constructor(props: DebugProps, runner: Runner) {
+        super(props, runner);
+        this.runner = runner;
+    }
+
+    public compose(): void {
+        const text = this.input.text;
+
+        this.node = this.runner.document.createComment(text.$?.toString() ?? "");
+        this.handler = (v: unknown) => {
+            this.node.replaceData(0, -1, v?.toString() ?? "");
+        };
+        text.on(this.handler);
+        this.parent.appendNode(this.node);
+    }
+
+    public destroy() {
+        this.node.remove();
+        super.destroy();
+    }
+
+    protected findFirstChild(): Node | Element | undefined {
+        return this.node;
+    }
+}
+
+export class Tag extends AbstractTag<Node, Element, TagOptions> {
+    protected runner: Runner;
+
+    public constructor(props: TagOptions, runner: Runner, tagName: string) {
+        super(props, runner, tagName);
+        this.runner = runner;
+    }
+
+    public compose(): void {
+        if (!this.name) {
+            throw internalError("wrong Tag constructor call");
+        }
+
+        const node = this.runner.document.createElement(this.name);
+
+        this.node = node;
+        this.applyOptions(this.input);
+        this.parent.appendNode(node);
+        this.input.callback?.(this.node);
+        this.input.slot?.(this);
+    }
+
+    public destroy() {
+        this.node.remove();
+        super.destroy();
+    }
+
+    protected applyOptions(options: TagOptions): void {
+        if (options.attr) {
+            for (const name in options.attr) {
+                const value = options.attr[name];
+
+                if (value instanceof IValue) {
+                    this.register(new AttributeBinding(this, name, value));
+                } else {
+                    if (typeof value === "boolean") {
+                        if (value) {
+                            this.node.setAttribute(name, "");
+                        }
+                    } else if (value !== null && value !== undefined) {
+                        this.node.setAttribute(name, `${value}`);
+                    }
+                }
+            }
+        }
+
+        if (options.class) {
+            for (const item of options.class) {
+                if (item instanceof IValue) {
+                    this.register(new DynamicalClassBinding(this, item));
+                } else if (typeof item == "string") {
+                    this.node.classList.add(item);
+                } else {
+                    for (const name in item) {
+                        const value = item[name];
+
+                        if (value instanceof IValue) {
+                            this.register(new StaticClassBinding(this, name, value));
+                        } else if (value && name !== "$") {
+                            this.node.classList.add(name);
+                        } else {
+                            this.node.classList.remove(name);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (options.style && this.node instanceof HTMLElement) {
+            for (const name in options.style) {
+                const value = options.style[name];
+
+                if (value instanceof IValue) {
+                    this.register(new StyleBinding(this, name, value));
+                } else {
+                    this.node.style.setProperty(name, stringifyStyleValue(value));
+                }
+            }
+        }
+
+        if (options.events) {
+            for (const name in options.events) {
+                this.node.addEventListener(name, options.events[name]);
+            }
+        }
+
+        if (options.bind) {
+            const node = this.node;
+
+            for (const k in options.bind) {
+                const value = options.bind[k];
+
+                if (!(value instanceof IValue)) {
+                    node[k] = value;
+                } else {
+                    node[k] = value.$;
+                    this.watch(
+                        (v: string) => {
+                            node[k] = v;
+                        },
+                        [value],
+                    );
+                }
+            }
+        }
+    }
+}
+
+export class Runner implements IRunner<Node, Element, TagOptions> {
+    public readonly debugUi: boolean;
+    public readonly document: Document;
+
+    public constructor(debugUi: boolean, customDocument?: Document) {
+        this.debugUi = debugUi;
+        this.document = customDocument ?? document;
+    }
+
+    insertBefore(node: Node, before: Element | Node): void {
+        const parent = before.parentElement;
+
+        if (parent) {
+            parent.insertBefore(node, before);
+        }
+    }
+    appendChild(node: Element, child: Element | Node): void {
+        node.appendChild(child);
+    }
+    textNode(text: unknown): AbstractTextNode<Node, Element, TagOptions> {
+        return new TextNode({ text }, this);
+    }
+    debugNode(text: IValue<unknown>): AbstractDebugNode<Node, Element, TagOptions> {
+        return new DebugNode({ text }, this);
+    }
+    tag(
+        tagName: string,
+        input: TagOptions,
+        cb?: ((ctx: AbstractTag<Node, Element, TagOptions>) => void) | undefined,
+    ): AbstractTag<Node, Element, TagOptions> {
+        if (cb) {
+            input.slot = cb;
+        }
+
+        return new Tag(input, this, tagName);
+    }
+}

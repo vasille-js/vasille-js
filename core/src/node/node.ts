@@ -1,32 +1,36 @@
 import { Reactive } from "../core/core";
 import { IValue } from "../core/ivalue";
+import { SetModel } from "../models/set-model";
 import { Reference } from "../value/reference";
-import { Expression } from "../value/expression";
-import { AttributeBinding } from "../binding/attribute";
-import { StaticClassBinding, DynamicalClassBinding } from "../binding/class";
-import { stringifyStyleValue, StyleBinding } from "../binding/style";
-import { internalError, userError } from "../core/errors";
-import { AttrType, TagOptions } from "../functional/options";
-import { config } from "../core/config";
+import { userError } from "../core/errors";
+import { Runner } from "./runner";
 
 /**
  * This class is symbolic
  * @extends Reactive
  */
-export abstract class Root<T extends object = object> extends Reactive<T> {
+export abstract class Root<Node, Element, TagOptions extends object, T extends object = object> extends Reactive<T> {
     /**
      * The children list
      * @type Array
      */
-    public children: Set<Fragment> = new Set();
-    public lastChild: Fragment | undefined = undefined;
+    public children: Set<Fragment<Node, Element, TagOptions>>;
+    public lastChild: Fragment<Node, Element, TagOptions> | undefined = undefined;
+
+    protected runner: Runner<Node, Element, TagOptions>;
+
+    protected constructor(input: T, runner: Runner<Node, Element, TagOptions>) {
+        super(input);
+        this.runner = runner;
+        this.children = runner.debugUi ? new SetModel() : new Set();
+    }
 
     /**
      * Pushes a node to children immediately
      * @param node {Fragment} A node to push
      * @protected
      */
-    protected pushNode(node: Fragment): void {
+    protected pushNode(node: Fragment<Node, Element, TagOptions>): void {
         node.parent = this;
         this.lastChild = node;
         this.children.add(node);
@@ -37,8 +41,8 @@ export abstract class Root<T extends object = object> extends Reactive<T> {
      * @return {?Element}
      * @protected
      */
-    protected findFirstChild(): Node | undefined {
-        let first: Node | undefined;
+    protected findFirstChild(): Node | Element | undefined {
+        let first: Node | Element | undefined;
 
         this.children.forEach(child => {
             first = first || child.findFirstChild();
@@ -59,19 +63,17 @@ export abstract class Root<T extends object = object> extends Reactive<T> {
      * @param cb {function (TextNode)} Callback if previous is slot name
      */
     public text(text: unknown): void {
-        const node = new TextNode({ text });
+        const node = this.runner.textNode(text);
 
         this.pushNode(node);
         node.compose();
     }
 
     public debug(text: IValue<unknown>) {
-        if (config.debugUi) {
-            const node = new DebugNode({ text });
+        const node = this.runner.debugNode(text);
 
-            this.pushNode(node);
-            node.compose();
-        }
+        this.pushNode(node);
+        node.compose();
     }
 
     /**
@@ -80,10 +82,9 @@ export abstract class Root<T extends object = object> extends Reactive<T> {
      * @param input
      * @param cb {function(Tag, *)} callback
      */
-    public tag(tagName: string, input: TagOptionsWithSlot, cb?: (ctx: Tag) => void): void {
-        const tag = new Tag(input, tagName);
+    public tag(tagName: string, input: TagOptions, cb?: (ctx: Tag<Node, Element, TagOptions>) => void): void {
+        const tag = this.runner.tag(tagName, input, cb);
 
-        input.slot = cb || input.slot;
         this.pushNode(tag);
         tag.compose();
     }
@@ -93,7 +94,7 @@ export abstract class Root<T extends object = object> extends Reactive<T> {
      * @param node {Fragment} vasille element to insert
      * @param callback {function($ : *)}
      */
-    public create<T extends Fragment>(node: T, callback?: (ctx: T) => void): void {
+    public create<T extends Fragment<Node, Element, TagOptions>>(node: T, callback?: (ctx: T) => void): void {
         this.pushNode(node);
         node.compose();
         callback?.(node);
@@ -105,14 +106,14 @@ export abstract class Root<T extends object = object> extends Reactive<T> {
      * @param cb {function(Fragment)} callback to run on true
      * @return {this}
      */
-    public if(cond: IValue<unknown>, cb: (node: Fragment) => void) {
-        const node = new SwitchedNode();
+    public if(cond: IValue<unknown>, cb: (node: Fragment<Node, Element, TagOptions>) => void) {
+        const node = new SwitchedNode(this.runner);
 
         this.pushNode(node);
         node.addCase(this.case(cond, cb));
     }
 
-    public else(cb: (node: Fragment) => void) {
+    public else(cb: (node: Fragment<Node, Element, TagOptions>) => void) {
         if (this.lastChild instanceof SwitchedNode) {
             this.lastChild.addCase(this.default(cb));
         } else {
@@ -120,7 +121,7 @@ export abstract class Root<T extends object = object> extends Reactive<T> {
         }
     }
 
-    public elif(cond: IValue<unknown>, cb: (node: Fragment) => void) {
+    public elif(cond: IValue<unknown>, cb: (node: Fragment<Node, Element, TagOptions>) => void) {
         if (this.lastChild instanceof SwitchedNode) {
             this.lastChild.addCase(this.case(cond, cb));
         } else {
@@ -136,8 +137,8 @@ export abstract class Root<T extends object = object> extends Reactive<T> {
      */
     public case(
         cond: IValue<unknown>,
-        cb: (node: Fragment) => void,
-    ): { cond: IValue<unknown>; cb: (node: Fragment) => void } {
+        cb: (node: Fragment<Node, Element, TagOptions>) => void,
+    ): { cond: IValue<unknown>; cb: (node: Fragment<Node, Element, TagOptions>) => void } {
         return { cond, cb };
     }
 
@@ -145,9 +146,9 @@ export abstract class Root<T extends object = object> extends Reactive<T> {
      * @param cb {(function(Fragment) : void)}
      * @return {{cond : IValue, cb : (function(Fragment) : void)}}
      */
-    public default(cb: (node: Fragment) => void): {
+    public default(cb: (node: Fragment<Node, Element, TagOptions>) => void): {
         cond: IValue<boolean>;
-        cb: (node: Fragment) => void;
+        cb: (node: Fragment<Node, Element, TagOptions>) => void;
     } {
         return { cond: trueIValue, cb };
     }
@@ -161,32 +162,37 @@ export abstract class Root<T extends object = object> extends Reactive<T> {
     }
 }
 
-export class Fragment<T extends object = object> extends Root<T> {
+export class Fragment<Node, Element, TagOptions extends object, T extends object = object> extends Root<
+    Node,
+    Element,
+    TagOptions,
+    T
+> {
     public readonly name?: string;
-    public parent!: Root;
+    public parent!: Root<Node, Element, TagOptions>;
 
-    public constructor(input: T, name?: string) {
-        super(input);
+    public constructor(input: T, runner: Runner<Node, Element, TagOptions>, name?: string) {
+        super(input, runner);
         this.name = name;
     }
     /**
      * Next node
      * @type {?Fragment}
      */
-    protected next?: Fragment;
+    protected next?: Fragment<Node, Element, TagOptions>;
 
     /**
      * Previous node
      * @type {?Fragment}
      */
-    protected prev?: Fragment;
+    protected prev?: Fragment<Node, Element, TagOptions>;
 
     /**
      * Pushes a node to children immediately
      * @param node {Fragment} A node to push
      * @protected
      */
-    protected pushNode(node: Fragment): void {
+    protected pushNode(node: Fragment<Node, Element, TagOptions>): void {
         if (this.lastChild) {
             this.lastChild.next = node;
         }
@@ -215,10 +221,7 @@ export class Fragment<T extends object = object> extends Root<T> {
         const child = this.findFirstChild();
 
         if (child) {
-            const parent = child.parentElement;
-            if (parent) {
-                child.parentElement.insertBefore(node, child);
-            }
+            this.runner.insertBefore(node, child);
         } else if (this.next) {
             this.next.insertAdjacent(node);
         } else {
@@ -231,7 +234,7 @@ export class Fragment<T extends object = object> extends Root<T> {
         // to override it
     }
 
-    insertBefore(node: Fragment) {
+    insertBefore(node: Fragment<Node, Element, TagOptions>) {
         node.prev = this.prev;
         node.next = this;
 
@@ -241,7 +244,7 @@ export class Fragment<T extends object = object> extends Root<T> {
         this.prev = node;
     }
 
-    insertAfter(node: Fragment) {
+    insertAfter(node: Fragment<Node, Element, TagOptions>) {
         node.prev = this;
         node.next = this.next;
 
@@ -255,6 +258,7 @@ export class Fragment<T extends object = object> extends Root<T> {
         if (this.prev) {
             this.prev.next = this.next;
         }
+        this.parent.children.delete(this);
     }
 
     public destroy() {
@@ -267,7 +271,7 @@ export class Fragment<T extends object = object> extends Root<T> {
 
 const trueIValue = new Reference(true);
 
-interface TextProps {
+export interface TextProps {
     text: unknown;
 }
 
@@ -276,31 +280,21 @@ interface TextProps {
  * @class TextNode
  * @extends Fragment
  */
-export class TextNode extends Fragment<TextProps> {
-    private node: Text;
-    private handler: ((v: unknown) => void) | null;
+export abstract class TextNode<Node, Element, TagOptions extends object> extends Fragment<
+    Node,
+    Element,
+    TagOptions,
+    TextProps
+> {
+    protected handler: ((v: unknown) => void) | null;
 
-    public constructor(input: TextProps) {
-        super(input, ":text");
+    protected constructor(input: TextProps, runner: Runner<Node, Element, TagOptions>) {
+        super(input, runner, ":text");
     }
 
-    public compose() {
-        const text = this.input.text;
+    public abstract compose(): void;
 
-        this.node = document.createTextNode((text instanceof IValue ? text.$ : text)?.toString() ?? "");
-
-        if (text instanceof IValue) {
-            this.handler = (v: unknown) => {
-                this.node.replaceData(0, -1, v?.toString() ?? "");
-            };
-            text.on(this.handler);
-        }
-        this.parent.appendNode(this.node);
-    }
-
-    protected findFirstChild(): Node {
-        return this.node;
-    }
+    protected abstract findFirstChild(): Node;
 
     public destroy(): void {
         const text = this.input.text;
@@ -309,7 +303,6 @@ export class TextNode extends Fragment<TextProps> {
             text.off(this.handler);
         }
 
-        this.node.remove();
         super.destroy();
     }
 }
@@ -319,13 +312,12 @@ export class TextNode extends Fragment<TextProps> {
  * @class INode
  * @extends Fragment
  */
-export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
-    /**
-     * Defines if node is unmounted
-     * @type {boolean}
-     */
-    protected unmounted = false;
-
+export abstract class INode<Node, Element, TagOptions extends object> extends Fragment<
+    Node,
+    Element,
+    TagOptions,
+    TagOptions
+> {
     /**
      * The element of vasille node
      * @type Element
@@ -336,238 +328,11 @@ export class INode<T extends TagOptions = TagOptions> extends Fragment<T> {
         return this.node;
     }
 
-    /**
-     * Bind attribute value
-     * @param name {String} name of attribute
-     * @param value {IValue} value
-     */
-    public attr(name: string, value: IValue<string | number | boolean | null | undefined>): void {
-        this.register(new AttributeBinding(this, name, value));
+    public insertAdjacent(node: Node): void {
+        this.runner.insertBefore(node, this.node);
     }
 
-    /**
-     * Set attribute value
-     * @param name {string} name of attribute
-     * @param value {string} value
-     */
-    public setAttr(name: string, value: string | number | boolean | null | undefined) {
-        if (typeof value === "boolean") {
-            if (value) {
-                this.node.setAttribute(name, "");
-            }
-        } else if (value !== null && value !== undefined) {
-            this.node.setAttribute(name, `${value}`);
-        }
-        return this;
-    }
-
-    /**
-     * Adds a CSS class
-     * @param cl {string} Class name
-     */
-    public addClass(cl: string) {
-        this.node.classList.add(cl);
-    }
-
-    /**
-     * Adds some CSS classes
-     * @param cl {string} classes names
-     */
-    public removeClass(cl: string) {
-        this.node.classList.remove(cl);
-    }
-
-    /**
-     * Bind a CSS class
-     * @param className {IValue}
-     */
-    public bindClass(className: IValue<string>) {
-        this.register(new DynamicalClassBinding(this, className));
-    }
-
-    /**
-     * Bind a floating class name
-     * @param cond {IValue} condition
-     * @param className {string} class name
-     */
-    public floatingClass(cond: IValue<boolean>, className: string) {
-        this.register(new StaticClassBinding(this, className, cond));
-    }
-
-    /**
-     * Defines a style attribute
-     * @param name {String} name of style attribute
-     * @param value {IValue} value
-     */
-    public style(name: string, value: IValue<string | number | number[]>) {
-        if (this.node instanceof HTMLElement) {
-            this.register(new StyleBinding(this, name, value));
-        } else {
-            throw userError("style can be applied to HTML elements only", "non-html-element");
-        }
-    }
-
-    /**
-     * Sets a style property value
-     * @param prop {string} Property name
-     * @param value {string} Property value
-     */
-    public setStyle(prop: string, value: string | number | number[]) {
-        if (this.node instanceof HTMLElement) {
-            this.node.style.setProperty(prop, stringifyStyleValue(value));
-        } else {
-            throw userError("Style can be set for HTML elements only", "non-html-element");
-        }
-        return this;
-    }
-
-    /**
-     * Add a listener for an event
-     * @param name {string} Event name
-     * @param handler {function (Event)} Event handler
-     * @param options {Object | boolean} addEventListener options
-     */
-    public listen(name: string, handler: (ev: Event) => void, options?: boolean | AddEventListenerOptions) {
-        this.node.addEventListener(name, handler, options);
-    }
-
-    public insertAdjacent(node: Node) {
-        const parent = this.node.parentNode;
-
-        if (parent) {
-            parent.insertBefore(node, this.node);
-        }
-    }
-
-    /**
-     * A v-show & ngShow alternative
-     * @param cond {IValue} show condition
-     */
-    public bindShow(cond: IValue<unknown>) {
-        const node = this.node;
-
-        if (node instanceof HTMLElement) {
-            let lastDisplay = node.style.display;
-            const htmlNode: HTMLElement = node;
-
-            this.register(
-                new Expression(
-                    cond => {
-                        if (cond) {
-                            if (htmlNode.style.display === "none") {
-                                htmlNode.style.display = lastDisplay;
-                            }
-                        } else {
-                            if (htmlNode.style.display !== "none") {
-                                lastDisplay = htmlNode.style.display;
-                                htmlNode.style.display = "none";
-                            }
-                        }
-                    },
-                    [cond],
-                ),
-            );
-        } else {
-            throw userError("the element must be a html element", "bind-show");
-        }
-    }
-
-    /**
-     * bind HTML
-     */
-    public bindDomApi(name: string, value: IValue<string>) {
-        const node = this.node;
-
-        if (node instanceof HTMLElement) {
-            node[name] = value.$;
-            this.watch(
-                (v: string) => {
-                    node[name] = v;
-                },
-                [value],
-            );
-        } else {
-            throw userError("HTML can be bound for HTML nodes only", "dom-error");
-        }
-    }
-
-    protected applyAttrs(attrs: Record<string, AttrType<number | boolean>>) {
-        for (const name in attrs) {
-            const value = attrs[name];
-
-            if (value instanceof IValue) {
-                this.attr(name, value);
-            } else {
-                this.setAttr(name, value);
-            }
-        }
-    }
-
-    protected applyStyle(style: Record<string, string | number | number[] | IValue<string | number | number[]>>) {
-        for (const name in style) {
-            const value = style[name];
-
-            if (value instanceof IValue) {
-                this.style(name, value);
-            } else {
-                this.setStyle(name, value);
-            }
-        }
-    }
-
-    protected applyBind(bind: Record<string, any>) {
-        const inode = this.node;
-
-        for (const k in bind) {
-            const value = bind[k];
-
-            if (!(value instanceof IValue)) {
-                inode[k] = value;
-            } else {
-                this.bindDomApi(k, value);
-            }
-        }
-    }
-
-    protected applyOptions(options: T) {
-        options.attr && this.applyAttrs(options.attr);
-
-        options.class &&
-            options.class.forEach(item => {
-                if (item instanceof IValue) {
-                    this.bindClass(item);
-                } else if (typeof item == "string") {
-                    this.addClass(item);
-                } else {
-                    for (const name in item) {
-                        const value = item[name];
-
-                        if (value instanceof IValue) {
-                            this.floatingClass(value, name);
-                        } else if (value && name !== "$") {
-                            this.addClass(name);
-                        } else {
-                            this.removeClass(name);
-                        }
-                    }
-                }
-            });
-
-        options.style && this.applyStyle(options.style);
-
-        if (options.events) {
-            for (const name of Object.keys(options.events)) {
-                this.listen(name, options.events[name]);
-            }
-        }
-
-        options.bind && this.applyBind(options.bind);
-    }
-}
-
-export interface TagOptionsWithSlot extends TagOptions {
-    slot?: (ctx: Tag) => void;
-    callback?: (node: Element) => void;
+    protected abstract applyOptions(options: TagOptions): void;
 }
 
 /**
@@ -575,106 +340,26 @@ export interface TagOptionsWithSlot extends TagOptions {
  * @class Tag
  * @extends INode
  */
-export class Tag extends INode<TagOptionsWithSlot> {
-    public constructor(input: TagOptionsWithSlot, tagName: string) {
-        super(input, tagName);
+export abstract class Tag<Node, Element, TagOptions extends object> extends INode<Node, Element, TagOptions> {
+    protected constructor(input: TagOptions, runner: Runner<Node, Element, TagOptions>, tagName: string) {
+        super(input, runner, tagName);
     }
 
-    public compose() {
-        if (!this.name) {
-            throw internalError("wrong Tag constructor call");
-        }
+    public abstract compose(): void;
 
-        const node = document.createElement(this.name);
-
-        this.node = node;
-        this.applyOptions(this.input);
-        this.parent.appendNode(node);
-        this.input.callback?.(this.node);
-        this.input.slot?.(this);
+    protected findFirstChild(): Node | Element | undefined {
+        return this.node;
     }
 
-    protected findFirstChild(): Node | undefined {
-        return this.unmounted ? undefined : this.node;
-    }
-
-    public insertAdjacent(node: Node) {
-        if (this.unmounted) {
-            if (this.next) {
-                this.next.insertAdjacent(node);
-            } else {
-                this.parent.appendNode(node);
-            }
-        } else {
-            super.insertAdjacent(node);
-        }
-    }
-
-    public appendNode(node: Node) {
-        this.node.appendChild(node);
-    }
-
-    public extent(options: TagOptions) {
-        this.applyOptions(options);
-    }
-
-    /**
-     * Mount/Unmount a node
-     * @param cond {IValue} show condition
-     */
-    public bindMount(cond: IValue<unknown>) {
-        this.register(
-            new Expression(
-                cond => {
-                    if (cond) {
-                        if (this.unmounted) {
-                            this.insertAdjacent(this.node);
-                            this.unmounted = false;
-                        }
-                    } else {
-                        if (!this.unmounted) {
-                            this.node.remove();
-                            this.unmounted = true;
-                        }
-                    }
-                },
-                [cond],
-            ),
-        );
-    }
-
-    /**
-     * Runs GC
-     */
-    public destroy() {
-        this.node.remove();
-        super.destroy();
-    }
-}
-/**
- * Represents a vasille extension node
- * @class Extension
- * @extends INode
- */
-export class Extension extends Fragment {
-    public tag(tagName: string, input: TagOptionsWithSlot): void {
-        let parent = this.parent;
-        const target = tagName.toLowerCase();
-
-        while (parent instanceof Fragment && !(parent instanceof Tag)) {
-            parent = parent.parent;
-        }
-        if (parent instanceof Tag && parent.element.tagName.toLowerCase() === target) {
-            parent.extent(input);
-            input.slot?.(parent);
-        }
+    public appendNode(node: Node): void {
+        this.runner.appendChild(this.node, node);
     }
 }
 
 /**
  * Defines a node which can switch its children conditionally
  */
-export class SwitchedNode extends Fragment {
+export class SwitchedNode<Node, Element, TagOptions extends object> extends Fragment<Node, Element, TagOptions> {
     /**
      * Index of current true condition
      * @type number
@@ -685,7 +370,7 @@ export class SwitchedNode extends Fragment {
      * Array of possible cases
      * @type {Array<{cond : IValue<unknown>, cb : function(Fragment)}>}
      */
-    private cases: { cond: IValue<unknown>; cb: (node: Fragment) => void }[] = [];
+    private cases: { cond: IValue<unknown>; cb: (node: Fragment<Node, Element, TagOptions>) => void }[] = [];
 
     /**
      * A function that syncs index and content will be bounded to each condition
@@ -696,8 +381,8 @@ export class SwitchedNode extends Fragment {
     /**
      * Constructs a switch node and define a sync function
      */
-    public constructor() {
-        super({}, ":switch");
+    public constructor(runner: Runner<Node, Element, TagOptions>) {
+        super({}, runner, ":switch");
 
         this.sync = () => {
             let i = 0;
@@ -727,7 +412,7 @@ export class SwitchedNode extends Fragment {
         };
     }
 
-    public addCase(case_: { cond: IValue<unknown>; cb: (node: Fragment) => void }) {
+    public addCase(case_: { cond: IValue<unknown>; cb: (node: Fragment<Node, Element, TagOptions>) => void }) {
         this.cases.push(case_);
         case_.cond.on(this.sync);
         this.sync();
@@ -737,8 +422,8 @@ export class SwitchedNode extends Fragment {
      * Creates a child node
      * @param cb {function(Fragment)} Call-back
      */
-    public createChild(cb: (node: Fragment) => void) {
-        const node = new Fragment({}, ":case");
+    public createChild(cb: (node: Fragment<Node, Element, TagOptions>) => void) {
+        const node = new Fragment({}, this.runner, ":case");
 
         node.parent = this;
         this.lastChild = node;
@@ -757,7 +442,7 @@ export class SwitchedNode extends Fragment {
     }
 }
 
-interface DebugProps {
+export interface DebugProps {
     text: IValue<unknown>;
 }
 
@@ -766,33 +451,25 @@ interface DebugProps {
  * @class DebugNode
  * @extends Fragment
  */
-export class DebugNode extends Fragment<DebugProps> {
-    private node: Comment;
+export abstract class DebugNode<Node, Element, TagOptions extends object> extends Fragment<
+    Node,
+    Element,
+    TagOptions,
+    DebugProps
+> {
+    protected handler: ((v: unknown) => void) | null;
 
-    public constructor(input: DebugProps) {
-        super(input, ":debug");
+    protected constructor(input: DebugProps, runner: Runner<Node, Element, TagOptions>) {
+        super(input, runner, ":debug");
     }
 
-    public compose() {
-        const text = this.input.text;
+    public abstract compose(): void;
 
-        this.node = document.createComment(text.$?.toString() ?? "");
-        this.register(
-            new Expression(
-                (v: unknown) => {
-                    this.node.replaceData(0, -1, v?.toString() ?? "");
-                },
-                [text],
-            ),
-        );
-        this.parent.appendNode(this.node);
-    }
-
-    /**
-     * Runs garbage collector
-     */
     public destroy(): void {
-        this.node.remove();
+        if (this.handler) {
+            this.input.text.off(this.handler);
+        }
+
         super.destroy();
     }
 }

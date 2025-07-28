@@ -1,8 +1,9 @@
-import { Root } from "../node/node";
+import { Runner } from "../node/runner";
 import { RepeatNode, RepeatNodeOptions } from "./repeat-node";
 import { ListenableModel } from "../models/model";
 
-export interface BaseViewOptions<K, T, Model extends ListenableModel<K, T>> extends RepeatNodeOptions<T, K> {
+export interface BaseViewOptions<Node, Element, TagOptions extends object, K, T, Model extends ListenableModel<K, T>>
+    extends RepeatNodeOptions<Node, Element, TagOptions, T, K> {
     model: Model;
 }
 
@@ -12,12 +13,15 @@ export interface BaseViewOptions<K, T, Model extends ListenableModel<K, T>> exte
  * @extends RepeatNode
  * @implements IModel
  */
-export class BaseView<K, T, Model extends ListenableModel<K, T>> extends RepeatNode<
+export class BaseView<
+    Node,
+    Element,
+    TagOptions extends object,
     K,
     T,
-    BaseViewOptions<K, T, Model>
-> {
-    public readonly input!: BaseViewOptions<K, T, Model>;
+    Model extends ListenableModel<K, T>,
+> extends RepeatNode<Node, Element, TagOptions, K, T, BaseViewOptions<Node, Element, TagOptions, K, T, Model>> {
+    public readonly input!: BaseViewOptions<Node, Element, TagOptions, K, T, Model>;
 
     /**
      * Handler to catch values addition
@@ -31,8 +35,12 @@ export class BaseView<K, T, Model extends ListenableModel<K, T>> extends RepeatN
      */
     protected removeHandler: (index: K, value: T) => void;
 
-    public constructor(input: BaseViewOptions<K, T, Model>, name?: string) {
-        super(input, name);
+    public constructor(
+        input: BaseViewOptions<Node, Element, TagOptions, K, T, Model>,
+        runner: Runner<Node, Element, TagOptions>,
+        name?: string,
+    ) {
+        super(input, runner, name);
     }
 
     public compose() {

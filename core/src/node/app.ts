@@ -1,11 +1,17 @@
 import { Fragment, Root } from "./node";
+import { Runner } from "./runner";
 
 /**
  * Represents a Vasille.js application
  * @class App
  * @extends AppNode
  */
-export class App<T extends object = object> extends Root<T> {
+export class App<Node, Element, TagOptions extends object, T extends object = object> extends Root<
+    Node,
+    Element,
+    TagOptions,
+    T
+> {
     private node: Element;
 
     /**
@@ -13,32 +19,32 @@ export class App<T extends object = object> extends Root<T> {
      * @param node {Element} The root of application
      * @param input
      */
-    constructor(node: Element, input: T) {
-        super(input);
+    constructor(node: Element, runner: Runner<Node, Element, TagOptions>, input: T) {
+        super(input, runner);
 
         this.node = node;
     }
 
     public appendNode(node: Node) {
-        this.node.appendChild(node);
+        this.runner.appendChild(this.node, node);
     }
 }
 
-interface PortalOptions {
+interface PortalOptions<Node, Element, TagOptions extends object> {
     node: Element;
-    slot?: (ctx: Fragment) => void;
+    slot?: (ctx: Fragment<Node, Element, TagOptions>) => void;
 }
 
-export class Portal extends Fragment {
+export class Portal<Node, Element, TagOptions extends object> extends Fragment<Node, Element, TagOptions> {
     private node: Element;
 
-    constructor(input: PortalOptions) {
-        super(input, ":portal");
+    constructor(input: PortalOptions<Node, Element, TagOptions>, runner: Runner<Node, Element, TagOptions>) {
+        super(input, runner, ":portal");
 
         this.node = input.node;
     }
 
     public appendNode(node: Node) {
-        this.node.appendChild(node);
+        this.runner.appendChild(this.node, node);
     }
 }

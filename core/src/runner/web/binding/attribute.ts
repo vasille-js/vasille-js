@@ -1,6 +1,6 @@
 import { Binding } from "./binding";
-import type { INode } from "../node/node";
-import type { IValue } from "../core/ivalue";
+import type { INode } from "../../../node/node";
+import type { IValue } from "../../../core/ivalue";
 
 /**
  * Represents an Attribute binding description
@@ -14,7 +14,11 @@ export class AttributeBinding extends Binding<string | number | boolean | null |
      * @param name {String} the name of attribute
      * @param value {IValue} value to bind
      */
-    public constructor(node: INode, name: string, value: IValue<string | number | boolean | null | undefined>) {
+    public constructor(
+        node: INode<Node, Element, object>,
+        name: string,
+        value: IValue<string | number | boolean | null | undefined>,
+    ) {
         super(value);
 
         this.init((value: string | number | boolean | null | undefined) => {

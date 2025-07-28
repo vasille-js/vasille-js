@@ -1,9 +1,10 @@
-import { App, Expression, Extension, Fragment, INode, Reference, Tag } from "../../src";
+import { App, Expression, Fragment, Reference } from "../../src";
+import { Runner } from "../../src/runner/web/runner";
 import { page } from "../page";
 
 let compose = false;
 
-class FragmentTest extends Fragment {
+class FragmentTest extends Fragment<Node, Element, object> {
     compose() {
         super.compose();
         compose = true;
@@ -11,9 +12,11 @@ class FragmentTest extends Fragment {
 }
 
 it("Fragment", function () {
-    const root = new App(page.window.document.body, {});
+    const window = page();
+    const runner = new Runner(true, window.document);
+    const root = new App(window.document.body, runner, {});
 
-    root.create(new FragmentTest({}));
+    root.create(new FragmentTest({}, runner));
     expect(root.children.size).toBe(1);
     expect(compose).toBe(true);
 
@@ -21,7 +24,8 @@ it("Fragment", function () {
 });
 
 it("Tag", function () {
-    const root = new App(page.window.document.body, { debugUi: true });
+    const window = page();
+    const root = new App(window.document.body, new Runner(true, window.document), {});
     const text = new Reference("test");
 
     root.tag("div", {}, function (div) {
@@ -32,23 +36,23 @@ it("Tag", function () {
         expect(div.element.innerHTML.trim()).toBe("new");
 
         div.text("test");
-        expect(div.element.childNodes[1] instanceof page.window.Text).toBe(true);
+        expect(div.element.childNodes[1] instanceof window.Text).toBe(true);
         expect(div.element.childNodes[1].textContent).toBe("test");
         div.debug(new Reference<string>("debug"));
         expect(div.element.childNodes.length).toBe(3);
-        expect(div.element.childNodes[2] instanceof page.window.Comment).toBe(true);
+        expect(div.element.childNodes[2] instanceof window.Comment).toBe(true);
         expect(div.element.childNodes[2].textContent).toBe("debug");
 
         const debugRef = new Reference<string | null>(null);
         div.debug(debugRef);
-        expect(div.element.childNodes[3] instanceof page.window.Comment).toBe(true);
+        expect(div.element.childNodes[3] instanceof window.Comment).toBe(true);
         expect(div.element.childNodes[3].textContent).toBe("");
         debugRef.$ = "err";
         expect(div.element.childNodes[3].textContent).toBe("err");
 
         const textRef = new Reference<string | null>(null);
         div.text(textRef);
-        expect(div.element.childNodes[4] instanceof page.window.Text).toBe(true);
+        expect(div.element.childNodes[4] instanceof window.Text).toBe(true);
         expect(div.element.childNodes[4].textContent).toBe("");
         textRef.$ = "ok";
         expect(div.element.childNodes[4].textContent).toBe("ok");
@@ -60,7 +64,8 @@ it("Tag", function () {
 });
 
 it("if", function () {
-    const root = new App(page.window.document.body, {});
+    const window = page();
+    const root = new App(window.document.body, new Runner(true, window.document), {});
     let check1 = false;
     let check2 = true;
 
@@ -73,7 +78,8 @@ it("if", function () {
 });
 
 it("if else", function () {
-    const root = new App(page.window.document.body, {});
+    const window = page();
+    const root = new App(window.document.body, new Runner(true, window.document), {});
     const iv1 = new Reference(true);
     const iv2 = new Reference(false);
 
@@ -99,7 +105,8 @@ it("if else", function () {
 });
 
 it("switch", function () {
-    const root = new App(page.window.document.body, {});
+    const window = page();
+    const root = new App(window.document.body, new Runner(true, window.document), {});
     const v = new Reference(1);
     const v2 = new Reference(false);
     let check = 0;
@@ -127,9 +134,11 @@ it("switch", function () {
 });
 
 it("INode", function () {
-    const root = new App(page.window.document.body, {});
+    const window = page();
+    const runner = new Runner(true, window.document);
+    const root = new App(window.document.body, runner, {});
 
-    root.create(new Fragment({}), function (test) {
+    root.create(new Fragment({}, runner), function (test) {
         // attr
         (function () {
             const attrName = "data-attr";
@@ -194,34 +203,16 @@ it("INode", function () {
             const num = new Expression(x => parseFloat(x) + 10, [dyn]);
             let el!: HTMLElement;
 
-            test.tag(
-                "div",
-                {
-                    style: {
-                        display: "none",
-                        margin: dyn,
-                        padding: num,
-                        width: 300,
-                        inset: [12, 23],
-                    },
-                    callback: node => (el = node as HTMLElement),
+            test.tag("div", {
+                style: {
+                    display: "none",
+                    margin: dyn,
+                    padding: num,
+                    width: 300,
+                    inset: [12, 23],
                 },
-                function (f) {
-                    const error = "non-html-element";
-
-                    f.tag("circle", {}, function (f) {
-                        // eslint-disable-next-line
-                        // @ts-ignore
-                        f.node = document.createComment("test");
-                        expect(() => {
-                            f.setStyle("display", "none");
-                        }).toThrow(error);
-                        expect(() => {
-                            f.style("--p", dyn);
-                        }).toThrow(error);
-                    });
-                },
-            );
+                callback: node => (el = node as HTMLElement),
+            });
 
             expect(el.style.display).toBe("none");
             expect(el.style.margin).toBe("0px");
@@ -238,54 +229,10 @@ it("INode", function () {
     root.destroy();
 });
 
-class MyExtension extends Extension {
-    public compose() {
-        this.tag("div", {
-            class: ["ext"],
-        });
-    }
-}
-
-it("Extension test", function () {
-    const root = new App(page.window.document.body, {});
-    let div!: HTMLElement;
-
-    root.tag(
-        "div",
-        {
-            style: { display: "block" },
-            class: [{ xxx: true }],
-            callback: node => (div = node as HTMLElement),
-        },
-        function (f) {
-            f.create(new Fragment({}), function (f) {
-                const yyy = new Reference("yyy");
-
-                f.create(new MyExtension({}), function (f) {
-                    f.tag("div", {
-                        style: { display: "none" },
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        class: [yyy, { xxx: false }],
-                        slot: function (f) {
-                            f.setAttr("data-s", "s");
-                        },
-                    });
-                });
-            });
-        },
-    );
-
-    expect(div.style.display).toBe("none");
-    expect(div.className).toBe("ext yyy");
-    expect(div.dataset.s).toBe("s");
-
-    root.destroy();
-});
-
 it("INode Events", function () {
     let test = false;
-    const root = new App(page.window.document.body, {});
+    const window = page();
+    const root = new App(window.document.body, new Runner(true, window.document), {});
     const handler = () => (test = true);
     let element!: HTMLElement;
 
@@ -299,53 +246,9 @@ it("INode Events", function () {
     root.destroy();
 });
 
-it("Mount/Show test", function () {
-    const show = new Reference(true);
-    const mount = new Reference(true);
-    const root = new App(page.window.document.body, {});
-    let showEl!: HTMLElement;
-
-    root.tag("div", { callback: node => (showEl = node as HTMLElement) }, function (f) {
-        f.bindShow(show);
-
-        f.tag("div", {}, function (f) {
-            f.bindMount(mount);
-        });
-
-        f.tag("div", {}, function (f) {
-            f.addClass("second");
-        });
-
-        // exception test
-    });
-
-    show.$ = false;
-    expect(showEl.style.display).toBe("none");
-
-    show.$ = true;
-    expect(showEl.style.display).toBe("");
-
-    mount.$ = false;
-    expect(showEl.childNodes.length).toBe(1);
-
-    mount.$ = true;
-    expect(showEl.childNodes.length).toBe(2);
-
-    expect(showEl.innerHTML).toBe(`<div></div><div class="second"></div>`);
-
-    mount.$ = false;
-    expect(showEl.childNodes.length).toBe(1);
-    expect(showEl.innerHTML).toBe(`<div class="second"></div>`);
-
-    mount.$ = true;
-    expect(showEl.childNodes.length).toBe(2);
-    expect(showEl.innerHTML).toBe(`<div></div><div class="second"></div>`);
-
-    root.destroy();
-});
-
 it("bind DON api test", function () {
-    const root = new App(page.window.document.body, {});
+    const window = page();
+    const root = new App(window.document.body, new Runner(true, window.document), {});
     const html = new Reference("test me now");
     const bool = new Reference(true);
     const num = new Reference(0.1);
@@ -406,96 +309,16 @@ it("bind DON api test", function () {
 });
 
 it("Error handling", function () {
-    const root = new App(page.window.document.body, {});
+    const window = page();
+    const root = new App(window.document.body, new Runner(true, window.document), {});
     const bool = new Reference(true);
-    const text = new Reference("text");
 
     root.tag("div", {}, function (f) {
         // eslint-disable-next-line
         // @ts-ignore
         f.node = null;
-        expect(() => f.bindShow(bool)).toThrow("bind-show");
-        expect(() => f.bindDomApi("innerHtml", text)).toThrow("dom-error");
         expect(() => f.else(() => 0)).toThrow("logic-error");
         expect(() => f.elif(bool, () => 0)).toThrow("logic-error");
         expect(() => f.tag("" as unknown as "a", {})).toThrow("internal-error");
     });
-});
-
-it("INode unmount/mount advanced", function () {
-    const root = new App(page.window.document.body, {});
-    const mount = new Reference(true);
-    let body!: Element;
-
-    root.tag("div", { callback: node => (body = node) }, function (f) {
-        f.create(new Fragment({}), function (f) {
-            f.create(new Fragment({}), function (f) {
-                f.create(new Fragment({}), function (f) {
-                    f.tag("div", { class: ["0"] }, function (f) {
-                        f.bindMount(mount);
-                    });
-                });
-                f.create(new Fragment({}));
-            });
-            f.create(new Fragment({}));
-            f.create(new Fragment({}), function (f) {
-                f.create(new Fragment({}), function (f) {
-                    f.create(new Fragment({}));
-                    f.tag("div", { class: ["1"] }, function (f) {
-                        f.bindMount(mount);
-                    });
-                    f.create(new Fragment({}), function (f) {
-                        f.tag("div", { class: ["2"] });
-                    });
-                });
-            });
-        });
-    });
-
-    // check the unmount process result
-    mount.$ = false;
-    expect(body.children.length).toBe(1);
-    expect(body.innerHTML.trim()).toBe(`<div class="2"></div>`);
-
-    // check the mount order
-    mount.$ = true;
-    expect(body.children.length).toBe(3);
-    expect(body.innerHTML).toBe('<div class="0"></div>' + '<div class="1"></div>' + '<div class="2"></div>');
-});
-
-it("INode unmount/mount advanced 2", function () {
-    const root = new App(page.window.document.body, {});
-    const mount = new Reference(true);
-    let body!: Element;
-
-    root.tag("div", { callback: node => (body = node) }, function (div) {
-        div.create(new Fragment({}), function (frag) {
-            frag.create(new Fragment({}), function (f2) {
-                f2.tag("div", { class: ["0"] }, function (f) {
-                    f.bindMount(mount);
-                });
-                f2.tag("div", { class: ["1"] }, function (f) {
-                    f.bindMount(mount);
-                });
-                f2.tag("div", { class: ["2"] }, function (f) {
-                    f.bindMount(mount);
-                });
-            });
-            frag.create(new Fragment({}), function (f) {
-                f.tag("div", { class: ["3"] });
-            });
-        });
-    });
-
-    // check the unmount process result
-    mount.$ = false;
-    expect(body.children.length).toBe(1);
-    expect(body.innerHTML.trim()).toBe(`<div class="3"></div>`);
-
-    // check the mount order
-    mount.$ = true;
-    expect(body.children.length).toBe(4);
-    expect(body.innerHTML).toBe(
-        '<div class="0"></div>' + '<div class="1"></div>' + '<div class="2"></div>' + '<div class="3"></div>',
-    );
 });

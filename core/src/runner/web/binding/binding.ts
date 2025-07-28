@@ -1,5 +1,5 @@
-import { Destroyable } from "../core/destroyable";
-import type { IValue } from "../core/ivalue";
+import { Destroyable } from "../../../core/destroyable";
+import type { IValue } from "../../../core/ivalue";
 
 /**
  * Describe a common binding logic

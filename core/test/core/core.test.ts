@@ -1,7 +1,5 @@
-import { Expression, Extension, IValue, Pointer, Reactive, Reference } from "../../src";
+import { Expression, IValue, Pointer, Reactive, Reference } from "../../src";
 import { OwningPointer } from "../../src/value/pointer";
-
-const alive: IValue<boolean> = new Reference(true);
 
 class CoreTest extends Reactive {
     ref0: IValue<number>;

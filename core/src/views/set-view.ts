@@ -1,4 +1,4 @@
-import { Fragment } from "../node/node";
+import { Runner } from "../node/runner";
 import { BaseView, BaseViewOptions } from "./base-view";
 import { SetModel } from "../models/set-model";
 
@@ -7,9 +7,19 @@ import { SetModel } from "../models/set-model";
  * @class SetView
  * @extends BaseView
  */
-export class SetView<T> extends BaseView<T, T, SetModel<T>> {
-    public constructor(input: BaseViewOptions<T, T, SetModel<T>>) {
-        super(input, ":set-view");
+export class SetView<Node, Element, TagOptions extends object, T> extends BaseView<
+    Node,
+    Element,
+    TagOptions,
+    T,
+    T,
+    SetModel<T>
+> {
+    public constructor(
+        input: BaseViewOptions<Node, Element, TagOptions, T, T, SetModel<T>>,
+        runner: Runner<Node, Element, TagOptions>,
+    ) {
+        super(input, runner, ":set-view");
     }
 
     public compose() {
