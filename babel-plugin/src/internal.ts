@@ -8,11 +8,26 @@ export const enum VariableState {
   ReactivePointer = 4,
 }
 
+export enum VariableScope {
+  Any,
+  Local,
+  Global,
+}
+
 export class StackedStates {
   private maps: Map<string, VariableState>[] = [];
+  private localIndex = -1;
 
   public constructor() {
     this.push();
+  }
+
+  public fixLocalIndex() {
+    this.localIndex = this.maps.length;
+  }
+
+  public resetLocalIndex() {
+    this.localIndex = -1;
   }
 
   public push() {
@@ -23,8 +38,15 @@ export class StackedStates {
     this.maps.pop();
   }
 
-  public get(name: string): VariableState | undefined {
-    for (let i = this.maps.length - 1; i >= 0; i--) {
+  public get(name: string, scope?: VariableScope): VariableState | undefined {
+    for (
+      let i =
+        (this.localIndex === -1 || scope !== VariableScope.Global
+          ? this.maps.length
+          : Math.min(this.maps.length, this.localIndex)) - 1;
+      i >= (this.localIndex === -1 || scope !== VariableScope.Local ? 0 : this.localIndex);
+      i--
+    ) {
       if (this.maps[i].has(name)) {
         return this.maps[i].get(name);
       }

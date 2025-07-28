@@ -11,6 +11,7 @@ export const C1 = compose((Vasille, {
   });
 }, "VasilleDX:C1");
 export const C2 = compose(Vasille => {
+  const a = Vasille.ref(2, "a");
   C1(Vasille, {
     slot: ({
       a
@@ -31,4 +32,5 @@ export const C2 = compose(Vasille => {
       Vasille.tag("div", {});
     }
   });
+  console.log(a.$);
 }, "VasilleDX:C2");

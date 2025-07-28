@@ -1,7 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { calls, composeOnly, styleOnly } from "./call";
-import { memberIsIValue } from "./expression";
+import { idIsIValue, memberIsIValue, nodeIsReactiveObject } from "./expression";
 import { ctx, Internal, VariableState } from "./internal";
 import { transformJsx } from "./jsx";
 import {
@@ -132,10 +132,10 @@ export function meshExpression(
     case "Identifier": {
       const state = internal.stack.get(expr.name);
 
-      if (state === VariableState.Reactive) {
-        nodePath.replaceWith(t.memberExpression(expr, t.identifier("$")));
-      } else if (state === VariableState.ReactivePointer) {
-        nodePath.replaceWith(t.memberExpression(expr, t.identifier("$$")));
+      if (idIsIValue(nodePath as NodePath<types.Identifier>, internal)) {
+        nodePath.replaceWith(
+          t.memberExpression(expr, t.identifier(state === VariableState.ReactivePointer ? "$$" : "$")),
+        );
       }
       break;
     }
@@ -848,10 +848,13 @@ export function composeStatement(
             _path.node.kind = kind;
           } else if (calls(init, ["bind"], internal)) {
             const argument = (init as types.CallExpression).arguments[0] as types.Expression;
+            const argumentPath = (declaration.get("init") as NodePath<types.CallExpression>).get(
+              "arguments",
+            )[0] as NodePath<types.Expression>;
             let replaceWith =
               declares === VariableState.Reactive
-                ? forwardOnlyExpr(declaration.get("init"), argument, internal)
-                : exprCall(declaration.get("init"), argument, internal, idName());
+                ? forwardOnlyExpr(argumentPath, argument, internal)
+                : exprCall(argumentPath, argument, internal, idName());
             if (!replaceWith) {
               replaceWith =
                 declares === VariableState.Reactive
@@ -952,7 +955,14 @@ export function composeStatement(
             if (replaceWith) {
               declaration.get("init").replaceWith(replaceWith);
             }
-            internal.stack.set(id.name, replaceWith ? VariableState.Reactive : VariableState.Ignored);
+            internal.stack.set(
+              id.name,
+              replaceWith
+                ? VariableState.Reactive
+                : nodeIsReactiveObject(declaration.get("init"), internal)
+                  ? VariableState.ReactiveObject
+                  : VariableState.Ignored,
+            );
             meshInit = !replaceWith;
           }
         }

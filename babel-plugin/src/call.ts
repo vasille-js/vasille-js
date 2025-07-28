@@ -48,7 +48,7 @@ export const styleOnly: FnNames[] = [
   "prefersLight",
   "webStyleSheet",
 ];
-export const requiresContext: FnNames[] = ["awaited", "forward"];
+export const requiresContext: FnNames[] = ["awaited"];
 const requiresContextSet: Set<string> = new Set(requiresContext);
 
 export function calls(node: types.Expression | null | undefined, names: FnNames[], internal: Internal) {

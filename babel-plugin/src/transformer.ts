@@ -14,6 +14,7 @@ const ignoreMembers = new Set([
   "bind",
   "calculate",
   "watch",
+  "forward",
   "arrayModel",
   "mapModel",
   "reactiveObject",

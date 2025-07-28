@@ -23,3 +23,7 @@ it("export default expression", function () {
 it("state function", function () {
   runJsxTest(__dirname, "state");
 });
+
+it("reactive object status track", function () {
+  runJsxTest(__dirname, "reactive-object");
+});

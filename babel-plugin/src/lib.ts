@@ -77,6 +77,25 @@ export function exprCall(
     );
   }
 
+  if (
+    t.isCallExpression(expr) &&
+    calls(expr, ["forward"], internal) &&
+    expr.arguments.length === 1 &&
+    t.isExpression(expr.arguments[0])
+  ) {
+    const data = exprCall(
+      (path as NodePath<types.CallExpression>).get("arguments")[0] as NodePath<types.Expression>,
+      expr.arguments[0],
+      internal,
+    );
+
+    if (data && !t.isCallExpression(data)) {
+      return t.callExpression(t.memberExpression(internal.id, t.identifier("fo")), [data]);
+    }
+
+    return data;
+  }
+
   const exprData = checkNode(path, internal);
 
   if (exprData.self) {
@@ -129,6 +148,18 @@ export function forwardOnlyExpr(
 }
 
 export function own(expr: types.Expression, internal: Internal, name?: string) {
+  if (
+    internal.stateOnly &&
+    t.isCallExpression(expr) &&
+    t.isMemberExpression(expr.callee) &&
+    t.isIdentifier(expr.callee.property) &&
+    expr.callee.property.name === "fo" &&
+    t.isIdentifier(expr.callee.object) &&
+    expr.callee.object === internal.id
+  ) {
+    return expr;
+  }
+
   return named(
     t.callExpression(
       internal.stateOnly

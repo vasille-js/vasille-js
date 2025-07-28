@@ -3,7 +3,7 @@ export const C = () => {
   const a = VasilleDX.r(2);
   const b = VasilleDX.r(2);
   const c = VasilleDX.ex((Vasille_a, Vasille_b) => Vasille_a + Vasille_b, [a, b]);
-  const d = VasilleDX.fo(VasilleDX.fo(c));
+  const d = VasilleDX.fo(c);
   const e = VasilleDX.sam([1, 2]);
   const f = VasilleDX.ssm([1, 2]);
   const g = VasilleDX.smm([[1, 2]]);

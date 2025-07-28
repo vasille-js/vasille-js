@@ -1,9 +1,7 @@
 import { NodePath, types } from "@babel/core";
-import { TraverseOptions } from "@babel/traverse";
 import * as t from "@babel/types";
-import internal from "node:stream";
-import { Internal, StackedStates, VariableState } from "./internal";
-import { meshExpression } from "./mesh";
+import { calls, composeOnly } from "./call";
+import { Internal, StackedStates, VariableScope, VariableState } from "./internal";
 
 interface Search {
   found: Map<string, types.Expression>;
@@ -56,7 +54,10 @@ function extractMemberName(path: NodePath<types.MemberExpression | types.Optiona
 
   names.push(stringify(it));
 
-  if (t.isIdentifier(it) && search.stack.get((it as types.Identifier).name) === VariableState.Ignored) {
+  if (
+    t.isIdentifier(it) &&
+    search.stack.get((it as types.Identifier).name, VariableScope.Local) === VariableState.Ignored
+  ) {
     throw path.buildCodeFrameError(
       "Vasille: This node cannot be processed, the root of expression is a local variable",
     );
@@ -84,25 +85,61 @@ function addExternalIValue(path: NodePath<types.MemberExpression | types.Optiona
 }
 
 function meshIdentifier(path: NodePath<types.Identifier>, internal: Internal) {
-  const state = internal.stack.get(path.node.name);
-
-  if (state === VariableState.Reactive || state === VariableState.ReactivePointer) {
+  if (idIsIValue(path, internal)) {
     path.replaceWith(t.memberExpression(path.node, t.identifier("$")));
   }
 }
 
-export function memberIsIValue(node: types.MemberExpression | types.OptionalMemberExpression, internal: Internal) {
+export function idIsIValue(path: NodePath<types.Identifier>, internal: Internal, scope?: VariableScope): boolean {
+  const node = path.node;
+
+  return (
+    REACTIVE_STATES.includes(internal.stack.get(node.name, scope)) &&
+    (!t.isMemberExpression(path.parent) || path.parent.object === node)
+  );
+}
+
+export function idIsLocal(path: NodePath<types.Identifier>, internal: Internal) {
+  return internal.stack.get(path.node.name, VariableScope.Local) !== undefined;
+}
+
+export function memberIsIValue(
+  node: types.MemberExpression | types.OptionalMemberExpression,
+  internal: Internal,
+  scope?: VariableScope,
+) {
   return (
     (t.isIdentifier(node.object) &&
-      (internal.stack.get(node.object.name) === VariableState.ReactiveObject ||
+      (internal.stack.get(node.object.name, scope) === VariableState.ReactiveObject ||
         (t.isIdentifier(node.property) &&
           node.property.name.startsWith("$") &&
           !node.property.name.startsWith("$$") &&
-          node.property.name !== "$"))) ||
+          node.property.name !== "$") ||
+        (t.isStringLiteral(node.property) &&
+          node.property.value.startsWith("$") &&
+          !node.property.value.startsWith("$$") &&
+          node.property.value !== "$"))) ||
     (t.isMemberExpression(node.object) &&
-      t.isIdentifier(node.object.property) &&
-      node.object.property.name.startsWith("$$"))
+      ((t.isIdentifier(node.object.property) && node.object.property.name.startsWith("$$")) ||
+        (t.isStringLiteral(node.object.property) && node.object.property.value.startsWith("$$"))))
   );
+}
+
+export function nodeIsReactiveObject(path: NodePath<types.Expression | null | undefined>, internal: Internal) {
+  const node = path.node;
+
+  if (t.isIdentifier(node)) {
+    return (
+      (!t.isMemberExpression(path.parent) || path.parent.object === node) &&
+      internal.stack.get(node.name) === VariableState.ReactiveObject
+    );
+  }
+  if (t.isOptionalMemberExpression(node) || t.isMemberExpression(node)) {
+    return (
+      (t.isIdentifier(node.property) && node.property.name.startsWith("$$")) ||
+      (t.isStringLiteral(node.property) && node.property.value.startsWith("$$"))
+    );
+  }
 }
 
 function meshMember(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, internal: Internal) {
@@ -135,12 +172,11 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
     external: internal,
     found: new Map(),
     self: null,
-    stack: new StackedStates(),
+    stack: internal.stack,
   };
 
   if (t.isIdentifier(path.node)) {
-    const state = internal.stack.get(path.node.name);
-    if (state === VariableState.Reactive || state == VariableState.ReactivePointer) {
+    if (idIsIValue(path as NodePath<types.Identifier>, internal)) {
       search.self = path.node;
     }
   }
@@ -156,9 +192,15 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
     return search;
   }
 
+  internal.stack.fixLocalIndex();
+  internal.stack.push();
+
   if (t.isExpression(path.node)) {
     checkExpression(path as NodePath<types.Expression>, search);
   }
+
+  internal.stack.pop();
+  internal.stack.resetLocalIndex();
 
   return search;
 }
@@ -222,8 +264,11 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       break;
     }
     case "Identifier": {
-      if (expr && "name" in expr && search.stack.get(expr.name) !== VariableState.Ignored) {
-        if (REACTIVE_STATES.includes(search.external.stack.get(expr.name))) {
+      if (expr && t.isIdentifier(expr)) {
+        if (
+          idIsIValue(nodePath as NodePath<types.Identifier>, search.external, VariableScope.Global) &&
+          !idIsLocal(nodePath as NodePath<types.Identifier>, search.external)
+        ) {
           addIdentifier(nodePath as NodePath<types.Identifier>, search);
         }
       }
@@ -237,6 +282,10 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     }
     case "CallExpression": {
       const path = nodePath as NodePath<types.CallExpression>;
+
+      if (calls(path.node, composeOnly, search.external)) {
+        throw path.buildCodeFrameError("Vasille: Usage of hints is restricted here");
+      }
 
       checkOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), search);
       checkAllUnknown(path.get("arguments"), search);
@@ -260,7 +309,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       const path = nodePath as NodePath<types.MemberExpression | types.OptionalMemberExpression>;
       const node = path.node;
 
-      if (memberIsIValue(node, search.external)) {
+      if (memberIsIValue(node, search.external, VariableScope.Global)) {
         addMemberExpr(path, search);
       } else if (t.isIdentifier(node.property) && node.property.name === "$") {
         addExternalIValue(path, search);
@@ -578,6 +627,10 @@ export function checkFunction(
   search: Search,
 ) {
   const node = path.node;
+
+  for (const param of node.params) {
+    ignoreLocals(param, search);
+  }
 
   if (t.isExpression(node.body)) {
     checkExpression(path.get("body") as NodePath<types.Expression>, search);

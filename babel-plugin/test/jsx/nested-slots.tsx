@@ -9,6 +9,8 @@ export const C1 = compose(({ slot }: { slot(props: { a: number }): void }) => {
 });
 
 export const C2 = compose(() => {
+  let a = 2;
+
   <C1
     slot={({ a }) => {
       console.log(a);
@@ -26,4 +28,6 @@ export const C2 = compose(() => {
       <div />;
     }}
   />;
+
+  console.log(a);
 });
