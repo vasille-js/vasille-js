@@ -1,5 +1,5 @@
 import { Reference } from "vasille";
-import { calculate, compose, watch } from "vasille-dx";
+import { calculate, compose, watch } from "vasille-web";
 
 const obj = {
   nested: new Reference({

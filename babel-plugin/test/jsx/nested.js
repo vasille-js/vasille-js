@@ -1,7 +1,7 @@
-import { compose, If } from "vasille-dx";
+import { compose, If } from "vasille-web";
 export const C1 = compose((Vasille, props) => {
   Vasille.tag("div", {});
-}, "VasilleDX:C1");
+}, "VasilleWeb:C1");
 export const C2 = compose(Vasille => {
   const a = Vasille.ref(1, "a");
   Vasille.tag("div", {}, Vasille => {
@@ -10,14 +10,14 @@ export const C2 = compose(Vasille => {
       a: 1,
       b: 2,
       c: "text"
-    }, (_VasilleDX, Vasille) => {
+    }, (_VasilleWeb, Vasille) => {
       C1(Vasille, {
         ...{
           a: 1
         },
         b: Vasille.expr(Vasille_a => Vasille_a + 1, [a]),
         bool: true
-      }, (_VasilleDX, Vasille) => {
+      }, (_VasilleWeb, Vasille) => {
         Vasille.tag("div", {});
         Vasille.tag("span", {}, Vasille => {
           Vasille.text("1");
@@ -26,7 +26,7 @@ export const C2 = compose(Vasille => {
     });
   });
   C1(Vasille, {
-    slot: (_VasilleDX, Vasille) => {
+    slot: (_VasilleWeb, Vasille) => {
       C1(Vasille, {});
     }
   });
@@ -35,4 +35,4 @@ export const C2 = compose(Vasille => {
   }, Vasille => {
     C1(Vasille, {});
   });
-}, "VasilleDX:C2");
+}, "VasilleWeb:C2");

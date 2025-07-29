@@ -1,19 +1,19 @@
-import { compose, $ as VasilleDX } from "vasille-dx";
+import { compose, $ as VasilleWeb } from "vasille-web";
 export const C = () => {
-  const a = VasilleDX.r(2);
-  const b = VasilleDX.r(2);
-  const c = VasilleDX.ex((Vasille_a, Vasille_b) => Vasille_a + Vasille_b, [a, b]);
-  const d = VasilleDX.fo(c);
-  const e = VasilleDX.sam([1, 2]);
-  const f = VasilleDX.ssm([1, 2]);
-  const g = VasilleDX.smm([[1, 2]]);
-  const h = VasilleDX.sro({
+  const a = VasilleWeb.r(2);
+  const b = VasilleWeb.r(2);
+  const c = VasilleWeb.ex((Vasille_a, Vasille_b) => Vasille_a + Vasille_b, [a, b]);
+  const d = VasilleWeb.fo(c);
+  const e = VasilleWeb.sam([1, 2]);
+  const f = VasilleWeb.ssm([1, 2]);
+  const g = VasilleWeb.smm([[1, 2]]);
+  const h = VasilleWeb.sro({
     a: 1
   });
-  const i = VasilleDX.fo(VasilleDX.ex((Vasille_a, Vasille_b) => Vasille_a + Vasille_b, [a, b]));
-  const j = VasilleDX.sam();
-  const k = VasilleDX.ex((Vasille_a, Vasille_b) => Vasille_a + Vasille_b, [a, b]);
-  const o = VasilleDX.r({
+  const i = VasilleWeb.fo(VasilleWeb.ex((Vasille_a, Vasille_b) => Vasille_a + Vasille_b, [a, b]));
+  const j = VasilleWeb.sam();
+  const k = VasilleWeb.ex((Vasille_a, Vasille_b) => Vasille_a + Vasille_b, [a, b]);
+  const o = VasilleWeb.r({
     a: {
       b: 1
     }
@@ -56,4 +56,4 @@ const Component = compose(Vasille => {
     Vasille.text(c.$k);
     Vasille.text(Vasille.expr(Vasille_c_$o => Vasille_c_$o.a.b, [c.$o]));
   });
-}, "VasilleDX:Component");
+}, "VasilleWeb:Component");

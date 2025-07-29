@@ -1,11 +1,10 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { Internal, StackedStates } from "./internal";
-import { meshStatement } from "./mesh";
-import { findStyleInNode } from "./css-transformer";
+import { Internal, StackedStates } from "./internal.js";
+import { meshStatement } from "./mesh.js";
+import { findStyleInNode } from "./css-transformer.js";
 
 const imports = new Map([
-  ["vasille-dx", "VasilleDX"],
   ["vasille-web", "VasilleWeb"],
 ]);
 const ignoreMembers = new Set([
@@ -49,7 +48,6 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
     stack: new StackedStates(),
     mapping: new Map<string, string>(),
     global: "",
-    cssGlobal: "",
     prefix: "Vasille_",
     importStatement: null,
     internalUsed: false,
@@ -70,7 +68,6 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
           if (t.isImportNamespaceSpecifier(specifier)) {
             internal.global = specifier.local.name;
             if (statement.source.value === "vasille-web") {
-              internal.cssGlobal = internal.global;
               stylesConnected = true;
             }
             internal.id = t.memberExpression(t.identifier(internal.global), t.identifier("$"));
@@ -79,7 +76,7 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
             const local = specifier.local.name;
 
             internal.mapping.set(local, imported);
-            if (imported === "webStyleSheet") {
+            if (imported === "styleSheet") {
               stylesConnected = true;
             }
 
@@ -99,30 +96,10 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
             );
           }
         });
-      } else if (statement.source.value === "vasille-css") {
-        for (const specifier of statement.specifiers) {
-          if (t.isImportSpecifier(specifier)) {
-            internal.mapping.set(specifier.local.name, extractText(specifier.imported));
-          } else if (t.isImportNamespaceSpecifier(specifier)) {
-            internal.cssGlobal = specifier.local.name;
-          }
-        }
-        statement.specifiers = statement.specifiers.filter(spec => {
-          if (!t.isImportSpecifier(spec)) {
-            return true;
-          } else {
-            return !ignoreMembers.has(extractText(spec.imported));
-          }
-        });
-        stylesConnected = true;
       }
     } else {
       if (!id) {
-        if (stylesConnected) {
-          findStyleInNode(statementPath, internal);
-        } else {
-          return;
-        }
+        return;
       } else if (!stylesConnected || !findStyleInNode(statementPath, internal)) {
         meshStatement(statementPath, internal);
       }

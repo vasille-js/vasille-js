@@ -1,4 +1,4 @@
-import { ContextArray, ContextMap, ContextSet } from "../src/models";
+import { ContextArray, ContextMap, ContextSet } from "../src/models.js";
 
 it("context array", function () {
     const arr = new ContextArray([{ x: 1 }]);

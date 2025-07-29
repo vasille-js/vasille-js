@@ -1,6 +1,6 @@
-import { ArrayModel, Expression, IValue, Pointer, Reference } from "vasille";
-import { reactiveObject, reactiveObjectProxy } from "../src/objects";
-import { createNode } from "./page";
+import { IValue, Reference } from "vasille";
+import { reactiveObject, reactiveObjectProxy } from "../src/objects.js";
+import { createNode } from "./page.js";
 
 interface CD {
     c: number;
@@ -8,19 +8,23 @@ interface CD {
 }
 
 it("proxy object", function () {
-    const node = createNode();
+    const [node] = createNode();
     const ref = new Reference(4);
 
-    const r1 = reactiveObject(node, {
-        a: {
-            b: {
-                c: 2,
-                d: 3,
-            } as CD,
+    const r1 = reactiveObject(
+        node,
+        {
+            a: {
+                b: {
+                    c: 2,
+                    d: 3,
+                } as CD,
+            },
+            b: ref,
+            c: 3,
         },
-        b: ref,
-        c: 3,
-    }, "r1");
+        "r1",
+    );
     const r2: {
         a: IValue<number>;
         b: IValue<number>;
@@ -68,7 +72,7 @@ it("proxy object", function () {
 });
 
 it("reactive object proxy", function () {
-    const node = createNode();
+    const [node] = createNode();
     const o = reactiveObject(node, { a: 4 });
     const rop = reactiveObjectProxy(o);
 

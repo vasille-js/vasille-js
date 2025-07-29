@@ -1,8 +1,8 @@
-import { awaited } from "../src";
-import { createNode } from "./page";
+import { awaited } from "../src/index.js";
+import { createNode } from "./page.js";
 
 it("awaited", function (done) {
-    const frag = createNode();
+    const [frag] = createNode();
     const promise = new Promise(rv => setTimeout(() => rv(2)));
     const errPromise = new Promise((_, rj) => setTimeout(() => rj(4)));
     const [successErr, successResult] = awaited(frag, promise, "successErr", "successResult");
@@ -24,7 +24,7 @@ it("awaited", function (done) {
 });
 
 it("awaited synchronous", function () {
-    const frag = createNode();
+    const [frag] = createNode();
     const [successErr, successResult] = awaited(frag, () => {
         return 2 as unknown as Promise<2>;
     });

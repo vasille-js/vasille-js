@@ -1,8 +1,8 @@
 import { Destroyable } from "./destroyable.js";
 import { IValue } from "./ivalue.js";
-import { Expression, KindOfIValue } from "../value/expression";
-import { Reference } from "../value/reference";
-import { OwningPointer, Pointer } from "../value/pointer";
+import { Expression, KindOfIValue } from "../value/expression.js";
+import { Reference } from "../value/reference.js";
+import { OwningPointer, Pointer } from "../value/pointer.js";
 
 /**
  * A reactive object

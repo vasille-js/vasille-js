@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import path from "path";
 import * as babel from "@babel/core";
-import vasillePlugin from "../src";
+import vasillePlugin from "../src/index.js";
 
 export function runTest(dir: string, name: string, devMode = true) {
     const input = fs.readFileSync(path.join(dir, `${name}.ts`), { encoding: "utf8" });
@@ -17,22 +17,12 @@ export function runTest(dir: string, name: string, devMode = true) {
 export function throwTest(dir: string, name: string, err: string, isTsx?: boolean) {
     const input = fs.readFileSync(path.join(dir, `err-${name}.${isTsx ? "tsx" : "ts"}`), { encoding: "utf8" });
 
-
-    try {
-        const result = babel.transformSync(input, { plugins: [
-            vasillePlugin,
-            ["@babel/plugin-transform-typescript", {isTSX: isTsx}]
+    expect(() => {
+      babel.transformSync(input, { plugins: [
+          vasillePlugin,
+          ["@babel/plugin-transform-typescript", {isTSX: isTsx}]
         ]});
-        // Throw error if that was not done by
-      expect(result?.code).toBe(err);
-    }
-    catch (e) {
-        expect(e).toBeInstanceOf(Error);
-        if (e instanceof Error) {
-            expect(e.message).toContain("Vasille:");
-            expect(e.message).toContain(err);
-        }
-    }
+    }).toThrow((`Vasille: ${err}`));
 }
 
 export function runJsxTest(dir: string, name: string, devMode = true) {

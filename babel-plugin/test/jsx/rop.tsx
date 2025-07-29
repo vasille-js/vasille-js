@@ -1,4 +1,4 @@
-import { compose } from "vasille-dx";
+import { compose } from "vasille-web";
 
 interface Props {
   a: {

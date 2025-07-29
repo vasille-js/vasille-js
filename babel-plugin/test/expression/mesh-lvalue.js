@@ -1,5 +1,5 @@
 import { Reference } from "vasille";
-import { compose } from "vasille-dx";
+import { compose } from "vasille-web";
 const obj = {
   nested: new Reference({
     level2: 2
@@ -16,4 +16,4 @@ export const C = compose(Vasille => {
     obj.nested.$.level2 = 3;
     [a.$, obj.nested.$.level2, ...rest] = [Vasille_obj_nested_$.level2, Vasille_a];
   }, [obj.nested, a]);
-}, "VasilleDX:C");
+}, "VasilleWeb:C");

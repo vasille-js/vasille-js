@@ -1,9 +1,8 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import exp from "node:constants";
-import { checkNode, encodeName } from "./expression";
-import { Internal, ctx } from "./internal";
-import { calls } from "./call";
+import { checkNode, encodeName } from "./expression.js";
+import { Internal, ctx } from "./internal.js";
+import { calls } from "./call.js";
 
 export function named(
   call: types.CallExpression,

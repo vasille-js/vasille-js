@@ -1,6 +1,6 @@
-import { Runner } from "../node/runner";
-import { BaseView, BaseViewOptions } from "./base-view";
-import { SetModel } from "../models/set-model";
+import { Runner } from "../node/runner.js";
+import { BaseView, BaseViewOptions } from "./base-view.js";
+import { SetModel } from "../models/set-model.js";
 
 /**
  * Create a children pack for each set value

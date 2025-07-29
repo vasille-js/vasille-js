@@ -1,5 +1,5 @@
-import { webStyleSheet } from "vasille-css";
-export const styles = webStyleSheet({
+import { styleSheet } from "vasille-web";
+export const styles = styleSheet({
   c1: [".{}{margin:0px;padding:10px 5px;display:block}"],
   c2: [".{}:hover{margin:0px;padding:10px 5px;display:block}"],
   c3: ["@media (max-width: 1000px){.{}:active{margin:0px;padding:10px 5px;display:block}}"],

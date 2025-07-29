@@ -1,6 +1,6 @@
-import * as CSS from "vasille-css";
+import * as CSS from "vasille-web";
 
-const styles = CSS.webStyleSheet({
+const styles = CSS.styleSheet({
   c1: {
     margin: 0,
   },

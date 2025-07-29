@@ -1,9 +1,9 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { calls, composeOnly, styleOnly } from "./call";
-import { idIsIValue, memberIsIValue, nodeIsReactiveObject } from "./expression";
-import { ctx, Internal, VariableState } from "./internal";
-import { transformJsx } from "./jsx";
+import { calls, composeOnly, styleOnly } from "./call.js";
+import { idIsIValue, memberIsIValue, nodeIsReactiveObject } from "./expression.js";
+import { ctx, Internal, VariableState } from "./internal.js";
+import { transformJsx } from "./jsx.js";
 import {
   arrayModel,
   exprCall,
@@ -15,7 +15,7 @@ import {
   reactiveObject,
   ref,
   setModel,
-} from "./lib";
+} from "./lib.js";
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
   nodePaths: NodePath<types.Expression | null | T>[],
@@ -85,7 +85,7 @@ export function meshLValue(path: NodePath<types.LVal | types.Expression>, intern
 }
 
 export function meshOrIgnoreExpression<T extends types.Node>(
-  path: NodePath<types.Expression | null | undefined | T>,
+  path: NodePath<types.Expression | types.VoidPattern | null | undefined | T>,
   internal: Internal,
 ) {
   if (t.isExpression(path.node)) {
@@ -362,7 +362,7 @@ export function meshStatements(paths: NodePath<types.Statement>[], internal: Int
   }
 }
 
-export function ignoreParams(val: types.LVal, internal: Internal) {
+export function ignoreParams(val: types.LVal |  types.VoidPattern, internal: Internal) {
   if (t.isAssignmentPattern(val)) {
     val = val.left;
   }
@@ -396,7 +396,7 @@ function ignoreObjectPattern(pattern: types.ObjectPattern, internal: Internal) {
   }
 }
 
-export function reactiveArrayPattern(expr: types.LVal | types.OptionalMemberExpression, internal: Internal) {
+export function reactiveArrayPattern(expr: types.LVal | types.OptionalMemberExpression | types.VoidPattern, internal: Internal) {
   if (t.isArrayPattern(expr)) {
     for (const element of expr.elements) {
       if (t.isIdentifier(element)) {

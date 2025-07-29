@@ -1,4 +1,4 @@
-import { compose, mapModel } from "vasille-dx";
+import { compose, mapModel } from "vasille-web";
 
 export const C = compose(() => {
   let a = mapModel([]);

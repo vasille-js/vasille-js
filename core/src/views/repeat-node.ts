@@ -1,5 +1,5 @@
-import { Fragment } from "../node/node";
-import { Runner } from "../node/runner";
+import { Fragment } from "../node/node.js";
+import { Runner } from "../node/runner.js";
 
 // RNO = RepeatNodeOptions
 export interface RepeatNodeOptions<Node, Element, TagOptions extends object, T, IdT> {

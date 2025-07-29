@@ -1,24 +1,24 @@
-import { Destroyable } from "./core/destroyable";
-import { Reactive } from "./core/core";
-import { IValue } from "./core/ivalue";
-import { reportError, setErrorHandler } from "./functional/safety";
-import { ArrayModel, proxyArrayModel } from "./models/array-model";
-import { Listener } from "./models/listener";
-import { MapModel } from "./models/map-model";
-import { SetModel } from "./models/set-model";
-import { App, Portal } from "./node/app";
-import { Fragment, Tag, TextNode, DebugNode } from "./node/node";
-import { Expression, KindOfIValue } from "./value/expression";
-import { Pointer } from "./value/pointer";
-import { Reference } from "./value/reference";
-import { ArrayView } from "./views/array-view";
-import { BaseView } from "./views/base-view";
-import { MapView } from "./views/map-view";
-import { SetView } from "./views/set-view";
-import { userError } from "./core/errors";
-import { ListenableModel } from "./models/model";
-import { Watch } from "./node/watch";
-import { Runner } from "./node/runner";
+import { Destroyable } from "./core/destroyable.js";
+import { Reactive } from "./core/core.js";
+import { IValue } from "./core/ivalue.js";
+import { reportError, setErrorHandler } from "./functional/safety.js";
+import { ArrayModel, proxyArrayModel } from "./models/array-model.js";
+import { Listener } from "./models/listener.js";
+import { MapModel } from "./models/map-model.js";
+import { SetModel } from "./models/set-model.js";
+import { App, Portal } from "./node/app.js";
+import { Fragment, Tag, TextNode, DebugNode } from "./node/node.js";
+import { Expression, KindOfIValue } from "./value/expression.js";
+import { Pointer } from "./value/pointer.js";
+import { Reference } from "./value/reference.js";
+import { ArrayView } from "./views/array-view.js";
+import { BaseView } from "./views/base-view.js";
+import { MapView } from "./views/map-view.js";
+import { SetView } from "./views/set-view.js";
+import { userError } from "./core/errors.js";
+import { ListenableModel } from "./models/model.js";
+import { Watch } from "./node/watch.js";
+import { Runner } from "./node/runner.js";
 
 export {
     Destroyable,

@@ -1,4 +1,4 @@
-import { compose } from "vasille-dx";
+import { compose } from "vasille-web";
 export const C = compose(Vasille => {
   const a = Vasille.ref("auto", "a");
   const b = "auto";
@@ -33,4 +33,4 @@ export const C = compose(Vasille => {
       style: `margin: ${b}`
     }
   });
-}, "VasilleDX:C");
+}, "VasilleWeb:C");

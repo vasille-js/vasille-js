@@ -1,4 +1,9 @@
+import { fileURLToPath } from "node:url";
+import path from "path";
 import { runJsxTest, throwTest } from "../run-test";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 it("attr", function () {
   runJsxTest(__dirname, "attr");

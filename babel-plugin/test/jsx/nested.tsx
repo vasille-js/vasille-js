@@ -1,4 +1,4 @@
-import { compose, If } from "vasille-dx";
+import { compose, If } from "vasille-web";
 
 export const C1 = compose((props: { bool?: boolean; a?: number; b?: number; c?: string; slot?(): void }) => {
   <div />;

@@ -1,5 +1,5 @@
 import { Reference } from "vasille";
-import { compose } from "vasille-dx";
+import { compose } from "vasille-web";
 
 let o = { a: new Reference(2) };
 

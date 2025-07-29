@@ -1,4 +1,9 @@
+import { fileURLToPath } from "node:url";
+import path from "path";
 import { runJsxTest, runTest, throwTest } from "../run-test";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 it("compose function", function () {
   runJsxTest(__dirname, "compose");
@@ -77,7 +82,7 @@ it("reactive object not const error", function () {
 });
 
 it("reactive object wrong argument error", function () {
-  throwTest(__dirname, "reactive-object-arg", " reactiveObject requires object expression as argument");
+  throwTest(__dirname, "reactive-object-arg", "reactiveObject requires object expression as argument");
 });
 
 it("array model not const error", function () {

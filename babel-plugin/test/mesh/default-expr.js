@@ -1,2 +1,2 @@
-import { compose } from "vasille-dx";
+import { compose } from "vasille-web";
 export default compose(Vasille => {});

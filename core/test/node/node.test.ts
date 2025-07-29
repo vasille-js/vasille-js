@@ -1,7 +1,7 @@
 import { DOMWindow } from "jsdom";
-import { App, Expression, Fragment, IValue, Reference, Tag } from "../../src";
-import { DebugNode, Runner } from "../../src/runner/web/runner";
-import { page } from "../page";
+import { App, Expression, Fragment, IValue, Reference, Tag } from "../../src/index.js";
+import { DebugNode, Runner } from "../../src/runner/web/runner.js";
+import { page } from "../page.js";
 
 let compose = false;
 

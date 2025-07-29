@@ -1,7 +1,8 @@
-import { webStyleSheet } from "vasille-css";
+import { styleSheet } from "vasille-web";
 
-const s = webStyleSheet({
+const s = styleSheet({
   c: {
+    // @ts-expect-error
     ":hover": [23],
   },
 });

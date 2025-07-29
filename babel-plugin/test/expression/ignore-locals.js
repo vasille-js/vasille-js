@@ -1,4 +1,4 @@
-import { compose } from "vasille-dx";
+import { compose } from "vasille-web";
 export const C = compose(Vasille => {
   const a = Vasille.ref(0, "a");
   const b = Vasille.ref(1, "b");
@@ -19,4 +19,4 @@ export const C = compose(Vasille => {
     // all variables must be ignored
     console.log(a, b, c, d, e);
   })();
-}, "VasilleDX:C");
+}, "VasilleWeb:C");

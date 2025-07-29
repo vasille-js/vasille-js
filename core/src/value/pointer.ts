@@ -1,5 +1,5 @@
-import { IValue } from "../core/ivalue";
-import { Reference } from "./reference";
+import { IValue } from "../core/ivalue.js";
+import { Reference } from "./reference.js";
 
 /**
  * r/w pointer to a value

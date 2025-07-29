@@ -1,7 +1,7 @@
-import { For, compose, Debug, $ as VasilleDX } from "vasille-dx";
+import { For, compose, Debug, $ as VasilleWeb } from "vasille-web";
 export const C = compose(Vasille => {
-  const a = VasilleDX.am(Vasille, [1, 2, 3], "a");
-  const map = VasilleDX.mm(Vasille, [["x", 1]], "map");
+  const a = VasilleWeb.am(Vasille, [1, 2, 3], "a");
+  const map = VasilleWeb.mm(Vasille, [["x", 1]], "map");
   For(Vasille, {
     of: a,
     slot: (Vasille, value) => {
@@ -16,4 +16,4 @@ export const C = compose(Vasille => {
       console.log(value, key);
     }
   });
-}, "VasilleDX:C");
+}, "VasilleWeb:C");

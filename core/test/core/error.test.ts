@@ -1,4 +1,4 @@
-import { internalError, notOverwritten, userError, wrongBinding } from "../../src/core/errors";
+import { internalError, notOverwritten, userError, wrongBinding } from "../../src/core/errors.js";
 
 it("not-overwritten", function () {
     expect(notOverwritten()).toBe("not-overwritten");

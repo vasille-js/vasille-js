@@ -1,5 +1,5 @@
-import { IDestroyable } from "../core/destroyable";
-import { Listener } from "./listener";
+import { IDestroyable } from "../core/destroyable.js";
+import { Listener } from "./listener.js";
 
 /**
  * @interface IModel

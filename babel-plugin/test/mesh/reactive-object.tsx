@@ -1,4 +1,4 @@
-import { bind, compose, forward, state, watch } from "vasille-dx";
+import { bind, compose, forward, state, watch } from "vasille-web";
 
 const obj = { a: 1, b: 2 };
 

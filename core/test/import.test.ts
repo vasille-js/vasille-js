@@ -21,9 +21,9 @@ import {
     DebugNode,
     Tag,
     TextNode,
-} from "../src";
-import { Runner, TagOptions } from "../src/runner/web/runner";
-import { page } from "./page";
+} from "../src/index.js";
+import { Runner, TagOptions } from "../src/runner/web/runner.js";
+import { page } from "./page.js";
 
 it("import test", function () {
     const window = page();

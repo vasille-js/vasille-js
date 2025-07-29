@@ -1,4 +1,4 @@
-import { Reference, setErrorHandler, reportError } from "../../src";
+import { Reference, setErrorHandler, reportError } from "../../src/index.js";
 
 it("SetErrorHandler", function () {
     let test = false;

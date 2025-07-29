@@ -1,6 +1,6 @@
-import { Runner, TagOptions } from "../../src/runner/web/runner";
-import { page } from "../page";
-import { App, Portal } from "../../src";
+import { Runner, TagOptions } from "../../src/runner/web/runner.js";
+import { page } from "../page.js";
+import { App, Portal } from "../../src/index.js";
 
 class MyApp extends App<Node, Element, TagOptions> {
     div!: HTMLDivElement;

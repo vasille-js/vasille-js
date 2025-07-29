@@ -1,4 +1,4 @@
-import { arrayModel, calculate, compose, forward, ref, state, watch } from "vasille-dx";
+import { arrayModel, calculate, compose, ref, state, watch } from "vasille-web";
 
 export const C = state(() => {
   let a = 2;

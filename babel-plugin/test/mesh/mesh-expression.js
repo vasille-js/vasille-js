@@ -1,4 +1,4 @@
-import { compose } from "vasille-dx";
+import { compose } from "vasille-web";
 !compose(Vasille => {}) === false;
 let a = 1;
 function tag(args, arg) {

@@ -1,6 +1,6 @@
-import { Runner } from "../node/runner";
-import { RepeatNode, RepeatNodeOptions } from "./repeat-node";
-import { ListenableModel } from "../models/model";
+import { Runner } from "../node/runner.js";
+import { RepeatNode, RepeatNodeOptions } from "./repeat-node.js";
+import { ListenableModel } from "../models/model.js";
 
 export interface BaseViewOptions<Node, Element, TagOptions extends object, K, T, Model extends ListenableModel<K, T>>
     extends RepeatNodeOptions<Node, Element, TagOptions, T, K> {

@@ -1,4 +1,4 @@
-import { compose, watch } from "vasille-dx";
+import { compose, watch } from "vasille-web";
 
 export const C = compose(() => {
   const a = 3;

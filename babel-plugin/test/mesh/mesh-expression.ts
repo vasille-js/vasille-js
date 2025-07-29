@@ -1,4 +1,5 @@
-import { compose, Composed } from "vasille-dx";
+import { compose } from "vasille-web";
+import { Composed } from "vasille-dx";
 
 !compose(() => {}) === false;
 let a = 1;

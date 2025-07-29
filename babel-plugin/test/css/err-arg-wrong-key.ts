@@ -1,6 +1,6 @@
-import { webStyleSheet } from "vasille-css";
+import { styleSheet } from "vasille-web";
 
 const c = "c1";
-const s = webStyleSheet({
+const s = styleSheet({
   [c]: {},
 });

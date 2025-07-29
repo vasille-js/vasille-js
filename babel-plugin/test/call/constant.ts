@@ -1,4 +1,4 @@
-import * as DX from "vasille-dx";
+import * as DX from "vasille-web";
 
 const prop = "compose";
 

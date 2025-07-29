@@ -1,24 +1,30 @@
 import { JSDOM } from "jsdom";
-import { setIndex, setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth, webStyleSheet } from "../src";
-const page = new JSDOM(`
-<html>
-    <head>
-    </head>
-    <body>
-    </body>
-</html>
-`);
+import { setIndex, setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth, styleSheet } from "../src";
 
-global.document = page.window.document;
-global.HTMLElement = page.window.HTMLElement;
+function page() {
+    const page = new JSDOM(`
+        <html>
+            <head>
+            </head>
+            <body>
+            </body>
+        </html>
+    `);
 
-it("calculted style test", function () {
+    global.document = page.window.document;
+    global.HTMLElement = page.window.HTMLElement;
+
+    return page.window;
+}
+
+it("calculated style test", function () {
     setIndex(0);
     setMobileMaxWidth(400);
     setTabletMaxWidth(800);
     setLaptopMaxWidth(1200);
 
-    const classes = webStyleSheet({
+    const window = page();
+    const classes = styleSheet({
         test: [
             "{} { color: #000 }",
             [1, "{} { color: #f00 }"],
@@ -32,10 +38,10 @@ it("calculted style test", function () {
     expect(classes.test).toBe("v-1");
 
     function style(index: number) {
-        return page.window.document.head.children[index] as unknown as { media: string };
+        return window.document.head.children[index] as unknown as { media: string };
     }
 
-    expect(page.window.document.head.children.length).toBe(6);
+    expect(window.document.head.children.length).toBe(6);
     expect(style(0).media).toBe("");
     expect(style(1).media).toBe("(max-width:400px)");
     expect(style(2).media).toBe("(min-width:400px) and (max-width:800px)");
@@ -44,7 +50,7 @@ it("calculted style test", function () {
     expect(style(5).media).toBe("(prefers-color-scheme:light)");
 
     function sheet(index: number) {
-        return page.window.document.styleSheets[index] as unknown as { cssRules: { style: { color: string } }[] };
+        return window.document.styleSheets[index] as unknown as { cssRules: { style: { color: string } }[] };
     }
 
     expect(sheet(0).cssRules.length).toBe(1);

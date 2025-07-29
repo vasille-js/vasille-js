@@ -1,15 +1,20 @@
+import { fileURLToPath } from "node:url";
+import path from "path";
 import { runTest, throwTest } from "../run-test";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 it("check expression", function () {
   runTest(__dirname, "check-expression");
 });
 
 it("check fragment error", function () {
-  throwTest(__dirname, "jsx-fragment", "Vasille: JSX fragment is not allowed here", true);
+  throwTest(__dirname, "jsx-fragment", "JSX fragment is not allowed here", true);
 });
 
 it("check element error", function () {
-  throwTest(__dirname, "jsx-element", "Vasille: JSX element is not allowed here", true);
+  throwTest(__dirname, "jsx-element", "JSX element is not allowed here", true);
 });
 
 it("check statements", function () {
@@ -17,14 +22,14 @@ it("check statements", function () {
 });
 
 it("nested observable error", function () {
-  throwTest(__dirname, "nested-observable", "Vasille: The reactive/observable value is nested");
+  throwTest(__dirname, "nested-observable", "The reactive/observable value is nested");
 });
 
 it("local observable error", function () {
   throwTest(
     __dirname,
     "local-observable",
-    "Vasille: This node cannot be processed, the root of expression is a local variable",
+    "This node cannot be processed, the root of expression is a local variable",
   );
 });
 

@@ -1,4 +1,9 @@
-import { runTest, throwTest } from "../run-test";
+import { fileURLToPath } from "node:url";
+import path from "path";
+import { runTest, throwTest } from "../run-test.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 it("style test", function () {
   runTest(__dirname, "style");
@@ -57,7 +62,7 @@ it("pseudo value is not object", function () {
 });
 
 it("missing argument", function () {
-  throwTest(__dirname, "no-args", "webStyleSheet function has 1 parameter");
+  throwTest(__dirname, "no-args", "styleSheet function has 1 parameter");
 });
 
 it("arg is not an object", function () {

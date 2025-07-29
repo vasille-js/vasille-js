@@ -1,9 +1,9 @@
-import { Reactive } from "../core/core";
-import { IValue } from "../core/ivalue";
-import { SetModel } from "../models/set-model";
-import { Reference } from "../value/reference";
-import { userError } from "../core/errors";
-import { Runner } from "./runner";
+import { Reactive } from "../core/core.js";
+import { IValue } from "../core/ivalue.js";
+import { SetModel } from "../models/set-model.js";
+import { Reference } from "../value/reference.js";
+import { userError } from "../core/errors.js";
+import { Runner } from "./runner.js";
 
 /**
  * This class is symbolic
@@ -14,10 +14,10 @@ export abstract class Root<Node, Element, TagOptions extends object, T extends o
      * The children list
      * @type Array
      */
-    public children: Set<Fragment<Node, Element, TagOptions>>;
-    public lastChild: Fragment<Node, Element, TagOptions> | undefined = undefined;
+    public readonly children: Set<Fragment<Node, Element, TagOptions>>;
+    public readonly runner: Runner<Node, Element, TagOptions>;
 
-    protected runner: Runner<Node, Element, TagOptions>;
+    public lastChild: Fragment<Node, Element, TagOptions> | undefined = undefined;
 
     protected constructor(input: T, runner: Runner<Node, Element, TagOptions>) {
         super(input);
@@ -292,7 +292,7 @@ export abstract class TextNode<Node, Element, TagOptions extends object> extends
 > {
     protected handler: ((v: unknown) => void) | null;
 
-    protected constructor(input: TextProps, runner: Runner<Node, Element, TagOptions>) {
+    public constructor(input: TextProps, runner: Runner<Node, Element, TagOptions>) {
         super(input, runner, ":text");
     }
 
@@ -345,7 +345,7 @@ export abstract class INode<Node, Element, TagOptions extends object> extends Fr
  * @extends INode
  */
 export abstract class Tag<Node, Element, TagOptions extends object> extends INode<Node, Element, TagOptions> {
-    protected constructor(input: TagOptions, runner: Runner<Node, Element, TagOptions>, tagName: string) {
+    public constructor(input: TagOptions, runner: Runner<Node, Element, TagOptions>, tagName: string) {
         super(input, runner, tagName);
     }
 
@@ -463,7 +463,7 @@ export abstract class DebugNode<Node, Element, TagOptions extends object> extend
 > {
     protected handler: ((v: unknown) => void) | null;
 
-    protected constructor(input: DebugProps, runner: Runner<Node, Element, TagOptions>) {
+    public constructor(input: DebugProps, runner: Runner<Node, Element, TagOptions>) {
         super(input, runner, ":debug");
     }
 

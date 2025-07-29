@@ -1,6 +1,6 @@
-import { Fragment } from "./node";
-import { IValue } from "../core/ivalue";
-import { Runner } from "./runner";
+import { Fragment } from "./node.js";
+import { IValue } from "../core/ivalue.js";
+import { Runner } from "./runner.js";
 
 interface WatchOptions<Node, Element, TagOptions extends object, T> {
     model: IValue<T>;

@@ -1,5 +1,5 @@
-import { Listener } from "./listener";
-import { ListenableModel } from "./model";
+import { Listener } from "./listener.js";
+import { ListenableModel } from "./model.js";
 
 /**
  * A Set based model

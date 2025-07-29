@@ -1,5 +1,5 @@
 import { Reference } from "./reference.js";
-import { IValue } from "../core/ivalue";
+import { IValue } from "../core/ivalue.js";
 
 export type KindOfIValue<T extends unknown[]> = {
     [K in keyof T]: IValue<T[K]>;

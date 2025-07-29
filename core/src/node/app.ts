@@ -1,5 +1,5 @@
-import { Fragment, Root } from "./node";
-import { Runner } from "./runner";
+import { Fragment, Root } from "./node.js";
+import { Runner } from "./runner.js";
 
 /**
  * Represents a Vasille.js application

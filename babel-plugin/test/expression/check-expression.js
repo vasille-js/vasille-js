@@ -1,4 +1,4 @@
-import { compose, $ as VasilleDX } from "vasille-dx";
+import { compose, $ as VasilleWeb } from "vasille-web";
 import { Reference } from "vasille";
 function tag(args, count) {
   return args.join("");
@@ -8,10 +8,10 @@ function tag2(a1, a2) {
 }
 export const C = compose(Vasille => {
   const a = Vasille.ref(3, "a");
-  const b = Vasille.own(VasilleDX.ex(Vasille_a => Vasille_a + 1, [a]), "b");
+  const b = Vasille.own(VasilleWeb.ex(Vasille_a => Vasille_a + 1, [a]), "b");
   const s = Vasille.ref("s", "s");
   const f = Vasille.ref(null, "f");
-  const o = VasilleDX.ro(Vasille, {
+  const o = VasilleWeb.ro(Vasille, {
     m: {
       n: 0
     }
@@ -55,4 +55,4 @@ export const C = compose(Vasille => {
     (null, tag2)("test", "2");
     return 2;
   }, [a, b, s, o.m, r, f], "calc");
-}, "VasilleDX:C");
+}, "VasilleWeb:C");

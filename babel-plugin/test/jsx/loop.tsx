@@ -1,4 +1,4 @@
-import { For, compose, Debug } from "vasille-dx";
+import { For, compose, Debug } from "vasille-web";
 
 export const C = compose(() => {
   const a = [1, 2, 3];

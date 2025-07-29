@@ -1,4 +1,4 @@
-import { compose, value, ref, bind, calculate } from "vasille-dx";
+import { compose, value, ref, bind, calculate } from "vasille-web";
 
 export const C = compose(() => {
   let a = ref(2);

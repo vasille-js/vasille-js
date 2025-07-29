@@ -1,5 +1,6 @@
-import { compose } from "vasille-dx";
+import { compose } from "vasille-web";
 
 const C = compose(() => {
+  // @ts-expect-error
   <div onclick />;
 });

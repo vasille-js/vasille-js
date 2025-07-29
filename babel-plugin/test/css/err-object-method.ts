@@ -1,6 +1,6 @@
-import { webStyleSheet } from "vasille-css";
+import { styleSheet } from "vasille-web";
 
-const style = webStyleSheet({
+const style = styleSheet({
   c1: {
     err() {},
   },

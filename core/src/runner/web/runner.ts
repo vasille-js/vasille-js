@@ -4,13 +4,11 @@ import {
     Tag as AbstractTag,
     Runner as IRunner,
     IValue,
-    userError,
-} from "../..";
-import { internalError } from "../../core/errors";
-import { DebugProps, TextProps } from "../../node/node";
-import { AttributeBinding } from "./binding/attribute";
-import { DynamicalClassBinding, StaticClassBinding } from "./binding/class";
-import { stringifyStyleValue, StyleBinding } from "./binding/style";
+} from "../../index.js";
+import { internalError } from "../../core/errors.js";
+import { AttributeBinding } from "./binding/attribute.js";
+import { DynamicalClassBinding, StaticClassBinding } from "./binding/class.js";
+import { stringifyStyleValue, StyleBinding } from "./binding/style.js";
 
 export type AttrType<T> = IValue<T | string | null> | T | string | null | undefined;
 export type StyleType<T> = T | number | number[] | IValue<string | number | number[]>;
@@ -26,13 +24,8 @@ export interface TagOptions {
 }
 
 export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
+    public readonly runner: Runner;
     protected node: Text;
-    protected runner: Runner;
-
-    public constructor(props: TextProps, runner: Runner) {
-        super(props, runner);
-        this.runner = runner;
-    }
 
     public compose(): void {
         const text = this.input.text;
@@ -59,13 +52,8 @@ export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
 }
 
 export class DebugNode extends AbstractDebugNode<Node, Element, TagOptions> {
+    public readonly runner: Runner;
     protected node: Comment;
-    protected runner: Runner;
-
-    public constructor(props: DebugProps, runner: Runner) {
-        super(props, runner);
-        this.runner = runner;
-    }
 
     public compose(): void {
         const text = this.input.text;
@@ -89,12 +77,7 @@ export class DebugNode extends AbstractDebugNode<Node, Element, TagOptions> {
 }
 
 export class Tag extends AbstractTag<Node, Element, TagOptions> {
-    protected runner: Runner;
-
-    public constructor(props: TagOptions, runner: Runner, tagName: string) {
-        super(props, runner, tagName);
-        this.runner = runner;
-    }
+    public readonly runner: Runner;
 
     public compose(): void {
         if (!this.name) {

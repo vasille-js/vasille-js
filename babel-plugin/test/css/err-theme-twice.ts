@@ -1,6 +1,6 @@
-import { theme, webStyleSheet } from "vasille-css";
+import { theme, styleSheet } from "vasille-web";
 
-const s = webStyleSheet({
+const s = styleSheet({
   c1: {
     margin: [theme("t1", theme("t2", 0))],
   },

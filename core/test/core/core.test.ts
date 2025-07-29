@@ -1,5 +1,5 @@
-import { Expression, IValue, Pointer, Reactive, Reference } from "../../src";
-import { OwningPointer } from "../../src/value/pointer";
+import { Expression, IValue, Pointer, Reactive, Reference } from "../../src/index.js";
+import { OwningPointer } from "../../src/value/pointer.js";
 
 class CoreTest extends Reactive {
     ref0: IValue<number>;

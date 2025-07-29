@@ -1,5 +1,4 @@
 import { Destroyable } from "./destroyable.js";
-import { notOverwritten } from "./errors";
 
 /**
  * Interface which describes a value

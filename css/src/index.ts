@@ -79,7 +79,7 @@ function insertRule(target: number, rule: string) {
     }
 }
 
-export function webStyleSheet<T extends { [k: string]: (string | [number, string])[] }>(
+export function styleSheet<T extends { [k: string]: (string | [number, string])[] }>(
     styles: T,
 ): { [K in keyof T]: string } {
     const result: { [k: string]: string } = {};

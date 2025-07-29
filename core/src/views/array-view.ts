@@ -1,6 +1,6 @@
-import { BaseView, BaseViewOptions } from "./base-view";
-import { ArrayModel } from "../models/array-model";
-import { Fragment } from "../node/node";
+import { BaseView, BaseViewOptions } from "./base-view.js";
+import { ArrayModel } from "../models/array-model.js";
+import { Fragment } from "../node/node.js";
 
 /**
  * Represents a view of an array model

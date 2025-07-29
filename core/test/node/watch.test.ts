@@ -1,6 +1,6 @@
-import { App, Fragment, Reference, Watch } from "../../src";
-import { Runner } from "../../src/runner/web/runner";
-import { page } from "../page";
+import { App, Fragment, Reference, Watch } from "../../src/index.js";
+import { Runner } from "../../src/runner/web/runner.js";
+import { page } from "../page.js";
 
 it("Watch Test", function () {
     const model = new Reference(false);

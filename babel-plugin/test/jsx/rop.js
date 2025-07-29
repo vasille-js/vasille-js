@@ -1,14 +1,14 @@
-import { compose, $ as VasilleDX } from "vasille-dx";
+import { compose, $ as VasilleWeb } from "vasille-web";
 export const C1 = compose((Vasille, {
   a
 }) => {
   console.log(a.$.b);
-}, "VasilleDX:C1");
+}, "VasilleWeb:C1");
 export const C2 = compose(Vasille => {
-  const o = VasilleDX.ro(Vasille, {
+  const o = VasilleWeb.ro(Vasille, {
     b: 1
   }, "o");
   C1(Vasille, {
-    a: VasilleDX.rop(o)
+    a: VasilleWeb.rop(o)
   });
-}, "VasilleDX:C2");
+}, "VasilleWeb:C2");

@@ -1,9 +1,9 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { Internal, VariableState, ctx } from "./internal";
-import { exprCall } from "./lib";
-import { compose, meshExpression } from "./mesh";
-import { bodyHasJsx } from "./jsx-detect";
+import { Internal, VariableState, ctx } from "./internal.js";
+import { exprCall } from "./lib.js";
+import { compose, meshExpression } from "./mesh.js";
+import { bodyHasJsx } from "./jsx-detect.js";
 
 export function transformJsx(
   path: NodePath<types.JSXElement | types.JSXFragment>,

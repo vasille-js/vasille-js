@@ -1,4 +1,4 @@
-import { compose, Debug } from "vasille-dx";
+import { compose, Debug } from "vasille-web";
 
 export const C = compose(() => {
   let a = 3;

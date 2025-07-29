@@ -1,5 +1,5 @@
-import { IValue } from "../core/ivalue";
-import { DebugNode, Tag, TextNode } from "./node";
+import { IValue } from "../core/ivalue.js";
+import { DebugNode, Tag, TextNode } from "./node.js";
 
 export interface Runner<Node, Element, TagOptions extends object> {
     debugUi: boolean;

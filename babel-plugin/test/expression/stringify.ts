@@ -1,5 +1,5 @@
 import { Reference } from "vasille";
-import { calculate, compose, watch } from "vasille-dx";
+import { compose, watch } from "vasille-web";
 
 class Class {
   #obj = {

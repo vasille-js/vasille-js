@@ -1,4 +1,4 @@
-import { arrayModel, compose, mapModel, reactiveObject, ref, setModel } from "vasille-dx";
+import { arrayModel, compose, mapModel, reactiveObject, ref, setModel } from "vasille-web";
 
 export const C = compose(() => {
   let a = 3;

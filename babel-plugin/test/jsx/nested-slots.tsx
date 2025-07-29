@@ -1,4 +1,4 @@
-import { Slot, compose } from "vasille-dx";
+import { Slot, compose } from "vasille-web";
 
 export const C1 = compose(({ slot }: { slot(props: { a: number }): void }) => {
   let a = 0;

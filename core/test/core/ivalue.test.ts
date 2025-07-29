@@ -1,4 +1,4 @@
-import { Reference } from "../../src";
+import { Reference } from "../../src/index.js";
 
 it("ivalue", function () {
     const error = "not-overwritten";

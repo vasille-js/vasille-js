@@ -1,4 +1,4 @@
-import * as DX from "vasille-dx";
+import * as DX from "vasille-web";
 export const C = DX.compose(Vasille => {
   const DX1 = {
     compose() {
@@ -6,4 +6,4 @@ export const C = DX.compose(Vasille => {
     }
   };
   const sum = DX1.compose() + 2;
-}, "VasilleDX:C");
+}, "VasilleWeb:C");

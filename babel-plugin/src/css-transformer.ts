@@ -1,7 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { FnNames, calls } from "./call";
-import { Internal } from "./internal";
+import { FnNames, calls } from "./call.js";
+import { Internal } from "./internal.js";
 
 function tryProcessProp(
   path: NodePath<types.ObjectProperty | types.ObjectMethod | types.SpreadElement>,
@@ -223,7 +223,7 @@ export function findStyleInNode(path: NodePath<types.Node | null | undefined>, i
   if (
     t.isVariableDeclaration(path.node) &&
     path.node.declarations.length === 1 &&
-    calls(path.node.declarations[0].init, ["webStyleSheet"], internal)
+    calls(path.node.declarations[0].init, ["styleSheet"], internal)
   ) {
     const call = path.node.declarations[0].init as types.CallExpression;
     const callPath = (path as NodePath<types.VariableDeclaration>)
@@ -232,7 +232,7 @@ export function findStyleInNode(path: NodePath<types.Node | null | undefined>, i
     const objPath = callPath.get("arguments")[0] as NodePath<types.ObjectExpression>;
 
     if (call.arguments.length !== 1) {
-      throw callPath.buildCodeFrameError("Vasille: webStyleSheet function has 1 parameter");
+      throw callPath.buildCodeFrameError("Vasille: styleSheet function has 1 parameter");
     }
     if (!t.isObjectExpression(call.arguments[0])) {
       throw objPath.buildCodeFrameError("Vasille: Expected object expression");

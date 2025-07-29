@@ -1,20 +1,9 @@
-import type { PropertiesHyphenFallback } from "csstype";
-
 export declare function setMobileMaxWidth(value: number): void;
 export declare function setTabletMaxWidth(value: number): void;
 export declare function setLaptopMaxWidth(value: number): void;
 
-type PropsSet = PropertiesHyphenFallback<number | number[], string> & {
-    [k: `--${string}`]: string;
-};
-type PseudoSet = PropsSet & {
-    [k: `:${string}`]: PropsSet;
-};
-type MediaSet = PseudoSet & {
-    [k: `@${string}`]: PseudoSet;
-};
-export declare function webStyleSheet<T extends {
-    [k: string]: MediaSet;
+export declare function styleSheet<T extends {
+    [className: string]: unknown;
 }>(styles: T): {
     [K in keyof T]: string;
 };

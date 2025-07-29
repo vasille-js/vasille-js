@@ -1,3 +1,4 @@
-import { webStyleSheet } from "vasille-css";
+import { styleSheet } from "vasille-web";
 
-const s = webStyleSheet([]);
+// @ts-expect-error
+const s = styleSheet([]);

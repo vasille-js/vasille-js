@@ -1,5 +1,5 @@
 import { Reference } from "vasille";
-import { compose } from "vasille-dx";
+import { compose } from "vasille-web";
 
 const obj = new Reference({
   nested: new Reference(2),

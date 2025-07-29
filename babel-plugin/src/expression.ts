@@ -1,7 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { calls, composeOnly } from "./call";
-import { Internal, StackedStates, VariableScope, VariableState } from "./internal";
+import { calls, composeOnly } from "./call.js";
+import { Internal, StackedStates, VariableScope, VariableState } from "./internal.js";
 
 interface Search {
   found: Map<string, types.Expression>;
@@ -157,7 +157,9 @@ function meshLValue(
     meshMember(path as NodePath<types.MemberExpression | types.OptionalMemberExpression>, internal);
   } else if (t.isArrayPattern(node)) {
     for (const item of (path as NodePath<types.ArrayPattern>).get("elements")) {
-      meshLValue(item, internal);
+      if (t.isOptionalMemberExpression(item.node) || t.isLVal(item.node)) {
+        meshLValue(item as  NodePath<types.OptionalMemberExpression | types.LVal | null | undefined>, internal);
+      }
     }
   } else if (t.isRestElement(node)) {
     meshLValue((path as NodePath<types.RestElement>).get("argument"), internal);
@@ -417,7 +419,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
             checkOrIgnoreExpression(path.get("key"), search);
           }
           checkOrIgnoreExpression<
-            types.ArrayPattern | types.AssignmentPattern | types.ObjectPattern | types.RestElement
+            types.ArrayPattern | types.AssignmentPattern | types.ObjectPattern | types.RestElement | types.VoidPattern
           >(valuePath, search);
         } else if (t.isObjectMethod(prop)) {
           checkFunction(propPath as NodePath<types.ObjectMethod>, search);
@@ -450,7 +452,7 @@ export function checkStatements(paths: NodePath<types.Statement>[], search: Sear
   }
 }
 
-function ignoreLocals(val: types.LVal | types.VariableDeclaration, search: Search) {
+function ignoreLocals(val: types.LVal | types.VariableDeclaration | types.VoidPattern, search: Search) {
   if (t.isIdentifier(val)) {
     search.stack.set(val.name, VariableState.Ignored);
   } else if (t.isObjectPattern(val)) {
@@ -465,13 +467,15 @@ function ignoreLocals(val: types.LVal | types.VariableDeclaration, search: Searc
     }
   } else if (t.isArrayPattern(val)) {
     for (const element of val.elements) {
-      if (element) {
+      if (element && !t.isVoidPattern(element)) {
         ignoreLocals(element, search);
       }
     }
   } else if (t.isVariableDeclaration(val)) {
     for (const declarator of val.declarations) {
-      ignoreLocals(declarator.id, search);
+      if (!t.isVoidPattern(declarator.id)) {
+        ignoreLocals(declarator.id, search);
+      }
     }
   }
 }

@@ -1,10 +1,10 @@
-import { compose, For, $ as VasilleDX } from "vasille-dx";
+import { compose, For, $ as VasilleWeb } from "vasille-web";
 const C = compose(function C(Vasille, {
-  name = VasilleDX.r("name"),
+  name = VasilleWeb.r("name"),
   ["data"]: d,
   ...rest
 }) {
-  const model = VasilleDX.am(Vasille, [{
+  const model = VasilleWeb.am(Vasille, [{
     name: "name1",
     data: {
       id: "x",
@@ -48,4 +48,4 @@ const C = compose(function C(Vasille, {
       console.log(id, width, rest.height, name, rest2.more);
     }
   });
-}, "VasilleDX:C");
+}, "VasilleWeb:C");

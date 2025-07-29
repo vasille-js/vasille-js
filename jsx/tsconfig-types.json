@@ -5,9 +5,9 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "outDir": "types",
-    "target": "ES2015",
-    "module": "ES6",
-    "moduleResolution": "Node",
+    "target": "ES2020",
+    "module": "node16",
+    "moduleResolution": "node16",
     "skipLibCheck": true,
     "strictNullChecks": true,
     "types": [

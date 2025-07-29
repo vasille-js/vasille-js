@@ -1,5 +1,5 @@
 import * as Babel from "@babel/core";
-import { trProgram } from "./transformer";
+import { trProgram } from "./transformer.js";
 
 export default function (): Babel.PluginObj<{ opts: { devMode: unknown } }> {
   return {

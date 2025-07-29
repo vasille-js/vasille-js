@@ -1,4 +1,4 @@
-import { bind, calculate, compose } from "vasille-dx";
+import { bind, calculate, compose } from "vasille-web";
 import { Reference } from "vasille";
 
 function tag(args: TemplateStringsArray, count: number): string {

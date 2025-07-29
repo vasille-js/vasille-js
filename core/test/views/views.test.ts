@@ -1,6 +1,6 @@
-import { App, ArrayModel, ArrayView, Fragment, MapModel, MapView, SetModel, SetView } from "../../src";
-import { Runner } from "../../src/runner/web/runner";
-import { page } from "../page";
+import { App, ArrayModel, ArrayView, MapModel, MapView, SetModel, SetView } from "../../src/index.js";
+import { Runner } from "../../src/runner/web/runner.js";
+import { page } from "../page.js";
 
 it("array view", function () {
     const window = page();

@@ -1,4 +1,4 @@
-import { compose } from "vasille-dx";
+import { compose } from "vasille-web";
 export const C = compose(Vasille => {
   const a = Vasille.ref("a", "a");
   Vasille.tag("div", {
@@ -11,4 +11,4 @@ export const C = compose(Vasille => {
       }
     }
   });
-}, "VasilleDX:C");
+}, "VasilleWeb:C");

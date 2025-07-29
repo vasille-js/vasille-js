@@ -1,4 +1,4 @@
-import { calculate, compose } from "vasille-dx";
+import { calculate, compose } from "vasille-web";
 
 export const C = compose(() => {
   const c = calculate(() => {

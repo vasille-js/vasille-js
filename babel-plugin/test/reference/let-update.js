@@ -1,4 +1,4 @@
-import { compose } from "vasille-dx";
+import { compose } from "vasille-web";
 export const C = compose(Vasille => {
   const count = Vasille.ref(1, "count");
   function inc() {
@@ -6,4 +6,4 @@ export const C = compose(Vasille => {
     count.$ = count.$ + 1;
     count.$ = parseInt(count.$.toFixed(0));
   }
-}, "VasilleDX:C");
+}, "VasilleWeb:C");

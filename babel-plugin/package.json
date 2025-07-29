@@ -3,7 +3,7 @@
   "version": "0.99.5",
   "description": "Convert Vasille Meta Language code to pure JavaScript",
   "main": "lib-node/index.js",
-  "type": "commonjs",
+  "type": "module",
   "exports": {
     "import": "./lib-node/index.js",
     "browser": "./lib/index.js",
@@ -15,9 +15,9 @@
     "prettier": "prettier src test/**/*.ts* --write",
     "build": "tsc --build tsconfig-build.json",
     "build-node": "tsc --build tsconfig-build-node.json",
-    "tsc-tests": "tsc --build tsconfig-tsc-tests.json",
-    "test": "jest",
-    "test-coverage": "jest --coverage"
+    "tsc-tests": "tsc --build test/tsconfig.json",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test-coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
   },
   "keywords": [
     "front-end",
@@ -33,21 +33,24 @@
   },
   "homepage": "https://github.com/vasille-js/vasille-js#readme",
   "devDependencies": {
-    "@babel/parser": "^7.26.1",
-    "@babel/plugin-syntax-jsx": "^7.25.9",
-    "@babel/plugin-transform-typescript": "^7.25.9",
-    "@babel/types": "^7.26.0",
+    "@babel/parser": "^7.28.0",
+    "@babel/plugin-syntax-jsx": "^7.27.1",
+    "@babel/plugin-transform-typescript": "^7.28.0",
+    "@babel/types": "^7.28.2",
     "@types/babel__core": "^7.20.5",
-    "@types/jest": "^29.5.14",
+    "@types/jest": "^30.0.0",
     "@types/jsdom": "^21.1.7",
-    "@types/node": "^22.8.1",
-    "jest": "^29.7.0",
-    "jsdom": "^25.0.1",
+    "@types/node": "^24.1.0",
+    "cross-env": "^10.0.0",
+    "jest": "^30.0.5",
+    "jsdom": "^26.1.0",
     "path": "^0.12.7",
-    "prettier": "^3.3.3",
-    "ts-jest": "^29.2.5",
-    "typescript": "^5.6.3",
-    "vasille-css": "^3.0.3",
-    "vasille-dx": "file:../dx"
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.8.3",
+    "vasille": "file:../core",
+    "vasille-css": "file:../css",
+    "vasille-dx": "file:../dx",
+    "vasille-web": "file:../web"
   }
 }

@@ -1,5 +1,5 @@
-import { IValue } from "../core/ivalue";
-import { reportError } from "../functional/safety";
+import { IValue } from "../core/ivalue.js";
+import { reportError } from "../functional/safety.js";
 
 /**
  * Declares a notifiable value

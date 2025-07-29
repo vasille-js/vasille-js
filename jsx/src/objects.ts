@@ -1,5 +1,5 @@
 import { IValue, Reactive, Reference } from "vasille";
-import { ensureIValue } from "./library";
+import { ensureIValue } from "./library.js";
 
 export class ProxyReference extends Reference<unknown> {
     public forceUpdate() {
@@ -103,7 +103,6 @@ export function reactiveObjectProxy<T extends { [k: string | symbol]: IValue<unk
         },
     }) as { [K in keyof T]: T[K] extends IValue<infer R> ? R : never };
 }
-
 
 export function stateReactiveObject<T extends object>(
     o: T,

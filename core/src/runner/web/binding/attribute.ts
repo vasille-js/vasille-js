@@ -1,6 +1,6 @@
-import { Binding } from "./binding";
-import type { INode } from "../../../node/node";
-import type { IValue } from "../../../core/ivalue";
+import { Binding } from "./binding.js";
+import type { INode } from "../../../node/node.js";
+import type { IValue } from "../../../core/ivalue.js";
 
 /**
  * Represents an Attribute binding description

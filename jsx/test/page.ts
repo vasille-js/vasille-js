@@ -1,22 +1,21 @@
 import { JSDOM } from "jsdom";
 import { App, Fragment } from "vasille";
-
-export const page = new JSDOM(`
-<html>
-    <head>
-    </head>
-    <body>
-    </body>
-</html>
-`);
-
-global.document = page.window.document;
-global.HTMLElement = page.window.HTMLElement;
+import { Runner } from "vasille/web-runner";
 
 export function createNode() {
-    const node = new Fragment({});
+    const page = new JSDOM(`
+        <html>
+            <head>
+            </head>
+            <body>
+            </body>
+        </html>
+    `);
+    const runner = new Runner(true, page.window.document);
+    const node = new Fragment({}, runner);
 
-    node.parent = new App(page.window.document.body, {});
+    node.parent = new App(page.window.document.body, runner, {});
+    global.HTMLElement = page.window.HTMLElement;
 
-    return node;
+    return [node, page.window] as const;
 }

@@ -4,9 +4,9 @@
   "compilerOptions": {
     "allowJs": true,
     "declaration": false,
-    "target": "ES2015",
-    "module": "ES6",
-    "moduleResolution": "Node",
+    "target": "ES2020",
+    "module": "node16",
+    "moduleResolution": "node16",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strictNullChecks": true,

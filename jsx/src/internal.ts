@@ -1,6 +1,6 @@
 import { IValue, proxyArrayModel, Reactive, KindOfIValue, Expression, Pointer, Reference } from "vasille";
-import { reactiveObject, reactiveObjectProxy, stateReactiveObject } from "./objects";
-import { ContextArray, ContextMap, ContextSet } from "./models";
+import { reactiveObject, reactiveObjectProxy, stateReactiveObject } from "./objects.js";
+import { ContextArray, ContextMap, ContextSet } from "./models.js";
 
 export const internal = {
     /** create an expression (without context), use it for OwningPointer */
@@ -8,7 +8,7 @@ export const internal = {
         return new Expression(func, values);
     },
     /** create a forward-only pointer (without context), use it for OwningPointer */
-    fo<T>(v: IValue<T>|T): IValue<T> {
+    fo<T>(v: IValue<T> | T): IValue<T> {
         return new Pointer(v instanceof Reference ? v : new Reference(v));
     },
     /** create a reference (without context), use it for default composing props values */

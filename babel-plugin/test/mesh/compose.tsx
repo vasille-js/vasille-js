@@ -1,4 +1,4 @@
-import { arrayModel, awaited, compose, For } from "vasille-dx";
+import { compose, For } from "vasille-web";
 
 interface Props {
   name: string;

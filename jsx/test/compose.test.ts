@@ -1,11 +1,11 @@
-import { Fragment, IValue, Reference, setErrorHandler } from "vasille";
-import { compose, extend, mount } from "../src";
-import { page } from "./page";
-import { readValue } from "../src/components";
+import { Fragment, IValue, setErrorHandler } from "vasille";
+import { compose, mount } from "../src/index.js";
+import { readValue } from "../src/components.js";
+import { createNode } from "./page.js";
 
 interface Props {
     className?: IValue<string>;
-    slot?(node: Fragment): void;
+    slot?(node: Fragment<Node, Element, object>): void;
 }
 
 const component = compose(function (f, $: Props) {
@@ -21,16 +21,17 @@ const component = compose(function (f, $: Props) {
 }, "test");
 
 it("compose test", function () {
-    const body = page.window.document.body;
+    const [node, window] = createNode();
+    const body = window.document.body;
     let div!: Element;
 
-    mount(body, component, { callback: node => (div = node as Element) });
-    expect(div instanceof page.window.Element).toBe(true);
+    mount(body, component, node.runner, { callback: node => (div = node as Element) });
+    expect(div instanceof window.Element).toBe(true);
     expect(div.children.length).toBe(0);
 
-    mount(body, component, {
+    mount(body, component, node.runner, {
         callback: node => (div = node as Element),
-        slot(f: Fragment) {
+        slot(f: Fragment<Node, Element, object>) {
             f.tag("div", { class: ["1"] });
         },
     });
@@ -38,10 +39,10 @@ it("compose test", function () {
     expect(div.children.length).toBe(1);
     expect(div.children[0].className).toBe("1");
 
-    mount(body, component, {
+    mount(body, component, node.runner, {
         callback: node => (div = node as Element),
-        slot(f: Fragment) {
-            component(f, {}, function (f: Fragment) {
+        slot(f: Fragment<Node, Element, object>) {
+            component(f, {}, function (f: Fragment<Node, Element, object>) {
                 f.tag("div", { class: ["2"] });
             });
         },
@@ -52,25 +53,8 @@ it("compose test", function () {
     expect(div.children[0].children[0].className).toBe("2");
 });
 
-it("extend test", function () {
-    const extension = extend(function (f) {
-        f.tag("div", { class: ["ext"] });
-    }, "extension");
-    const body = page.window.document.body;
-    let div!: Element;
-
-    mount(body, component, {
-        callback: node => (div = node as Element),
-        className: new Reference("class2"),
-        slot(f: Fragment) {
-            extension(f, {});
-        },
-    });
-
-    expect(div.className).toBe("class2 ext");
-});
-
 it("throw test", function () {
+    const [node, window] = createNode();
     const e = new Error("test");
     const throwC = compose(function ($) {
         throw e;
@@ -79,6 +63,6 @@ it("throw test", function () {
 
     setErrorHandler(e => (handled = e as Error));
 
-    mount(page.window.document.body, throwC, {});
+    mount(window.document.body, throwC, node.runner, {});
     expect(handled).toBe(e);
 });

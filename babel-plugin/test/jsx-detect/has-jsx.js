@@ -1,4 +1,4 @@
-import { compose, Slot } from "vasille-dx";
+import { compose, Slot } from "vasille-web";
 export const C = compose((Vasille, {
   slot01
 }) => {
@@ -7,7 +7,7 @@ export const C = compose((Vasille, {
     a: 1,
     b: 2
   });
-}, "VasilleDX:C");
+}, "VasilleWeb:C");
 export const C1 = compose(Vasille => {
   C(Vasille, {
     slot01: ({
@@ -133,9 +133,9 @@ export const C1 = compose(Vasille => {
         Vasille.tag("div", {});
       }
     },
-    slot14: (_VasilleDX, Vasille) => {
+    slot14: (_VasilleWeb, Vasille) => {
       return Vasille.tag("div", {});
     },
-    slot19: (_VasilleDX, Vasille) => Vasille.tag("div", {})
+    slot19: (_VasilleWeb, Vasille) => Vasille.tag("div", {})
   });
-}, "VasilleDX:C1");
+}, "VasilleWeb:C1");

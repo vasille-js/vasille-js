@@ -1,5 +1,5 @@
-import { ArrayModel, Destroyable, IValue, MapModel, Reactive, SetModel } from "vasille";
-import { ProxyReference, proxyObject } from "./objects";
+import { ArrayModel, Destroyable, MapModel, Reactive, SetModel } from "vasille";
+import { ProxyReference, proxyObject } from "./objects.js";
 
 const symbol = Symbol("proxy");
 

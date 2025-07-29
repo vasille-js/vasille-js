@@ -1,5 +1,5 @@
-import { BaseView, BaseViewOptions } from "./base-view";
-import { MapModel } from "../models/map-model";
+import { BaseView } from "./base-view.js";
+import { MapModel } from "../models/map-model.js";
 
 /**
  * Create a children pack for each map value

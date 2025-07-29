@@ -1,4 +1,4 @@
-import { compose, Slot } from "vasille-dx";
+import { compose, Slot } from "vasille-web";
 
 export const C = compose(
   ({

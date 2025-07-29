@@ -1,26 +1,10 @@
 import { Expression, Fragment, IValue, Reference } from "vasille";
-import { Adapter, Debug, Delay, Else, ElseIf, For, If, Mount, Show, Slot, Watch } from "../src";
-import { ContextArray, ContextMap, ContextSet } from "../src/models";
-import { createNode } from "./page";
-
-it("Adapter", function () {
-    const node = createNode();
-    const frag = new Fragment({});
-    let test = false;
-
-    Adapter(node, {
-        node: frag,
-        slot(f: Fragment) {
-            expect(f).toBe(frag);
-            test = true;
-        },
-    });
-
-    expect(test).toBe(true);
-});
+import { Debug, Delay, Else, ElseIf, For, If, Slot, Watch } from "../src/index.js";
+import { ContextArray, ContextMap, ContextSet } from "../src/models.js";
+import { createNode } from "./page.js";
 
 it("Slot", function () {
-    const node = createNode();
+    const [node] = createNode();
     let slotTest = false;
     let modelTest = false;
     let modelTest2 = false;
@@ -67,7 +51,7 @@ it("Slot", function () {
 });
 
 it("If - ElseIf - Else", function () {
-    const node = createNode();
+    const [node] = createNode();
     const cond = new Reference(1);
     const ifCont = new Expression((v: number) => v === 1, [cond]);
     const elseCond = new Expression((v: number) => v === 2, [cond]);
@@ -122,7 +106,7 @@ it("If - ElseIf - Else", function () {
 });
 
 it("For", function () {
-    const node = createNode();
+    const [node] = createNode();
     let counter = 0;
 
     function slot() {
@@ -153,14 +137,14 @@ it("For", function () {
 
     const ref = new Reference(new ContextArray([1, 2]));
 
-    For<number[]>(node, { of: ref, slot });
+    For(node, { of: ref, slot });
     expect(counter).toBe(14);
     ref.$ = new ContextArray<number>([4]);
     expect(counter).toBe(15);
 });
 
 it("Watch", function () {
-    const node = createNode();
+    const [node] = createNode();
     const ref = new Reference(1);
     let counter = 0;
 
@@ -176,7 +160,7 @@ it("Watch", function () {
 });
 
 it("Debug", function () {
-    const node = createNode();
+    const [node] = createNode();
     const ref = new Reference(0);
     let element!: Element;
 
@@ -195,69 +179,20 @@ it("Debug", function () {
     expect((element.childNodes[0] as Comment).textContent).toBe("1");
 });
 
-it("Mount", function () {
-    const node = createNode();
-    const ref = new Reference(true);
-    let element!: Element;
-
-    node.tag("div", { callback: n => (element = n) }, function (f) {
-        f.tag("div", {}, function (f) {
-            Mount(f, { bind: ref });
-        });
-        f.tag("div", {}, function (f) {
-            Mount(f, { bind: false });
-        });
-    });
-
-    expect(element.children.length).toBe(1);
-
-    ref.$ = false;
-    expect(element.children.length).toBe(0);
-    ref.$ = true;
-    expect(element.children.length).toBe(1);
-
-    expect(() => Mount(null as any, {} as any)).toThrow("context-mismatch");
-});
-
-it("Show", function () {
-    const node = createNode();
-    const ref = new Reference(true);
-    let element!: HTMLElement;
-
-    node.tag("div", { callback: n => (element = n as HTMLElement) }, function (f) {
-        f.tag("div", { style: { display: "block" } }, function (f) {
-            Show(f, { bind: ref });
-        });
-        f.tag("div", {}, function (f) {
-            Show(f, { bind: false });
-        });
-    });
-
-    expect((element.children[0] as HTMLElement).style.display).toBe("block");
-    expect((element.children[1] as HTMLElement).style.display).toBe("none");
-
-    ref.$ = false;
-    expect((element.children[0] as HTMLElement).style.display).toBe("none");
-    ref.$ = true;
-    expect((element.children[0] as HTMLElement).style.display).toBe("block");
-
-    expect(() => Show(null as any, {} as any)).toThrow("context-mismatch");
-});
-
 it("Delay", function (done) {
-    const node = createNode();
+    const [node] = createNode();
     let element!: HTMLElement;
 
     node.tag("div", { callback: n => (element = n as HTMLElement) }, function (f) {
         Delay(f, {
             time: 10,
-            slot(f: Fragment) {
+            slot(f: Fragment<Node, Element, object>) {
                 f.tag("div", {});
             },
         });
         Delay(f, {
             time: 20,
-            slot(f: Fragment) {
+            slot(f: Fragment<Node, Element, object>) {
                 f.tag("div", {});
             },
         });

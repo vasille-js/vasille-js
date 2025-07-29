@@ -1,12 +1,12 @@
-import { compose, $ as VasilleDX } from "vasille-dx";
+import { compose, $ as VasilleWeb } from "vasille-web";
 const obj = {
   a: 1,
   b: 2
 };
 export const S = () => {
-  const a = VasilleDX.r(2);
-  const b = VasilleDX.fo(VasilleDX.r(3));
-  const o = VasilleDX.sro({
+  const a = VasilleWeb.r(2);
+  const b = VasilleWeb.fo(VasilleWeb.r(3));
+  const o = VasilleWeb.sro({
     a: 1,
     b: {
       c: 3
@@ -14,7 +14,7 @@ export const S = () => {
   });
   return {
     $a: a,
-    $b: VasilleDX.fo(b),
+    $b: VasilleWeb.fo(b),
     $$o: o
   };
 };
@@ -36,4 +36,4 @@ const Component = compose(Vasille => {
     Vasille.text(o1.a);
     Vasille.text(o2.a);
   });
-}, "VasilleDX:Component");
+}, "VasilleWeb:Component");

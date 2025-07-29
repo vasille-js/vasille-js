@@ -1,7 +1,7 @@
-import { compose, $ as VasilleDX } from "vasille-dx";
+import { compose, $ as VasilleWeb } from "vasille-web";
 export const C = compose(Vasille => {
   const a = Vasille.ref(1, "a");
-  const o = VasilleDX.ro(Vasille, {
+  const o = VasilleWeb.ro(Vasille, {
     b: 1
   }, "o");
   const c = Vasille.expr(Vasille_a => {
@@ -41,4 +41,4 @@ export const C = compose(Vasille => {
     }
     return 0;
   }, [a], "c");
-}, "VasilleDX:C");
+}, "VasilleWeb:C");

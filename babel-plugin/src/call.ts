@@ -1,6 +1,6 @@
 import { types } from "@babel/core";
 import * as t from "@babel/types";
-import { Internal, ctx } from "./internal";
+import { Internal, ctx } from "./internal.js";
 
 export type FnNames =
   | "compose"
@@ -24,7 +24,7 @@ export type FnNames =
   | "laptop"
   | "prefersDark"
   | "prefersLight"
-  | "webStyleSheet";
+  | "styleSheet";
 
 export const composeOnly: FnNames[] = [
   "forward",
@@ -46,7 +46,7 @@ export const styleOnly: FnNames[] = [
   "laptop",
   "prefersDark",
   "prefersLight",
-  "webStyleSheet",
+  "styleSheet",
 ];
 export const requiresContext: FnNames[] = ["awaited"];
 const requiresContextSet: Set<string> = new Set(requiresContext);
@@ -76,7 +76,6 @@ export function calls(node: types.Expression | null | undefined, names: FnNames[
     }
 
     const global = internal.stack.get(internal.global) === undefined;
-    const cssGlobal = internal.stack.get(internal.cssGlobal) === undefined;
 
     let propName: string | null = null;
 
@@ -93,9 +92,6 @@ export function calls(node: types.Expression | null | undefined, names: FnNames[
         if (requiresContextSet.has(propName) && t.isCallExpression(node)) {
           node.arguments.unshift(ctx);
         }
-        return callee.object.name;
-      }
-      if (cssGlobal && callee.object.name === internal.cssGlobal && set.has(propName)) {
         return callee.object.name;
       }
     }

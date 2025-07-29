@@ -18,22 +18,14 @@ export function readValue<T>(v: T | IValue<T>): T {
     return v instanceof IValue ? v.$ : v;
 }
 
-export function Adapter(ctx: Fragment, { node, slot }: Magic<{ node: Fragment; slot?: (ctx: Fragment) => void }>) {
-    const dNode = readValue(node);
-    const dSlot = readValue(slot);
-
-    if (dNode && dSlot) {
-        ctx.create(dNode, dSlot);
-    }
+interface SlotOptions<Node, Element, TagOptions extends object, T extends object> {
+    model?: (input: T, ctx: Fragment<Node, Element, TagOptions>) => void;
+    slot?: (ctx: Fragment<Node, Element, TagOptions>) => void;
 }
 
-export function Slot<T extends object = {}>(
-    ctx: Fragment,
-    options: Magic<{
-        model?: (input: T, ctx: Fragment) => void;
-        slot?: (ctx: Fragment) => void;
-    }> &
-        T,
+export function Slot<Node, Element, TagOptions extends object, T extends object = {}>(
+    ctx: Fragment<Node, Element, TagOptions>,
+    options: Magic<SlotOptions<Node, Element, TagOptions, T>> & T,
 ) {
     const model = readValue(options.model);
 
@@ -58,22 +50,37 @@ export function Slot<T extends object = {}>(
     }
 }
 
-export function If(ctx: Fragment, { condition, slot: magicSlot }: Magic<{ condition: unknown; slot?: () => void }>) {
+interface IfOptions {
+    condition: unknown;
+    slot?: () => void;
+}
+
+export function If<Node, Element, TagOptions extends object>(
+    ctx: Fragment<Node, Element, TagOptions>,
+    { condition, slot: magicSlot }: Magic<IfOptions>,
+) {
     const slot = readValue(magicSlot);
 
     ctx.if(condition instanceof IValue ? (condition as IValue<unknown>) : ctx.ref(condition), slot ?? (() => {}));
 }
 
-export function ElseIf(
-    ctx: Fragment,
-    { condition, slot: magicSlot }: Magic<{ condition: unknown; slot?: () => void }>,
+export function ElseIf<Node, Element, TagOptions extends object>(
+    ctx: Fragment<Node, Element, TagOptions>,
+    { condition, slot: magicSlot }: Magic<IfOptions>,
 ) {
     const slot = readValue(magicSlot);
 
     ctx.elif(condition instanceof IValue ? (condition as IValue<unknown>) : ctx.ref(condition), slot ?? (() => {}));
 }
 
-export function Else(ctx: Fragment, { slot: magicSlot }: Magic<{ slot?: () => void }>) {
+interface ElseOptions {
+    slot?: () => void;
+}
+
+export function Else<Node, Element, TagOptions extends object>(
+    ctx: Fragment<Node, Element, TagOptions>,
+    { slot: magicSlot }: Magic<ElseOptions>,
+) {
     const slot = readValue(magicSlot);
 
     if (slot) {
@@ -81,51 +88,74 @@ export function Else(ctx: Fragment, { slot: magicSlot }: Magic<{ slot?: () => vo
     }
 }
 
+interface ForOptions<Node, Element, TagOptions extends object, T, K, V> {
+    of: T;
+    slot?: (ctx: Fragment<Node, Element, TagOptions>, value: T, index: K) => void;
+}
+
 export function For<
+    Node,
+    Element,
+    TagOptions extends object,
     T extends Set<unknown> | Map<unknown, unknown> | unknown[],
     K = T extends unknown[] ? number : T extends Set<infer R> ? R : T extends Map<infer R, unknown> ? R : never,
     V = T extends (infer R)[] ? R : T extends Set<infer R> ? R : T extends Map<unknown, infer R> ? R : never,
->(ctx: Fragment, { of, slot: magicSlot }: Magic<{ of: T; slot?: (ctx: Fragment, value: T, index: K) => void }>) {
+>(
+    ctx: Fragment<Node, Element, TagOptions>,
+    { of, slot: magicSlot }: Magic<ForOptions<Node, Element, TagOptions, T, K, V>>,
+) {
     const slot = readValue(magicSlot);
 
     if (of instanceof IValue) {
         ctx.create(
-            new CoreWatch({
-                model: of,
-                slot: function (ctx, model) {
-                    create(model, ctx);
+            new CoreWatch<Node, Element, TagOptions, T>(
+                {
+                    model: of,
+                    slot: function (ctx, model) {
+                        create(model, ctx);
+                    },
                 },
-            }),
+                ctx.runner,
+            ),
         );
     } else if (of) {
         create(of, ctx);
     }
 
-    function create(model: T, node: Fragment) {
+    function create(model: T, node: Fragment<Node, Element, TagOptions>) {
         if (!slot) {
             return;
         }
 
         if (model instanceof ArrayModel) {
             node.create(
-                new ArrayView<V>({
-                    model,
-                    slot: slot as unknown as (ctx: Fragment<object>, value: V, index: V) => void,
-                }),
+                new ArrayView(
+                    {
+                        model,
+                        slot: slot as unknown as (ctx: Fragment<Node, Element, TagOptions>, value: V, index: V) => void,
+                    },
+                    node.runner,
+                ),
             );
         } else if (model instanceof MapModel) {
             node.create(
-                new MapView({
-                    model,
-                    slot,
-                }),
+                new MapView(
+                    {
+                        model,
+                        slot,
+                    },
+                    node.runner,
+                ),
             );
         } else if (model instanceof SetModel) {
             node.create(
-                new SetView({
-                    model,
-                    slot,
-                }),
+                new SetView(
+                    {
+                        model,
+                        slot,
+                    },
+                    node.runner,
+                ),
             );
         }
         // fallback if is used external Array/Map/Set
@@ -151,41 +181,45 @@ export function For<
     }
 }
 
-export function Watch<T>(
-    ctx: Fragment,
-    { model, slot: magicSlot }: Magic<{ model: T; slot?: (ctx: Fragment, value: T) => void }>,
+interface WatchOptions<Node, Element, TagOptions extends object, T> {
+    model: T;
+    slot?: (ctx: Fragment<Node, Element, TagOptions>, value: T) => void;
+}
+
+export function Watch<Node, Element, TagOptions extends object, T>(
+    ctx: Fragment<Node, Element, TagOptions>,
+    { model, slot: magicSlot }: Magic<WatchOptions<Node, Element, TagOptions, T>>,
 ) {
     const slot = readValue(magicSlot);
 
     if (slot && model instanceof IValue) {
-        ctx.create(new CoreWatch({ model, slot }));
+        ctx.create(new CoreWatch({ model, slot }, ctx.runner));
     }
 }
 
-export function Debug(ctx: Fragment, { model }: { model: unknown }) {
+interface DebugOptions {
+    model: unknown;
+}
+
+export function Debug<Node, Element, TagOptions extends object>(
+    ctx: Fragment<Node, Element, TagOptions>,
+    { model }: DebugOptions,
+) {
     const value = model instanceof IValue ? model : ctx.ref(model);
 
     ctx.debug(value as IValue<unknown>);
 }
 
-export function Mount(ctx: Fragment, { bind }: Magic<{ bind: unknown }>) {
-    if (!(ctx instanceof Tag)) {
-        throw userError("<Mount bind/> can be used only as direct child of html tags", "context-mismatch");
-    }
-
-    ctx.bindMount(bind instanceof IValue ? (bind as IValue<unknown>) : ctx.ref(bind));
+interface DelayOptions<Node, Element, TagOptions extends object> {
+    time?: number;
+    slot?: (ctx: Fragment<Node, Element, TagOptions>) => unknown;
 }
 
-export function Show(ctx: Fragment, { bind }: Magic<{ bind: unknown }>) {
-    if (!(ctx instanceof Tag)) {
-        throw userError("<Show bind/> can be used only as direct child of html tags", "context-mismatch");
-    }
-
-    ctx.bindShow(bind instanceof IValue ? (bind as IValue<unknown>) : ctx.ref(bind));
-}
-
-export function Delay(ctx: Fragment, { time, slot }: Magic<{ time?: number; slot?: (ctx: Fragment) => unknown }>) {
-    const fragment = new Fragment({}, ":timer");
+export function Delay<Node, Element, TagOptions extends object>(
+    ctx: Fragment<Node, Element, TagOptions>,
+    { time, slot }: Magic<DelayOptions<Node, Element, TagOptions>>,
+) {
+    const fragment = new Fragment({}, ctx.runner, ":timer");
     const dSlot = readValue(slot);
     let timer: number | undefined;
 

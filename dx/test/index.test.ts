@@ -1,47 +1,47 @@
 import { JSDOM } from "jsdom";
 import { Fragment, IValue } from "vasille";
+import { Runner } from "vasille/web-runner";
 import {
     compose,
-    extend,
     mount,
-    Adapter,
     Slot,
     Watch,
     awaited,
     $,
-    Mount,
-    Show,
     ElseIf,
     For,
     If,
     Else,
     Delay,
     Debug,
-} from "../src";
-const page = new JSDOM(`
-<html>
-    <head>
-    </head>
-    <body>
-    </body>
-</html>
-`);
+} from "../src/index.js";
 
-global.document = page.window.document;
-global.HTMLElement = page.window.HTMLElement;
+function page() {
+    const page = new JSDOM(`
+        <html>
+            <head>
+            </head>
+            <body>
+            </body>
+        </html>
+    `);
+
+    global.HTMLElement = page.window.HTMLElement;
+
+    return page.window;
+}
 
 /**
  * This test is to ensure that all required functional is imported from vasille-jsx
  */
 it("test exported functions", function (done) {
     let el!: HTMLElement;
-    const component = compose(function (f: Fragment, p: { slot: (o: object, f: Fragment) => void }) {
+    const window = page();
+    const runner = new Runner(true, window.document);
+    const component = compose(function (f: Fragment<Node, Element, object>, p: { slot: (o: object, f: Fragment<Node, Element, object>) => void }) {
         f.tag("div", { callback: n => (el = n as HTMLElement) }, function (f) {
-            Mount(f, { bind: true });
-            Show(f, { bind: true });
             Slot(f, { model: p.slot });
         });
-        Adapter(f, { node: new Fragment({}), slot() {} });
         Debug(f, {} as any);
         Delay(f, {} as any);
         If(f, {} as any);
@@ -50,19 +50,14 @@ it("test exported functions", function (done) {
         For(f, {} as any);
         Watch(f, {} as any);
     }, "test");
-    const extension = extend(function (f: Fragment) {
-        f.tag("div", { class: ["ext"] });
-    }, "ext");
 
-    mount(page.window.document.body, component, {
-        slot(o, f) {
-            extension(f, {});
-        },
+    mount(window.document.body, component, runner, {
+        slot(o, f) {},
     });
 
-    expect(el.className).toBe("ext");
+    expect(el.className).toBe("");
 
-    const frag = new Fragment({});
+    const frag = new Fragment({}, runner);
     const promise = new Promise(rv => {
         rv(2);
     });
