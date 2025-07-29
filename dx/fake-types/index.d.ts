@@ -82,4 +82,4 @@ declare function calculate<T>(f: () => T): T;
 
 declare function watch(f: () => void): void;
 
-declare function awaited<T>(target: Promise<T> | (() => Promise<T>)): [unknown, T|undefined];
+declare function awaited<T>(target: Promise<T> | (() => Promise<T>)): [unknown, T|undefined, () => void];

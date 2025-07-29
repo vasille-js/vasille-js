@@ -362,7 +362,7 @@ export function meshStatements(paths: NodePath<types.Statement>[], internal: Int
   }
 }
 
-export function ignoreParams(val: types.LVal |  types.VoidPattern, internal: Internal) {
+export function ignoreParams(val: types.LVal | types.VoidPattern, internal: Internal) {
   if (t.isAssignmentPattern(val)) {
     val = val.left;
   }
@@ -396,15 +396,18 @@ function ignoreObjectPattern(pattern: types.ObjectPattern, internal: Internal) {
   }
 }
 
-export function reactiveArrayPattern(expr: types.LVal | types.OptionalMemberExpression | types.VoidPattern, internal: Internal) {
-  if (t.isArrayPattern(expr)) {
-    for (const element of expr.elements) {
+export function reactiveArrayPattern(
+  path: NodePath<types.LVal | types.OptionalMemberExpression | types.VoidPattern>,
+  internal: Internal,
+) {
+  if (t.isArrayPattern(path.node)) {
+    path.node.elements.forEach((element, index) => {
       if (t.isIdentifier(element)) {
-        internal.stack.set(element.name, VariableState.Reactive);
+        internal.stack.set(element.name, index < 2 ? VariableState.Reactive : VariableState.Ignored);
       }
-    }
-  } else if (t.isIdentifier(expr)) {
-    internal.stack.set(expr.name, VariableState.ReactiveObject);
+    });
+  } else {
+    throw path.buildCodeFrameError("Vasille: Expected array pattern");
   }
 }
 
@@ -809,17 +812,15 @@ export function composeStatement(
         }
 
         function idDoubleName(): [string, string] {
-          if (t.isArrayPattern(id) && id.elements.length === 2) {
-            return [idName(id.elements[0]), idName(id.elements[1])];
-          }
+          const pattern = id as types.ArrayPattern;
 
-          return ["#", "#"];
+            return [idName(pattern.elements[0]), idName(pattern.elements[1])];
         }
 
         ignoreParams(declaration.node.id, internal);
 
         if (calls(declaration.node.init, ["awaited"], internal)) {
-          reactiveArrayPattern(declaration.node.id, internal);
+          reactiveArrayPattern(declaration.get("id"), internal);
           meshAllUnknown((declaration.get("init") as NodePath<types.CallExpression>).get("arguments"), internal);
           named(declaration.node.init as types.CallExpression, idDoubleName(), internal);
           meshInit = false;

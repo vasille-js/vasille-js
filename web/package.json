@@ -5,10 +5,18 @@
   "main": "index.js",
   "types": "./index.d.ts",
   "exports": {
-    "types": "./types/index.d.ts",
-    "import": "./lib/index.js",
-    "browser": "./lib/index.js",
-    "node": "./lib/index.js"
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./lib/index.js",
+      "browser": "./lib/index.js",
+      "node": "./lib/index.js"
+    },
+    "./jsx-runtime": {
+      "types": "./types/jsx-runtime.d.ts",
+      "import": "./lib/jsx-runtime.js",
+      "browser": "./lib/jsx-runtime.js",
+      "node": "./lib/jsx-runtime.js"
+    }
   },
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
