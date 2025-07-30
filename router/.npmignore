@@ -1,0 +1,8 @@
+src/
+.idea/
+/**.md
+tsconfig.json
+.eslint*
+tsconfig*.json
+*config.cjs
+*.tgz

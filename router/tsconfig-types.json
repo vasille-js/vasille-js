@@ -1,0 +1,18 @@
+{
+  "include": ["src/**/*"],
+
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "types",
+    "moduleResolution": "Node16",
+    "target": "ES2020",
+    "module": "Node16",
+    "types": [
+      "debug",
+      "estree",
+      "events",
+      "json-schema"
+    ]
+  },
+}
