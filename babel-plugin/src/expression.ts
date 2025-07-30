@@ -158,7 +158,7 @@ function meshLValue(
   } else if (t.isArrayPattern(node)) {
     for (const item of (path as NodePath<types.ArrayPattern>).get("elements")) {
       if (t.isOptionalMemberExpression(item.node) || t.isLVal(item.node)) {
-        meshLValue(item as  NodePath<types.OptionalMemberExpression | types.LVal | null | undefined>, internal);
+        meshLValue(item as NodePath<types.OptionalMemberExpression | types.LVal | null | undefined>, internal);
       }
     }
   } else if (t.isRestElement(node)) {

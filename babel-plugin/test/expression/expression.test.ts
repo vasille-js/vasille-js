@@ -26,11 +26,7 @@ it("nested observable error", function () {
 });
 
 it("local observable error", function () {
-  throwTest(
-    __dirname,
-    "local-observable",
-    "This node cannot be processed, the root of expression is a local variable",
-  );
+  throwTest(__dirname, "local-observable", "This node cannot be processed, the root of expression is a local variable");
 });
 
 it("mesh lvalue", function () {

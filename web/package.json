@@ -1,7 +1,7 @@
 {
   "name": "vasille-web",
-  "version": "0.99.3",
-  "description": "Front-end framework with best developer experience ever.",
+  "version": "3.1.0",
+  "description": "The first Developer eXperience Orientated web front-end framework.",
   "main": "index.js",
   "types": "./index.d.ts",
   "exports": {
@@ -43,9 +43,9 @@
   "homepage": "https://github.com/vasille-js/vasille-js#readme",
   "dependencies": {
     "babel-plugin-vasille": "^0.99.2",
-    "vasille": "file:../core",
-    "vasille-css": "file:../css",
-    "vasille-dx": "file:../dx"
+    "vasille": "^3.1.0",
+    "vasille-css": "^3.1.0",
+    "vasille-dx": "^3.1.0"
   },
   "devDependencies": {
     "csstype": "^3.1.3",

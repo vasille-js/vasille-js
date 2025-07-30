@@ -22,7 +22,7 @@ a < 3 ? 2 : compose(() => {});
 a < 5 || !compose(() => {});
 new String(compose(() => {}));
 // @ts-ignore
-0, compose(() => {});
+(0, compose(() => {}));
 
 function* generator() {
   yield 1;

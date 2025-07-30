@@ -1,7 +1,7 @@
 {
   "name": "vasille-dx",
-  "version": "3.0.3",
-  "description": "Best Developer eXperience ever with Vasille Framework",
+  "version": "3.1.0",
+  "description": "The first Developer eXperience Orientated front-end framework",
   "main": "./lib/index.js",
   "types": "./fake-types/index.d.ts",
   "exports": {
@@ -21,8 +21,11 @@
   "type": "module",
   "keywords": [
     "front-end",
-    "framework",
-    "dx"
+    "web",
+    "developer-experience",
+    "safe",
+    "simple",
+    "poweful"
   ],
   "author": "lixcode",
   "license": "MIT",
@@ -35,8 +38,8 @@
     "url": "git+https://github.com/vasille-js/vasille-js.git"
   },
   "dependencies": {
-    "vasille": "file:../core",
-    "vasille-jsx": "file:../jsx"
+    "vasille": "^3.1.0",
+    "vasille-jsx": "^3.1.0"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

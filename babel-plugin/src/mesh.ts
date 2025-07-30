@@ -814,7 +814,7 @@ export function composeStatement(
         function idDoubleName(): [string, string] {
           const pattern = id as types.ArrayPattern;
 
-            return [idName(pattern.elements[0]), idName(pattern.elements[1])];
+          return [idName(pattern.elements[0]), idName(pattern.elements[1])];
         }
 
         ignoreParams(declaration.node.id, internal);

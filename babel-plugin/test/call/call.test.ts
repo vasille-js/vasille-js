@@ -22,6 +22,5 @@ it("require context", function () {
 });
 
 it("awaited expect array pattern", function () {
-  throwTest(__dirname, "awaited-not-arr", "Expected array pattern")
-})
-
+  throwTest(__dirname, "awaited-not-arr", "Expected array pattern");
+});

@@ -4,9 +4,7 @@ import { Internal, StackedStates } from "./internal.js";
 import { meshStatement } from "./mesh.js";
 import { findStyleInNode } from "./css-transformer.js";
 
-const imports = new Map([
-  ["vasille-web", "VasilleWeb"],
-]);
+const imports = new Map([["vasille-web", "VasilleWeb"]]);
 const ignoreMembers = new Set([
   "value",
   "ref",

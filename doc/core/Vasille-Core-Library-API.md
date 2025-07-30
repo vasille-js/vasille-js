@@ -3,6 +3,8 @@
 To create a Vasille CL component, create a file with extension `.js` or `.ts` and 
 define a ES6 class which extends `App`, `Component`, `Extension` or `Fragment`.
 
+**Depracated in 3.1.0**
+
 Example:
 
 ```javascript
@@ -555,7 +557,5 @@ class MyApp extends App {
 
 If you have questions fell free to contact the maintainer of project:
 
-* mail: lixcode@vivaldi.net
-* discord: lixcode
+* mail: vas.lixcode@gmail.com
 * telegram: https://t.me/lixcode
-* vk: https://vk.com/lixcode

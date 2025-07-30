@@ -1,20 +1,7 @@
 import { JSDOM } from "jsdom";
 import { Fragment, IValue } from "vasille";
 import { Runner } from "vasille/web-runner";
-import {
-    compose,
-    mount,
-    Slot,
-    Watch,
-    awaited,
-    $,
-    ElseIf,
-    For,
-    If,
-    Else,
-    Delay,
-    Debug,
-} from "../src/index.js";
+import { compose, mount, Slot, Watch, awaited, $, ElseIf, For, If, Else, Delay, Debug } from "../src/index.js";
 
 function page() {
     const page = new JSDOM(`
@@ -38,7 +25,10 @@ it("test exported functions", function (done) {
     let el!: HTMLElement;
     const window = page();
     const runner = new Runner(true, window.document);
-    const component = compose(function (f: Fragment<Node, Element, object>, p: { slot: (o: object, f: Fragment<Node, Element, object>) => void }) {
+    const component = compose(function (
+        f: Fragment<Node, Element, object>,
+        p: { slot: (o: object, f: Fragment<Node, Element, object>) => void },
+    ) {
         f.tag("div", { callback: n => (el = n as HTMLElement) }, function (f) {
             Slot(f, { model: p.slot });
         });

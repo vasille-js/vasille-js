@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-vasille",
-  "version": "0.99.5",
+  "version": "3.1.0",
   "description": "Convert Vasille Meta Language code to pure JavaScript",
   "main": "lib-node/index.js",
   "type": "module",
@@ -48,9 +48,9 @@
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3",
-    "vasille": "file:../core",
-    "vasille-css": "file:../css",
-    "vasille-dx": "file:../dx",
-    "vasille-web": "file:../web"
+    "vasille": "^3.1.0",
+    "vasille-css": "^3.1.0",
+    "vasille-dx": "^3.1.0",
+    "vasille-web": "^3.1.0"
   }
 }

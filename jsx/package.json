@@ -1,7 +1,7 @@
 {
   "name": "vasille-jsx",
-  "version": "3.0.2",
-  "description": "Describe Vasille components using JSX",
+  "version": "3.1.0",
+  "description": "The first Developer eXperience Orientated front-end framework (JSX components)",
   "main": "lib/index.js",
   "exports": {
     "types": "./types/index.d.ts",
@@ -21,7 +21,10 @@
   "keywords": [
     "frone-end",
     "jsx",
-    "vasille"
+    "vasille",
+    "safe",
+    "simple",
+    "poweful"
   ],
   "author": "lixcode",
   "license": "MIT",
@@ -34,7 +37,7 @@
     "url": "git+https://github.com/vasille-js/vasille-js.git"
   },
   "dependencies": {
-    "vasille": "file:../core"
+    "vasille": "^3.1.0"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

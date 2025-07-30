@@ -1,7 +1,7 @@
 {
   "name": "vasille-css",
-  "version": "3.0.5",
-  "description": "Add module CSS styles to Vasille Components",
+  "version": "3.1.0",
+  "description": "The first Developer eXperience Orientated front-end framework (style library)",
   "main": "./lib/index.js",
   "types": "./fake-types/index.d.ts",
   "exports": {

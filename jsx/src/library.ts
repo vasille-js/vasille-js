@@ -32,15 +32,9 @@ export function awaited<T>(
 
         if (current instanceof Promise) {
             current
-                .then(result => {
-                    value.$ = result;
-                })
-                .catch(e => {
-                    err.$ = e;
-                })
-                .finally(() => {
-                    running = false;
-                });
+                .then(result => (value.$ = result))
+                .catch(e => (err.$ = e))
+                .finally(() => (running = false));
         } else {
             value.$ = current;
             running = false;

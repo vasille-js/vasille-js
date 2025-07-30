@@ -103,12 +103,11 @@ All of these are supported:
 * [x] Develop the `Vasille JSX` library.
 * [x] `100%` Test Coverage for the JSX library.
 * [x] Develop the `Vasille Babel Plugin`.
-* [ ] `100%` Test Coverage fot babel plugin.
+* [x] `100%` Test Coverage fot babel plugin.
 * [x] Add CSS support (define styles in components).
-* [ ] Add custom `input` components with 2-way value binding.
 * [ ] Add router.
-* [ ] Develop dev-tools extension for debugging.
-* [ ] Develop a lot of libraries for the framework.
+* [ ] Add SSR (server side rendering).
+* [ ] Develop tools extension for debugging.
 
 ## Questions
 
