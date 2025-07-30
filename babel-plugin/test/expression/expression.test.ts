@@ -1,9 +1,4 @@
-import { fileURLToPath } from "node:url";
-import path from "path";
 import { runTest, throwTest } from "../run-test";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 it("check expression", function () {
   runTest(__dirname, "check-expression");

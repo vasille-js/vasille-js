@@ -1,9 +1,4 @@
-import { fileURLToPath } from "node:url";
-import path from "path";
 import { throwTest } from "../run-test";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 it("incorrect number of arguments error", function () {
   throwTest(__dirname, "incorrect-args-number", "Incorrect number of arguments");

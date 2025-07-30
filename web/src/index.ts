@@ -14,6 +14,8 @@ export {
   Slot,
   Watch,
   awaited,
+} from "vasille-dx";
+export type {
   ref,
   bind,
   calculate,
@@ -26,7 +28,7 @@ export {
   watch,
   state,
 } from "vasille-dx";
-export {
+export type {
   theme,
   tablet,
   dark,

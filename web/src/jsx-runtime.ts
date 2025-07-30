@@ -1,5 +1,5 @@
-import type {RawStyleProps} from "./spec/css.js";
-import type {HtmlTagMap} from "./spec/html.js";
+import type {RawStyleProps} from "./spec/css.d.ts";
+import type {HtmlTagMap} from "./spec/html.d.ts";
 
 type prefixedObject<T, P extends string> = {
   [K in keyof T as K extends string ? `${P}${K}` : never]?: T[K]
@@ -14,9 +14,6 @@ type HtmlInput<K extends keyof HTMLElementTagNameMap & keyof HtmlTagMap> = {
   HtmlTagMap[K]['events'], 'on'
 > & {[K in `bind:${string}`]?: unknown};
 
-// document.createElement()
-
-// declare global {
 export declare namespace JSX {
   // Valid JSX tags: all the valid lowercase tags and function components
   type ElementType = keyof IntrinsicElements | ((props?: object) => void);
@@ -141,4 +138,3 @@ export declare namespace JSX {
     "wbr": HtmlInput<"wbr">
   }
 }
-// }

@@ -1,9 +1,9 @@
 {
   "name": "babel-plugin-vasille",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Convert Vasille Meta Language code to pure JavaScript",
   "main": "lib-node/index.js",
-  "type": "module",
+  "type": "commonjs",
   "exports": {
     "import": "./lib-node/index.js",
     "browser": "./lib/index.js",
@@ -16,8 +16,8 @@
     "build": "tsc --build tsconfig-build.json",
     "build-node": "tsc --build tsconfig-build-node.json",
     "tsc-tests": "tsc --build test/tsconfig.json",
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
-    "test-coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
+    "test": "jest",
+    "test-coverage": "jest --coverage"
   },
   "keywords": [
     "front-end",
