@@ -1,3 +1,4 @@
 .idea
 tsconfig*
 *.tgz
+index.ts

@@ -26,23 +26,6 @@ async function run(): Promise<void> {
           value: 'js'
         }
       ]
-    },
-    {
-      type: "select",
-      name: "package",
-      message: "Select desired package to install",
-      choices: [
-        {
-          title: "Framework",
-          description: "Install and update all official libs at once",
-          value: "full"
-        },
-        {
-          title: "Independent",
-          description: "Install minimal number of libraries",
-          value: "lib"
-        }
-      ]
     }
   ]);
 
@@ -52,7 +35,7 @@ async function run(): Promise<void> {
 
   fs.mkdirSync(response.name);
 
-  const repo =  `example${response.package === 'lib' ? '-lib' : ''}-${response.lang === 'ts' ? 'type' : 'java'}script`;
+  const repo =  `example-${response.lang === 'ts' ? 'type' : 'java'}script`;
 
   await new Promise<void>((resolve) => {
     const emitter = degit('vasille-js/' + repo, {

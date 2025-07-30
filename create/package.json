@@ -1,10 +1,12 @@
 {
   "name": "create-vasille",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Scaffolding Your First Vassile App",
   "main": "index.js",
   "type": "commonjs",
-  "bin": "index.js",
+  "bin": {
+    "create-vasille": "index.js"
+  },
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
     "build": "tsc"
