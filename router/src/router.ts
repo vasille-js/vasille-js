@@ -1,23 +1,33 @@
-import { Screen, Routing, RouteParameters, QueryParams, ScreenProps } from "./types.js";
+import { Fragment } from "vasille";
+import { Answer, Routing, RouteParameters, QueryParams, ScreenProps, Screen } from "./types.js";
 
-export interface RouterInitilization<
+export interface RouterInitialization<
     Node,
     Element,
     TagOptions extends object,
     Routes extends string,
     Extras extends object,
 > {
-    routes: { [K in Routes]: Screen<Node, Element, TagOptions, K, Extras> };
+    routes: { [K in Routes]: Answer<Node, Element, TagOptions, K, Extras> };
     getAccessLevel(): Promise<number>;
-    getFallback(): Screen<Node, Element, TagOptions, "/", Extras>;
-    getErrorPage(): Screen<Node, Element, TagOptions, "/:error", Extras>;
+    getFallbackScreen(): (ctx: Fragment<Node, Element, TagOptions>, arg: object) => void;
+    errorScreen(ctx: Fragment<Node, Element, TagOptions>, data: { err: string }): void;
 }
 
-export abstract class Router<Node, Element, TagOptions extends object, Routes extends string, Extras extends object, Args extends unknown[]> {
-    protected root: Routing<Node, Element, TagOptions, Routes, Extras>;
-    protected init: RouterInitilization<Node, Element, TagOptions, Routes, Extras>;
+export type RouteRenderScope = "found" | "not-found" | "fallback" | "error";
 
-    public constructor(init: RouterInitilization<Node, Element, TagOptions, Routes, Extras>) {
+export abstract class Router<
+    Node,
+    Element,
+    TagOptions extends object,
+    Routes extends string,
+    Extras extends object,
+    Args extends unknown[],
+> {
+    protected root: Routing<Node, Element, TagOptions, Routes, Extras>;
+    protected init: RouterInitialization<Node, Element, TagOptions, Routes, Extras>;
+
+    public constructor(init: RouterInitialization<Node, Element, TagOptions, Routes, Extras>) {
         this.root = this.createRouting();
         this.init = init;
 
@@ -45,14 +55,18 @@ export abstract class Router<Node, Element, TagOptions extends object, Routes ex
             }
 
             // typescript is going crazy here
-            it.self = target as unknown as Screen<Node, Element, TagOptions, Routes, Extras>;
+            it.self = target as unknown as Answer<Node, Element, TagOptions, Routes, Extras>;
         }
     }
 
     public navigate<T extends Routes>(route: T, params: RouteParameters<T>, ...args: Args) {
-        this.doNavigate(Object.entries(params).reduce<string>((link, [key, value]) => {
-            return link.replace(`:${key}`, value);
-          }, route), true, ...args);
+        this.doNavigate(
+            Object.entries(params).reduce<string>((link, [key, value]) => {
+                return link.replace(`:${key}`, value);
+            }, route),
+            true,
+            ...args,
+        );
     }
 
     protected createRouting(): Routing<Node, Element, TagOptions, Routes, Extras> {
@@ -66,7 +80,7 @@ export abstract class Router<Node, Element, TagOptions extends object, Routes ex
         routing: Routing<Node, Element, TagOptions, Routes, Extras>,
         path: string[],
         params: object,
-    ): [Screen<Node, Element, TagOptions, Routes, Extras> | undefined, object] {
+    ): [Answer<Node, Element, TagOptions, Routes, Extras> | undefined, object] {
         if (path.length < 1) {
             return [routing.self, params];
         }
@@ -107,31 +121,19 @@ export abstract class Router<Node, Element, TagOptions extends object, Routes ex
         const { target, ...props } = this.targetByUrl(url);
 
         try {
-
             if (target && (target.minAccessLevel ?? 0) >= (await this.init.getAccessLevel())) {
-
                 await this.loadTarget(target, props as ScreenProps<Routes>, ...args);
-
-                return;
+            } else {
+                await this.renderScreen(
+                    this.init.getFallbackScreen(),
+                    props,
+                    props.path,
+                    canNavigate ? "not-found" : "fallback",
+                    ...args,
+                );
             }
-
-            await this.loadTarget<"/">(this.init.getFallback(), {
-                path: "/",
-                hash: "",
-                params: {},
-                query: {},
-                canNavigate,
-            }, ...args);
         } catch (e) {
-            await this.loadTarget(this.init.getErrorPage(), {
-                path: "/err",
-                canNavigate: false,
-                hash: "",
-                query: {},
-                params: {
-                    error: `${e}`,
-                },
-            }, ...args);
+            await this.renderScreen(this.init.errorScreen, { err: `${e}` }, props.path, "error", ...args);
         }
 
         return;
@@ -154,10 +156,28 @@ export abstract class Router<Node, Element, TagOptions extends object, Routes ex
      * Load (Render) a target screen
      * @param target target screen to load
      * @param props props of the target screen
+     * @param args extra args
      */
     protected abstract loadTarget<Route extends string>(
-        target: Screen<Node, Element, TagOptions, Route, Extras>,
+        target: Answer<Node, Element, TagOptions, Route, Extras>,
         props: ScreenProps<Route>,
+        ...args: Args
+    ): Promise<void>;
+
+    /**
+     * Render a screen
+     * @param screen is screen to be rendered
+     * @param props are props of the screen
+     * @param path is current path
+     * @param scope is the cause of screen rendering
+     * @param args are extra args
+     * @protected
+     */
+    protected abstract renderScreen<Props>(
+        screen: (ctx: Fragment<Node, Element, TagOptions>, props: Props) => void | Promise<void>,
+        props: Props,
+        path: string,
+        scope: RouteRenderScope,
         ...args: Args
     ): Promise<void>;
 }

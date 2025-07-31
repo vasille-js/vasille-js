@@ -25,23 +25,22 @@ export type ScreenProps<Route extends string> = {
     params: RouteParameters<Route>;
     query: QueryParams;
     hash: string;
-    canNavigate?: boolean
 };
 
-export type Response<Node, Element, TagOptions extends object, Route extends string> = (
+export type Screen<Node, Element, TagOptions extends object, Route extends string> = (
     ctx: Fragment<Node, Element, TagOptions>,
     props: ScreenProps<Route>,
 ) => void | Promise<void>;
 
-export type Screen<Node, Element, TagOptions extends object, Route extends string, Extras extends object> = {
-    answer200?: Response<Node, Element, TagOptions, Route>;
-    answer301?: Response<Node, Element, TagOptions, Route>;
-    answer404?: Response<Node, Element, TagOptions, Route>;
+export type Answer<Node, Element, TagOptions extends object, Route extends string, Extras extends object> = {
+    answer200?: Screen<Node, Element, TagOptions, Route>;
+    answer301?: Screen<Node, Element, TagOptions, Route>;
+    answer404?: Screen<Node, Element, TagOptions, Route>;
     minAccessLevel?: number;
 } & Extras;
 
 export type Routing<Node, Element, TagOptions extends object, RoutePath extends string, Extras extends object> = {
-    self?: Screen<Node, Element, TagOptions, RoutePath, Extras>;
+    self?: Answer<Node, Element, TagOptions, RoutePath, Extras>;
     static: { [k: string]: Routing<Node, Element, TagOptions, RoutePath, Extras> };
     dynamic: { [k: string]: Routing<Node, Element, TagOptions, RoutePath, Extras> };
 };
