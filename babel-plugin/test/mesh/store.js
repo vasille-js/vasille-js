@@ -1,5 +1,5 @@
-import { compose, $ as VasilleWeb } from "vasille-web";
-export const C = () => {
+import { compose, store, $ as VasilleWeb } from "vasille-web";
+export const C = store(() => {
   const a = VasilleWeb.r(2);
   const b = VasilleWeb.r(2);
   const c = VasilleWeb.ex((Vasille_a, Vasille_b) => Vasille_a + Vasille_b, [a, b]);
@@ -32,7 +32,7 @@ export const C = () => {
     $k: k,
     $o: o
   };
-};
+}, "VasilleWeb:C");
 const c = C();
 const Component = compose(Vasille => {
   console.log(c["$a"].$, c.$b.$, c.$c.$, c.$d.$, c.e, c.f, c.g, c["$$h"].a.$, c.$i.$, c.j, c.$k.$, c.$o.$.a.b);

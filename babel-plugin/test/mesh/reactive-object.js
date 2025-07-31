@@ -1,9 +1,9 @@
-import { compose, $ as VasilleWeb } from "vasille-web";
+import { compose, store, $ as VasilleWeb } from "vasille-web";
 const obj = {
   a: 1,
   b: 2
 };
-export const S = () => {
+export const S = store(() => {
   const a = VasilleWeb.r(2);
   const b = VasilleWeb.fo(VasilleWeb.r(3));
   const o = VasilleWeb.sro({
@@ -17,7 +17,7 @@ export const S = () => {
     $b: VasilleWeb.fo(b),
     $$o: o
   };
-};
+}, "VasilleWeb:S");
 const s = S();
 const Component = compose(Vasille => {
   const a = s.$a;

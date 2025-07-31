@@ -1,4 +1,5 @@
 import { IValue, Reactive } from "vasille";
+import { storeReactiveObject } from "./objects.js";
 
 export function awaited<T>(
     node: Reactive,
@@ -44,6 +45,12 @@ export function awaited<T>(
     run();
 
     return [err, value, run];
+}
+
+export function store(fn: (input?: object) => object): (input?: object) => object {
+    return (input?: object) => {
+        return input ? fn(storeReactiveObject(input)) : fn();
+    };
 }
 
 export function ensureIValue<T>(node: Reactive, value: T | IValue<T>): IValue<T> {

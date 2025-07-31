@@ -1,6 +1,6 @@
-import { arrayModel, calculate, compose, ref, state, watch } from "vasille-web";
+import { arrayModel, calculate, compose, ref, store, watch } from "vasille-web";
 
-export const C = state(() => {
+export const C = store(() => {
   let a = 2;
   let b = 2;
   const c = calculate(() => a + b);

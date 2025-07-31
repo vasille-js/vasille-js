@@ -104,7 +104,7 @@ export function reactiveObjectProxy<T extends { [k: string | symbol]: IValue<unk
     }) as { [K in keyof T]: T[K] extends IValue<infer R> ? R : never };
 }
 
-export function stateReactiveObject<T extends object>(
+export function storeReactiveObject<T extends object>(
     o: T,
 ): { [K in keyof T]: T[K] extends IValue<unknown> ? T[K] : IValue<T[K]> } {
     for (const key of Object.keys(o)) {

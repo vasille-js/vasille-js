@@ -24,8 +24,12 @@ it("export default expression", function () {
   runTest(__dirname, "default-expr", false);
 });
 
-it("state function", function () {
-  runJsxTest(__dirname, "state");
+it("store function", function () {
+  runJsxTest(__dirname, "store");
+});
+
+it("store with argument", function () {
+  runJsxTest(__dirname, "store-with-arg");
 });
 
 it("reactive object status track", function () {
@@ -48,16 +52,16 @@ it("calculate call error", function () {
   throwTest(__dirname, "calculate-call", "Incorrect calculate argument");
 });
 
-it("state reactive value name error", function () {
-  throwTest(__dirname, "state-reactive-value", "Reactive value property name must start with $");
+it("store reactive value name error", function () {
+  throwTest(__dirname, "store-reactive-value", "Reactive value property name must start with $");
 });
 
-it("state reactive object name error", function () {
-  throwTest(__dirname, "state-reactive-object", "Reactive object property name must start with $$");
+it("store reactive object name error", function () {
+  throwTest(__dirname, "store-reactive-object", "Reactive object property name must start with $$");
 });
 
-it("state spread element error", function () {
-  throwTest(__dirname, "state-spread-element", "Spread element is not allowed here");
+it("store spread element error", function () {
+  throwTest(__dirname, "store-spread-element", "Spread element is not allowed here");
 });
 
 it("jsx fragment error", function () {
@@ -68,8 +72,8 @@ it("jsx element error", function () {
   throwTest(__dirname, "jsx-element", "JSX element is not allowed here", true);
 });
 
-it("state jsx error", function () {
-  throwTest(__dirname, "state-jsx", "JSX is not allowed in states", true);
+it("store jsx error", function () {
+  throwTest(__dirname, "store-jsx", "JSX is not allowed in states", true);
 });
 
 it("reactive object not const error", function () {

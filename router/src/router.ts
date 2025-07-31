@@ -1,4 +1,3 @@
-import { Reference } from "vasille";
 import { Screen, Routing, RouteParameters, QueryParams, ScreenProps } from "./types.js";
 
 export interface RouterInitilization<
@@ -12,30 +11,7 @@ export interface RouterInitilization<
     getAccessLevel(): Promise<number>;
     getFallback(): Screen<Node, Element, TagOptions, "/", Extras>;
     getErrorPage(): Screen<Node, Element, TagOptions, "/:error", Extras>;
-    initialUrl: string;
 }
-
-const init: RouterInitilization<unknown, unknown, object, string, object> = {
-    getErrorPage() {
-        return {
-            answer200(ctx, props) {
-                props.params.error;
-            },
-        };
-    },
-    getAccessLevel() {
-        return Promise.resolve(0);
-    },
-    getFallback() {
-        return {
-            answer200(ctx, props) {
-                //
-            },
-        };
-    },
-    initialUrl: "",
-    routes: {},
-};
 
 export abstract class Router<Node, Element, TagOptions extends object, Routes extends string, Extras extends object, Args extends unknown[]> {
     protected root: Routing<Node, Element, TagOptions, Routes, Extras>;

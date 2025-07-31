@@ -1,4 +1,4 @@
-import type { StyleProps } from "../src/spec/css.d.ts";
+import type { StyleProps } from "../spec/css.d.ts";
 
 export {
     ref,
@@ -11,7 +11,6 @@ export {
     reactiveObject,
     value,
     watch,
-    state,
 } from "vasille-dx";
 
 export {
@@ -25,6 +24,7 @@ export {
     Slot,
     Watch,
     awaited,
+    store,
 } from "vasille-dx";
 
 export {

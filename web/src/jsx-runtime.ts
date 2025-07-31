@@ -1,5 +1,5 @@
-import type {RawStyleProps} from "./spec/css.d.ts";
-import type {HtmlTagMap} from "./spec/html.d.ts";
+import type {RawStyleProps} from "../spec/css.d.ts";
+import type {HtmlTagMap} from "../spec/html.d.ts";
 
 type prefixedObject<T, P extends string> = {
   [K in keyof T as K extends string ? `${P}${K}` : never]?: T[K]

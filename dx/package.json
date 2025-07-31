@@ -1,6 +1,6 @@
 {
   "name": "vasille-dx",
-  "version": "3.1.0",
+  "version": "3.1.3",
   "description": "The first Developer eXperience Orientated front-end framework",
   "main": "./lib/index.js",
   "types": "./fake-types/index.d.ts",
@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "vasille": "^3.1.0",
-    "vasille-jsx": "^3.1.0"
+    "vasille-jsx": "^3.1.3"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

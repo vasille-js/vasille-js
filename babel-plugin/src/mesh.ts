@@ -58,9 +58,6 @@ export function meshComposeCall(
   if (internal.devMode) {
     call.arguments.push(t.stringLiteral(`${internal.prefix}:${name ? name.name : "#anonymouse"}`));
   }
-  if (t.isIdentifier(call.callee) && call.callee.name === "state") {
-    nodePath.replaceWith(call.arguments[0]);
-  }
 }
 
 export function meshAllUnknown(
@@ -103,7 +100,7 @@ export function meshExpression(
   if (!expr) {
     return;
   }
-  if (calls(expr, ["compose", "extend", "state"], internal)) {
+  if (calls(expr, ["compose", "store"], internal)) {
     meshComposeCall(expr as types.CallExpression, null, nodePath, internal);
 
     return;
@@ -556,7 +553,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
       for (const declaration of _path.get("declarations")) {
         const expr = declaration.node.init;
 
-        if (expr && t.isIdentifier(declaration.node.id) && calls(expr, ["compose", "extend", "state"], internal)) {
+        if (expr && t.isIdentifier(declaration.node.id) && calls(expr, ["compose", "store"], internal)) {
           meshComposeCall(expr as types.CallExpression, declaration.node.id, declaration.get("init"), internal);
         } else {
           meshExpression(declaration.get("init"), internal);

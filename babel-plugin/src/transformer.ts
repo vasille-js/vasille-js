@@ -23,7 +23,6 @@ const ignoreMembers = new Set([
   "laptop",
   "prefersDark",
   "prefersLight",
-  "state",
 ]);
 
 function extractText(node: types.Identifier | types.StringLiteral) {

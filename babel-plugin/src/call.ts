@@ -4,8 +4,7 @@ import { Internal, ctx } from "./internal.js";
 
 export type FnNames =
   | "compose"
-  | "extend"
-  | "state"
+  | "store"
   | "awaited"
   | "calculate"
   | "forward"
@@ -63,10 +62,10 @@ export function calls(node: types.Expression | null | undefined, names: FnNames[
         if (requiresContextSet.has(callee.name) && t.isCallExpression(node)) {
           node.arguments.unshift(ctx);
         }
-        if (mapped === "state") {
+        if (mapped === "store") {
           internal.stateOnly = true;
         }
-        if (mapped === "compose" || mapped === "extend") {
+        if (mapped === "compose") {
           internal.stateOnly = false;
         }
 

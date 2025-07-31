@@ -1,4 +1,6 @@
+import { Reference } from "vasille";
 import { awaited } from "../src/index.js";
+import { store } from "../src/library.js";
 import { createNode } from "./page.js";
 
 let counter = 0;
@@ -63,4 +65,25 @@ it("awaited synchronous", function () {
     expect(mustFailErr.$).toBe(4);
     expect(mustFailResult.$).toBeUndefined();
     frag.destroy();
+});
+
+it("store test", function () {
+    const S0 = store(() => {
+        return {
+            a: 0,
+        };
+    });
+    const S1 = store((data: { a: number; b: string }) => {
+        return {
+            a: data.a,
+            b: data.b,
+        };
+    });
+
+    const s0 = S0() as { a: number };
+    const s1 = S1({ a: 2 }) as { a: Reference<number>; b: Reference<string | undefined> };
+
+    expect(s0.a).toBe(0);
+    expect(s1.a.$).toBe(2);
+    expect(s1.b.$).toBeUndefined();
 });

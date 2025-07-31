@@ -6,9 +6,6 @@ declare interface Params {
   slot?(...args: unknown[]): unknown;
 }
 
-declare function state<Out extends object>(f: () => Out): () => Out;
-declare function state<In, Out extends object>(f: (state: In) => Out): (state: In) => Out;
-
 declare type Composed<In extends Params, Out> = (
   $: (In['slot'] extends (() => unknown) | undefined ? Omit<In, 'slot'>& {slot?: unknown} : (In))
       & { callback?(data: Out | undefined): void },
@@ -82,4 +79,10 @@ declare function calculate<T>(f: () => T): T;
 
 declare function watch(f: () => void): void;
 
-declare function awaited<T>(target: Promise<T> | (() => Promise<T>)): [unknown, T|undefined, () => void];
+declare function awaited<T>(target: Promise<T>): [unknown, T|undefined];
+declare function awaited<T>(target: () => Promise<T>): [unknown, T|undefined, () => void];
+
+declare function store<Return extends object>(fn: () => Return): (() => Return);
+declare function store<Input extends object, Return extends object>(
+    fn: (input: Input) => Return
+): (input: Input) => Return;

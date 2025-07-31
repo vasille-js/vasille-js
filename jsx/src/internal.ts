@@ -1,5 +1,5 @@
 import { IValue, proxyArrayModel, Reactive, KindOfIValue, Expression, Pointer, Reference } from "vasille";
-import { reactiveObject, reactiveObjectProxy, stateReactiveObject } from "./objects.js";
+import { reactiveObject, reactiveObjectProxy, storeReactiveObject } from "./objects.js";
 import { ContextArray, ContextMap, ContextSet } from "./models.js";
 
 export const internal = {
@@ -36,7 +36,7 @@ export const internal = {
         return node.register(proxyArrayModel(new ContextArray(data)), name);
     },
     /** translate `{...} to $.sro({...})` */
-    sro: stateReactiveObject,
+    sro: storeReactiveObject,
     /** translate `new Set(#)` to `$.ssm(#)` */
     ssm(data?: unknown[]) {
         return new ContextSet(data);

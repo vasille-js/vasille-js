@@ -1,8 +1,8 @@
-import { bind, compose, forward, state, watch } from "vasille-web";
+import { bind, compose, forward, store, watch } from "vasille-web";
 
 const obj = { a: 1, b: 2 };
 
-export const S = state(() => {
+export const S = store(() => {
   let a = 2;
   let b = bind(3);
   const o = { a: 1, b: { c: 3 } };

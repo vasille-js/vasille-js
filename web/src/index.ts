@@ -1,4 +1,4 @@
-import {StyleProps} from "./spec/css.js";
+import {StyleProps} from "../spec/css.js";
 import {Runner, TagOptions} from "vasille/web-runner";
 import {mount as coreMount} from "vasille-dx";
 import {styleSheet as coreStyleSheet} from "vasille-css";
@@ -14,6 +14,7 @@ export {
   Slot,
   Watch,
   awaited,
+  store,
 } from "vasille-dx";
 export type {
   ref,
@@ -26,7 +27,6 @@ export type {
   reactiveObject,
   value,
   watch,
-  state,
 } from "vasille-dx";
 export type {
   theme,

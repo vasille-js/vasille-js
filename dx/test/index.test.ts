@@ -1,7 +1,7 @@
 import { JSDOM } from "jsdom";
 import { Fragment, IValue } from "vasille";
 import { Runner } from "vasille/web-runner";
-import { compose, mount, Slot, Watch, awaited, $, ElseIf, For, If, Else, Delay, Debug } from "../src/index.js";
+import { compose, mount, Slot, Watch, awaited, $, ElseIf, For, If, Else, Delay, Debug, store } from "../src/index.js";
 
 function page() {
     const page = new JSDOM(`
@@ -40,6 +40,7 @@ it("test exported functions", function (done) {
         For(f, {} as any);
         Watch(f, {} as any);
     }, "test");
+    const S = store(() => ({ x: 2 }));
 
     mount(window.document.body, component, runner, {
         slot(o, f) {},
