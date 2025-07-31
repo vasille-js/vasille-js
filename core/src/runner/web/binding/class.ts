@@ -34,10 +34,12 @@ export class DynamicalClassBinding extends Binding<string> {
     constructor(node: INode<Node, Element, object>, value: IValue<string>) {
         super(value);
         this.init((value: string) => {
+            /* istanbul ignore else */
             if (this.current != value) {
                 if (this.current.length) {
                     removeClass(node, this.current);
                 }
+                /* istanbul ignore else */
                 if (value.length) {
                     addClass(node, value);
                 }

@@ -39,7 +39,7 @@ function processValue(
   allowFallback: boolean,
   internal: Internal,
 ) {
-  if (calls(path.node, ["theme"], internal)) {
+  if (calls(path, ["theme"], internal)) {
     const call = path.node as types.CallExpression;
 
     if (theme) {
@@ -62,7 +62,7 @@ function processValue(
         .buildCodeFrameError("Vasille: Expected string literal");
     }
   }
-  if (calls(path.node, ["dark"], internal)) {
+  if (calls(path, ["dark"], internal)) {
     if (theme) {
       throw path.buildCodeFrameError("Vasille: The theme seem the be defined twice");
     }
@@ -81,7 +81,7 @@ function processValue(
 
   let callee: string | boolean | undefined;
 
-  if ((callee = calls(path.node, mediaDefaults, internal))) {
+  if ((callee = calls(path, mediaDefaults, internal))) {
     const index = mediaDefaults.indexOf(callee as FnNames) + 1;
 
     if (mediaDefault.includes(index)) {
@@ -223,7 +223,7 @@ export function findStyleInNode(path: NodePath<types.Node | null | undefined>, i
   if (
     t.isVariableDeclaration(path.node) &&
     path.node.declarations.length === 1 &&
-    calls(path.node.declarations[0].init, ["styleSheet"], internal)
+    calls(path.get("declarations")[0].get("init"), ["styleSheet"], internal)
   ) {
     const call = path.node.declarations[0].init as types.CallExpression;
     const callPath = (path as NodePath<types.VariableDeclaration>)

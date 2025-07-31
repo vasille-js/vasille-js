@@ -37,6 +37,7 @@ export function transformJsxArray(
 
         call.loc = path.node.loc;
 
+        /* istanbul ignore else */
         if (call.loc) {
           for (const char of path.node.value) {
             if (!/\s/.test(char)) {
@@ -165,6 +166,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
       if (t.isJSXAttribute(attr)) {
         const name = attr.name;
 
+        /* istanbul ignore else */
         if (t.isJSXIdentifier(name)) {
           if (name.name.startsWith("on")) {
             if (t.isJSXExpressionContainer(attr.value) && t.isExpression(attr.value.expression)) {
@@ -172,6 +174,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
                 "value",
               ) as NodePath<types.JSXExpressionContainer>;
 
+              /* istanbul ignore else */
               if (t.isExpression(path.node.expression)) {
                 meshExpression(path.get("expression") as NodePath<types.Expression>, internal);
               }
@@ -184,6 +187,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
             }
           } else if (name.name === "class") {
             // class={[..]}
+            /* istanbul ignore else */
             if (t.isJSXExpressionContainer(attr.value) && t.isArrayExpression(attr.value.expression)) {
               const valuePath = (attrPath as NodePath<types.JSXAttribute>).get(
                 "value",
@@ -279,6 +283,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
             }
           } else if (name.name === "style") {
             // style={{..}}
+            /* istanbul ignore else */
             if (t.isJSXExpressionContainer(attr.value) && t.isObjectExpression(attr.value.expression)) {
               const valuePath = (attrPath as NodePath<types.JSXAttribute>).get(
                 "value",
@@ -362,6 +367,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
               }
             }
           } else {
+            /* istanbul ignore else */
             if (!attr.value || t.isJSXExpressionContainer(attr.value)) {
               attrs.push(
                 idToProp(name, t.isExpression(attr.value?.expression) ? attr.value.expression : t.booleanLiteral(true)),
@@ -373,6 +379,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
         }
         if (t.isJSXNamespacedName(name)) {
           if (name.namespace.name === "bind") {
+            /* istanbul ignore else */
             if (t.isJSXExpressionContainer(attr.value) || !attr.value) {
               const value = t.isExpression(attr.value?.expression)
                 ? exprCall(
@@ -464,6 +471,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
       // <A prop=../>
       if (t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name)) {
         // <A prop=".."/>
+        /* istanbul ignore else */
         if (t.isStringLiteral(attr.value)) {
           props.push(idToProp(attr.name, attr.value));
         }

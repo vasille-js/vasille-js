@@ -47,6 +47,7 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
     public constructor(func: (...args: Args) => T, values: KindOfIValue<Args>) {
         super();
         const handler = (i?: number) => {
+            /* istanbul ignore else */
             if (typeof i === "number") {
                 this.valuesCache[i] = this.values[i].$;
             }

@@ -18,6 +18,17 @@ export const C = store(() => {
       b: 1
     }
   });
+  const m = VasilleWeb.ex((Vasille_a, Vasille_b) => Vasille_a + Vasille_b, [a, b]);
+  const n = VasilleWeb.r(2);
+  const p = 3;
+  const q = VasilleWeb.sam();
+  const r = VasilleWeb.ssm();
+  const s = VasilleWeb.smm();
+  const t = VasilleWeb.sro({});
+  const u = VasilleWeb.fo(m);
+  VasilleWeb.ex(Vasille_o => {
+    console.log(Vasille_o);
+  }, [o]);
   return {
     $a: a,
     $b: b,

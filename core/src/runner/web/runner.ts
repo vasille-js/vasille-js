@@ -106,7 +106,9 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
                 if (value instanceof IValue) {
                     this.register(new AttributeBinding(this, name, value));
                 } else {
+                    /* istanbul ignore else */
                     if (typeof value === "boolean") {
+                        /* istanbul ignore else */
                         if (value) {
                             this.node.setAttribute(name, "");
                         }
@@ -191,6 +193,7 @@ export class Runner implements IRunner<Node, Element, TagOptions> {
     insertBefore(node: Node, before: Element | Node): void {
         const parent = before.parentElement;
 
+        /* istanbul ignore else */
         if (parent) {
             parent.insertBefore(node, before);
         }

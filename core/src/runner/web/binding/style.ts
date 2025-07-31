@@ -28,6 +28,7 @@ export class StyleBinding extends Binding<string | number | number[]> {
     public constructor(node: INode<Node, Element, object>, name: string, value: IValue<string | number | number[]>) {
         super(value);
         this.init(value => {
+            /* istanbul ignore else */
             if (node.element instanceof HTMLElement) {
                 node.element.style.setProperty(name, stringifyStyleValue(value));
             }

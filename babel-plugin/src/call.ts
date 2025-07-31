@@ -1,4 +1,4 @@
-import { types } from "@babel/core";
+import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { Internal, ctx } from "./internal.js";
 
@@ -50,7 +50,27 @@ export const styleOnly: FnNames[] = [
 export const requiresContext: FnNames[] = ["awaited"];
 const requiresContextSet: Set<string> = new Set(requiresContext);
 
-export function calls(node: types.Expression | null | undefined, names: FnNames[], internal: Internal) {
+function checkCall(path: NodePath<types.Expression | null | undefined>, name: string, internal: Internal) {
+  const node = path.node;
+
+  if (requiresContextSet.has(name) && t.isCallExpression(node)) {
+    if (internal.stateOnly) {
+      throw path.buildCodeFrameError(`Vasille: ${name} function can be used only in components`);
+    }
+    node.arguments.unshift(ctx);
+  }
+  if (name === "store") {
+    internal.stateOnly = true;
+  }
+  if (name === "compose") {
+    internal.stateOnly = false;
+  }
+
+  return name;
+}
+
+export function calls(path: NodePath<types.Expression | null | undefined>, names: FnNames[], internal: Internal) {
+  const node = path.node;
   const set = new Set<string>(names);
   const callee = t.isCallExpression(node) ? node.callee : null;
 
@@ -59,26 +79,15 @@ export function calls(node: types.Expression | null | undefined, names: FnNames[
       const mapped = internal.mapping.get(callee.name);
 
       if (mapped && set.has(mapped) && internal.stack.get(callee.name) === undefined) {
-        if (requiresContextSet.has(callee.name) && t.isCallExpression(node)) {
-          node.arguments.unshift(ctx);
-        }
-        if (mapped === "store") {
-          internal.stateOnly = true;
-        }
-        if (mapped === "compose") {
-          internal.stateOnly = false;
-        }
-
-        return mapped;
+        return checkCall(path, mapped, internal);
       }
       return false;
     }
 
-    const global = internal.stack.get(internal.global) === undefined;
-
     let propName: string | null = null;
 
     if (t.isMemberExpression(callee)) {
+      /* istanbul ignore else */
       if (t.isIdentifier(callee.property)) {
         propName = callee.property.name;
       } else if (t.isStringLiteral(callee.property)) {
@@ -86,13 +95,15 @@ export function calls(node: types.Expression | null | undefined, names: FnNames[
       }
     }
 
-    if (t.isMemberExpression(callee) && t.isIdentifier(callee.object) && propName) {
-      if (global && callee.object.name === internal.global && set.has(propName)) {
-        if (requiresContextSet.has(propName) && t.isCallExpression(node)) {
-          node.arguments.unshift(ctx);
-        }
-        return callee.object.name;
-      }
+    if (
+      propName &&
+      set.has(propName) &&
+      t.isMemberExpression(callee) &&
+      t.isIdentifier(callee.object) &&
+      callee.object.name === internal.global &&
+      internal.stack.get(internal.global) === undefined
+    ) {
+      return checkCall(path, propName, internal);
     }
   }
 

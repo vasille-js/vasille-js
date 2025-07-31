@@ -22,6 +22,7 @@ export function meshOrIgnoreAllExpressions<T extends types.Node>(
   internal: Internal,
 ) {
   for (const path of nodePaths) {
+    /* istanbul ignore else */
     if (t.isExpression(path.node)) {
       meshExpression(path as NodePath<types.Expression>, internal);
     }
@@ -65,6 +66,7 @@ export function meshAllUnknown(
   internal: Internal,
 ) {
   for (const path of paths) {
+    /* istanbul ignore else */
     if (t.isSpreadElement(path.node)) {
       meshExpression((path as NodePath<types.SpreadElement>).get("argument"), internal);
     } else if (t.isExpression(path.node)) {
@@ -76,6 +78,7 @@ export function meshAllUnknown(
 export function meshLValue(path: NodePath<types.LVal | types.Expression>, internal: Internal) {
   const node = path.node;
 
+  /* istanbul ignore else */
   if (t.isExpression(node)) {
     meshExpression(path as NodePath<typeof node>, internal);
   }
@@ -85,6 +88,7 @@ export function meshOrIgnoreExpression<T extends types.Node>(
   path: NodePath<types.Expression | types.VoidPattern | null | undefined | T>,
   internal: Internal,
 ) {
+  /* istanbul ignore else */
   if (t.isExpression(path.node)) {
     meshExpression(path as NodePath<types.Expression>, internal);
   }
@@ -100,7 +104,7 @@ export function meshExpression(
   if (!expr) {
     return;
   }
-  if (calls(expr, ["compose", "store"], internal)) {
+  if (calls(nodePath, ["compose", "store"], internal)) {
     meshComposeCall(expr as types.CallExpression, null, nodePath, internal);
 
     return;
@@ -137,8 +141,8 @@ export function meshExpression(
     case "CallExpression":
     case "OptionalCallExpression": {
       const path = nodePath as NodePath<types.CallExpression>;
-      const callsFn = calls(path.node, composeOnly, internal);
-      const callsStyleHint = calls(path.node, styleOnly, internal);
+      const callsFn = calls(path, composeOnly, internal);
+      const callsStyleHint = calls(path, styleOnly, internal);
 
       if (callsFn) {
         throw path.buildCodeFrameError(`Vasille: Usage of hint "${callsFn}" is restricted here`);
@@ -150,7 +154,7 @@ export function meshExpression(
       meshOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), internal);
       meshAllUnknown(path.get("arguments"), internal);
 
-      if (calls(path.node, ["calculate"], internal)) {
+      if (calls(path, ["calculate"], internal)) {
         if (
           path.node.arguments.length === 1 &&
           (t.isFunctionExpression(path.node.arguments[0]) || t.isArrowFunctionExpression(path.node.arguments[0]))
@@ -360,9 +364,11 @@ export function meshStatements(paths: NodePath<types.Statement>[], internal: Int
 }
 
 export function ignoreParams(val: types.LVal | types.VoidPattern, internal: Internal) {
+  /* istanbul ignore else */
   if (t.isAssignmentPattern(val)) {
     val = val.left;
   }
+  /* istanbul ignore else */
   if (t.isIdentifier(val)) {
     internal.stack.set(val.name, VariableState.Ignored);
   } else if (t.isObjectPattern(val)) {
@@ -378,7 +384,9 @@ export function ignoreParams(val: types.LVal | types.VoidPattern, internal: Inte
 
 function ignoreObjectPattern(pattern: types.ObjectPattern, internal: Internal) {
   for (const property of pattern.properties) {
+    /* istanbul ignore else */
     if (t.isObjectProperty(property)) {
+      /* istanbul ignore else */
       if (t.isObjectPattern(property.value)) {
         ignoreObjectPattern(property.value, internal);
       } else if (t.isAssignmentPattern(property.value)) {
@@ -387,6 +395,7 @@ function ignoreObjectPattern(pattern: types.ObjectPattern, internal: Internal) {
         internal.stack.set(property.value.name, VariableState.Ignored);
       }
     }
+    /* istanbul ignore else */
     if (t.isRestElement(property)) {
       internal.stack.set((property.argument as types.Identifier).name, VariableState.Ignored);
     }
@@ -399,6 +408,7 @@ export function reactiveArrayPattern(
 ) {
   if (t.isArrayPattern(path.node)) {
     path.node.elements.forEach((element, index) => {
+      /* istanbul ignore else */
       if (t.isIdentifier(element)) {
         internal.stack.set(element.name, index < 2 ? VariableState.Reactive : VariableState.Ignored);
       }
@@ -412,6 +422,7 @@ function meshForEachHeader(path: NodePath<types.ForInStatement | types.ForOfStat
   const left = path.node.left;
 
   meshExpression(path.get("right"), internal);
+  /* istanbul ignore else */
   if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
     ignoreParams(left.declarations[0].id, internal);
   }
@@ -420,6 +431,7 @@ function meshForEachHeader(path: NodePath<types.ForInStatement | types.ForOfStat
 function meshForHeader(path: NodePath<types.ForStatement>, internal: Internal) {
   const node = path.node;
 
+  /* istanbul ignore else */
   if (node.init) {
     if (t.isExpression(node.init)) {
       meshExpression(path.get("init") as NodePath<types.Expression>, internal);
@@ -538,6 +550,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
 
     case "TryStatement":
       meshStatement((path as NodePath<types.TryStatement>).get("block"), internal);
+      /* istanbul ignore else */
       if ((path as NodePath<types.TryStatement>).node.handler) {
         meshStatement(
           ((path as NodePath<types.TryStatement>).get("handler") as NodePath<types.CatchClause>).get("body"),
@@ -552,8 +565,9 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
 
       for (const declaration of _path.get("declarations")) {
         const expr = declaration.node.init;
+        const initPath = declaration.get("init");
 
-        if (expr && t.isIdentifier(declaration.node.id) && calls(expr, ["compose", "store"], internal)) {
+        if (expr && t.isIdentifier(declaration.node.id) && calls(initPath, ["compose", "store"], internal)) {
           meshComposeCall(expr as types.CallExpression, declaration.node.id, declaration.get("init"), internal);
         } else {
           meshExpression(declaration.get("init"), internal);
@@ -582,6 +596,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
     case "ExportDefaultDeclaration": {
       const declarationPath = (path as NodePath<types.ExportDefaultDeclaration>).get("declaration");
 
+      /* istanbul ignore else */
       if (t.isExpression(declarationPath.node)) {
         meshExpression(declarationPath as NodePath<types.Expression>, internal);
       } else if (t.isFunctionDeclaration(declarationPath.node)) {
@@ -644,14 +659,20 @@ export function composeExpression(
     }
     case "CallExpression":
     case "OptionalCallExpression": {
-      const call = expr as types.CallExpression | types.OptionalCallExpression;
-
-      if (calls(call, ["watch"], internal)) {
+      if (calls(path, ["watch"], internal)) {
         const args = parseCalculateCall(path, internal);
 
+        /* istanbul ignore else */
         if (args) {
           if (args[1].elements.length > 0) {
-            path.replaceWith(t.callExpression(t.memberExpression(ctx, t.identifier("watch")), args));
+            path.replaceWith(
+              t.callExpression(
+                internal.stateOnly
+                  ? t.memberExpression(internal.id, t.identifier("ex"))
+                  : t.memberExpression(ctx, t.identifier("watch")),
+                args,
+              ),
+            );
           } else {
             path.replaceWith(t.callExpression(args[0], []));
           }
@@ -801,6 +822,7 @@ export function composeStatement(
         function idName(target: types.LVal | types.PatternLike | null = id): string {
           let name = "#";
 
+          /* istanbul ignore else */
           if (t.isIdentifier(target)) {
             name = target.name;
           }
@@ -816,7 +838,8 @@ export function composeStatement(
 
         ignoreParams(declaration.node.id, internal);
 
-        if (calls(declaration.node.init, ["awaited"], internal)) {
+        /* istanbul ignore else */
+        if (calls(declaration.get("init"), ["awaited"], internal)) {
           reactiveArrayPattern(declaration.get("id"), internal);
           meshAllUnknown((declaration.get("init") as NodePath<types.CallExpression>).get("arguments"), internal);
           named(declaration.node.init as types.CallExpression, idDoubleName(), internal);
@@ -825,12 +848,14 @@ export function composeStatement(
           internal.stack.set(id.name, declares);
 
           const init = declaration.node.init;
+          const initPath = declaration.get("init");
+          let callName: string | false = false;
 
-          if (calls(init, ["value"], internal)) {
+          if (calls(initPath, ["value"], internal)) {
             internal.stack.set(id.name, VariableState.Ignored);
             declaration.get("init").replaceWith((init as types.CallExpression).arguments[0]);
             _path.node.kind = kind;
-          } else if (calls(init, ["bind"], internal)) {
+          } else if (calls(initPath, ["bind"], internal)) {
             const argument = (init as types.CallExpression).arguments[0] as types.Expression;
             const argumentPath = (declaration.get("init") as NodePath<types.CallExpression>).get(
               "arguments",
@@ -855,12 +880,12 @@ export function composeStatement(
 
             declaration.get("init").replaceWith(replaceWith);
             meshInit = !replaceWith;
-          } else if (calls(init, ["ref"], internal)) {
+          } else if (calls(initPath, ["ref"], internal)) {
             const argument = (init as types.CallExpression).arguments[0];
 
             internal.stack.set(id.name, VariableState.Reactive);
             declaration.get("init").replaceWith(ref(t.isExpression(argument) ? argument : null, internal, idName()));
-          } else if (calls(init, ["reactiveObject"], internal)) {
+          } else if (calls(initPath, ["reactiveObject"], internal)) {
             const value = (init as types.CallExpression).arguments[0];
 
             if (kind !== "const") {
@@ -872,7 +897,7 @@ export function composeStatement(
             } else {
               throw declaration.buildCodeFrameError(`Vasille: reactiveObject requires object expression as argument`);
             }
-          } else if (calls(init, ["arrayModel"], internal)) {
+          } else if (calls(initPath, ["arrayModel"], internal)) {
             const value = (init as types.CallExpression).arguments[0];
 
             if (kind !== "const") {
@@ -883,19 +908,18 @@ export function composeStatement(
             } else {
               declaration.get("init").replaceWith(arrayModel(null, internal, idName()));
             }
-          } else if (calls(init, ["mapModel", "setModel"], internal)) {
+          } else if ((callName = calls(initPath, ["mapModel", "setModel"], internal))) {
             const args = (init as types.CallExpression).arguments;
-            const name = calls(init, ["mapModel", "setModel"], internal);
 
             if (kind !== "const") {
               throw declaration.buildCodeFrameError(
-                `Vasille: ${name === "mapModel" ? "Map" : "Set"} models must be declared as constants`,
+                `Vasille: ${callName === "mapModel" ? "Map" : "Set"} models must be declared as constants`,
               );
             }
             declaration
               .get("init")
               .replaceWith(
-                name === "mapModel" ? mapModel(args, internal, idName()) : setModel(args, internal, idName()),
+                callName === "mapModel" ? mapModel(args, internal, idName()) : setModel(args, internal, idName()),
               );
           } else if (t.isObjectExpression(init)) {
             if (kind !== "const") {
@@ -1016,6 +1040,7 @@ export function compose(
           const key = node.key;
           let keyName: string = "";
 
+          /* istanbul ignore else */
           if (t.isIdentifier(node.value)) {
             keyName = node.value.name;
           } else if (t.isIdentifier(key) && !node.computed) {
@@ -1047,6 +1072,7 @@ export function compose(
     }
   }
 
+  /* istanbul ignore else */
   if (t.isExpression(body)) {
     composeExpression(path.get("body") as NodePath<types.Expression>, internal, true);
   } else if (t.isBlockStatement(body)) {

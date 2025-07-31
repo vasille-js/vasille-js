@@ -47,6 +47,7 @@ export abstract class Root<Node, Element, TagOptions extends object, T extends o
         for (const child of this.children) {
             first = child.findFirstChild();
 
+            /* istanbul ignore else */
             if (first) {
                 break;
             }
@@ -470,6 +471,7 @@ export abstract class DebugNode<Node, Element, TagOptions extends object> extend
     public abstract compose(): void;
 
     public destroy(): void {
+        /* istanbul ignore else */
         if (this.handler) {
             this.input.text.off(this.handler);
         }

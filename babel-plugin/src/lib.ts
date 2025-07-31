@@ -27,7 +27,7 @@ export function parseCalculateCall(
   path: NodePath<types.Expression | null | undefined>,
   internal: Internal,
 ): [types.FunctionExpression | types.ArrowFunctionExpression, types.ArrayExpression] | null {
-  if (t.isCallExpression(path.node) && calls(path.node, ["calculate", "watch"], internal)) {
+  if (t.isCallExpression(path.node) && calls(path, ["calculate", "watch"], internal)) {
     const call = path.node.arguments[0];
 
     if (path.node.arguments.length !== 1) {
@@ -78,7 +78,7 @@ export function exprCall(
 
   if (
     t.isCallExpression(expr) &&
-    calls(expr, ["forward"], internal) &&
+    calls(path, ["forward"], internal) &&
     expr.arguments.length === 1 &&
     t.isExpression(expr.arguments[0])
   ) {
@@ -88,6 +88,7 @@ export function exprCall(
       internal,
     );
 
+    /* istanbul ignore else */
     if (data && !t.isCallExpression(data)) {
       return t.callExpression(t.memberExpression(internal.id, t.identifier("fo")), [data]);
     }

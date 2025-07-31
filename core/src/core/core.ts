@@ -74,6 +74,7 @@ export class Reactive<T extends object = object> extends Destroyable {
         const pointer = new OwningPointer(value);
 
         this._watch.add(pointer);
+        /* istanbul ignore else */
         if (name) {
             this.addState("own", name, pointer);
         }

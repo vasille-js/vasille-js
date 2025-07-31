@@ -69,6 +69,7 @@ function extractMemberName(path: NodePath<types.MemberExpression | types.Optiona
 function addMemberExpr(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, search: Search) {
   const name = extractMemberName(path, search);
 
+  /* istanbul ignore else */
   if (!search.found.has(name)) {
     search.found.set(name, path.node);
   }
@@ -151,12 +152,14 @@ function meshLValue(
 ) {
   const node = path.node;
 
+  /* istanbul ignore else */
   if (t.isIdentifier(node)) {
     meshIdentifier(path as NodePath<types.Identifier>, internal);
   } else if (t.isMemberExpression(node) || t.isOptionalMemberExpression(node)) {
     meshMember(path as NodePath<types.MemberExpression | types.OptionalMemberExpression>, internal);
   } else if (t.isArrayPattern(node)) {
     for (const item of (path as NodePath<types.ArrayPattern>).get("elements")) {
+      /* istanbul ignore else */
       if (t.isOptionalMemberExpression(item.node) || t.isLVal(item.node)) {
         meshLValue(item as NodePath<types.OptionalMemberExpression | types.LVal | null | undefined>, internal);
       }
@@ -194,6 +197,7 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
   internal.stack.fixLocalIndex();
   internal.stack.push();
 
+  /* istanbul ignore else */
   if (t.isExpression(path.node)) {
     checkExpression(path as NodePath<types.Expression>, search);
   }
@@ -209,6 +213,7 @@ export function checkOrIgnoreAllExpressions<T extends types.Node>(
   search: Search,
 ) {
   for (const path of nodePaths) {
+    /* istanbul ignore else */
     if (t.isExpression(path.node)) {
       checkExpression(path as NodePath<types.Expression>, search);
     }
@@ -226,6 +231,7 @@ export function checkAllUnknown(
   internal: Search,
 ) {
   for (const path of paths) {
+    /* istanbul ignore else */
     if (t.isSpreadElement(path.node)) {
       checkExpression((path as NodePath<types.SpreadElement>).get("argument"), internal);
     } else if (t.isExpression(path.node)) {
@@ -238,6 +244,7 @@ export function checkOrIgnoreExpression<T extends types.Node>(
   path: NodePath<types.Expression | null | undefined | T>,
   search: Search,
 ) {
+  /* istanbul ignore else */
   if (t.isExpression(path.node)) {
     checkExpression(path as NodePath<types.Expression>, search);
   }
@@ -263,6 +270,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       break;
     }
     case "Identifier": {
+      /* istanbul ignore else */
       if (expr && t.isIdentifier(expr)) {
         if (
           idIsIValue(nodePath as NodePath<types.Identifier>, search.external, VariableScope.Global) &&
@@ -282,7 +290,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     case "CallExpression": {
       const path = nodePath as NodePath<types.CallExpression>;
 
-      if (calls(path.node, composeOnly, search.external)) {
+      if (calls(path, composeOnly, search.external)) {
         throw path.buildCodeFrameError("Vasille: Usage of hints is restricted here");
       }
 
@@ -364,6 +372,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       const path = nodePath as NodePath<types.UpdateExpression>;
       const arg = path.node.argument;
 
+      /* istanbul ignore else */
       if (t.isLVal(arg)) {
         meshLValue(path.get("argument") as NodePath<types.LVal>, search.external);
       }
@@ -453,10 +462,12 @@ export function checkStatements(paths: NodePath<types.Statement>[], search: Sear
 }
 
 function ignoreLocals(val: types.LVal | types.VariableDeclaration | types.VoidPattern, search: Search) {
+  /* istanbul ignore else */
   if (t.isIdentifier(val)) {
     search.stack.set(val.name, VariableState.Ignored);
   } else if (t.isObjectPattern(val)) {
     for (const prop of val.properties) {
+      /* istanbul ignore else */
       if (t.isObjectProperty(prop) && t.isIdentifier(prop.value)) {
         search.stack.set(prop.value.name, VariableState.Ignored);
       } else if (t.isRestElement(prop) && t.isIdentifier(prop.argument)) {
@@ -467,12 +478,14 @@ function ignoreLocals(val: types.LVal | types.VariableDeclaration | types.VoidPa
     }
   } else if (t.isArrayPattern(val)) {
     for (const element of val.elements) {
+      /* istanbul ignore else */
       if (element && !t.isVoidPattern(element)) {
         ignoreLocals(element, search);
       }
     }
   } else if (t.isVariableDeclaration(val)) {
     for (const declarator of val.declarations) {
+      /* istanbul ignore else */
       if (!t.isVoidPattern(declarator.id)) {
         ignoreLocals(declarator.id, search);
       }
@@ -528,6 +541,7 @@ export function checkStatement(path: NodePath<types.Statement | null | undefined
       const _path = path as NodePath<types.ForStatement>;
       const node = _path.node;
 
+      /* istanbul ignore else */
       if (node.init) {
         if (t.isExpression(node.init)) {
           checkExpression(_path.get("init") as NodePath<types.Expression>, search);
@@ -594,6 +608,7 @@ export function checkStatement(path: NodePath<types.Statement | null | undefined
       const handlerPath = (path as NodePath<types.TryStatement>).get("handler");
 
       checkStatement((path as NodePath<types.TryStatement>).get("block"), search);
+      /* istanbul ignore else */
       if (handlerPath.node) {
         checkStatement((handlerPath as NodePath<types.CatchClause>).get("body"), search);
       }

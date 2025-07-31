@@ -1,4 +1,4 @@
-import { Fragment, IValue, setErrorHandler } from "vasille";
+import { Fragment, IValue, Reference, setErrorHandler } from "vasille";
 import { compose, mount } from "../src/index.js";
 import { readValue } from "../src/components.js";
 import { createNode } from "./page.js";
@@ -46,9 +46,11 @@ it("compose test", function () {
                 f.tag("div", { class: ["2"] });
             });
         },
+        className: new Reference("replaced"),
     });
 
     expect(div.children.length).toBe(1);
+    expect(div.className).toBe("replaced");
     expect(div.children[0].children.length).toBe(1);
     expect(div.children[0].children[0].className).toBe("2");
 });

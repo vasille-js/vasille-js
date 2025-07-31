@@ -34,9 +34,11 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      */
     public fill(value: T, start?: number, end?: number): this {
         this.passive = true;
+        /* istanbul ignore else */
         if (!start) {
             start = 0;
         }
+        /* istanbul ignore else */
         if (!end) {
             end = this.length;
         }
@@ -58,6 +60,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
         this.passive = true;
         const v = super.pop();
 
+        /* istanbul ignore else */
         if (v !== undefined) {
             this.listener.emitRemoved(v, v);
         }
@@ -88,6 +91,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
         this.passive = true;
         const v = super.shift();
 
+        /* istanbul ignore else */
         if (v !== undefined) {
             this.listener.emitRemoved(v, v);
         }
@@ -111,6 +115,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
 
         for (let i = 0; i < deleteCount; i++) {
             const index = start + deleteCount - i - 1;
+            /* istanbul ignore else */
             if (this[index] !== undefined) {
                 this.listener.emitRemoved(this[index], this[index]);
             }

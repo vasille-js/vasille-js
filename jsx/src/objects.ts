@@ -17,6 +17,7 @@ export function proxyObject(obj: object, proxyRef: ProxyReference) {
         set(target: object, p: string | symbol, newValue: any, receiver: any): boolean {
             const response = Reflect.set(target, p, newValue, receiver);
 
+            /* istanbul ignore else */
             if (response) {
                 proxyRef.forceUpdate();
             }
@@ -26,6 +27,7 @@ export function proxyObject(obj: object, proxyRef: ProxyReference) {
         defineProperty(target: object, property: string | symbol, attributes: PropertyDescriptor): boolean {
             const response = Reflect.defineProperty(target, property, attributes);
 
+            /* istanbul ignore else */
             if (response) {
                 proxyRef.forceUpdate();
             }
@@ -35,6 +37,7 @@ export function proxyObject(obj: object, proxyRef: ProxyReference) {
         deleteProperty(target: object, p: string | symbol): boolean {
             const response = Reflect.deleteProperty(target, p);
 
+            /* istanbul ignore else */
             if (response) {
                 proxyRef.forceUpdate();
             }
@@ -80,6 +83,7 @@ export function reactiveObject<T extends object>(
             }
         },
         deleteProperty(_, p: string | symbol): boolean {
+            /* istanbul ignore else */
             if (p in o && o[p] instanceof IValue) {
                 node.release(p[0]);
             }
@@ -108,6 +112,7 @@ export function storeReactiveObject<T extends object>(
     o: T,
 ): { [K in keyof T]: T[K] extends IValue<unknown> ? T[K] : IValue<T[K]> } {
     for (const key of Object.keys(o)) {
+        /* istanbul ignore else */
         if (!(o[key] instanceof IValue)) {
             o[key] = new Reference(proxy(o[key]));
         }

@@ -8,8 +8,8 @@ export const internal = {
         return new Expression(func, values);
     },
     /** create a forward-only pointer (without context), use it for OwningPointer */
-    fo<T>(v: IValue<T> | T): IValue<T> {
-        return new Pointer(v instanceof Reference ? v : new Reference(v));
+    fo<T>(v: IValue<T>): IValue<T> {
+        return new Pointer(v);
     },
     /** create a reference (without context), use it for default composing props values */
     r<T>(v: T): IValue<T> {

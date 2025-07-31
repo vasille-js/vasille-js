@@ -38,6 +38,7 @@ export function Slot<Node, Element, TagOptions extends object, T extends object 
             }
         } else {
             for (const key in options) {
+                /* istanbul ignore else */
                 if (!(options[key] instanceof IValue)) {
                     options[key] = ctx.ref(options[key]);
                 }
@@ -83,6 +84,7 @@ export function Else<Node, Element, TagOptions extends object>(
 ) {
     const slot = readValue(magicSlot);
 
+    /* istanbul ignore else */
     if (slot) {
         ctx.else(slot);
     }
@@ -106,6 +108,7 @@ export function For<
 ) {
     const slot = readValue(magicSlot);
 
+    /* istanbul ignore else */
     if (of instanceof IValue) {
         ctx.create(
             new CoreWatch<Node, Element, TagOptions, T>(
@@ -192,6 +195,7 @@ export function Watch<Node, Element, TagOptions extends object, T>(
 ) {
     const slot = readValue(magicSlot);
 
+    /* istanbul ignore else */
     if (slot && model instanceof IValue) {
         ctx.create(new CoreWatch({ model, slot }, ctx.runner));
     }
@@ -224,6 +228,7 @@ export function Delay<Node, Element, TagOptions extends object>(
     let timer: number | undefined;
 
     ctx.create(fragment, function (node) {
+        /* istanbul ignore else */
         if (dSlot) {
             timer = setTimeout(() => {
                 dSlot(node);

@@ -1,4 +1,18 @@
-import { arrayModel, calculate, compose, ref, store, watch } from "vasille-web";
+import {
+  arrayModel,
+  awaited,
+  bind,
+  calculate,
+  compose,
+  forward,
+  mapModel,
+  reactiveObject,
+  ref,
+  setModel,
+  store,
+  value,
+  watch,
+} from "vasille-web";
 
 export const C = store(() => {
   let a = 2;
@@ -13,6 +27,18 @@ export const C = store(() => {
   const j = arrayModel();
   const k = a + b;
   const o = ref({ a: { b: 1 } });
+  const m = bind(a + b);
+  const n = ref(2);
+  const p = value(3);
+  const q = arrayModel();
+  const r = setModel();
+  const s = mapModel();
+  const t = reactiveObject({});
+  const u = forward(m);
+
+  watch(() => {
+    console.log(o);
+  });
 
   return {
     $a: a,

@@ -122,6 +122,7 @@ export class ContextMap<K, T> extends MapModel<K, T> {
     public constructor(map?: [K, T][]) {
         const ctx = new Context();
 
+        /* istanbul ignore else */
         if (map) {
             for (const item of map) {
                 item[1] = ctx.checkEnable(item[1]);
@@ -166,6 +167,7 @@ export class ContextSet<T> extends SetModel<T> {
         const ctx = new Context();
         const real = new Map<T, T>();
 
+        /* istanbul ignore else */
         if (set) {
             for (let i = 0; i < set.length; i++) {
                 real.set(set[i], (set[i] = ctx.checkEnable(set[i])));

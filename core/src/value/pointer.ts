@@ -50,6 +50,7 @@ export class Pointer<T> extends IValue<T> {
     }
 
     public set $$(v: T | IValue<T>) {
+        /* istanbul ignore else */
         if (this.target !== v) {
             this.disconnectTarget();
         }

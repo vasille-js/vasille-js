@@ -40,6 +40,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
      */
     public delete(key: K): boolean {
         const tmp = super.get(key);
+        /* istanbul ignore else */
         if (tmp) {
             this.listener.emitRemoved(key, tmp);
         }

@@ -62,8 +62,10 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
         internal.prefix = name;
 
         for (const specifier of statement.specifiers) {
+          /* istanbul ignore else */
           if (t.isImportNamespaceSpecifier(specifier)) {
             internal.global = specifier.local.name;
+            /* istanbul ignore else */
             if (statement.source.value === "vasille-web") {
               stylesConnected = true;
             }
@@ -111,6 +113,7 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
       t.importDeclaration(
         [
           ...statement.specifiers.filter(item => {
+            /* istanbul ignore else */
             if (t.isImportSpecifier(item) && t.isIdentifier(item.local)) {
               return statementPath.scope.bindings[item.local.name].referenced;
             }

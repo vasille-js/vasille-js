@@ -14,6 +14,6 @@ const S = store(({ a }: { a: number }) => {
     },
     dispatchD(newD: string) {
       d = newD;
-    }
+    },
   };
 });

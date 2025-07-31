@@ -76,6 +76,14 @@ it("store jsx error", function () {
   throwTest(__dirname, "store-jsx", "JSX is not allowed in states", true);
 });
 
+it("store awaited error 1", function () {
+  throwTest(__dirname, "store-awaited-1", "awaited function can be used only in components");
+});
+
+it("store awaited error 2", function () {
+  throwTest(__dirname, "store-awaited-2", "awaited function can be used only in components");
+});
+
 it("reactive object not const error", function () {
   throwTest(__dirname, "reactive-object-const", "Reactive objects must be must be declared as constants");
 });
