@@ -19,6 +19,7 @@ No special knowledge required, just HTML, CSS, JavaScript, minimal JSX.
 13. [Watching](#watching)
 14. [Debug](#debug)
 15. [Styling](#styling)
+16. [Store](#store)
 
 ## Components
 
@@ -342,8 +343,9 @@ export const MyApp = compose(() => {
 ```
 
 ## Styling
+*(since 3.0.3)*
 
-The `webStyleSheet` function will create ready-to-use stylesheet in compile time.
+The `styleSheet` function will create ready-to-use stylesheet in compile time.
 
 ```typescript jsx
 export const MyComponent = compose(() => {
@@ -354,7 +356,7 @@ export const MyComponent = compose(() => {
   </div>
 });
 
-const styles = webStyleSheet({
+const styles = styleSheet({
   root: {
     display: "block",
     // shortcut for 0px
@@ -397,4 +399,63 @@ export const MyComponent = compose(() => {
     </div>
   </div>
 });
+```
+
+## Store
+*(since 3.1.5)*
+
+To create a store constructor use `store` function,
+the return object can contain reactive data, static data and dispatch function.
+
+In stores, you can use same reactive states, expressions and watches.
+
+```typescript
+interface Props {
+    name: string;
+    nickname: string;
+}
+
+const userStore = store(({name, nickname}: Props) => {
+    let $name = name;
+    let $nickname = nickname;
+    
+    return {
+        $name,
+        $nickname,
+        changeName(name: string) {
+            $name = name;
+        }
+    }
+});
+
+const user = userStore({
+    name: "Fake Name",
+    nickname: "nick",
+});
+```
+
+You can load/save the store data to local storage.
+The parameter can be omitted and the result can be immediately called.
+
+```typescript
+const auth = store(() => {
+    let $token = "";
+    const storageKey = "token";
+    const saved = localStorage.getItem(storageKey);
+    
+    if (saved) {
+        $token = saved;
+    }
+    
+    watch(() => {
+        localStorage.setItem(storageKey, $token);
+    });
+    
+    return {
+        $token,
+        updateToken(token: string) {
+            $token = token;
+        }
+    }
+})();
 ```
