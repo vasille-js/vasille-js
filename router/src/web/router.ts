@@ -1,6 +1,6 @@
 import { App, Fragment, Reference } from "vasille";
 import { Runner, TagOptions } from "vasille/web-runner";
-import { Router as AbstractRouter, RouteRenderScope, RouterInitialization } from "../router.js";
+import { composeUrl, Router as AbstractRouter, RouteRenderScope, RouterInitialization } from "../router.js";
 import { QueryParams, Answer, ScreenProps, RouteParameters } from "../types.js";
 
 export interface WebRouterInitialization<Routes extends string>
@@ -70,12 +70,22 @@ export class Router<Routes extends string> extends AbstractRouter<
         super.navigate(route, params, mode);
     }
 
+    /**
+     * Do a silent navigation without any modification in DOM until successful
+     * @param route target route
+     * @param params target route params
+     * @throws {Error} a lot of errors
+     */
+    public silentNavigate<T extends Routes>(route: T, params: RouteParameters<T>) {
+        return this.prepareNavigation(composeUrl(route, params), true, true, "silent");
+    }
+
     public reload(): void {
         this.doNavigate(this.currentUrl.$, true, "loading-screen");
     }
 
     protected doNavigate(url: string, canNavigate: boolean, mode: NavigationMode) {
-        this.prepareNavigation(url, canNavigate, mode).catch(e => {
+        this.prepareNavigation(url, canNavigate, false, mode).catch(e => {
             this.clearLoadings();
             this.webInit.reportError(e);
         });
@@ -130,7 +140,9 @@ export class Router<Routes extends string> extends AbstractRouter<
             }
             this.currentUrl.$ = props.url;
         } catch (error) {
-            this.clearNode(this.contentNode);
+            if (mode !== "silent") {
+                this.clearNode(this.contentNode);
+            }
             throw error;
         } finally {
             this.clearLoadings();

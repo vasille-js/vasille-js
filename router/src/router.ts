@@ -16,6 +16,12 @@ export interface RouterInitialization<
 
 export type RouteRenderScope = "found" | "not-found" | "fallback" | "error";
 
+export function composeUrl<Route extends string>(route: Route, params: RouteParameters<Route>): string {
+    return Object.entries(params).reduce<string>((link, [key, value]) => {
+        return link.replace(new RegExp(`:${key}\\b`), value);
+    }, route);
+}
+
 export abstract class Router<
     Node,
     Element,
@@ -58,13 +64,7 @@ export abstract class Router<
     }
 
     public navigate<T extends Routes>(route: T, params: RouteParameters<T>, ...args: Args) {
-        this.doNavigate(
-            Object.entries(params).reduce<string>((link, [key, value]) => {
-                return link.replace(`:${key}`, value);
-            }, route),
-            true,
-            ...args,
-        );
+        this.doNavigate(composeUrl(route, params), true, ...args);
     }
 
     protected createRouting(): Routing<Node, Element, TagOptions, Routes, Extras> {
@@ -115,7 +115,7 @@ export abstract class Router<
         return { url, path, query, hash, target, params };
     }
 
-    protected async prepareNavigation(url: string, canNavigate: boolean, ...args: Args) {
+    protected async prepareNavigation(url: string, canNavigate: boolean, async: boolean, ...args: Args) {
         const { target, ...props } = this.targetByUrl(url);
 
         try {
@@ -133,6 +133,10 @@ export abstract class Router<
                 );
             }
         } catch (e) {
+            if (async) {
+                throw e;
+            }
+
             await this.renderScreen(this.init.errorScreen, { error: e }, "error", ...args);
         }
 

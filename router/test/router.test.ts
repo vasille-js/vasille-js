@@ -406,12 +406,11 @@ it("switch page: found -> found", function (done) {
     setTimeout(() => {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("about");
-        router.navigate("/article/:id", { id: "23" }, "silent");
-        setTimeout(() => {
+        router.silentNavigate("/article/:id", { id: "23" }, "silent").then(() => {
             expect(body.children.length).toBe(1);
             expect(body.children[0].className).toBe("article_23");
             done();
-        }, 1);
+        });
     }, 1);
 });
 
@@ -450,6 +449,38 @@ it("switch page: found -> fallback", function (done) {
     }, 1);
 });
 
+it("switch page: fallback -> error", function (done) {
+    const window = page();
+    const body = window.document.body;
+    let router!: Router<string>;
+
+    routeApp(body, window as unknown as Window, createLocation("/"), {
+        fallbackScreen(ctx) {
+            ctx.tag("div", { class: [`fallback`] });
+            if ("router" in ctx.runner && ctx.runner.router instanceof Router) {
+                router = ctx.runner.router;
+            }
+        },
+        errorScreen() {},
+        reportError() {},
+        routes: {
+            "/error": {
+                answer404() {
+                    throw new Error("catch me");
+                },
+            },
+        },
+    });
+
+    setTimeout(() => {
+        expect(body.children.length).toBe(1);
+        expect(body.children[0].className).toBe("fallback");
+        expect(router.silentNavigate("/error", {}, "silent"))
+            .rejects.toThrow("catch me")
+            .finally(done);
+    }, 1);
+});
+
 it("switch page: error -> found", function (done) {
     const window = page();
     const body = window.document.body;
@@ -478,12 +509,11 @@ it("switch page: error -> found", function (done) {
     setTimeout(() => {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("error");
-        router.navigate("/exists", {}, "silent");
-        setTimeout(() => {
+        router.silentNavigate("/exists", {}, "silent").then(() => {
             expect(body.children.length).toBe(1);
             expect(body.children[0].className).toBe("exists");
             done();
-        }, 1);
+        });
     }, 1);
 });
 
