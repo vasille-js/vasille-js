@@ -1,3 +1,4 @@
+import { setErrorHandler } from "vasille";
 import { routeApp, Router, WebRouterInitialization } from "../src/web/router.js";
 import { page } from "./page.js";
 import { jest } from "@jest/globals";
@@ -13,7 +14,6 @@ it("empty", function (done) {
             });
         },
         errorScreen() {},
-        reportError() {},
         routes: {},
     });
 
@@ -38,7 +38,6 @@ it("error", function (done) {
                 div.text(props.error);
             });
         },
-        reportError() {},
         routes: {},
     });
 
@@ -58,6 +57,8 @@ it("report error", function (done) {
         expect(`${e}`).toBe("Error: double error");
     });
 
+    setErrorHandler(reportError);
+
     routeApp(body, window as unknown as Window, window.location, {
         fallbackScreen() {
             throw new Error("test error");
@@ -65,7 +66,6 @@ it("report error", function (done) {
         errorScreen() {
             throw new Error("double error");
         },
-        reportError,
         routes: {},
     });
 
@@ -84,10 +84,11 @@ it("report invalid URL error", function (done) {
         expect(`${e}`).toBe("TypeError [ERR_INVALID_URL]: Invalid URL");
     });
 
+    setErrorHandler(reportError);
+
     routeApp(body, window as unknown as Window, window.location, {
         fallbackScreen() {},
         errorScreen() {},
-        reportError,
         routes: {},
     });
 
@@ -112,7 +113,6 @@ it("static /", function (done) {
     routeApp(body, window as unknown as Window, createLocation("/?text=queryText"), {
         fallbackScreen() {},
         errorScreen() {},
-        reportError() {},
         routes: {
             "/": {
                 answer200(ctx, props) {
@@ -140,7 +140,6 @@ it("static /about", function (done) {
     routeApp(body, window as unknown as Window, createLocation("/about?text=1&text=2"), {
         fallbackScreen() {},
         errorScreen() {},
-        reportError() {},
         routes: {
             "/about": {
                 answer301(ctx, props) {
@@ -168,7 +167,6 @@ it("static /error/404", function (done) {
     routeApp(body, window as unknown as Window, createLocation("/error/404#hash"), {
         fallbackScreen() {},
         errorScreen() {},
-        reportError() {},
         routes: {
             "/error/404": {
                 answer404(ctx, props) {
@@ -196,7 +194,6 @@ it("dynamic /:test", function (done) {
     routeApp(body, window as unknown as Window, createLocation("/test-value"), {
         fallbackScreen() {},
         errorScreen() {},
-        reportError() {},
         routes: {
             "/:test": {
                 answer200(ctx, props) {
@@ -221,7 +218,6 @@ it("dynamic /path/:value", function (done) {
     routeApp(body, window as unknown as Window, createLocation("/path/c23"), {
         fallbackScreen() {},
         errorScreen() {},
-        reportError() {},
         routes: {
             "/path/:value": {
                 answer200(ctx, props) {
@@ -246,7 +242,6 @@ it("dynamic /before/:value/after", function (done) {
     routeApp(body, window as unknown as Window, createLocation("/before/vx/after"), {
         fallbackScreen() {},
         errorScreen() {},
-        reportError() {},
         routes: {
             "/before/:value/after": {
                 answer200(ctx, props) {
@@ -272,7 +267,6 @@ it("dynamic /:v /1/:v /:v/2/3 /1/2/:v/4", function (done) {
         const init: WebRouterInitialization<"/:v" | "/1/:v" | "/:v/2/3" | "/1/2/:v/4"> = {
             fallbackScreen() {},
             errorScreen() {},
-            reportError() {},
             routes: {
                 "/:v": {
                     answer200(ctx, props) {
@@ -328,7 +322,6 @@ it("dynamic vs static /1 /:v /1/2 /1/:v", function (done) {
         const init: WebRouterInitialization<"/:v" | "/1" | "/1/2" | "/1/:v"> = {
             fallbackScreen() {},
             errorScreen() {},
-            reportError() {},
             routes: {
                 "/:v": {
                     answer200(ctx, props) {
@@ -384,7 +377,6 @@ it("switch page: found -> found", function (done) {
     routeApp(body, window as unknown as Window, createLocation("/about"), {
         fallbackScreen() {},
         errorScreen() {},
-        reportError() {},
         routes: {
             "/about": {
                 answer200(ctx) {
@@ -406,7 +398,7 @@ it("switch page: found -> found", function (done) {
     setTimeout(() => {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("about");
-        router.silentNavigate("/article/:id", { id: "23" }, "silent").then(() => {
+        router.silentNavigate("/article/:id", { id: "23" }).then(() => {
             expect(body.children.length).toBe(1);
             expect(body.children[0].className).toBe("article_23");
             done();
@@ -424,7 +416,6 @@ it("switch page: found -> fallback", function (done) {
             ctx.tag("div", { class: [`fallback`] });
         },
         errorScreen() {},
-        reportError() {},
         routes: {
             "/found": {
                 answer200(ctx) {
@@ -462,7 +453,6 @@ it("switch page: fallback -> error", function (done) {
             }
         },
         errorScreen() {},
-        reportError() {},
         routes: {
             "/error": {
                 answer404() {
@@ -475,9 +465,7 @@ it("switch page: fallback -> error", function (done) {
     setTimeout(() => {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("fallback");
-        expect(router.silentNavigate("/error", {}, "silent"))
-            .rejects.toThrow("catch me")
-            .finally(done);
+        expect(router.silentNavigate("/error", {})).rejects.toThrow("catch me").finally(done);
     }, 1);
 });
 
@@ -496,7 +484,6 @@ it("switch page: error -> found", function (done) {
                 router = ctx.runner.router;
             }
         },
-        reportError() {},
         routes: {
             "/exists": {
                 answer200(ctx) {
@@ -509,7 +496,7 @@ it("switch page: error -> found", function (done) {
     setTimeout(() => {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("error");
-        router.silentNavigate("/exists", {}, "silent").then(() => {
+        router.silentNavigate("/exists", {}).then(() => {
             expect(body.children.length).toBe(1);
             expect(body.children[0].className).toBe("exists");
             done();
@@ -534,7 +521,6 @@ it("no access fallback", function (done) {
             }
         },
         errorScreen() {},
-        reportError() {},
         routes: {
             "/exists": {
                 answer200(ctx) {
@@ -568,7 +554,6 @@ it("window popstate event", function (done) {
             ctx.tag("div", { class: ["fallback"] });
         },
         errorScreen() {},
-        reportError() {},
         routes: {
             "/exists": {
                 answer200(ctx) {
@@ -609,7 +594,6 @@ it("loading screen: before first screen", function (done) {
     routeApp(body, window as unknown as Window, window.location, {
         fallbackScreen() {},
         errorScreen() {},
-        reportError() {},
         loadingScreen(node) {
             node.tag("div", { class: ["loading"] });
         },
@@ -644,7 +628,6 @@ it("loading screen: between screens", function (done) {
     routeApp(body, window as unknown as Window, createLocation("/"), {
         fallbackScreen() {},
         errorScreen() {},
-        reportError() {},
         loadingScreen(node) {
             node.tag("div", { class: ["loading"] });
         },
@@ -703,7 +686,6 @@ it("loading overlay", function (done) {
             }
         },
         errorScreen() {},
-        reportError() {},
         loadingOverlay(node) {
             node.tag("div", { class: ["overlay"] });
         },
@@ -746,7 +728,6 @@ it("throw error in component", function (done) {
                 div.text(props.error);
             });
         },
-        reportError() {},
         routes: {
             "/": {
                 async answer200(ctx) {

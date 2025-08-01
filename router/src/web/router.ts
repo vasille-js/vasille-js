@@ -1,4 +1,4 @@
-import { App, Fragment, Reference } from "vasille";
+import { App, Fragment, Reference, reportError } from "vasille";
 import { Runner, TagOptions } from "vasille/web-runner";
 import { composeUrl, Router as AbstractRouter, RouteRenderScope, RouterInitialization } from "../router.js";
 import { QueryParams, Answer, ScreenProps, RouteParameters } from "../types.js";
@@ -7,7 +7,6 @@ export interface WebRouterInitialization<Routes extends string>
     extends RouterInitialization<Node, Element, TagOptions, Routes, {}> {
     loadingScreen?(node: Fragment<Node, Element, TagOptions>, props: object): void;
     loadingOverlay?(node: Fragment<Node, Element, TagOptions>, props: object): void;
-    reportError(e: unknown): void;
 }
 
 export type NavigationMode = "silent" | "loading-screen" | "loading-overlay";
@@ -87,7 +86,7 @@ export class Router<Routes extends string> extends AbstractRouter<
     protected doNavigate(url: string, canNavigate: boolean, mode: NavigationMode) {
         this.prepareNavigation(url, canNavigate, false, mode).catch(e => {
             this.clearLoadings();
-            this.webInit.reportError(e);
+            reportError(e);
         });
     }
 
