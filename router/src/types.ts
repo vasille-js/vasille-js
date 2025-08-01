@@ -21,6 +21,7 @@ export type RouteParameters<Route extends string> = string extends Route
 export type QueryParams = { [k: string]: string | string[] };
 
 export type ScreenProps<Route extends string> = {
+    url: string;
     path: string;
     params: RouteParameters<Route>;
     query: QueryParams;

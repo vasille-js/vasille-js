@@ -1,4 +1,4 @@
-import { Fragment } from "vasille";
+import { Fragment, Reference } from "vasille";
 import { Answer, Routing, RouteParameters, QueryParams, ScreenProps, Screen } from "./types.js";
 
 export interface RouterInitialization<
@@ -9,9 +9,9 @@ export interface RouterInitialization<
     Extras extends object,
 > {
     routes: { [K in Routes]: Answer<Node, Element, TagOptions, K, Extras> };
-    getAccessLevel(): Promise<number>;
-    getFallbackScreen(): (ctx: Fragment<Node, Element, TagOptions>, arg: object) => void;
-    errorScreen(ctx: Fragment<Node, Element, TagOptions>, data: { err: string }): void;
+    getAccessLevel?(): Promise<number>;
+    fallbackScreen(ctx: Fragment<Node, Element, TagOptions>, arg: { cause: "not-found" | "no-access" }): void;
+    errorScreen(ctx: Fragment<Node, Element, TagOptions>, data: { error: unknown }): void;
 }
 
 export type RouteRenderScope = "found" | "not-found" | "fallback" | "error";
@@ -49,9 +49,7 @@ export abstract class Router<
                 const placeIn = item.static ? it.static : it.dynamic;
                 const key = item.key;
 
-                if (item.static) {
-                    it = placeIn[key] = placeIn[key] ?? this.createRouting();
-                }
+                it = placeIn[key] = placeIn[key] ?? this.createRouting();
             }
 
             // typescript is going crazy here
@@ -90,7 +88,7 @@ export abstract class Router<
         if (target in routing.static) {
             const match = this.findTarget(routing.static[target], subPath, params);
 
-            if (match) {
+            if (match[0]) {
                 return match;
             }
         }
@@ -98,7 +96,7 @@ export abstract class Router<
         for (const key in routing.dynamic) {
             const match = this.findTarget(routing.dynamic[key], subPath, { ...params, [key]: target });
 
-            if (match) {
+            if (match[0]) {
                 return match;
             }
         }
@@ -114,41 +112,47 @@ export abstract class Router<
             {},
         );
 
-        return { path, query, hash, target, params };
+        return { url, path, query, hash, target, params };
     }
 
     protected async prepareNavigation(url: string, canNavigate: boolean, ...args: Args) {
         const { target, ...props } = this.targetByUrl(url);
 
         try {
-            if (target && (target.minAccessLevel ?? 0) >= (await this.init.getAccessLevel())) {
+            const accessLevel = (await this.init.getAccessLevel?.()) ?? 0;
+            const minLevel = target?.minAccessLevel ?? 0;
+
+            if (target && accessLevel >= minLevel) {
                 await this.loadTarget(target, props as ScreenProps<Routes>, ...args);
             } else {
                 await this.renderScreen(
-                    this.init.getFallbackScreen(),
-                    props,
-                    props.path,
+                    this.init.fallbackScreen,
+                    { cause: target ? "no-access" : "not-found" },
                     canNavigate ? "not-found" : "fallback",
                     ...args,
                 );
             }
         } catch (e) {
-            await this.renderScreen(this.init.errorScreen, { err: `${e}` }, props.path, "error", ...args);
+            await this.renderScreen(this.init.errorScreen, { error: e }, "error", ...args);
         }
 
         return;
     }
 
-    protected doNavigate(url: string, canNavigate: boolean, ...args: Args) {
-        this.prepareNavigation(url, canNavigate, ...args).catch(e => {
-            console.log(`Navigation error: ${e}`);
-        });
-    }
+    /**
+     * Must call prepareNavigation and handle promise error
+     * @param url is URL to navigate to
+     * @param canNavigate accept redirects when true
+     * @param args extra args
+     * @protected
+     */
+    protected abstract doNavigate(url: string, canNavigate: boolean, ...args: Args): void;
 
     /**
      * Parse a url to path, query param and hash
      * @param url to be parsed
      * @returns [path, query params, hash]
+     * @protected
      */
     protected abstract parseUrl(url: string): [string, QueryParams, string];
 
@@ -157,6 +161,7 @@ export abstract class Router<
      * @param target target screen to load
      * @param props props of the target screen
      * @param args extra args
+     * @protected
      */
     protected abstract loadTarget<Route extends string>(
         target: Answer<Node, Element, TagOptions, Route, Extras>,
@@ -168,7 +173,6 @@ export abstract class Router<
      * Render a screen
      * @param screen is screen to be rendered
      * @param props are props of the screen
-     * @param path is current path
      * @param scope is the cause of screen rendering
      * @param args are extra args
      * @protected
@@ -176,7 +180,6 @@ export abstract class Router<
     protected abstract renderScreen<Props>(
         screen: (ctx: Fragment<Node, Element, TagOptions>, props: Props) => void | Promise<void>,
         props: Props,
-        path: string,
         scope: RouteRenderScope,
         ...args: Args
     ): Promise<void>;

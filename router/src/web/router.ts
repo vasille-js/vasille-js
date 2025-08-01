@@ -1,14 +1,13 @@
-import { Fragment, Reference } from "vasille";
-import { TagOptions } from "vasille/web-runner";
+import { App, Fragment, Reference } from "vasille";
+import { Runner, TagOptions } from "vasille/web-runner";
 import { Router as AbstractRouter, RouteRenderScope, RouterInitialization } from "../router.js";
 import { QueryParams, Answer, ScreenProps, RouteParameters } from "../types.js";
 
 export interface WebRouterInitialization<Routes extends string>
     extends RouterInitialization<Node, Element, TagOptions, Routes, {}> {
-    node: Fragment<Node, Element, TagOptions>;
-    loadingScreen?(node: Fragment<Node, Element, TagOptions>): void;
-    loadingOverlay?(node: Fragment<Node, Element, TagOptions>): void;
-    internalError(node: Fragment<Node, Element, TagOptions>, data: { err: string }): void;
+    loadingScreen?(node: Fragment<Node, Element, TagOptions>, props: object): void;
+    loadingOverlay?(node: Fragment<Node, Element, TagOptions>, props: object): void;
+    reportError(e: unknown): void;
 }
 
 export type NavigationMode = "silent" | "loading-screen" | "loading-overlay";
@@ -34,28 +33,35 @@ export class Router<Routes extends string> extends AbstractRouter<
     public readonly currentUrl = new Reference<string>("");
     public readonly loadingUrl = new Reference<string | null>(null);
 
-    protected node: Fragment<Node, Element, TagOptions>;
+    protected readonly webInit: WebRouterInitialization<Routes>;
+    protected readonly window: Window;
+    protected readonly location: Location;
+    protected readonly node: Fragment<Node, Element, TagOptions>;
+
     protected loadingNode: Fragment<Node, Element, TagOptions>;
     protected contentNode: Fragment<Node, Element, TagOptions>;
     protected overlayNode: Fragment<Node, Element, TagOptions>;
 
-    protected loadingScreen?: (node: Fragment<Node, Element, TagOptions>) => void;
-    protected loadingOverlay?: (node: Fragment<Node, Element, TagOptions>) => void;
-    protected internalError: (node: Fragment<Node, Element, TagOptions>, data: { err: string }) => void;
-
-    public constructor(init: WebRouterInitialization<Routes>) {
-        const node = init.node;
-
+    public constructor(
+        window: Window,
+        location: Location,
+        node: Fragment<Node, Element, TagOptions>,
+        init: WebRouterInitialization<Routes>,
+    ) {
         super(init);
+        this.webInit = init;
+        this.window = window;
+        this.location = location;
         this.node = node;
-        this.loadingScreen = init.loadingScreen;
-        this.loadingOverlay = init.loadingOverlay;
-        this.internalError = init.internalError;
         this.currentUrl.$ = location.pathname;
 
-        build(node, node => (this.loadingNode = node), "router:loading-screen");
-        build(node, node => (this.contentNode = node), "router:content-screen");
-        build(node, node => (this.overlayNode = node), "router:loading-overlay");
+        build(node, node => (this.loadingNode = node), ":router:loading-screen");
+        build(node, node => (this.contentNode = node), ":router:content-screen");
+        build(node, node => (this.overlayNode = node), ":router:loading-overlay");
+
+        window.addEventListener("popstate", () => {
+            this.doNavigate(location.href, false, "loading-screen");
+        });
 
         this.doNavigate(location.href, true, "loading-screen");
     }
@@ -64,17 +70,19 @@ export class Router<Routes extends string> extends AbstractRouter<
         super.navigate(route, params, mode);
     }
 
+    public reload(): void {
+        this.doNavigate(this.currentUrl.$, true, "loading-screen");
+    }
+
     protected doNavigate(url: string, canNavigate: boolean, mode: NavigationMode) {
         this.prepareNavigation(url, canNavigate, mode).catch(e => {
             this.clearLoadings();
-            this.renderScreen(this.internalError, { err: `${e}` }, "error").catch(e => {
-                console.error("Failed to create internal screen error", e);
-            });
+            this.webInit.reportError(e);
         });
     }
 
     protected parseUrl(url: string): [string, QueryParams, string] {
-        const parsed = new URL(url, location.origin);
+        const parsed = new URL(url, this.location.origin);
 
         return [
             parsed.pathname,
@@ -101,21 +109,26 @@ export class Router<Routes extends string> extends AbstractRouter<
         this.loadingUrl.$ = props.path;
 
         try {
-            const { loadingScreen, loadingOverlay } = this;
+            const { loadingScreen, loadingOverlay } = this.webInit;
 
             if (mode === "loading-screen" && loadingScreen) {
                 this.clearNode(this.contentNode);
-                build(this.loadingNode, node => loadingScreen(node), "::");
+                build(this.loadingNode, node => loadingScreen(node, {}), "::");
             }
             if (mode === "loading-overlay" && loadingOverlay) {
-                build(this.overlayNode, node => loadingOverlay(node), "::");
+                build(this.overlayNode, node => loadingOverlay(node, {}), "::");
             }
 
             const screen = target.answer200 ?? target.answer301 ?? target.answer404;
 
+            /* istanbul ignore else */
             if (screen) {
                 await this.renderScreen(screen, props, "found");
             }
+            if (this.location.href !== props.url) {
+                this.window.history.pushState({}, "", props.url);
+            }
+            this.currentUrl.$ = props.url;
         } catch (error) {
             this.clearNode(this.contentNode);
             throw error;
@@ -136,6 +149,7 @@ export class Router<Routes extends string> extends AbstractRouter<
 
         build(this.contentNode, node => (ctx = node), "::");
 
+        /* istanbul ignore else */
         if (ctx) {
             await screen(ctx, props);
         }
@@ -146,7 +160,7 @@ export class Router<Routes extends string> extends AbstractRouter<
         });
 
         if (scope === "not-found") {
-            history.replaceState({}, "", "/");
+            this.window.history.replaceState({}, "", "/");
         }
     }
 
@@ -161,4 +175,24 @@ export class Router<Routes extends string> extends AbstractRouter<
         children.forEach(node => node.destroy());
         children.clear();
     }
+}
+
+export function routeApp<Routes extends string>(
+    node: Element,
+    window: Window,
+    location: Location,
+    init: Omit<WebRouterInitialization<Routes>, "node">,
+    debugUi?: boolean,
+) {
+    const runner = new Runner(debugUi ?? false, window.document);
+
+    new App(node, runner, {}).create(new Fragment({}, runner, ":router:root"), node => {
+        const router = new Router(window, location, node, init);
+
+        Object.defineProperty(runner, "router", {
+            get(): Router<Routes> {
+                return router;
+            },
+        });
+    });
 }
