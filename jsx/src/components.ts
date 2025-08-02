@@ -24,8 +24,8 @@ interface SlotOptions<Node, Element, TagOptions extends object, T extends object
 }
 
 export function Slot<Node, Element, TagOptions extends object, T extends object = {}>(
-    ctx: Fragment<Node, Element, TagOptions>,
     options: Magic<SlotOptions<Node, Element, TagOptions, T>> & T,
+    ctx: Fragment<Node, Element, TagOptions>,
 ) {
     const model = readValue(options.model);
 
@@ -57,8 +57,8 @@ interface IfOptions {
 }
 
 export function If<Node, Element, TagOptions extends object>(
-    ctx: Fragment<Node, Element, TagOptions>,
     { condition, slot: magicSlot }: Magic<IfOptions>,
+    ctx: Fragment<Node, Element, TagOptions>,
 ) {
     const slot = readValue(magicSlot);
 
@@ -66,8 +66,8 @@ export function If<Node, Element, TagOptions extends object>(
 }
 
 export function ElseIf<Node, Element, TagOptions extends object>(
-    ctx: Fragment<Node, Element, TagOptions>,
     { condition, slot: magicSlot }: Magic<IfOptions>,
+    ctx: Fragment<Node, Element, TagOptions>,
 ) {
     const slot = readValue(magicSlot);
 
@@ -79,8 +79,8 @@ interface ElseOptions {
 }
 
 export function Else<Node, Element, TagOptions extends object>(
-    ctx: Fragment<Node, Element, TagOptions>,
     { slot: magicSlot }: Magic<ElseOptions>,
+    ctx: Fragment<Node, Element, TagOptions>,
 ) {
     const slot = readValue(magicSlot);
 
@@ -103,8 +103,8 @@ export function For<
     K = T extends unknown[] ? number : T extends Set<infer R> ? R : T extends Map<infer R, unknown> ? R : never,
     V = T extends (infer R)[] ? R : T extends Set<infer R> ? R : T extends Map<unknown, infer R> ? R : never,
 >(
-    ctx: Fragment<Node, Element, TagOptions>,
     { of, slot: magicSlot }: Magic<ForOptions<Node, Element, TagOptions, T, K, V>>,
+    ctx: Fragment<Node, Element, TagOptions>,
 ) {
     const slot = readValue(magicSlot);
 
@@ -190,8 +190,8 @@ interface WatchOptions<Node, Element, TagOptions extends object, T> {
 }
 
 export function Watch<Node, Element, TagOptions extends object, T>(
-    ctx: Fragment<Node, Element, TagOptions>,
     { model, slot: magicSlot }: Magic<WatchOptions<Node, Element, TagOptions, T>>,
+    ctx: Fragment<Node, Element, TagOptions>,
 ) {
     const slot = readValue(magicSlot);
 
@@ -206,8 +206,8 @@ interface DebugOptions {
 }
 
 export function Debug<Node, Element, TagOptions extends object>(
-    ctx: Fragment<Node, Element, TagOptions>,
     { model }: DebugOptions,
+    ctx: Fragment<Node, Element, TagOptions>,
 ) {
     const value = model instanceof IValue ? model : ctx.ref(model);
 
@@ -220,8 +220,8 @@ interface DelayOptions<Node, Element, TagOptions extends object> {
 }
 
 export function Delay<Node, Element, TagOptions extends object>(
-    ctx: Fragment<Node, Element, TagOptions>,
     { time, slot }: Magic<DelayOptions<Node, Element, TagOptions>>,
+    ctx: Fragment<Node, Element, TagOptions>,
 ) {
     const fragment = new Fragment({}, ctx.runner, ":timer");
     const dSlot = readValue(slot);

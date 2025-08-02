@@ -24,7 +24,7 @@ const C = compose(function C(Vasille, {
     Vasille.text(rest.more);
   });
   console.log(d.$.id, d.$.width, d.$.height, name.$, rest.more.$);
-  For(Vasille, {
+  For({
     of: model,
     slot: (Vasille, {
       name = "xName",
@@ -47,5 +47,5 @@ const C = compose(function C(Vasille, {
       });
       console.log(id, width, rest.height, name, rest2.more);
     }
-  });
+  }, Vasille);
 }, "VasilleWeb:C");

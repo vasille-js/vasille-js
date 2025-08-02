@@ -146,7 +146,7 @@ export class Router<Routes extends string> extends AbstractRouter<
     }
 
     protected async renderScreen<Props>(
-        screen: (ctx: Fragment<Node, Element, TagOptions>, props: Props) => void | Promise<void>,
+        screen: (props: Props, ctx: Fragment<Node, Element, TagOptions>) => void | Promise<void>,
         props: Props,
         scope: RouteRenderScope,
     ): Promise<void> {
@@ -158,7 +158,7 @@ export class Router<Routes extends string> extends AbstractRouter<
 
         /* istanbul ignore else */
         if (ctx) {
-            await screen(ctx, props);
+            await screen(props, ctx);
         }
 
         oldChildren.forEach(node => {

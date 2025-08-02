@@ -4,33 +4,33 @@ export const C1 = compose((Vasille, {
 }) => {
   const a = Vasille.ref(0, "a");
   Vasille.tag("div", {}, Vasille => {
-    Slot(Vasille, {
+    Slot({
       model: slot,
       a: a
-    });
+    }, Vasille);
   });
 }, "VasilleWeb:C1");
 export const C2 = compose(Vasille => {
   const a = Vasille.ref(2, "a");
-  C1(Vasille, {
+  C1({
     slot: ({
       a
     }) => {
       console.log(a);
     }
-  });
-  C1(Vasille, {
+  }, Vasille);
+  C1({
     slot: ({
       a
     }, Vasille) => {
       console.log(a.$);
       Vasille.text(a);
     }
-  });
-  C1(Vasille, {
+  }, Vasille);
+  C1({
     slot: (_VasilleWeb, Vasille) => {
       Vasille.tag("div", {});
     }
-  });
+  }, Vasille);
   console.log(a.$);
 }, "VasilleWeb:C2");

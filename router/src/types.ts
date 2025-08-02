@@ -29,9 +29,9 @@ export type ScreenProps<Route extends string> = {
 };
 
 export type Screen<Node, Element, TagOptions extends object, Route extends string> = (
-    ctx: Fragment<Node, Element, TagOptions>,
     props: ScreenProps<Route>,
-) => void | Promise<void>;
+    ctx: Fragment<Node, Element, TagOptions>,
+) => Promise<void>;
 
 export type Answer<Node, Element, TagOptions extends object, Route extends string, Extras extends object> = {
     screen: Screen<Node, Element, TagOptions, Route>;

@@ -10,8 +10,8 @@ export interface RouterInitialization<
 > {
     routes: { [K in Routes]: Answer<Node, Element, TagOptions, K, Extras> };
     getAccessLevel?(): Promise<number>;
-    fallbackScreen(ctx: Fragment<Node, Element, TagOptions>, arg: { cause: "not-found" | "no-access" }): void;
-    errorScreen(ctx: Fragment<Node, Element, TagOptions>, data: { error: unknown }): void;
+    fallbackScreen(arg: { cause: "not-found" | "no-access" }, ctx: Fragment<Node, Element, TagOptions>): void;
+    errorScreen(data: { error: unknown }, ctx: Fragment<Node, Element, TagOptions>): void;
 }
 
 export type RouteRenderScope = "found" | "not-found" | "fallback" | "error";
@@ -182,7 +182,7 @@ export abstract class Router<
      * @protected
      */
     protected abstract renderScreen<Props>(
-        screen: (ctx: Fragment<Node, Element, TagOptions>, props: Props) => void | Promise<void>,
+        screen: (props: Props, ctx: Fragment<Node, Element, TagOptions>) => void | Promise<void>,
         props: Props,
         scope: RouteRenderScope,
         ...args: Args

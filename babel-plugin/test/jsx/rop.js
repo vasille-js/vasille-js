@@ -8,7 +8,7 @@ export const C2 = compose(Vasille => {
   const o = VasilleWeb.ro(Vasille, {
     b: 1
   }, "o");
-  C1(Vasille, {
+  C1({
     a: VasilleWeb.rop(o)
-  });
+  }, Vasille);
 }, "VasilleWeb:C2");

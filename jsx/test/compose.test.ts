@@ -38,11 +38,12 @@ it("compose test", function () {
 
     expect(div.children.length).toBe(1);
     expect(div.children[0].className).toBe("1");
+    expect(() => component({})).toThrow("Vasille: Component context is missing");
 
     mount(body, component, node.runner, {
         callback: node => (div = node as Element),
         slot(f: Fragment<Node, Element, object>) {
-            component(f, {}, function (f: Fragment<Node, Element, object>) {
+            component({}, f, function (f: Fragment<Node, Element, object>) {
                 f.tag("div", { class: ["2"] });
             });
         },

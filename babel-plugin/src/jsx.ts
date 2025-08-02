@@ -536,7 +536,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
       }
     }
 
-    const call = t.callExpression(t.identifier(name.name), [ctx, t.objectExpression(props), ...(run ? [run] : [])]);
+    const call = t.callExpression(t.identifier(name.name), [t.objectExpression(props), ctx, ...(run ? [run] : [])]);
 
     call.loc = path.node.loc;
 

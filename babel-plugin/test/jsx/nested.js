@@ -5,19 +5,19 @@ export const C1 = compose((Vasille, props) => {
 export const C2 = compose(Vasille => {
   const a = Vasille.ref(1, "a");
   Vasille.tag("div", {}, Vasille => {
-    C1(Vasille, {
+    C1({
       bool: true,
       a: 1,
       b: 2,
       c: "text"
-    }, (_VasilleWeb, Vasille) => {
-      C1(Vasille, {
+    }, Vasille, (_VasilleWeb, Vasille) => {
+      C1({
         ...{
           a: 1
         },
         b: Vasille.expr(Vasille_a => Vasille_a + 1, [a]),
         bool: true
-      }, (_VasilleWeb, Vasille) => {
+      }, Vasille, (_VasilleWeb, Vasille) => {
         Vasille.tag("div", {});
         Vasille.tag("span", {}, Vasille => {
           Vasille.text("1");
@@ -25,14 +25,14 @@ export const C2 = compose(Vasille => {
       });
     });
   });
-  C1(Vasille, {
+  C1({
     slot: (_VasilleWeb, Vasille) => {
-      C1(Vasille, {});
+      C1({}, Vasille);
     }
-  });
-  If(Vasille, {
+  }, Vasille);
+  If({
     condition: Vasille.expr(Vasille_a => Vasille_a > 1, [a])
-  }, Vasille => {
-    C1(Vasille, {});
+  }, Vasille, Vasille => {
+    C1({}, Vasille);
   });
 }, "VasilleWeb:C2");

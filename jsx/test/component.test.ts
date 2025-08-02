@@ -11,37 +11,52 @@ it("Slot", function () {
     let mustBeValue: unknown = null;
     let mustBeRef: unknown = null;
 
-    Slot(node, {});
-    Slot(node, {
-        slot() {
-            slotTest = true;
+    Slot({}, node);
+    Slot(
+        {
+            slot() {
+                slotTest = true;
+            },
         },
-    });
-    Slot(node, {
-        model() {
-            modelTest = true;
+        node,
+    );
+    Slot(
+        {
+            model() {
+                modelTest = true;
+            },
         },
-    });
-    Slot(node, {
-        model() {
-            modelTest2 = true;
+        node,
+    );
+    Slot(
+        {
+            model() {
+                modelTest2 = true;
+            },
+            slot() {
+                modelTest2 = false;
+            },
         },
-        slot() {
-            modelTest2 = false;
-        },
-    });
-    Slot(node, {
-        model(o: object) {
-            mustBeValue = "a" in o && o.a;
-        },
-        a: new Reference(2),
-    } as any);
-    Slot(node, {
-        model(o: object, node: unknown) {
-            mustBeRef = "a" in o && o.a;
-        },
-        a: 2,
-    } as any);
+        node,
+    );
+    Slot(
+        {
+            model(o: object) {
+                mustBeValue = "a" in o && o.a;
+            },
+            a: new Reference(2),
+        } as any,
+        node,
+    );
+    Slot(
+        {
+            model(o: object, node: unknown) {
+                mustBeRef = "a" in o && o.a;
+            },
+            a: 2,
+        } as any,
+        node,
+    );
 
     expect(slotTest).toBe(true);
     expect(modelTest).toBe(true);
@@ -57,23 +72,32 @@ it("If - ElseIf - Else", function () {
     const elseCond = new Expression((v: number) => v === 2, [cond]);
     let executed = "none";
 
-    If(node, {
-        condition: ifCont,
-        slot() {
-            executed = "if";
+    If(
+        {
+            condition: ifCont,
+            slot() {
+                executed = "if";
+            },
         },
-    });
-    ElseIf(node, {
-        condition: elseCond,
-        slot() {
-            executed = "else-if";
+        node,
+    );
+    ElseIf(
+        {
+            condition: elseCond,
+            slot() {
+                executed = "else-if";
+            },
         },
-    });
-    Else(node, {
-        slot() {
-            executed = "else";
+        node,
+    );
+    Else(
+        {
+            slot() {
+                executed = "else";
+            },
         },
-    });
+        node,
+    );
 
     expect(executed).toBe("if");
     cond.$ = 2;
@@ -82,25 +106,31 @@ it("If - ElseIf - Else", function () {
     expect(executed).toBe("else");
 
     // must not trigger errors
-    If(node, { condition: undefined });
-    ElseIf(node, { condition: undefined });
-    If(node, { condition: true });
-    If(node, { condition: undefined });
-    ElseIf(node, { condition: true });
+    If({ condition: undefined }, node);
+    ElseIf({ condition: undefined }, node);
+    If({ condition: true }, node);
+    If({ condition: undefined }, node);
+    ElseIf({ condition: true }, node);
 
     let executed2 = "none";
 
-    If(node, {
-        condition: false,
-        slot() {
-            executed2 = "if";
+    If(
+        {
+            condition: false,
+            slot() {
+                executed2 = "if";
+            },
         },
-    });
-    Else(node, {
-        slot() {
-            executed2 = "else-if";
+        node,
+    );
+    Else(
+        {
+            slot() {
+                executed2 = "else-if";
+            },
         },
-    });
+        node,
+    );
 
     expect(executed2).toBe("else-if");
 });
@@ -113,31 +143,34 @@ it("For", function () {
         counter++;
     }
 
-    expect(() => For(this, { of: 3 as any, slot })).toThrow("wrong-model");
-    For(node, { of: 3 as any });
+    expect(() => For({ of: 3 as any, slot }, this)).toThrow("wrong-model");
+    For({ of: 3 as any }, node);
     expect(counter).toBe(0);
-    For(node, { of: new ContextArray([1, 2, 3]), slot });
+    For({ of: new ContextArray([1, 2, 3]), slot }, node);
     expect(counter).toBe(3);
-    For(node, { of: new ContextSet([1, 1]), slot });
+    For({ of: new ContextSet([1, 1]), slot }, node);
     expect(counter).toBe(4);
-    For(node, {
-        of: new ContextMap([
-            [1, 1],
-            [2, 2],
-        ]),
-        slot,
-    });
+    For(
+        {
+            of: new ContextMap([
+                [1, 1],
+                [2, 2],
+            ]),
+            slot,
+        },
+        node,
+    );
     expect(counter).toBe(6);
-    For(node, { of: [1, 2, 3], slot });
+    For({ of: [1, 2, 3], slot }, node);
     expect(counter).toBe(9);
-    For(node, { of: new Set([1, 2, 1]), slot });
+    For({ of: new Set([1, 2, 1]), slot }, node);
     expect(counter).toBe(11);
-    For(node, { of: new Map([[1, 1]]), slot });
+    For({ of: new Map([[1, 1]]), slot }, node);
     expect(counter).toBe(12);
 
     const ref = new Reference(new ContextArray([1, 2]));
 
-    For(node, { of: ref, slot });
+    For({ of: ref, slot }, node);
     expect(counter).toBe(14);
     ref.$ = new ContextArray<number>([4]);
     expect(counter).toBe(15);
@@ -152,7 +185,7 @@ it("Watch", function () {
         counter++;
     }
 
-    Watch(node, { model: ref, slot });
+    Watch({ model: ref, slot }, node);
 
     expect(counter).toBe(1);
     ref.$ = 2;
@@ -167,8 +200,8 @@ it("Debug", function () {
     node.tag("div", {
         callback: n => (element = n),
         slot(node) {
-            Debug(node, { model: ref });
-            Debug(node, { model: "x" });
+            Debug({ model: ref }, node);
+            Debug({ model: "x" }, node);
         },
     });
 
@@ -184,18 +217,24 @@ it("Delay", function (done) {
     let element!: HTMLElement;
 
     node.tag("div", { callback: n => (element = n as HTMLElement) }, function (f) {
-        Delay(f, {
-            time: 10,
-            slot(f: Fragment<Node, Element, object>) {
-                f.tag("div", {});
+        Delay(
+            {
+                time: 10,
+                slot(f: Fragment<Node, Element, object>) {
+                    f.tag("div", {});
+                },
             },
-        });
-        Delay(f, {
-            time: 20,
-            slot(f: Fragment<Node, Element, object>) {
-                f.tag("div", {});
+            f,
+        );
+        Delay(
+            {
+                time: 20,
+                slot(f: Fragment<Node, Element, object>) {
+                    f.tag("div", {});
+                },
             },
-        });
+            f,
+        );
     });
 
     expect(element.children.length).toBe(0);

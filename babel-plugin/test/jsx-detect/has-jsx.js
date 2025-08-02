@@ -2,14 +2,14 @@ import { compose, Slot } from "vasille-web";
 export const C = compose((Vasille, {
   slot01
 }) => {
-  Slot(Vasille, {
+  Slot({
     model: slot01,
     a: 1,
     b: 2
-  });
+  }, Vasille);
 }, "VasilleWeb:C");
 export const C1 = compose(Vasille => {
-  C(Vasille, {
+  C({
     slot01: ({
       a,
       b
@@ -137,5 +137,5 @@ export const C1 = compose(Vasille => {
       return Vasille.tag("div", {});
     },
     slot19: (_VasilleWeb, Vasille) => Vasille.tag("div", {})
-  });
+  }, Vasille);
 }, "VasilleWeb:C1");
