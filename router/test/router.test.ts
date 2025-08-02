@@ -115,7 +115,7 @@ it("static /", function (done) {
         errorScreen() {},
         routes: {
             "/": {
-                answer200(ctx, props) {
+                screen(ctx, props) {
                     expect(props.path).toBe("/");
                     ctx.tag("div", { class: ["answer200"] }, div => {
                         div.text(props.query.text);
@@ -142,7 +142,7 @@ it("static /about", function (done) {
         errorScreen() {},
         routes: {
             "/about": {
-                answer301(ctx, props) {
+                screen(ctx, props) {
                     expect(props.path).toBe("/about");
                     ctx.tag("div", { class: ["answer301"] }, div => {
                         div.text(Array.isArray(props.query.text) && props.query.text.join(","));
@@ -169,7 +169,7 @@ it("static /error/404", function (done) {
         errorScreen() {},
         routes: {
             "/error/404": {
-                answer404(ctx, props) {
+                screen(ctx, props) {
                     expect(props.path).toBe("/error/404");
                     ctx.tag("div", { class: ["answer404"] }, div => {
                         div.text(props.hash);
@@ -196,7 +196,7 @@ it("dynamic /:test", function (done) {
         errorScreen() {},
         routes: {
             "/:test": {
-                answer200(ctx, props) {
+                screen(ctx, props) {
                     expect(props.path).toBe("/test-value");
                     ctx.tag("div", { class: [props.params.test] });
                 },
@@ -220,7 +220,7 @@ it("dynamic /path/:value", function (done) {
         errorScreen() {},
         routes: {
             "/path/:value": {
-                answer200(ctx, props) {
+                screen(ctx, props) {
                     expect(props.path).toBe("/path/c23");
                     ctx.tag("div", { class: [props.params.value] });
                 },
@@ -244,7 +244,7 @@ it("dynamic /before/:value/after", function (done) {
         errorScreen() {},
         routes: {
             "/before/:value/after": {
-                answer200(ctx, props) {
+                screen(ctx, props) {
                     expect(props.path).toBe("/before/vx/after");
                     ctx.tag("div", { class: [props.params.value] });
                 },
@@ -269,22 +269,22 @@ it("dynamic /:v /1/:v /:v/2/3 /1/2/:v/4", function (done) {
             errorScreen() {},
             routes: {
                 "/:v": {
-                    answer200(ctx, props) {
+                    screen(ctx, props) {
                         ctx.tag("div", { class: [`c_${props.params.v}`] });
                     },
                 },
                 "/1/:v": {
-                    answer200(ctx, props) {
+                    screen(ctx, props) {
                         ctx.tag("div", { class: [`c_1_${props.params.v}`] });
                     },
                 },
                 "/:v/2/3": {
-                    answer200(ctx, props) {
+                    screen(ctx, props) {
                         ctx.tag("div", { class: [`c_${props.params.v}_2_3`] });
                     },
                 },
                 "/1/2/:v/4": {
-                    answer200(ctx, props) {
+                    screen(ctx, props) {
                         ctx.tag("div", { class: [`c_1_2_${props.params.v}_4`] });
                     },
                 },
@@ -324,22 +324,22 @@ it("dynamic vs static /1 /:v /1/2 /1/:v", function (done) {
             errorScreen() {},
             routes: {
                 "/:v": {
-                    answer200(ctx, props) {
+                    screen(ctx, props) {
                         ctx.tag("div", { class: [`d_${props.params.v}`] });
                     },
                 },
                 "/1": {
-                    answer200(ctx, props) {
+                    screen(ctx, props) {
                         ctx.tag("div", { class: [`s_1`] });
                     },
                 },
                 "/1/:v": {
-                    answer200(ctx, props) {
+                    screen(ctx, props) {
                         ctx.tag("div", { class: [`d_1_${props.params.v}`] });
                     },
                 },
                 "/1/2": {
-                    answer200(ctx, props) {
+                    screen(ctx, props) {
                         ctx.tag("div", { class: [`s_1_2`] });
                     },
                 },
@@ -379,7 +379,7 @@ it("switch page: found -> found", function (done) {
         errorScreen() {},
         routes: {
             "/about": {
-                answer200(ctx) {
+                screen(ctx) {
                     ctx.tag("div", { class: [`about`] });
                     expect("router" in ctx.runner).toBe(true);
                     if ("router" in ctx.runner && ctx.runner.router instanceof Router) {
@@ -388,7 +388,7 @@ it("switch page: found -> found", function (done) {
                 },
             },
             "/article/:id": {
-                answer200(ctx, props) {
+                screen(ctx, props) {
                     ctx.tag("div", { class: [`article_${props.params.id}`] });
                 },
             },
@@ -418,7 +418,7 @@ it("switch page: found -> fallback", function (done) {
         errorScreen() {},
         routes: {
             "/found": {
-                answer200(ctx) {
+                screen(ctx) {
                     ctx.tag("div", { class: [`found`] });
                     if ("router" in ctx.runner && ctx.runner.router instanceof Router) {
                         router = ctx.runner.router;
@@ -455,7 +455,7 @@ it("switch page: fallback -> error", function (done) {
         errorScreen() {},
         routes: {
             "/error": {
-                answer404() {
+                screen() {
                     throw new Error("catch me");
                 },
             },
@@ -486,7 +486,7 @@ it("switch page: error -> found", function (done) {
         },
         routes: {
             "/exists": {
-                answer200(ctx) {
+                screen(ctx) {
                     ctx.tag("div", { class: [`exists`] });
                 },
             },
@@ -523,7 +523,7 @@ it("no access fallback", function (done) {
         errorScreen() {},
         routes: {
             "/exists": {
-                answer200(ctx) {
+                screen(ctx) {
                     ctx.tag("div", { class: [`exists`] });
                 },
                 minAccessLevel: 1,
@@ -556,7 +556,7 @@ it("window popstate event", function (done) {
         errorScreen() {},
         routes: {
             "/exists": {
-                answer200(ctx) {
+                screen(ctx) {
                     ctx.tag("div", { class: [`exists`] });
                 },
             },
@@ -599,7 +599,7 @@ it("loading screen: before first screen", function (done) {
         },
         routes: {
             "/": {
-                async answer200(ctx) {
+                async screen(ctx) {
                     await new Promise(rv => (resolve = rv));
                     ctx.tag("div", { class: ["content"] });
                 },
@@ -633,7 +633,7 @@ it("loading screen: between screens", function (done) {
         },
         routes: {
             "/": {
-                answer200(ctx) {
+                screen(ctx) {
                     ctx.tag("div", { class: [`first`] });
                     if ("router" in ctx.runner && ctx.runner.router instanceof Router) {
                         router = ctx.runner.router;
@@ -641,7 +641,7 @@ it("loading screen: between screens", function (done) {
                 },
             },
             "/wait": {
-                async answer200(ctx) {
+                async screen(ctx) {
                     await new Promise(rv => (resolve = rv));
                     ctx.tag("div", { class: ["second"] });
                 },
@@ -691,7 +691,7 @@ it("loading overlay", function (done) {
         },
         routes: {
             "/content": {
-                async answer200(ctx) {
+                async screen(ctx) {
                     await new Promise(rv => (resolve = rv));
                     ctx.tag("div", { class: ["content"] });
                 },
@@ -730,7 +730,7 @@ it("throw error in component", function (done) {
         },
         routes: {
             "/": {
-                async answer200(ctx) {
+                async screen(ctx) {
                     throw new Error("test error");
                 },
             },

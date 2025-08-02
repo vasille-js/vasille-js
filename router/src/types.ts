@@ -34,9 +34,7 @@ export type Screen<Node, Element, TagOptions extends object, Route extends strin
 ) => void | Promise<void>;
 
 export type Answer<Node, Element, TagOptions extends object, Route extends string, Extras extends object> = {
-    answer200?: Screen<Node, Element, TagOptions, Route>;
-    answer301?: Screen<Node, Element, TagOptions, Route>;
-    answer404?: Screen<Node, Element, TagOptions, Route>;
+    screen: Screen<Node, Element, TagOptions, Route>;
     minAccessLevel?: number;
 } & Extras;
 

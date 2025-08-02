@@ -1,4 +1,4 @@
-import { Fragment, Reference } from "vasille";
+import { Fragment } from "vasille";
 import { Answer, Routing, RouteParameters, QueryParams, ScreenProps, Screen } from "./types.js";
 
 export interface RouterInitialization<

@@ -128,12 +128,8 @@ export class Router<Routes extends string> extends AbstractRouter<
                 build(this.overlayNode, node => loadingOverlay(node, {}), "::");
             }
 
-            const screen = target.answer200 ?? target.answer301 ?? target.answer404;
+            await this.renderScreen(target.screen, props, "found");
 
-            /* istanbul ignore else */
-            if (screen) {
-                await this.renderScreen(screen, props, "found");
-            }
             if (this.location.href !== props.url) {
                 this.window.history.pushState({}, "", props.url);
             }
