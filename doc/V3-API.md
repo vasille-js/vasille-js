@@ -439,8 +439,8 @@ The parameter can be omitted and the result can be immediately called.
 
 ```typescript
 const auth = store(() => {
-    let $token = localStorage.getItem(storageKey);
     const storageKey = "token";
+    let $token = localStorage.getItem(storageKey);
     
     watch(() => {
         localStorage.setItem(storageKey, $token);
