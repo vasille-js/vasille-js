@@ -60,6 +60,15 @@ it("store reactive object name error", function () {
   throwTest(__dirname, "store-reactive-object", "Reactive object property name must start with $$");
 });
 
+it("store not reactive value name error", function () {
+  throwTest(__dirname, "store-not-reactive-value", "Method name stating with $ is not allowed");
+});
+
+it("store not reactive object name error", function () {
+  throwTest(__dirname, "store-not-reactive-object", "This property is not a reactive value or object");
+});
+
+
 it("store spread element error", function () {
   throwTest(__dirname, "store-spread-element", "Spread element is not allowed here");
 });

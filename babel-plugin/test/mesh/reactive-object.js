@@ -12,10 +12,17 @@ export const S = store(() => {
       c: 3
     }
   });
+  const {
+    b: b0,
+    ...o0
+  } = o;
+  console.log(b0.$, o0.a.$);
   return {
     $a: a,
     $b: VasilleWeb.fo(b),
-    $$o: o
+    $$o: o,
+    $b0: b0,
+    $$o0: o0
   };
 }, "VasilleWeb:S");
 const s = S();

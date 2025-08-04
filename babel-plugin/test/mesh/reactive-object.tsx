@@ -6,11 +6,16 @@ export const S = store(() => {
   let a = 2;
   let b = bind(3);
   const o = { a: 1, b: { c: 3 } };
+  const { b: b0, ...o0 } = o;
+
+  console.log(b0, o0.a);
 
   return {
     $a: a,
     $b: forward(b),
     $$o: o,
+    $b0: b0,
+    $$o0: o0,
   };
 });
 

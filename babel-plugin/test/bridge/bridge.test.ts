@@ -8,6 +8,10 @@ it("bridge jsx test", function () {
   runJsxTest(__dirname, "jsx");
 });
 
+it("bridge jsx bridge value prop", function () {
+  runJsxTest(__dirname, "jsx-bridge-value-prop");
+});
+
 it("router test", function () {
   runTest(__dirname, "router");
 });

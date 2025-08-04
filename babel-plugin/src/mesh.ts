@@ -18,6 +18,7 @@ import {
   setModel,
 } from "./lib.js";
 import { routerReplace } from "./router";
+import { stringify } from "./utils";
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
   nodePaths: NodePath<types.Expression | null | T>[],
@@ -304,13 +305,13 @@ export function meshExpression(
             isRoot &&
             internal.stateOnly &&
             !path.node.computed &&
-            t.isIdentifier(path.node.key) &&
+            (t.isIdentifier(path.node.key) || t.isStringLiteral(path.node.key)) &&
             t.isExpression(valuePath.node)
           ) {
             const call = exprCall(valuePath as NodePath<types.Expression>, valuePath.node, internal);
 
             if (call) {
-              if (path.node.key.name.startsWith("$")) {
+              if (stringify(path.node.key).startsWith("$")) {
                 valuePath.replaceWith(call);
               } else {
                 throw path.buildCodeFrameError("Vasille: Reactive value property name must start with $");
@@ -318,10 +319,13 @@ export function meshExpression(
               replaced = true;
             } else if (
               t.isIdentifier(valuePath.node) &&
-              internal.stack.get(valuePath.node.name) === VariableState.ReactiveObject &&
-              !path.node.key.name.startsWith("$$")
+              internal.stack.get(valuePath.node.name) === VariableState.ReactiveObject
             ) {
-              throw path.buildCodeFrameError("Vasille: Reactive object property name must start with $$");
+              if (!stringify(path.node.key).startsWith("$$")) {
+                throw path.buildCodeFrameError("Vasille: Reactive object property name must start with $$");
+              }
+            } else if (stringify(path.node.key).startsWith("$")) {
+              throw path.buildCodeFrameError("Vasille: This property is not a reactive value or object");
             }
           }
           if (!replaced) {
@@ -330,6 +334,9 @@ export function meshExpression(
             >(valuePath, internal);
           }
         } else if (t.isObjectMethod(prop)) {
+          if (stringify(prop.key).startsWith("$")) {
+            throw propPath.buildCodeFrameError("Vasille: Method name stating with $ is not allowed");
+          }
           meshFunction(propPath as NodePath<types.ObjectMethod>, internal);
         } else if (isRoot && internal.stateOnly && t.isSpreadElement(prop)) {
           throw propPath.buildCodeFrameError("Vasille: Spread element is not allowed here");
@@ -982,6 +989,15 @@ export function composeStatement(
                   : VariableState.Ignored,
             );
             meshInit = !replaceWith;
+          }
+        } else if (t.isObjectPattern(id)) {
+          for (const prop of id.properties) {
+            /* istanbul ignore else */
+            if (t.isObjectProperty(prop) && t.isIdentifier(prop.value)) {
+              internal.stack.set(prop.value.name, VariableState.Reactive);
+            } else if (t.isRestElement(prop) && t.isIdentifier(prop.argument)) {
+              internal.stack.set(prop.argument.name, VariableState.ReactiveObject);
+            }
           }
         }
         if (meshInit) {
