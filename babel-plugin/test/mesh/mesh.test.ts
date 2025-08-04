@@ -49,7 +49,7 @@ it("style hint error", function () {
 });
 
 it("calculate call error", function () {
-  throwTest(__dirname, "calculate-call", "Incorrect calculate argument");
+  throwTest(__dirname, "calculate-call", "Argument of calculate must be a function");
 });
 
 it("store reactive value name error", function () {

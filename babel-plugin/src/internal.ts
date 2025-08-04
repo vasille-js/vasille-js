@@ -69,6 +69,7 @@ export interface Internal {
   internalUsed: boolean;
   importStatement: NodePath<types.ImportDeclaration> | null;
   stateOnly: boolean;
+  isComposing?: boolean;
   devMode: boolean;
 }
 

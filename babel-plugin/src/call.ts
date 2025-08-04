@@ -16,6 +16,7 @@ export type FnNames =
   | "setModel"
   | "mapModel"
   | "reactiveObject"
+  | "router"
   | "theme"
   | "dark"
   | "mobile"
@@ -28,6 +29,7 @@ export type FnNames =
 export const composeOnly: FnNames[] = [
   "forward",
   "watch",
+  "calculate",
   "ref",
   "bind",
   "value",
@@ -36,6 +38,7 @@ export const composeOnly: FnNames[] = [
   "mapModel",
   "setModel",
   "reactiveObject",
+  "router",
 ];
 export const styleOnly: FnNames[] = [
   "theme",

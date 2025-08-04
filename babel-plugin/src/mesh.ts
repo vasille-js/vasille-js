@@ -1,5 +1,6 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
+import { processBridgeCall } from "./bridge";
 import { calls, composeOnly, styleOnly } from "./call.js";
 import { idIsIValue, memberIsIValue, nodeIsReactiveObject } from "./expression.js";
 import { ctx, Internal, VariableState } from "./internal.js";
@@ -16,6 +17,7 @@ import {
   ref,
   setModel,
 } from "./lib.js";
+import { routerReplace } from "./router";
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
   nodePaths: NodePath<types.Expression | null | T>[],
@@ -141,29 +143,30 @@ export function meshExpression(
     case "CallExpression":
     case "OptionalCallExpression": {
       const path = nodePath as NodePath<types.CallExpression>;
-      const callsFn = calls(path, composeOnly, internal);
-      const callsStyleHint = calls(path, styleOnly, internal);
 
-      if (callsFn) {
-        throw path.buildCodeFrameError(`Vasille: Usage of hint "${callsFn}" is restricted here`);
-      }
-      if (callsStyleHint) {
-        throw path.buildCodeFrameError(`Vasille: Usage of style hint "${callsStyleHint}" is restricted here`);
-      }
-
-      meshOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), internal);
-      meshAllUnknown(path.get("arguments"), internal);
-
-      if (calls(path, ["calculate"], internal)) {
-        if (
-          path.node.arguments.length === 1 &&
-          (t.isFunctionExpression(path.node.arguments[0]) || t.isArrowFunctionExpression(path.node.arguments[0]))
-        ) {
-          path.replaceWith(t.callExpression(path.node.arguments[0] as types.Expression, []));
+      if (internal.isComposing && calls(path, ["router"], internal)) {
+        if (!internal.stateOnly) {
+          routerReplace(path);
         } else {
-          throw path.buildCodeFrameError("Vasille: Incorrect calculate argument");
+          throw path.buildCodeFrameError("Vasille: The router is not available in stores");
+        }
+      } else {
+        const callsFn = calls(path, composeOnly, internal);
+        const callsStyleHint = calls(path, styleOnly, internal);
+
+        if (callsFn) {
+          throw path.buildCodeFrameError(`Vasille: Usage of hint "${callsFn}" is restricted here`);
+        }
+        if (callsStyleHint) {
+          throw path.buildCodeFrameError(`Vasille: Usage of style hint "${callsStyleHint}" is restricted here`);
+        }
+
+        if (!processBridgeCall(path, internal)) {
+          meshOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), internal);
+          meshAllUnknown(path.get("arguments"), internal);
         }
       }
+
       break;
     }
     case "AssignmentExpression": {
@@ -810,13 +813,11 @@ export function composeStatement(
       const _path = path as NodePath<types.VariableDeclaration>;
       const kind = _path.node.kind;
       const declares = kind === "const" ? VariableState.Ignored : VariableState.Reactive;
-
-      if (kind === "let" || kind === "var") {
-        _path.node.kind = "const";
-      }
+      let switchToConst = true;
 
       for (const declaration of _path.get("declarations")) {
         const id = declaration.node.id;
+        const bridgeMethod = processBridgeCall(declaration.get("init"), internal);
         let meshInit = true;
 
         function idName(target: types.LVal | types.PatternLike | null = id): string {
@@ -839,7 +840,15 @@ export function composeStatement(
         ignoreParams(declaration.node.id, internal);
 
         /* istanbul ignore else */
-        if (calls(declaration.get("init"), ["awaited"], internal)) {
+        if (bridgeMethod === "value" && declares === VariableState.Reactive && t.isIdentifier(declaration.node.id)) {
+          switchToConst = true;
+          meshInit = false;
+          internal.stack.set(declaration.node.id.name, VariableState.Reactive);
+          declaration.get("init").replaceWith(ref(declaration.node.init, internal, declaration.node.id.name));
+        } else if (bridgeMethod) {
+          switchToConst = false;
+          meshInit = false;
+        } else if (calls(declaration.get("init"), ["awaited"], internal)) {
           reactiveArrayPattern(declaration.get("id"), internal);
           meshAllUnknown((declaration.get("init") as NodePath<types.CallExpression>).get("arguments"), internal);
           named(declaration.node.init as types.CallExpression, idDoubleName(), internal);
@@ -855,6 +864,7 @@ export function composeStatement(
             internal.stack.set(id.name, VariableState.Ignored);
             declaration.get("init").replaceWith((init as types.CallExpression).arguments[0]);
             _path.node.kind = kind;
+            switchToConst = false;
           } else if (calls(initPath, ["bind"], internal)) {
             const argument = (init as types.CallExpression).arguments[0] as types.Expression;
             const argumentPath = (declaration.get("init") as NodePath<types.CallExpression>).get(
@@ -978,6 +988,9 @@ export function composeStatement(
           meshExpression(declaration.get("init"), internal);
         }
       }
+      if (switchToConst && (kind === "let" || kind === "var")) {
+        _path.node.kind = "const";
+      }
       break;
     }
     case "WhileStatement": {
@@ -1072,12 +1085,16 @@ export function compose(
     }
   }
 
+  internal.isComposing = true;
+
   /* istanbul ignore else */
   if (t.isExpression(body)) {
     composeExpression(path.get("body") as NodePath<types.Expression>, internal, true);
   } else if (t.isBlockStatement(body)) {
     composeStatement(path.get("body") as NodePath<types.BlockStatement>, internal, true);
   }
+
+  internal.isComposing = false;
 
   internal.stack.pop();
 }

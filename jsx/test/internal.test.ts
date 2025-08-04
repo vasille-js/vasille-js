@@ -1,6 +1,5 @@
 import { IValue } from "vasille";
 import { $ } from "../src/index.js";
-import { ContextArray, ContextMap, ContextSet } from "../src/models.js";
 import { createNode } from "./page.js";
 
 it("model functions", function () {
@@ -39,10 +38,14 @@ it("no context helpers", function () {
     const a = $.r<number>(2);
     const b = $.fo<number>(a);
     const ex = $.ex<number, [number, number]>((a, b) => a + b, [a, b]);
+    const rv1 = $.rv(1);
+    const rv2 = $.rv(a);
 
     expect(a.$).toBe(2);
     expect(b.$).toBe(2);
     expect(ex.$).toBe(4);
+    expect(rv1).toBe(1);
+    expect(rv2).toBe(2);
 
     b.$ = 3;
     expect(ex.$).toBe(5);

@@ -1,4 +1,6 @@
-import { calculate } from "vasille-web";
+import { calculate, compose } from "vasille-web";
 
-// @ts-ignore
-const c = calculate(3);
+const C = compose(() => {
+  // @ts-ignore
+  const c = calculate(3);
+});

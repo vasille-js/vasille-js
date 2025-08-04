@@ -15,6 +15,9 @@ export const internal = {
     r<T>(v: T): IValue<T> {
         return new Reference(v);
     },
+    rv<T>(v: T | IValue<T>): T {
+        return v instanceof IValue ? v.$ : v;
+    },
     /** create a reactive object proxy, use it for sending reactive objects to child components */
     rop<T extends { [k: string | symbol]: IValue<unknown> }>(
         o: T,

@@ -1,4 +1,6 @@
+import type { ArrayModel, SetModel, MapModel, IValue } from "vasille";
 import type { StyleProps } from "../spec/css.d.ts";
+import type { Router } from "vasille-router/web-router";
 
 export {
     ref,
@@ -13,19 +15,7 @@ export {
     watch,
 } from "vasille-dx";
 
-export {
-    compose,
-    Debug,
-    Delay,
-    Else,
-    ElseIf,
-    For,
-    If,
-    Slot,
-    Watch,
-    awaited,
-    store,
-} from "vasille-dx";
+export { compose, Debug, Delay, Else, ElseIf, For, If, Slot, Watch, awaited, store } from "vasille-dx";
 
 export {
     theme,
@@ -40,13 +30,40 @@ export {
     setLaptopMaxWidth,
 } from "vasille-css";
 
-export declare const styleSheet: <T extends {
-    [className: string]: {
-        [media: `@${string}`]: {
+export declare const styleSheet: <
+    T extends {
+        [className: string]: {
+            [media: `@${string}`]: {
+                [state: `:${string}`]: StyleProps;
+            } & StyleProps;
             [state: `:${string}`]: StyleProps;
         } & StyleProps;
-        [state: `:${string}`]: StyleProps;
-    } & StyleProps;
-}>(input: T) => { [K in keyof T]: string; };
+    },
+>(
+    input: T,
+) => { [K in keyof T]: string };
+
 export declare function mount<T>(element: Element, component: ($: T) => void, $: T, debugUi?: boolean): void;
 
+declare const VasilleKey: unique symbol;
+
+export interface BridgeValue<T> {
+    [VasilleKey]: T;
+}
+
+export declare const bridge: {
+    ref<T>(v: T): BridgeValue<T>;
+    bind<T>(v: T): BridgeValue<T>;
+    calculate<T>(fn: () => T): BridgeValue<T>;
+    watch(fn: () => void): void;
+    arrayModel<T>(arr?: T[]): ArrayModel<T>;
+    setModel<T>(data?: T[]): SetModel<T>;
+    mapModel<K, T>(data?: [K, T][]): MapModel<K, T>;
+    reactiveObject<T extends object>(obj: T): { [K in keyof T]: BridgeValue<T[K]> };
+    value<T>(of: BridgeValue<T>): T;
+    setValue<T>(of: BridgeValue<T>, value: T): T;
+    stored<T>(v: T | IValue<T> | BridgeValue<T>): T;
+    destroy(v: BridgeValue<unknown>): void;
+};
+
+export declare function router(): Router<string> | undefined;

@@ -1,7 +1,10 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
+import { processBridgeCall } from "./bridge";
 import { calls, composeOnly } from "./call.js";
 import { Internal, StackedStates, VariableScope, VariableState } from "./internal.js";
+import { routerReplace } from "./router";
+import { stringify } from "./utils";
 
 interface Search {
   found: Map<string, types.Expression>;
@@ -19,22 +22,6 @@ function addIdentifier(path: NodePath<types.Identifier>, search: Search) {
     search.found.set(path.node.name, path.node);
   }
   path.replaceWith(encodeName(path.node.name));
-}
-
-function stringify(node: types.Expression | types.PrivateName) {
-  let name = "";
-
-  if (t.isStringLiteral(node)) {
-    name = node.value;
-  }
-  if (t.isPrivateName(node)) {
-    name = node.id.name;
-  }
-  if (t.isIdentifier(node)) {
-    name = node.name;
-  }
-
-  return name;
 }
 
 function extractMemberName(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, search: Search) {
@@ -289,13 +276,26 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     }
     case "CallExpression": {
       const path = nodePath as NodePath<types.CallExpression>;
+      const bridge = processBridgeCall(path, search.external, true);
 
-      if (calls(path, composeOnly, search.external)) {
-        throw path.buildCodeFrameError("Vasille: Usage of hints is restricted here");
+      if (bridge) {
+        if (bridge === "value") {
+          addMemberExpr(nodePath as NodePath<types.MemberExpression>, search);
+        }
+      } else if (calls(path, ["router"], search.external)) {
+        if (!search.external.stateOnly) {
+          routerReplace(path);
+        } else {
+          throw path.buildCodeFrameError("Vasille: The router is not available in stores");
+        }
+      } else {
+        if (calls(path, composeOnly, search.external)) {
+          throw path.buildCodeFrameError("Vasille: Usage of hints is restricted here");
+        }
+
+        checkOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), search);
+        checkAllUnknown(path.get("arguments"), search);
       }
-
-      checkOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), search);
-      checkAllUnknown(path.get("arguments"), search);
       break;
     }
     case "OptionalCallExpression": {

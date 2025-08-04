@@ -8,7 +8,7 @@ export const C = compose(() => {
     return a + b + c;
   });
   let e = bind(a + b);
-  let f = value(calculate(() => a + b));
+  let f = value((() => a + b)());
   // @ts-expect-error
   let g = ref();
   let h = bind(3);

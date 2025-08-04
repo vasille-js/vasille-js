@@ -23,34 +23,41 @@ export function named(
   return call;
 }
 
+export function processCalculateCall(
+  path: NodePath<types.CallExpression>,
+  internal: Internal,
+): [types.FunctionExpression | types.ArrowFunctionExpression, types.ArrayExpression] {
+  const call = path.node.arguments[0];
+
+  if (path.node.arguments.length !== 1) {
+    throw path.buildCodeFrameError("Vasille: Incorrect number of arguments");
+  }
+  if (t.isFunctionExpression(call) || t.isArrowFunctionExpression(call)) {
+    if (call.params.length > 0) {
+      throw path.buildCodeFrameError("Vasille: Argument of calculate cannot have parameters");
+    }
+
+    const exprData = checkNode(
+      (path as NodePath<types.CallExpression>).get("arguments")[0] as NodePath<
+        types.FunctionExpression | types.ArrowFunctionExpression
+      >,
+      internal,
+    );
+
+    call.params = [...exprData.found.keys()].map(name => encodeName(name));
+
+    return [call, t.arrayExpression([...exprData.found.values()])];
+  }
+
+  throw path.buildCodeFrameError("Vasille: Argument of calculate must be a function");
+}
+
 export function parseCalculateCall(
   path: NodePath<types.Expression | null | undefined>,
   internal: Internal,
 ): [types.FunctionExpression | types.ArrowFunctionExpression, types.ArrayExpression] | null {
   if (t.isCallExpression(path.node) && calls(path, ["calculate", "watch"], internal)) {
-    const call = path.node.arguments[0];
-
-    if (path.node.arguments.length !== 1) {
-      throw path.buildCodeFrameError("Vasille: Incorrect number of arguments");
-    }
-    if (t.isFunctionExpression(call) || t.isArrowFunctionExpression(call)) {
-      if (call.params.length > 0) {
-        throw path.buildCodeFrameError("Vasille: Argument of calculate cannot have parameters");
-      }
-
-      const exprData = checkNode(
-        (path as NodePath<types.CallExpression>).get("arguments")[0] as NodePath<
-          types.FunctionExpression | types.ArrowFunctionExpression
-        >,
-        internal,
-      );
-
-      call.params = [...exprData.found.keys()].map(name => encodeName(name));
-
-      return [call, t.arrayExpression([...exprData.found.values()])];
-    } else {
-      throw path.buildCodeFrameError("Vasille: Argument of calculate must be a function");
-    }
+    return processCalculateCall(path as NodePath<types.CallExpression>, internal);
   }
   return null;
 }
@@ -60,7 +67,7 @@ export function exprCall(
   expr: types.Expression | null | undefined,
   internal: Internal,
   name?: string,
-) {
+): types.Expression | null {
   const calculateCall = parseCalculateCall(path, internal);
 
   if (calculateCall) {
@@ -100,9 +107,12 @@ export function exprCall(
     return exprData.self;
   }
 
-  const names = [...exprData.found.keys()].map(name => encodeName(name));
+  const names = [...exprData.found.keys()].map(encodeName);
   const dependencies = t.arrayExpression([...exprData.found.values()]);
 
+  if (expr !== path.node && names.length === 1 && t.isIdentifier(path.node) && path.node.name === names[0].name) {
+    return [...exprData.found.values()][0];
+  }
   if (names.length > 0 && expr) {
     return named(
       t.callExpression(
