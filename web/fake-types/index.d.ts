@@ -1,6 +1,6 @@
 import type { ArrayModel, SetModel, MapModel, IValue } from "vasille";
 import type { StyleProps } from "../spec/css.d.ts";
-import type { Router } from "vasille-router/web-router";
+import type { Router, WebRouterInitialization } from "vasille-router/web-router";
 
 export {
     ref,
@@ -16,6 +16,9 @@ export {
 } from "vasille-dx";
 
 export { compose, Debug, Delay, Else, ElseIf, For, If, Slot, Watch, awaited, store } from "vasille-dx";
+
+export { QueryParams, ScreenProps, RouteParameters } from "vasille-router";
+export { Router, WebRouterInitialization, NavigationMode } from "vasille-router/web-router";
 
 export {
     theme,
@@ -44,6 +47,8 @@ export declare const styleSheet: <
 ) => { [K in keyof T]: string };
 
 export declare function mount<T>(element: Element, component: ($: T) => void, $: T, debugUi?: boolean): void;
+
+export declare function routerApp<Routes extends string>(init: WebRouterInitialization<Routes>, element?: Element, debugUi?: boolean): void;
 
 declare const VasilleKey: unique symbol;
 

@@ -188,7 +188,7 @@ export function routeApp<Routes extends string>(
     node: Element,
     window: Window,
     location: Location,
-    init: Omit<WebRouterInitialization<Routes>, "node">,
+    init: WebRouterInitialization<Routes>,
     debugUi?: boolean,
 ) {
     const runner = new Runner(debugUi ?? false, window.document);
