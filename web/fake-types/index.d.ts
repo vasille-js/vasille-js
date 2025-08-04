@@ -1,4 +1,5 @@
-import type { ArrayModel, SetModel, MapModel, IValue } from "vasille";
+import type { ArrayModel, SetModel, MapModel, IValue, App } from "vasille";
+import {TagOptions} from "vasille/web-runner";
 import type { StyleProps } from "../spec/css.d.ts";
 import type { Router, WebRouterInitialization } from "vasille-router/web-router";
 
@@ -46,7 +47,7 @@ export declare const styleSheet: <
     input: T,
 ) => { [K in keyof T]: string };
 
-export declare function mount<T>(element: Element, component: ($: T) => void, $: T, debugUi?: boolean): void;
+export declare function mount<T>(element: Element, component: ($: T) => void, $: T, debugUi?: boolean): App<Node, Element, TagOptions>;
 
 export declare function routerApp<Routes extends string>(init: WebRouterInitialization<Routes>, element?: Element, debugUi?: boolean): void;
 

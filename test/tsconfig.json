@@ -1,0 +1,19 @@
+{
+  "include": ["src/**/*", "test/**/*"],
+
+  "compilerOptions": {
+    "allowJs": false,
+    "declaration": false,
+    "noEmit": true,
+    "target": "ES2015",
+    "module": "ES2015",
+    "moduleResolution": "Bundler",
+    "jsx": "preserve",
+    "jsxFactory": "tag",
+    "jsxImportSource": "vasille-web",
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "types": ["jest", "node"]
+  }
+}

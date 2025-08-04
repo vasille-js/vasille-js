@@ -50,11 +50,13 @@ export function mount<Node, Element, TagOptions extends object, T>(
     component: ($: T, node: Fragment<Node, Element, TagOptions>) => unknown,
     runner: Runner<Node, Element, TagOptions>,
     $: T,
-) {
+): App<Node, Element, TagOptions> {
     const root = new App(tag, runner, {});
     const frag = new Fragment({}, runner, ":app-root");
 
     root.create(frag, function () {
         component($, frag);
     });
+
+    return root;
 }

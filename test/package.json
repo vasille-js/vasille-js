@@ -1,0 +1,33 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "",
+  "license": "MIT",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@babel/core": "^7.28.0",
+    "@babel/plugin-syntax-jsx": "^7.27.1",
+    "@babel/plugin-transform-typescript": "^7.28.0",
+    "@types/jest": "^30.0.0",
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "^24.2.0",
+    "babel-jest": "^30.0.5",
+    "babel-plugin-vasille": "file:../babel-plugin",
+    "jest": "^30.0.5",
+    "jsdom": "^26.1.0",
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.1",
+    "typescript": "^5.9.2",
+    "vasille": "file:../core",
+    "vasille-css": "file:../css",
+    "vasille-dx": "file:../dx",
+    "vasille-jsx": "file:../jsx",
+    "vasille-router": "file:../router",
+    "vasille-web": "file:../web"
+  }
+}

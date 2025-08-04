@@ -1,4 +1,4 @@
-import type { Runner } from "vasille";
+import type { Runner, App } from "vasille";
 
 
 
@@ -21,7 +21,7 @@ declare function compose<In, Out>(
 
 declare function mount<Node, Element, TagOptions extends object, T>(
     tag: Element, component: ($: T) => unknown, runner: Runner<Node, Element, TagOptions>, $: T
-): void;
+): App<Node, Element, TagOptions>;
 
 declare function value<T>(v: T): T;
 declare function ref<T>(v: T): T;

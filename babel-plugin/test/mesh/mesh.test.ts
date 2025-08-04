@@ -144,3 +144,7 @@ it("compose nested destruction error", function () {
 it("compose rest arg error", function () {
   throwTest(__dirname, "compose-rest", "Expected identifier or object pattern");
 });
+
+it("jsx For wrong args order", function () {
+  runJsxTest(__dirname, "jsx-For-wrong-args-order");
+});

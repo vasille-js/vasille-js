@@ -50,7 +50,7 @@ export const styleSheet = coreStyleSheet as <
 ) => { [K in keyof T]: string };
 
 export function mount<T>(element: Element, component: ($: T) => void, $: T, debugUi?: boolean) {
-    coreMount<Node, Element, TagOptions, T>(element, component, new Runner(debugUi ?? false, window.document), $);
+    return coreMount<Node, Element, TagOptions, T>(element, component, new Runner(debugUi ?? false, window.document), $);
 }
 
 export function routerApp<Routes extends string>(

@@ -10,6 +10,7 @@
     "browser": "./lib/index.js",
     "node": "./lib/index.js"
   },
+  "type": "module",
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
     "prettier": "prettier src test --write",
