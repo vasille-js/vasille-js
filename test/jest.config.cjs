@@ -5,7 +5,7 @@ module.exports = {
       plugins: [
         "@babel/plugin-syntax-jsx",
         ["vasille", {devMode: true}],
-        ["@babel/plugin-transform-typescript", {isTSX: true}]
+        ["@babel/plugin-transform-typescript", {isTSX: true}],
       ]
     }],
   },

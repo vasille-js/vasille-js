@@ -12,6 +12,10 @@ it("bridge jsx bridge value prop", function () {
   runJsxTest(__dirname, "jsx-bridge-value-prop");
 });
 
+it("bridge value in setValue", function () {
+  runTest(__dirname, "bridge-value-in-setValue");
+});
+
 it("router test", function () {
   runTest(__dirname, "router");
 });

@@ -1,6 +1,6 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { checkNode, encodeName, idIsIValue, memberIsIValue } from "./expression";
+import { checkExpression, checkNode, encodeName, idIsIValue, memberIsIValue, Search } from "./expression";
 import { Internal } from "./internal";
 import { processCalculateCall } from "./lib";
 import { meshExpression } from "./mesh";
@@ -11,7 +11,7 @@ const bridgeConstName = "bridge";
 export function processBridgeCall(
   path: NodePath<types.Expression | null | undefined>,
   internal: Internal,
-  checking?: boolean,
+  search?: Search,
 ) {
   const node = path.node;
 
@@ -63,7 +63,7 @@ export function processBridgeCall(
 
       switch (propName) {
         case "ref": {
-          callWithArg("ref");
+          callWithArg("r");
           break;
         }
         case "bind": {
@@ -82,7 +82,7 @@ export function processBridgeCall(
               ]),
             );
           } else {
-            callWithArg("ref");
+            callWithArg("r");
           }
           break;
         }
@@ -110,7 +110,7 @@ export function processBridgeCall(
           break;
         }
         case "value": {
-          if (!checking) {
+          if (!search) {
             path.replaceWith(t.memberExpression(getArg(), t.identifier("$")));
           } else {
             path.replaceWith(getArg());
@@ -123,7 +123,13 @@ export function processBridgeCall(
           }
 
           meshExpression(path.get("arguments")[0] as NodePath<types.Expression>, internal);
-          meshExpression(path.get("arguments")[1] as NodePath<types.Expression>, internal);
+
+          if (search) {
+            checkExpression(path.get("arguments")[1] as NodePath<types.Expression>, search);
+          }
+          else {
+            meshExpression(path.get("arguments")[1] as NodePath<types.Expression>, internal);
+          }
 
           path.replaceWith(
             t.assignmentExpression("=", t.memberExpression(node.arguments[0], t.identifier("$")), node.arguments[1]),

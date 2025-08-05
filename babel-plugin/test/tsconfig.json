@@ -13,6 +13,7 @@
     "skipLibCheck": true,
     "strictNullChecks": true,
     "esModuleInterop": true,
+    "isolatedModules": true,
     "types": ["jest", "node"]
   }
 }

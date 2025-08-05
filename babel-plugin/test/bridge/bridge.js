@@ -1,5 +1,5 @@
 import { compose, $ as VasilleWeb } from "vasille-web";
-let a = VasilleWeb.ref(2);
+let a = VasilleWeb.r(2);
 let b = VasilleWeb.ex(Vasille_a => Vasille_a + 1, [a]);
 let c = VasilleWeb.ex((Vasille_a, Vasille_b) => {
   return Vasille_a + Vasille_b;
@@ -23,7 +23,7 @@ const C = compose(Vasille => {
     a: 1
   }, "o");
   const y = z;
-  const x = VasilleWeb.ref(23);
+  const x = VasilleWeb.r(23);
   const embed = Vasille.ref(a.$, "embed");
   const hybrid = Vasille.own(VasilleWeb.ex((Vasille_z, Vasille_a) => Vasille_z + Vasille_a, [z, a]), "hybrid");
   z.$;

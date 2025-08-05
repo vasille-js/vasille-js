@@ -7,7 +7,7 @@ const C0 = compose((Vasille, {
   }, Vasille);
 }, "VasilleWeb:C0");
 class Class {
-  x = bridge.ref(2);
+  x = VasilleWeb.r(2);
 }
 const C1 = compose((Vasille, props) => {
   const cx = props.cx.$;
@@ -19,7 +19,7 @@ const C1 = compose((Vasille, props) => {
   }, Vasille);
 }, "VasilleWeb:C1");
 const C = compose(Vasille => {
-  const b = VasilleWeb.ref(2);
+  const b = VasilleWeb.r(2);
   const c = new Class();
   C0({
     x: b

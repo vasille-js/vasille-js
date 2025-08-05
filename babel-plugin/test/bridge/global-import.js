@@ -1,5 +1,5 @@
 import * as Web from "vasille-web";
-const a = Web.$.ref(2);
+const a = Web.$.r(2);
 const C = Web.compose(Vasille => {
   Vasille.runner.router;
   function overrideTest() {

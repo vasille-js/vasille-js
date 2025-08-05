@@ -113,13 +113,13 @@ export function exprCall(
   if (expr !== path.node && names.length === 1 && t.isIdentifier(path.node) && path.node.name === names[0].name) {
     return [...exprData.found.values()][0];
   }
-  if (names.length > 0 && expr) {
+  if (names.length > 0 && path.node) {
     return named(
       t.callExpression(
         internal.stateOnly
           ? t.memberExpression(internal.id, t.identifier("ex"))
           : t.memberExpression(ctx, t.identifier("expr")),
-        [t.arrowFunctionExpression(names, expr), dependencies],
+        [t.arrowFunctionExpression(names, path.node), dependencies],
       ),
       name,
       internal,

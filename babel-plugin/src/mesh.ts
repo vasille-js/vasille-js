@@ -461,8 +461,12 @@ function meshForHeader(path: NodePath<types.ForStatement>, internal: Internal) {
 
 function meshClassBody(path: NodePath<types.ClassBody>, internal: Internal) {
   for (const item of path.get("body")) {
+    /* istanbul ignore else */
     if (t.isClassMethod(item.node) || t.isClassPrivateMethod(item.node)) {
       meshFunction(item as NodePath<types.ClassMethod | types.ClassPrivateMethod>, internal);
+    }
+    else if (t.isClassAccessorProperty(item.node) || t.isClassPrivateProperty(item.node) || t.isClassProperty(item.node)) {
+      meshExpression(item.get("value"), internal);
     }
   }
 }

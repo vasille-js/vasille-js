@@ -110,13 +110,14 @@ function transformJsxExpressionContainer(
     expression.params.unshift(ctx);
   }
 
-  let call = exprCall(path.get("expression") as NodePath<types.Expression>, expression, internal);
+  const exprPath = path.get("expression") as NodePath<types.Expression>;
+  let call = exprCall(exprPath, expression, internal);
 
   if (!call && t.isIdentifier(expression) && internal.stack.get(expression.name) === VariableState.ReactiveObject) {
     call = t.callExpression(t.memberExpression(internal.id, t.identifier("rop")), [expression]);
   }
 
-  const result = call ?? expression;
+  const result = call ?? exprPath.node;
 
   result.loc = loc;
 

@@ -6,22 +6,32 @@ import { Internal, StackedStates, VariableScope, VariableState } from "./interna
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
 
-interface Search {
+export interface Search {
   found: Map<string, types.Expression>;
   external: Internal;
   self: types.Expression | null;
+  inserted: Set<types.Expression>;
   stack: StackedStates;
 }
 
-export function encodeName(name: string): types.Identifier {
-  return t.identifier(`Vasille_${name}`);
+export function encodeName(name:string) {
+  return insertName(name);
+}
+
+function insertName(name: string, search?: Search): types.Identifier {
+  const id = t.identifier(`Vasille_${name}`);
+
+  search?.inserted.add(id)
+
+  return id;
 }
 
 function addIdentifier(path: NodePath<types.Identifier>, search: Search) {
   if (!search.found.has(path.node.name)) {
     search.found.set(path.node.name, path.node);
   }
-  path.replaceWith(encodeName(path.node.name));
+
+  path.replaceWith(insertName(path.node.name, search));
 }
 
 function extractMemberName(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, search: Search) {
@@ -60,7 +70,7 @@ function addMemberExpr(path: NodePath<types.MemberExpression | types.OptionalMem
   if (!search.found.has(name)) {
     search.found.set(name, path.node);
   }
-  path.replaceWith(encodeName(name));
+  path.replaceWith(insertName(name, search));
 }
 
 function addExternalIValue(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, search: Search) {
@@ -69,7 +79,7 @@ function addExternalIValue(path: NodePath<types.MemberExpression | types.Optiona
   if (!search.found.has(name)) {
     search.found.set(name, path.node.object);
   }
-  path.replaceWith(encodeName(name));
+  path.replaceWith(insertName(name, search));
 }
 
 function meshIdentifier(path: NodePath<types.Identifier>, internal: Internal) {
@@ -161,6 +171,7 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
     external: internal,
     found: new Map(),
     self: null,
+    inserted: new Set(),
     stack: internal.stack,
   };
 
@@ -276,11 +287,12 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     }
     case "CallExpression": {
       const path = nodePath as NodePath<types.CallExpression>;
-      const bridge = processBridgeCall(path, search.external, true);
+
+      const bridge = processBridgeCall(path, search.external, search);
 
       if (bridge) {
         if (bridge === "value") {
-          addMemberExpr(nodePath as NodePath<types.MemberExpression>, search);
+            addMemberExpr(nodePath as NodePath<types.MemberExpression>, search);
         }
       } else if (calls(path, ["router"], search.external)) {
         if (!search.external.stateOnly) {
@@ -295,6 +307,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
 
         checkOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), search);
         checkAllUnknown(path.get("arguments"), search);
+
       }
       break;
     }

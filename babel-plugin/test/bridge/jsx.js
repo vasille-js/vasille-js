@@ -1,6 +1,6 @@
 import { compose, Debug, $ as VasilleWeb } from "vasille-web";
-const a = VasilleWeb.ref(1);
-const o = VasilleWeb.ref({
+const a = VasilleWeb.r(1);
+const o = VasilleWeb.r({
   p: 2
 });
 const C0 = compose((Vasille, {

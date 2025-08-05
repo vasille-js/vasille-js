@@ -17,6 +17,7 @@ export {
 } from "vasille-dx";
 
 export { compose, Debug, Delay, Else, ElseIf, For, If, Slot, Watch, awaited, store } from "vasille-dx";
+export { $ } from "vasille-jsx";
 
 export { QueryParams, ScreenProps, RouteParameters } from "vasille-router";
 export { Router, WebRouterInitialization, NavigationMode } from "vasille-router/web-router";
