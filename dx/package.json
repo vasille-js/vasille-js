@@ -38,7 +38,7 @@
     "url": "git+https://github.com/vasille-js/vasille-js.git"
   },
   "dependencies": {
-    "vasille": "^3.1.0",
+    "vasille": "file:../core",
     "vasille-jsx": "file:../jsx"
   },
   "devDependencies": {

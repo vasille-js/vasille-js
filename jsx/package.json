@@ -37,7 +37,7 @@
     "url": "git+https://github.com/vasille-js/vasille-js.git"
   },
   "dependencies": {
-    "vasille": "^3.1.0"
+    "vasille": "file:../core"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

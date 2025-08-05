@@ -1,14 +1,15 @@
 import { Fragment, IValue, Reference, setErrorHandler } from "vasille";
-import { compose, mount } from "../src/index.js";
+import { mvvmView, mvcView, hybridView, mount } from "../src/index.js";
 import { readValue } from "../src/components.js";
 import { createNode } from "./page.js";
 
 interface Props {
-    className?: IValue<string>;
+    className?: string;
+    number?: number;
     slot?(node: Fragment<Node, Element, object>): void;
 }
 
-const component = compose(function (f, $: Props) {
+const mvvm = mvvmView(function (f, $: Props) {
     let div!: Element;
 
     f.tag("div", {
@@ -17,20 +18,32 @@ const component = compose(function (f, $: Props) {
         callback: node => (div = node),
     });
 
-    return div;
+    return { div, className: $.className };
 }, "test");
 
-it("compose test", function () {
+const mvc = mvcView(function (f, $: Pick<Props, "className" | "slot">) {
+    return { class: $.className };
+}, "test");
+
+const hybrid = hybridView(
+    function (f, $: Pick<Props, "number" | "className" | "slot">) {
+        return [$.className, $.number];
+    },
+    ["className"],
+    "test",
+);
+
+it("MVVM test", function () {
     const [node, window] = createNode();
     const body = window.document.body;
     let div!: Element;
 
-    mount(body, component, node.runner, { callback: node => (div = node as Element) });
-    expect(div instanceof window.Element).toBe(true);
+    mount(body, mvvm, node.runner, { callback: node => (div = node?.div as Element) });
+    expect(div).toBeInstanceOf(window.Element);
     expect(div.children.length).toBe(0);
 
-    mount(body, component, node.runner, {
-        callback: node => (div = node as Element),
+    mount(body, mvvm, node.runner, {
+        callback: node => (div = node?.div as Element),
         slot(f: Fragment<Node, Element, object>) {
             f.tag("div", { class: ["1"] });
         },
@@ -38,16 +51,20 @@ it("compose test", function () {
 
     expect(div.children.length).toBe(1);
     expect(div.children[0].className).toBe("1");
-    expect(() => component({})).toThrow("Vasille: Component context is missing");
+    expect(() => mvvm({})).toThrow("Vasille: Component context is missing");
 
-    mount(body, component, node.runner, {
-        callback: node => (div = node as Element),
+    mount(body, mvvm, node.runner, {
+        callback: node => {
+            div = node?.div as Element;
+            expect(node?.className).toBeInstanceOf(IValue);
+            expect((node?.className as any)?.$).toBe("replaced");
+        },
         slot(f: Fragment<Node, Element, object>) {
-            component({}, f, function (f: Fragment<Node, Element, object>) {
+            mvvm({}, f, function (f: Fragment<Node, Element, object>) {
                 f.tag("div", { class: ["2"] });
             });
         },
-        className: new Reference("replaced"),
+        className: "replaced",
     });
 
     expect(div.children.length).toBe(1);
@@ -56,10 +73,60 @@ it("compose test", function () {
     expect(div.children[0].children[0].className).toBe("2");
 });
 
+it("MVC test", function () {
+    const [node, window] = createNode();
+    const body = window.document.body;
+    let count = 0;
+
+    mount(body, mvc, node.runner, {
+        callback: className => {
+            expect(className?.class).toBe("string");
+            count++;
+        },
+        className: "string",
+    });
+
+    mount(body, mvc, node.runner, {
+        callback: className => {
+            expect(className?.class).toBeUndefined();
+            count++;
+        },
+    });
+
+    expect(count).toBe(2);
+});
+
+it("Hybrid test", function () {
+    const [node, window] = createNode();
+    const body = window.document.body;
+    let count = 0;
+
+    mount(body, hybrid, node.runner, {
+        callback: data => {
+            expect(data?.[0]).toBe("string");
+            expect(data?.[1]).toBeInstanceOf(IValue);
+            expect((data?.[1] as unknown as IValue<number>).$).toBe(3);
+            count++;
+        },
+        className: "string",
+        number: 3,
+    });
+
+    mount(body, hybrid, node.runner, {
+        callback: data => {
+            expect(data?.[0]).toBeUndefined();
+            expect(data?.[1]).toBeInstanceOf(IValue);
+            count++;
+        },
+    });
+
+    expect(count).toBe(2);
+});
+
 it("throw test", function () {
     const [node, window] = createNode();
     const e = new Error("test");
-    const throwC = compose(function ($) {
+    const throwC = mvvmView(function ($) {
         throw e;
     }, "test");
     let handled: Error | undefined;
@@ -68,4 +135,58 @@ it("throw test", function () {
 
     mount(window.document.body, throwC, node.runner, {});
     expect(handled).toBe(e);
+});
+
+interface IValueProps {
+    string?: IValue<string>;
+    slot?(node: Fragment<Node, Element, object>): void;
+}
+
+const mvvmIValue = mvvmView(function (_, $: IValueProps) {
+    return { test: $.string };
+}, "test");
+
+const mvcIValue = mvcView(function (f, $: IValueProps) {
+    return { test: $.string };
+}, "test");
+
+const hybridIValue = hybridView(
+    function (f, $: IValueProps) {
+        return { test: $.string };
+    },
+    [],
+    "test",
+);
+
+it("IValue keep test", function () {
+    const [node, window] = createNode();
+    const body = window.document.body;
+    const string = new Reference("test");
+    let count = 0;
+
+    mount(body, mvvmIValue, node.runner, {
+        callback(data) {
+            expect(data?.test).toBe(string);
+            count++;
+        },
+        string: string,
+    });
+
+    mount(body, mvcIValue, node.runner, {
+        callback(data) {
+            expect(data?.test).toBe(string);
+            count++;
+        },
+        string: string,
+    });
+
+    mount(body, hybridIValue, node.runner, {
+        callback(data) {
+            expect(data?.test).toBe(string);
+            count++;
+        },
+        string: string,
+    });
+
+    expect(count).toBe(3);
 });

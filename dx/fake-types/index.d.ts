@@ -1,9 +1,8 @@
 import type { Runner, App } from "vasille";
 
 
-
 declare interface Params {
-  slot?(...args: unknown[]): unknown;
+    slot?(...args: unknown[]): unknown;
 }
 
 declare type Composed<In extends Params, Out> = (
@@ -11,13 +10,37 @@ declare type Composed<In extends Params, Out> = (
       & { callback?(data: Out | undefined): void },
   slot?: In['slot'],
 ) => void;
+declare type ComposedNoCallback<In extends Params, Out> = (
+    $: (In['slot'] extends (() => unknown) | undefined ? Omit<In, 'slot'> & {slot?: unknown} : (In)),
+    slot?: In['slot'],
+) => void;
 
-declare function compose<In extends Params, Out>(
+declare function mvvmView(
+    renderer: () => void
+): ComposedNoCallback<NonNullable<unknown>, void>;
+declare function mvvmView<In extends object>(
+  renderer: (input: In) => void
+): ComposedNoCallback<In, void>;
+declare function mvvmView<Out>(
+    renderer: (input: NonNullable<unknown>) => Out
+): Composed<NonNullable<unknown>, Out>;
+declare function mvvmView<In extends object, Out>(
   renderer: (input: In) => Out
 ): Composed<In, Out>;
-declare function compose<In, Out>(
-  renderer: (input: In) => Out
+
+declare function mvcView<In extends object>(
+    renderer: (input: In) => void
+): ComposedNoCallback<In, void>;
+declare function mvcView<In extends object, Out>(
+    renderer: (input: In) => Out
 ): Composed<In, Out>;
+
+declare function hybridView<Models extends object, Props extends object>(
+    renderer: (models: Models, props: Props) => void
+): ComposedNoCallback<Models & Props, void>;
+declare function hybridView<Models extends object, Props extends object, Out>(
+    renderer: (models: Models, props: Props) => Out
+): Composed<Models & Props, Out>;
 
 declare function mount<Node, Element, TagOptions extends object, T>(
     tag: Element, component: ($: T) => unknown, runner: Runner<Node, Element, TagOptions>, $: T

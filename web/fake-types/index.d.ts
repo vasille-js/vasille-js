@@ -1,5 +1,5 @@
 import type { ArrayModel, SetModel, MapModel, IValue, App } from "vasille";
-import {TagOptions} from "vasille/web-runner";
+import { TagOptions } from "vasille/web-runner";
 import type { StyleProps } from "../spec/css.d.ts";
 import type { Router, WebRouterInitialization } from "vasille-router/web-router";
 
@@ -16,7 +16,23 @@ export {
     watch,
 } from "vasille-dx";
 
-export { compose, Debug, Delay, Else, ElseIf, For, If, Slot, Watch, awaited, store } from "vasille-dx";
+export {
+    mvvmView,
+    mvcView,
+    hybridView,
+    Debug,
+    Delay,
+    Else,
+    ElseIf,
+    For,
+    If,
+    Slot,
+    Watch,
+    awaited,
+    store,
+} from "vasille-dx";
+export { mvvmView as view } from "vasille-dx";
+export { mvvmView as compose } from "vasille-dx";
 export { $ } from "vasille-jsx";
 
 export { QueryParams, ScreenProps, RouteParameters } from "vasille-router";
@@ -48,9 +64,18 @@ export declare const styleSheet: <
     input: T,
 ) => { [K in keyof T]: string };
 
-export declare function mount<T>(element: Element, component: ($: T) => void, $: T, debugUi?: boolean): App<Node, Element, TagOptions>;
+export declare function mount<T>(
+    element: Element,
+    component: ($: T) => void,
+    $: T,
+    debugUi?: boolean,
+): App<Node, Element, TagOptions>;
 
-export declare function routerApp<Routes extends string>(init: WebRouterInitialization<Routes>, element?: Element, debugUi?: boolean): void;
+export declare function routerApp<Routes extends string>(
+    init: WebRouterInitialization<Routes>,
+    element?: Element,
+    debugUi?: boolean,
+): void;
 
 declare const VasilleKey: unique symbol;
 
