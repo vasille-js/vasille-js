@@ -1,10 +1,10 @@
-import { compose, For } from "vasille-web";
+import { view, For } from "vasille-web";
 
 export let control: {
   setValue(key: number, value: string): void;
 } | undefined = undefined;
 
-export const Component = compose(() => {
+export const Component = view(() => {
   const model = new Map([[0, 'a']]);
 
   control = {

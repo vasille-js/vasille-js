@@ -1,6 +1,6 @@
-import {compose} from "vasille-web"
+import {view} from "vasille-web"
 
-export const Static = compose(() => {
+export const Static = view(() => {
   <div>
     Hello world!
   </div>

@@ -1,4 +1,4 @@
-import { bridge, compose } from "vasille-web";
+import { bridge, view } from "vasille-web";
 
 const name = bridge.ref("Vasille");
 const external = bridge.ref("test");
@@ -13,7 +13,7 @@ bridge.watch(() => {
   bridge.setValue(name, '+' + bridge.value(external));
 })
 
-export const Watch = compose(() => {
+export const Watch = view(() => {
   <div>
     Hello {name}!
   </div>;

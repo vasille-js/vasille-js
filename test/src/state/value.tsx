@@ -1,8 +1,8 @@
-import { compose, value } from "vasille-web";
+import { view, value } from "vasille-web";
 
 export let control: { setValue(value: string): void; } | undefined = undefined;
 
-export const Component = compose(() => {
+export const Component = view(() => {
   let r = "test";
   const text = value(r);
 

@@ -1,10 +1,10 @@
-import {compose} from "vasille-web"
+import {view} from "vasille-web"
 
-const Embed = compose(() => {
+const Embed = view(() => {
   <div>Embed</div>
 })
 
-export const Component = compose(() => {
+export const Component = view(() => {
   <div>
     Hello world!
   </div>;

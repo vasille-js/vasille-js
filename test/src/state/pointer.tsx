@@ -1,11 +1,11 @@
-import { compose } from "vasille-web";
+import { view } from "vasille-web";
 
 export let control: {
   setValue(value: number): void;
   updatePointer(): void;
 } | undefined = undefined;
 
-export const Component = compose(() => {
+export const Component = view(() => {
   let r = 2;
   let point = r + 1;
 

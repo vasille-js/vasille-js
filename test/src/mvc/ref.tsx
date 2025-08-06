@@ -1,4 +1,4 @@
-import { bridge, compose } from "vasille-web";
+import { bridge, view } from "vasille-web";
 
 const text = bridge.ref("test");
 
@@ -8,7 +8,7 @@ export let control: { setValue(value: string): void; } | undefined = {
   }
 };
 
-export const Component = compose(() => {
+export const Component = view(() => {
   <div>
     Hello {text}!
   </div>;

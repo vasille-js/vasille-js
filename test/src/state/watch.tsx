@@ -1,8 +1,8 @@
-import { compose, watch } from "vasille-web";
+import { view, watch } from "vasille-web";
 
 export let control: { setValue(value: string): void; } | undefined = undefined;
 
-export const Watch = compose(() => {
+export const Watch = view(() => {
   let name = "Vasille";
   let external = "test";
 

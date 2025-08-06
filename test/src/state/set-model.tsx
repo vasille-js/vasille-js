@@ -1,11 +1,11 @@
-import { compose, For } from "vasille-web";
+import { view, For } from "vasille-web";
 
 export let control: {
   addValue(value: string): void;
   removeValue(value: string): void;
 } | undefined = undefined;
 
-export const Component = compose(() => {
+export const Component = view(() => {
   const model = new Set(['m']);
 
   control = {

@@ -1,4 +1,4 @@
-import { bridge, compose } from "vasille-web";
+import { bridge, view } from "vasille-web";
 
 const r = bridge.ref("test");
 const text = bridge.stored(r);
@@ -9,7 +9,7 @@ export const control = {
   }
 };
 
-export const Component = compose(() => {
+export const Component = view(() => {
   <div>
     Hello {text}!
   </div>;

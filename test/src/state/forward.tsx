@@ -1,11 +1,11 @@
-import {compose, forward} from "vasille-web"
+import {view, forward} from "vasille-web"
 
 export const control: {
   setParentValue?(value: string): void;
   setChildValue?(value: string): void;
 } = {};
 
-const Embed = compose(({text}:{text: string}) => {
+const Embed = view(({text}:{text: string}) => {
   control.setChildValue = value => {
     text = value
   }
@@ -13,7 +13,7 @@ const Embed = compose(({text}:{text: string}) => {
   <div>Embed {text}</div>
 })
 
-export const Component = compose(() => {
+export const Component = view(() => {
   let text = "test";
 
   control.setParentValue = value => {

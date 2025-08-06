@@ -1,4 +1,4 @@
-import { bridge, compose, For } from "vasille-web";
+import { bridge, view, For } from "vasille-web";
 
 const model = bridge.mapModel([[0, 'a']]);
 
@@ -8,7 +8,7 @@ export const control = {
   }
 };
 
-export const Component = compose(() => {
+export const Component = view(() => {
   <For of={model} slot={value => {
     <div>
       Hello {value}!

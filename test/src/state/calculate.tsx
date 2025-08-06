@@ -1,8 +1,8 @@
-import { compose, calculate } from "vasille-web";
+import { view, calculate } from "vasille-web";
 
 export let control: { setValue(value: string): void; } | undefined = undefined;
 
-export const Component = compose(() => {
+export const Component = view(() => {
   let r = "test";
   const text = calculate(() => {
     return '+' + r;
