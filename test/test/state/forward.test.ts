@@ -1,8 +1,8 @@
-import {mount} from "vasille-web";
+import { mount } from "vasille-web";
 import { Component, control } from "../../src/state/forward";
 import { page } from "../page";
 
-it("forward to embed component", function() {
+it("forward to embed component", function () {
   const body = page.window.document.body;
 
   mount(body, Component, {});
@@ -19,4 +19,4 @@ it("forward to embed component", function() {
   control.setParentValue?.("*");
   expect(body.children[0].innerHTML).toBe("Hello *!");
   expect(body.children[1].innerHTML).toBe("Embed +");
-})
+});

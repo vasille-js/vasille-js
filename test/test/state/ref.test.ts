@@ -2,7 +2,7 @@ import { mount } from "vasille-web";
 import { control, Component } from "../../src/state/ref";
 import { page } from "../page";
 
-it("ref call in component", function() {
+it("ref call in component", function () {
   const body = page.window.document.body;
 
   mount(body, Component, {});
@@ -11,4 +11,4 @@ it("ref call in component", function() {
   expect(body.children[0].innerHTML).toBe("Hello test!");
   control?.setValue("world");
   expect(body.children[0].innerHTML).toBe("Hello world!");
-})
+});

@@ -2,7 +2,7 @@ import { mount } from "vasille-web";
 import { control, Component } from "../../src/state/set-model";
 import { page } from "../page";
 
-it("set model in component", function() {
+it("set model in component", function () {
   const body = page.window.document.body;
 
   mount(body, Component, {});
@@ -22,4 +22,4 @@ it("set model in component", function() {
   expect(body.children.length).toBe(2);
   expect(body.children[0].innerHTML).toBe("Hello m!");
   expect(body.children[1].innerHTML).toBe("Hello o!");
-})
+});

@@ -2,7 +2,7 @@ import { mount } from "vasille-web";
 import { control, Component } from "../../src/state/map-model";
 import { page } from "../page";
 
-it("map model in component", function() {
+it("map model in component", function () {
   const body = page.window.document.body;
 
   mount(body, Component, {});
@@ -23,4 +23,4 @@ it("map model in component", function() {
   expect(body.children[0].innerHTML).toBe("Hello a!");
   expect(body.children[1].innerHTML).toBe("Hello c!");
   expect(body.children[2].innerHTML).toBe("Hello z!");
-})
+});
