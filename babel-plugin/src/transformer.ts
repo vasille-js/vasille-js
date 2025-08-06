@@ -25,6 +25,7 @@ const ignoreMembers = new Set([
   "prefersLight",
   "bridge",
   "router",
+  "runOnDestroy",
 ]);
 
 function extractText(node: types.Identifier | types.StringLiteral) {

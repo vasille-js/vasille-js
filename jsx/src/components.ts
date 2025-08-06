@@ -9,7 +9,6 @@ import {
     SetView,
     userError,
     Watch as CoreWatch,
-    Tag,
 } from "vasille";
 
 type Magic<T extends object> = { [K in keyof T]: T[K] | IValue<T[K]> | undefined };
@@ -26,6 +25,7 @@ interface SlotOptions<Node, Element, TagOptions extends object, T extends object
 export function Slot<Node, Element, TagOptions extends object, T extends object = {}>(
     options: Magic<SlotOptions<Node, Element, TagOptions, T>> & T,
     ctx: Fragment<Node, Element, TagOptions>,
+    defaultSlot?: (ctx: Fragment<Node, Element, TagOptions>) => void,
 ) {
     const model = readValue(options.model);
 
@@ -47,7 +47,7 @@ export function Slot<Node, Element, TagOptions extends object, T extends object 
 
         model(options, ctx);
     } else {
-        readValue(options.slot)?.(ctx);
+        (readValue(options.slot) ?? defaultSlot)?.(ctx);
     }
 }
 
@@ -59,8 +59,9 @@ interface IfOptions {
 export function If<Node, Element, TagOptions extends object>(
     { condition, slot: magicSlot }: Magic<IfOptions>,
     ctx: Fragment<Node, Element, TagOptions>,
+    defaultSlot?: () => void,
 ) {
-    const slot = readValue(magicSlot);
+    const slot = readValue(magicSlot) ?? defaultSlot;
 
     ctx.if(condition instanceof IValue ? (condition as IValue<unknown>) : ctx.ref(condition), slot ?? (() => {}));
 }
@@ -68,8 +69,9 @@ export function If<Node, Element, TagOptions extends object>(
 export function ElseIf<Node, Element, TagOptions extends object>(
     { condition, slot: magicSlot }: Magic<IfOptions>,
     ctx: Fragment<Node, Element, TagOptions>,
+    defaultSlot?: () => void,
 ) {
-    const slot = readValue(magicSlot);
+    const slot = readValue(magicSlot) ?? defaultSlot;
 
     ctx.elif(condition instanceof IValue ? (condition as IValue<unknown>) : ctx.ref(condition), slot ?? (() => {}));
 }
@@ -81,8 +83,9 @@ interface ElseOptions {
 export function Else<Node, Element, TagOptions extends object>(
     { slot: magicSlot }: Magic<ElseOptions>,
     ctx: Fragment<Node, Element, TagOptions>,
+    defaultSlot?: () => void,
 ) {
-    const slot = readValue(magicSlot);
+    const slot = readValue(magicSlot) ?? defaultSlot;
 
     /* istanbul ignore else */
     if (slot) {
@@ -105,8 +108,9 @@ export function For<
 >(
     { of, slot: magicSlot }: Magic<ForOptions<Node, Element, TagOptions, T, K, V>>,
     ctx: Fragment<Node, Element, TagOptions>,
+    defaultSlot?: (ctx: Fragment<Node, Element, TagOptions>) => void,
 ) {
-    const slot = readValue(magicSlot);
+    const slot = readValue(magicSlot) ?? defaultSlot;
 
     /* istanbul ignore else */
     if (of instanceof IValue) {
@@ -192,8 +196,9 @@ interface WatchOptions<Node, Element, TagOptions extends object, T> {
 export function Watch<Node, Element, TagOptions extends object, T>(
     { model, slot: magicSlot }: Magic<WatchOptions<Node, Element, TagOptions, T>>,
     ctx: Fragment<Node, Element, TagOptions>,
+    defaultSlot?: (ctx: Fragment<Node, Element, TagOptions>) => void,
 ) {
-    const slot = readValue(magicSlot);
+    const slot = readValue(magicSlot) ?? defaultSlot;
 
     /* istanbul ignore else */
     if (slot && model instanceof IValue) {
@@ -222,9 +227,10 @@ interface DelayOptions<Node, Element, TagOptions extends object> {
 export function Delay<Node, Element, TagOptions extends object>(
     { time, slot }: Magic<DelayOptions<Node, Element, TagOptions>>,
     ctx: Fragment<Node, Element, TagOptions>,
+    defaultSlot?: (ctx: Fragment<Node, Element, TagOptions>) => void,
 ) {
     const fragment = new Fragment({}, ctx.runner, ":timer");
-    const dSlot = readValue(slot);
+    const dSlot = readValue(slot) ?? defaultSlot;
     let timer: number | undefined;
 
     ctx.create(fragment, function (node) {

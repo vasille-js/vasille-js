@@ -8,6 +8,6 @@ interface Props {
   string: string;
 }
 
-export const C = hybridView(({string: s0}: Models, {...rest}: Props) => {
-  console.log(s0, rest)
-})
+export const C = hybridView(({ string: s0 }: Models, { ...rest }: Props) => {
+  console.log(s0, rest);
+});

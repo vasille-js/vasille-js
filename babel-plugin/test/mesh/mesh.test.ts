@@ -36,6 +36,10 @@ it("export default expression", function () {
   runTest(__dirname, "default-expr", false);
 });
 
+it("run on destroy", function () {
+  runTest(__dirname, "run-on-destroy", false);
+});
+
 it("store function", function () {
   runJsxTest(__dirname, "store");
 });
@@ -165,5 +169,9 @@ it("hybrid rest element error", function () {
 });
 
 it("hybrid twice field error", function () {
-  throwTest(__dirname, "hybrid-twice", "Field \"string\" is defined twice");
+  throwTest(__dirname, "hybrid-twice", 'Field "string" is defined twice');
+});
+
+it("run on destroy error", function () {
+  throwTest(__dirname, "run-on-destroy", "Stores in Vasille.JS are not destroyable");
 });

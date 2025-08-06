@@ -77,6 +77,8 @@ export declare function routerApp<Routes extends string>(
     debugUi?: boolean,
 ): void;
 
+export declare function runOnDestroy(fn: () => void): void;
+
 declare const VasilleKey: unique symbol;
 
 export interface BridgeValue<T> {

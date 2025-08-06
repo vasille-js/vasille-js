@@ -334,7 +334,7 @@ export function meshExpression(
           if (
             isRoot &&
             internal.stateOnly &&
-            !path.node.computed &&
+            (!path.node.computed || t.isStringLiteral(path.node.key)) &&
             (t.isIdentifier(path.node.key) || t.isStringLiteral(path.node.key)) &&
             t.isExpression(valuePath.node)
           ) {
@@ -735,6 +735,12 @@ export function composeExpression(
             path.replaceWith(t.callExpression(args[0], []));
           }
         }
+      } else if (calls(path, ["runOnDestroy"], internal)) {
+        if (internal.stateOnly) {
+          throw path.buildCodeFrameError("Vasille: Stores in Vasille.JS are not destroyable");
+        }
+
+        path.get("callee").replaceWith(t.memberExpression(ctx, t.identifier("runOnDestroy")));
       } else {
         meshExpression(path, internal);
       }

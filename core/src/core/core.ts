@@ -11,12 +11,6 @@ import { OwningPointer, Pointer } from "../value/pointer.js";
  */
 export class Reactive<T extends object = object> extends Destroyable {
     /**
-     * A list of user-defined values
-     * @type {Set}
-     */
-    private _watch: Set<Destroyable> = new Set();
-
-    /**
      * A list of user-defined bindings
      * @type {Set}
      */
@@ -41,7 +35,7 @@ export class Reactive<T extends object = object> extends Destroyable {
     public ref<T>(value: T, name?: string): IValue<T> {
         const ref = new Reference(value);
 
-        this._watch.add(ref);
+        this.bindings.add(ref);
         if (name) {
             this.addState("ref", name, ref);
         }
@@ -57,7 +51,7 @@ export class Reactive<T extends object = object> extends Destroyable {
     public forward<T>(value: IValue<T>, name?: string): IValue<T> {
         const mirror = new Pointer(value);
 
-        this._watch.add(mirror);
+        this.bindings.add(mirror);
         if (name) {
             this.addState("forward", name, mirror);
         }
@@ -73,7 +67,7 @@ export class Reactive<T extends object = object> extends Destroyable {
     public own<T>(value: IValue<T>, name?: string): Pointer<T> {
         const pointer = new OwningPointer(value);
 
-        this._watch.add(pointer);
+        this.bindings.add(pointer);
         /* istanbul ignore else */
         if (name) {
             this.addState("own", name, pointer);
@@ -104,7 +98,7 @@ export class Reactive<T extends object = object> extends Destroyable {
      * @param values
      */
     public watch<Args extends unknown[]>(func: (...args: Args) => void, values: KindOfIValue<Args>) {
-        this._watch.add(new Expression<void, Args>(func, values));
+        this.bindings.add(new Expression<void, Args>(func, values));
     }
 
     /**
@@ -121,7 +115,7 @@ export class Reactive<T extends object = object> extends Destroyable {
     ): IValue<T> {
         const res: IValue<T> = new Expression<T, Args>(func, values);
 
-        this._watch.add(res);
+        this.bindings.add(res);
         if (name) {
             this.addState("expr", name, res);
         }
@@ -143,8 +137,6 @@ export class Reactive<T extends object = object> extends Destroyable {
 
     public destroy() {
         super.destroy();
-        this._watch.forEach(value => value.destroy());
-        this._watch.clear();
 
         this.bindings.forEach(binding => binding.destroy());
         this.bindings.clear();

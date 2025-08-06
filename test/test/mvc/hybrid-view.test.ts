@@ -13,7 +13,7 @@ it("Hybrid view call", function () {
   control?.setValue(2);
   expect(body.children[0].innerHTML).toBe("2+10");
   expect(body.children[1].innerHTML).toBe("4+12");
-  control?.setInnerValue(20);
+  control?.setInnerValue?.(20);
   expect(body.children[0].innerHTML).toBe("2+20");
   expect(body.children[1].innerHTML).toBe("4+22");
 });

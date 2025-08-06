@@ -12,14 +12,9 @@ it("Slot", function () {
     let mustBeRef: unknown = null;
 
     Slot({}, node);
-    Slot(
-        {
-            slot() {
-                slotTest = true;
-            },
-        },
-        node,
-    );
+    Slot({}, node, () => {
+        slotTest = true;
+    });
     Slot(
         {
             model() {
@@ -33,11 +28,11 @@ it("Slot", function () {
             model() {
                 modelTest2 = true;
             },
-            slot() {
-                modelTest2 = false;
-            },
         },
         node,
+        () => {
+            modelTest2 = false;
+        },
     );
     Slot(
         {
@@ -75,29 +70,24 @@ it("If - ElseIf - Else", function () {
     If(
         {
             condition: ifCont,
-            slot() {
-                executed = "if";
-            },
         },
         node,
+        () => {
+            executed = "if";
+        },
     );
     ElseIf(
         {
             condition: elseCond,
-            slot() {
-                executed = "else-if";
-            },
         },
         node,
-    );
-    Else(
-        {
-            slot() {
-                executed = "else";
-            },
+        () => {
+            executed = "else-if";
         },
-        node,
     );
+    Else({}, node, () => {
+        executed = "else";
+    });
 
     expect(executed).toBe("if");
     cond.$ = 2;
@@ -117,20 +107,15 @@ it("If - ElseIf - Else", function () {
     If(
         {
             condition: false,
-            slot() {
-                executed2 = "if";
-            },
         },
         node,
-    );
-    Else(
-        {
-            slot() {
-                executed2 = "else-if";
-            },
+        () => {
+            executed2 = "if";
         },
-        node,
     );
+    Else({}, node, () => {
+        executed2 = "else-if";
+    });
 
     expect(executed2).toBe("else-if");
 });
@@ -156,9 +141,9 @@ it("For", function () {
                 [1, 1],
                 [2, 2],
             ]),
-            slot,
         },
         node,
+        slot,
     );
     expect(counter).toBe(6);
     For({ of: [1, 2, 3], slot }, node);
@@ -185,7 +170,7 @@ it("Watch", function () {
         counter++;
     }
 
-    Watch({ model: ref, slot }, node);
+    Watch({ model: ref }, node, slot);
 
     expect(counter).toBe(1);
     ref.$ = 2;
@@ -217,24 +202,12 @@ it("Delay", function (done) {
     let element!: HTMLElement;
 
     node.tag("div", { callback: n => (element = n as HTMLElement) }, function (f) {
-        Delay(
-            {
-                time: 10,
-                slot(f: Fragment<Node, Element, object>) {
-                    f.tag("div", {});
-                },
-            },
-            f,
-        );
-        Delay(
-            {
-                time: 20,
-                slot(f: Fragment<Node, Element, object>) {
-                    f.tag("div", {});
-                },
-            },
-            f,
-        );
+        Delay({ time: 10 }, f, (f: Fragment<Node, Element, object>) => {
+            f.tag("div", {});
+        });
+        Delay({ time: 20 }, f, (f: Fragment<Node, Element, object>) => {
+            f.tag("div", {});
+        });
     });
 
     expect(element.children.length).toBe(0);

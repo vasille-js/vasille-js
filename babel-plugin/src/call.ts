@@ -20,6 +20,7 @@ export type FnNames =
   | "setModel"
   | "mapModel"
   | "reactiveObject"
+  | "runOnDestroy"
   | "router"
   | "theme"
   | "dark"
@@ -43,6 +44,7 @@ export const composeOnly: FnNames[] = [
   "setModel",
   "reactiveObject",
   "router",
+  "runOnDestroy",
 ];
 export const styleOnly: FnNames[] = [
   "theme",
