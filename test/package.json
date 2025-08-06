@@ -7,7 +7,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "prettier": "prettier test/**/*.ts* --write",
+    "typecheck": "tsc",
+    "prettier": "prettier src test/**/*.ts* --write",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "dependencies": {

@@ -1,9 +1,11 @@
 import { view } from "vasille-web";
 
-export let control: {
-  setValue(value: number): void;
-  updatePointer(): void;
-} | undefined = undefined;
+export let control:
+  | {
+      setValue(value: number): void;
+      updatePointer(): void;
+    }
+  | undefined = undefined;
 
 export const Component = view(() => {
   let r = 2;
@@ -15,11 +17,8 @@ export const Component = view(() => {
     },
     updatePointer() {
       point = r + 3;
-    }
+    },
   };
 
-  <div>
-    Hello {point}!
-  </div>;
+  <div>Hello {point}!</div>;
 });
-

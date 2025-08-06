@@ -5,13 +5,10 @@ const text = bridge.stored(r);
 
 export const control = {
   setValue(value: string) {
-    bridge.setValue(r, value)
-  }
+    bridge.setValue(r, value);
+  },
 };
 
 export const Component = view(() => {
-  <div>
-    Hello {text}!
-  </div>;
+  <div>Hello {text}!</div>;
 });
-

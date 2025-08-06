@@ -1,16 +1,13 @@
 import { bridge, view } from "vasille-web";
 
-const data = bridge.reactiveObject({text: "test"});
+const data = bridge.reactiveObject({ text: "test" });
 
 export const control = {
   setValue(value: string) {
     bridge.setValue(data.text, value);
-  }
+  },
 };
 
 export const Component = view(() => {
-  <div>
-    Hello {data.text}!
-  </div>;
+  <div>Hello {data.text}!</div>;
 });
-

@@ -1,12 +1,10 @@
-import {view} from "vasille-web"
+import { view } from "vasille-web";
 
 const Embed = view(() => {
-  <div>Embed</div>
-})
+  <div>Embed</div>;
+});
 
 export const Component = view(() => {
-  <div>
-    Hello world!
-  </div>;
+  <div>Hello world!</div>;
   <Embed />;
 });

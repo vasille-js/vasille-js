@@ -67,11 +67,17 @@ declare function setModel<T>(v?: T[]): Set<T> & { destroy(): void };
 declare function mapModel<K, T>(v?: [K, T][]): Map<K, T> & { destroy(): void };
 declare function reactiveObject<T extends object>(o: T): T;
 
-declare function Slot<Args extends never[]|[object]>(
+declare function Slot(
     options: {
-        model?: ((...args: Args) => void);
+        model?: () => void;
         slot?: () => void;
-    } & (Args extends never[] ? {} : Args[0]),
+    },
+): void;
+declare function Slot<Props extends object>(
+  options: {
+    model?: (props: Props) => void;
+    slot?: () => void;
+  } & Props,
 ): void;
 
 declare function If(

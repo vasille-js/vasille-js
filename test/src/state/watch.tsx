@@ -1,6 +1,6 @@
 import { view, watch } from "vasille-web";
 
-export let control: { setValue(value: string): void; } | undefined = undefined;
+export let control: { setValue(value: string): void } | undefined = undefined;
 
 export const Watch = view(() => {
   let name = "Vasille";
@@ -9,14 +9,12 @@ export const Watch = view(() => {
   control = {
     setValue(value: string) {
       external = value;
-    }
+    },
   };
 
   watch(() => {
-    name = '+' + external;
+    name = "+" + external;
   });
 
-  <div>
-    Hello {name}!
-  </div>;
+  <div>Hello {name}!</div>;
 });

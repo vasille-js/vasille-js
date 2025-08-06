@@ -2,7 +2,7 @@ import { mount } from "vasille-web";
 import { control, Component } from "../../src/mvc/interpolation";
 import { page } from "../page";
 
-it("Hybrid view call", function () {
+it("Interpolation of hybrid & MVVM", function () {
   const body = page.window.document.body;
 
   mount(body, Component, {});

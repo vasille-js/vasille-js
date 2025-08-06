@@ -1,21 +1,21 @@
 import { bridge, view, For } from "vasille-web";
 
-const model = bridge.setModel(['m']);
+const model = bridge.setModel(["m"]);
 
 export const control = {
   addValue(value: string) {
-    model.add(value)
+    model.add(value);
   },
   removeValue(value: string) {
-    model.delete(value)
-  }
+    model.delete(value);
+  },
 };
 
 export const Component = view(() => {
-  <For of={model} slot={value => {
-    <div>
-      Hello {value}!
-    </div>;
-  }}/>;
+  <For
+    of={model}
+    slot={value => {
+      <div>Hello {value}!</div>;
+    }}
+  />;
 });
-

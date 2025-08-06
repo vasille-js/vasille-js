@@ -1,6 +1,6 @@
 import { view, value } from "vasille-web";
 
-export let control: { setValue(value: string): void; } | undefined = undefined;
+export let control: { setValue(value: string): void } | undefined = undefined;
 
 export const Component = view(() => {
   let r = "test";
@@ -9,11 +9,8 @@ export const Component = view(() => {
   control = {
     setValue(value: string) {
       r = value;
-    }
+    },
   };
 
-  <div>
-    Hello {text}!
-  </div>;
+  <div>Hello {text}!</div>;
 });
-

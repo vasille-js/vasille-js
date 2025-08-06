@@ -1,7 +1,5 @@
-import {view} from "vasille-web"
+import { view } from "vasille-web";
 
 export const Static = view(() => {
-  <div>
-    Hello world!
-  </div>
+  <div>Hello world!</div>;
 });
