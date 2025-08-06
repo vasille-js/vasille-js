@@ -139,6 +139,7 @@ it("throw test", function () {
 
 interface IValueProps {
     string?: IValue<string>;
+    number?: number;
     slot?(node: Fragment<Node, Element, object>): void;
 }
 
@@ -150,11 +151,27 @@ const mvcIValue = mvcView(function (f, $: IValueProps) {
     return { test: $.string };
 }, "test");
 
-const hybridIValue = hybridView(
+const hybridIValue1 = hybridView(
     function (f, $: IValueProps) {
-        return { test: $.string };
+        return { test: $.string, number: $.number };
     },
     [],
+    "test",
+);
+
+const hybridIValue2 = hybridView(
+    function (f, $: IValueProps) {
+        return { test: $.string, number: $.number };
+    },
+    ["number"],
+    "test",
+);
+
+const hybridIValue3 = hybridView(
+    function (f, $: IValueProps) {
+        return { test: $.string, number: $.number };
+    },
+    ["number", "string"],
     "test",
 );
 
@@ -172,21 +189,44 @@ it("IValue keep test", function () {
         string: string,
     });
 
-    mount(body, mvcIValue, node.runner, {
+    mount(body, hybridIValue1, node.runner, {
         callback(data) {
             expect(data?.test).toBe(string);
+            expect(data?.number).toBeInstanceOf(IValue);
             count++;
         },
         string: string,
+        number: 1,
     });
 
-    mount(body, hybridIValue, node.runner, {
+    mount(body, hybridIValue2, node.runner, {
         callback(data) {
             expect(data?.test).toBe(string);
+            expect(data?.number).toBe(2);
             count++;
         },
         string: string,
+        number: 2,
     });
+
+    mount(body, hybridIValue3, node.runner, {
+        callback() {
+            // must not be executed
+            // iValue field will throw error
+            count = -1;
+        },
+        string: string,
+        number: 2,
+    });
+
+    expect(() => {
+        mount(body, mvcIValue, node.runner, {
+            callback() {
+                count = -2;
+            },
+            string: string,
+        });
+    }).toThrow("Vasille: Field string has a reactive value");
 
     expect(count).toBe(3);
 });

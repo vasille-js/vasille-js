@@ -15,6 +15,10 @@ declare type ComposedNoCallback<In extends Params, Out> = (
     slot?: In['slot'],
 ) => void;
 
+/**
+ * create an MVVM view, which can receive external reactive value as props
+ * @param renderer is the view constructor
+ */
 declare function mvvmView(
     renderer: () => void
 ): ComposedNoCallback<NonNullable<unknown>, void>;
@@ -28,6 +32,10 @@ declare function mvvmView<In extends object, Out>(
   renderer: (input: In) => Out
 ): Composed<In, Out>;
 
+/**
+ * create an MVC view, which can receive models from the parent component
+ * @param renderer is the view constructor
+ */
 declare function mvcView<In extends object>(
     renderer: (input: In) => void
 ): ComposedNoCallback<In, void>;
@@ -35,6 +43,10 @@ declare function mvcView<In extends object, Out>(
     renderer: (input: In) => Out
 ): Composed<In, Out>;
 
+/**
+ * create a hybrid view, which can receive external models and reactive values
+ * @param renderer is the view constructor
+ */
 declare function hybridView<Models extends object, Props extends object>(
     renderer: (models: Models, props: Props) => void
 ): ComposedNoCallback<Models & Props, void>;

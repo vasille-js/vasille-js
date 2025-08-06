@@ -126,8 +126,7 @@ export function processBridgeCall(
 
           if (search) {
             checkExpression(path.get("arguments")[1] as NodePath<types.Expression>, search);
-          }
-          else {
+          } else {
             meshExpression(path.get("arguments")[1] as NodePath<types.Expression>, internal);
           }
 

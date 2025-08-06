@@ -39,6 +39,34 @@ function create<Node, Element, TagOptions extends object, In extends Composition
     }
 }
 
+function fieldError(key: string) {
+    return new Error(
+        [
+            `Vasille: Field ${key} has a reactive value, which is not allowed in model.`,
+            "Use bridge.stored() to disable the reactivity of value,",
+            "or hybridView properties parameter which accepts reactive values.",
+        ].join(" "),
+    );
+}
+
+function getProp(target: object, p: string | symbol, isModel?: boolean) {
+    if (isModel) {
+        const value = target[p];
+
+        if (value instanceof IValue) {
+            throw fieldError(String(p));
+        }
+        return value;
+    } else {
+        const value = target[p];
+
+        if (value instanceof IValue) {
+            return value;
+        }
+        return (target[p] = new Reference(target[p]));
+    }
+}
+
 export function mvvmView<Node, Element, TagOptions extends object, In extends CompositionProps, Out>(
     renderer: (node: Fragment<Node, Element, TagOptions>, input: In) => Out,
     name: string,
@@ -48,8 +76,8 @@ export function mvvmView<Node, Element, TagOptions extends object, In extends Co
             node,
             renderer,
             new Proxy(props, {
-                get(target: object, p: string | symbol): any {
-                    return p in target && target[p] instanceof IValue ? target[p] : new Reference(target[p]);
+                get(target: object, p: string | symbol) {
+                    return getProp(target, p);
                 },
             }) as In,
             props.callback,
@@ -64,6 +92,12 @@ export function mvcView<Node, Element, TagOptions extends object, In extends Com
     name: string,
 ): Composed<Node, Element, TagOptions, In, Out> {
     return function (props, node, slot) {
+        for (const key in props) {
+            if (props[key] instanceof IValue) {
+                throw fieldError(key);
+            }
+        }
+
         create(node, renderer, props, props.callback, slot, name);
     };
 }
@@ -73,6 +107,27 @@ export function hybridView<Node, Element, TagOptions extends object, In extends 
     modelProps: string[],
     name: string,
 ): Composed<Node, Element, TagOptions, In, Out> {
+    if (modelProps.length === 0) {
+        return mvvmView(renderer, name);
+    } else if (modelProps.length === 1) {
+        const key = modelProps[0];
+
+        return function (props, node, slot) {
+            create(
+                node,
+                renderer,
+                new Proxy(props, {
+                    get(target: object, p: string | symbol): any {
+                        return getProp(target, p, key === p);
+                    },
+                }) as In,
+                props.callback,
+                slot,
+                name,
+            );
+        };
+    }
+
     const modelPropsSet = new Set<string | symbol>(modelProps);
 
     return function (props, node, slot) {
@@ -81,13 +136,7 @@ export function hybridView<Node, Element, TagOptions extends object, In extends 
             renderer,
             new Proxy(props, {
                 get(target: object, p: string | symbol): any {
-                    return modelPropsSet.has(p)
-                        ? p in target
-                            ? target[p]
-                            : undefined
-                        : p in target && target[p] instanceof IValue
-                          ? target[p]
-                          : new Reference(target[p]);
+                    return getProp(target, p, modelPropsSet.has(p));
                 },
             }) as In,
             props.callback,

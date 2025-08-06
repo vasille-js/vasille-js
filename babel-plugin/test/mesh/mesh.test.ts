@@ -4,6 +4,18 @@ it("compose function", function () {
   runJsxTest(__dirname, "compose");
 });
 
+it("MVVM view function", function () {
+  runJsxTest(__dirname, "mvvm-view");
+});
+
+it("MVC view function", function () {
+  runJsxTest(__dirname, "mvc-view");
+});
+
+it("hybrid view function", function () {
+  runJsxTest(__dirname, "hybrid-view");
+});
+
 it("mesh statement function", function () {
   runTest(__dirname, "mesh-statement", false);
 });
@@ -68,7 +80,6 @@ it("store not reactive object name error", function () {
   throwTest(__dirname, "store-not-reactive-object", "This property is not a reactive value or object");
 });
 
-
 it("store spread element error", function () {
   throwTest(__dirname, "store-spread-element", "Spread element is not allowed here");
 });
@@ -130,7 +141,7 @@ it("set not const error", function () {
 });
 
 it("compose wrong arg number error", function () {
-  throwTest(__dirname, "compose-arg-number", "JSX component must have no more then 1 parameter", true);
+  throwTest(__dirname, "compose-arg-number", "Extra parameters are not allowed", true);
 });
 
 it("compose default props error", function () {
@@ -143,4 +154,16 @@ it("compose nested destruction error", function () {
 
 it("compose rest arg error", function () {
   throwTest(__dirname, "compose-rest", "Expected identifier or object pattern");
+});
+
+it("hybrid identifier error", function () {
+  throwTest(__dirname, "hybrid-identifier", "Expected object pattern here");
+});
+
+it("hybrid rest element error", function () {
+  throwTest(__dirname, "hybrid-rest-element", "Rest element is not supported here");
+});
+
+it("hybrid twice field error", function () {
+  throwTest(__dirname, "hybrid-twice", "Field \"string\" is defined twice");
 });

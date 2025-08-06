@@ -1,6 +1,14 @@
 import { compose, If } from "vasille-web";
 
-export const C1 = compose((props: { bool?: boolean; a?: number; b?: number; c?: string; slot?(): void }) => {
+interface Props {
+  bool?: boolean;
+  a?: number;
+  b?: number;
+  c?: string;
+  slot?(): void;
+}
+
+export const C1 = compose((props: Props) => {
   <div />;
 });
 

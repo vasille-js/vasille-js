@@ -1,6 +1,5 @@
 import { bridge, BridgeValue, compose, Debug } from "vasille-web";
 
-
 const C0 = compose(({ x }: { x: BridgeValue<number> }) => {
   <Debug model={bridge.stored(x)} />;
 });

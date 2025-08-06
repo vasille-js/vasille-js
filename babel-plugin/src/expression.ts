@@ -14,14 +14,14 @@ export interface Search {
   stack: StackedStates;
 }
 
-export function encodeName(name:string) {
+export function encodeName(name: string) {
   return insertName(name);
 }
 
 function insertName(name: string, search?: Search): types.Identifier {
   const id = t.identifier(`Vasille_${name}`);
 
-  search?.inserted.add(id)
+  search?.inserted.add(id);
 
   return id;
 }
@@ -292,7 +292,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
 
       if (bridge) {
         if (bridge === "value") {
-            addMemberExpr(nodePath as NodePath<types.MemberExpression>, search);
+          addMemberExpr(nodePath as NodePath<types.MemberExpression>, search);
         }
       } else if (calls(path, ["router"], search.external)) {
         if (!search.external.stateOnly) {
@@ -307,7 +307,6 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
 
         checkOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), search);
         checkAllUnknown(path.get("arguments"), search);
-
       }
       break;
     }

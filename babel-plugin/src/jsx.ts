@@ -92,6 +92,7 @@ function transformJsxExpressionContainer(
       path.get("expression") as NodePath<types.FunctionExpression | types.ArrowFunctionExpression>,
       internal,
       isInternalSlot,
+      "slot",
     );
 
     if (!isInternalSlot) {

@@ -4,6 +4,10 @@ import { Internal, ctx } from "./internal.js";
 
 export type FnNames =
   | "compose"
+  | "view"
+  | "mvvmView"
+  | "mvcView"
+  | "hybridView"
   | "store"
   | "awaited"
   | "calculate"
@@ -53,7 +57,11 @@ export const styleOnly: FnNames[] = [
 export const requiresContext: FnNames[] = ["awaited"];
 const requiresContextSet: Set<string> = new Set(requiresContext);
 
-function checkCall(path: NodePath<types.Expression | null | undefined>, name: string, internal: Internal) {
+function checkCall<T extends string>(
+  path: NodePath<types.Expression | null | undefined>,
+  name: T,
+  internal: Internal,
+): T {
   const node = path.node;
 
   if (requiresContextSet.has(name) && t.isCallExpression(node)) {
@@ -72,7 +80,11 @@ function checkCall(path: NodePath<types.Expression | null | undefined>, name: st
   return name;
 }
 
-export function calls(path: NodePath<types.Expression | null | undefined>, names: FnNames[], internal: Internal) {
+export function calls<T extends FnNames>(
+  path: NodePath<types.Expression | null | undefined>,
+  names: T[],
+  internal: Internal,
+): T | false {
   const node = path.node;
   const set = new Set<string>(names);
   const callee = t.isCallExpression(node) ? node.callee : null;
@@ -82,7 +94,7 @@ export function calls(path: NodePath<types.Expression | null | undefined>, names
       const mapped = internal.mapping.get(callee.name);
 
       if (mapped && set.has(mapped) && internal.stack.get(callee.name) === undefined) {
-        return checkCall(path, mapped, internal);
+        return checkCall(path, mapped, internal) as T;
       }
       return false;
     }
@@ -106,7 +118,7 @@ export function calls(path: NodePath<types.Expression | null | undefined>, names
       callee.object.name === internal.global &&
       internal.stack.get(internal.global) === undefined
     ) {
-      return checkCall(path, propName, internal);
+      return checkCall(path, propName, internal) as T;
     }
   }
 

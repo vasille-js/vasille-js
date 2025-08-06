@@ -20,6 +20,27 @@ import {
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
 
+export type ComposeMethods = "slot" | "compose" | "view" | "mvvmView" | "mvcView" | "hybridView" | "store";
+
+const composePropsIndex: { [k in ComposeMethods]: number } = {
+  slot: 0,
+  compose: 0,
+  view: 0,
+  mvvmView: 0,
+  mvcView: -1,
+  hybridView: 1,
+  store: 0,
+};
+const composeArgsNumber: { [k in ComposeMethods]: number } = {
+  slot: 1,
+  compose: 1,
+  view: 1,
+  mvvmView: 1,
+  mvcView: 1,
+  hybridView: 2,
+  store: 1,
+};
+
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
   nodePaths: NodePath<types.Expression | null | T>[],
   internal: Internal,
@@ -42,6 +63,7 @@ export function meshComposeCall(
   call: types.CallExpression,
   name: types.Identifier | null,
   nodePath: NodePath<types.Node | null | undefined>,
+  method: ComposeMethods,
   internal: Internal,
 ) {
   const arg = call.arguments[0];
@@ -54,7 +76,12 @@ export function meshComposeCall(
     types.FunctionExpression | types.ArrowFunctionExpression
   >;
 
-  compose(fnPath, internal, false);
+  const nonePropsFields = compose(fnPath, internal, false, method);
+
+  if (composeArgsNumber[method] > 1) {
+    call.arguments.push(t.arrayExpression(nonePropsFields.map(item => t.stringLiteral(item))));
+  }
+
   if (!internal.stateOnly) {
     arg.params.unshift(ctx);
   }
@@ -107,8 +134,11 @@ export function meshExpression(
   if (!expr) {
     return;
   }
-  if (calls(nodePath, ["compose", "store"], internal)) {
-    meshComposeCall(expr as types.CallExpression, null, nodePath, internal);
+
+  let composeMethod = calls(nodePath, ["compose", "store", "view", "mvvmView", "mvcView", "hybridView"], internal);
+
+  if (composeMethod) {
+    meshComposeCall(expr as types.CallExpression, null, nodePath, composeMethod, internal);
 
     return;
   }
@@ -464,8 +494,11 @@ function meshClassBody(path: NodePath<types.ClassBody>, internal: Internal) {
     /* istanbul ignore else */
     if (t.isClassMethod(item.node) || t.isClassPrivateMethod(item.node)) {
       meshFunction(item as NodePath<types.ClassMethod | types.ClassPrivateMethod>, internal);
-    }
-    else if (t.isClassAccessorProperty(item.node) || t.isClassPrivateProperty(item.node) || t.isClassProperty(item.node)) {
+    } else if (
+      t.isClassAccessorProperty(item.node) ||
+      t.isClassPrivateProperty(item.node) ||
+      t.isClassProperty(item.node)
+    ) {
       meshExpression(item.get("value"), internal);
     }
   }
@@ -580,9 +613,20 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
       for (const declaration of _path.get("declarations")) {
         const expr = declaration.node.init;
         const initPath = declaration.get("init");
+        const composeMethod = calls(
+          initPath,
+          ["compose", "store", "view", "mvvmView", "mvcView", "hybridView"],
+          internal,
+        );
 
-        if (expr && t.isIdentifier(declaration.node.id) && calls(initPath, ["compose", "store"], internal)) {
-          meshComposeCall(expr as types.CallExpression, declaration.node.id, declaration.get("init"), internal);
+        if (expr && t.isIdentifier(declaration.node.id) && composeMethod) {
+          meshComposeCall(
+            expr as types.CallExpression,
+            declaration.node.id,
+            declaration.get("init"),
+            composeMethod,
+            internal,
+          );
         } else {
           meshExpression(declaration.get("init"), internal);
           ignoreParams(declaration.node.id, internal);
@@ -1040,30 +1084,59 @@ export function compose(
   path: NodePath<types.ArrowFunctionExpression | types.FunctionExpression | types.FunctionDeclaration>,
   internal: Internal,
   isInternalSlot: boolean,
+  composeMethod: ComposeMethods,
 ) {
   internal.stack.push();
 
   const node = path.node;
   const params = node.params;
   const body = node.body;
+  const argsNumber = composeArgsNumber[composeMethod];
 
   if (t.isFunctionExpression(node) && node.id) {
     internal.stack.set(node.id.name, VariableState.Ignored);
   }
 
-  if (params.length > 1 && !isInternalSlot) {
-    throw path.get("params")[1].buildCodeFrameError("Vasille: JSX component must have no more then 1 parameter");
+  if (params.length > argsNumber && !isInternalSlot) {
+    throw path.get("params")[argsNumber].buildCodeFrameError("Vasille: Extra parameters are not allowed");
   }
+
+  const cumulativeFields = new Set<string>();
+  const nonPropsFields: string[] = [];
+  let index = 0;
 
   for (const param of path.get("params")) {
     const node = param.node;
+    const isProps = index === composePropsIndex[composeMethod];
 
     if (t.isAssignmentPattern(node)) {
       throw param.buildCodeFrameError("Vasille: No default value allowed here");
     }
-    if (t.isIdentifier(node)) {
-      internal.stack.set(node.name, isInternalSlot ? VariableState.Ignored : VariableState.ReactiveObject);
-    } else if (isInternalSlot && t.isObjectPattern(node)) {
+
+    if (argsNumber !== 1) {
+      if (t.isObjectPattern(node)) {
+        for (const prop of node.properties) {
+          if (t.isObjectProperty(prop)) {
+            const name = stringify(prop.key);
+
+            if (cumulativeFields.has(name)) {
+              throw param.buildCodeFrameError(`Vasille: Field "${name}" is defined twice`);
+            }
+            cumulativeFields.add(name);
+
+            if (!isProps) {
+              nonPropsFields.push(name);
+            }
+          } else {
+            throw param.buildCodeFrameError("Vasille: Rest element is not supported here");
+          }
+        }
+      }
+    }
+
+    if (t.isIdentifier(node) && argsNumber === 1) {
+      internal.stack.set(node.name, isInternalSlot || !isProps ? VariableState.Ignored : VariableState.ReactiveObject);
+    } else if ((isInternalSlot || !isProps) && t.isObjectPattern(node)) {
       ignoreObjectPattern(node, internal);
     } else if (t.isObjectPattern(node)) {
       for (const prop of (param as NodePath<types.ObjectPattern>).get("properties")) {
@@ -1101,8 +1174,20 @@ export function compose(
         }
       }
     } else {
-      throw param.buildCodeFrameError("Vasille: Expected identifier or object pattern");
+      throw param.buildCodeFrameError(
+        argsNumber === 1 ? "Vasille: Expected identifier or object pattern" : "Vasille: Expected object pattern here",
+      );
     }
+    index++;
+  }
+
+  if (argsNumber !== 1) {
+    node.params = [
+      t.objectPattern([
+        ...(params[0] as types.ObjectPattern).properties,
+        ...(params[1] as types.ObjectPattern).properties,
+      ]),
+    ];
   }
 
   internal.isComposing = true;
@@ -1117,4 +1202,6 @@ export function compose(
   internal.isComposing = false;
 
   internal.stack.pop();
+
+  return nonPropsFields;
 }
