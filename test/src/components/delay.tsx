@@ -10,6 +10,6 @@ export const control = {
 
 export const Component = view(() => {
   <Delay time={1}>
-    <div>{state}</div>;
-  </Delay>
+    <div>{state}</div>
+  </Delay>;
 })

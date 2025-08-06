@@ -1,4 +1,4 @@
-import { bridge, view, Debug } from "vasille-web";
+import { bridge, view, If } from "vasille-web";
 
 const state = bridge.ref("test");
 
@@ -9,5 +9,7 @@ export const control = {
 };
 
 export const Component = view(() => {
-  <Debug model={state} />;
+  <If condition={bridge.value(state) === "if"}>
+    <div>{state}</div>
+  </If>;
 })
