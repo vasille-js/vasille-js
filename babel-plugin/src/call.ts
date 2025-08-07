@@ -75,7 +75,7 @@ function checkCall<T extends string>(
   if (name === "store") {
     internal.stateOnly = true;
   }
-  if (name === "compose") {
+  if (["compose", "view", "mvcView", "mvvmView", "hybridView"].includes(name)) {
     internal.stateOnly = false;
   }
 
