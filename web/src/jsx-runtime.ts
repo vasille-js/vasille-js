@@ -11,7 +11,8 @@ type HtmlInput<K extends keyof HTMLElementTagNameMap & keyof HtmlTagMap> = {
     style?: RawStyleProps | string;
     slot?: unknown;
 } & Partial<HtmlTagMap[K]["attrs"]> &
-    prefixedObject<HtmlTagMap[K]["events"], "on"> & { [K in `bind:${string}`]?: unknown };
+    prefixedObject<HtmlTagMap[K]["events"], "on"> &
+    Partial<prefixedObject<HtmlTagMap[K]["props"], "bind:">>;
 
 export declare namespace JSX {
     // Valid JSX tags: all the valid lowercase tags and function components
@@ -72,7 +73,6 @@ export declare namespace JSX {
         header: HtmlInput<"header">;
         hgroup: HtmlInput<"hgroup">;
         hr: HtmlInput<"hr">;
-        html: HtmlInput<"html">;
         i: HtmlInput<"i">;
         iframe: HtmlInput<"iframe">;
         img: HtmlInput<"img">;
