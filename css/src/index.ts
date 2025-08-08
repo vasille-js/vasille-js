@@ -79,6 +79,10 @@ function insertRule(target: number, rule: string) {
     }
 }
 
+/**
+ * Inserts stylesheet to document
+ * @param styles CSS styles based on classes
+ */
 export function styleSheet<T extends { [k: string]: (string | [number, string])[] }>(
     styles: T,
 ): { [K in keyof T]: string } {

@@ -7,7 +7,7 @@ export const page = new JSDOM(`
             <body>
             </body>
         </html>
-    `);
+    `, {url: "https://localhost:8080"});
 
 // @ts-ignore
 global.window = page.window;

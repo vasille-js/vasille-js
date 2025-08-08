@@ -6,10 +6,10 @@ export const model = store(() => {
   return {
     $text,
     setValue(value: string) {
-      ($text = value);
+      $text = value;
     },
-  }
-})()
+  };
+})();
 
 export const Component = view(() => {
   <div>Hello {model.$text}!</div>;

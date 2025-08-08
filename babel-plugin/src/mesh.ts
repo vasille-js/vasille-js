@@ -20,7 +20,7 @@ import {
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
 
-export type ComposeMethods = "slot" | "compose" | "view" | "mvvmView" | "mvcView" | "hybridView" | "store";
+export type ComposeMethods = "slot" | "compose" | "view" | "mvvmView" | "mvcView" | "hybridView" | "store" | "screen";
 
 const composePropsIndex: { [k in ComposeMethods]: number } = {
   slot: 0,
@@ -30,6 +30,7 @@ const composePropsIndex: { [k in ComposeMethods]: number } = {
   mvcView: -1,
   hybridView: 1,
   store: 0,
+  screen: -1,
 };
 const composeArgsNumber: { [k in ComposeMethods]: number } = {
   slot: 1,
@@ -39,6 +40,7 @@ const composeArgsNumber: { [k in ComposeMethods]: number } = {
   mvcView: 1,
   hybridView: 2,
   store: 1,
+  screen: 1,
 };
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
@@ -615,7 +617,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
         const initPath = declaration.get("init");
         const composeMethod = calls(
           initPath,
-          ["compose", "store", "view", "mvvmView", "mvcView", "hybridView"],
+          ["compose", "store", "view", "mvvmView", "mvcView", "hybridView", "screen"],
           internal,
         );
 

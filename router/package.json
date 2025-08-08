@@ -65,6 +65,6 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "vasille": "^3.1.0"
+    "vasille": "file:../core"
   }
 }

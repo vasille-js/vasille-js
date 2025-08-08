@@ -4,15 +4,16 @@ export const model = store(() => {
   let $r = "test";
   let $text = calculate(() => {
     return "+" + $r;
-  })
+  });
 
   return {
-    $r, $text,
+    $r,
+    $text,
     setValue(value: string) {
-      $r = value
+      $r = value;
     },
-  }
-})()
+  };
+})();
 
 export const Component = view(() => {
   <div>Hello {model.$text}!</div>;

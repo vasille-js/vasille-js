@@ -5,17 +5,17 @@ export const model = store(() => {
   let $external = "test";
 
   watch(() => {
-    ($name = "+" + ($external));
+    $name = "+" + $external;
   });
 
   return {
     $name,
     $external,
     setValue(value: string) {
-      ($external = value);
+      $external = value;
     },
-  }
-})()
+  };
+})();
 
 export const Watch = view(() => {
   <div>Hello {model.$name}!</div>;

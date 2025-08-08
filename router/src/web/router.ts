@@ -192,8 +192,9 @@ export function routeApp<Routes extends string>(
     debugUi?: boolean,
 ) {
     const runner = new Runner(debugUi ?? false, window.document);
+    const app = new App(node, runner, {});
 
-    new App(node, runner, {}).create(new Fragment({}, runner, ":router:root"), node => {
+    app.create(new Fragment({}, runner, ":router:root"), node => {
         const router = new Router(window, location, node, init);
 
         Object.defineProperty(runner, "router", {
@@ -202,4 +203,6 @@ export function routeApp<Routes extends string>(
             },
         });
     });
+
+    return app;
 }

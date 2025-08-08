@@ -49,7 +49,6 @@
     "prettier": "^3.6.2",
     "vasille": "file:../core",
     "vasille-css": "file:../css",
-    "vasille-dx": "file:../dx",
     "vasille-jsx": "file:../jsx",
     "vasille-router": "file:../router"
   },

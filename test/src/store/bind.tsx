@@ -5,12 +5,13 @@ export const model = store(() => {
   const $text = bind("+" + $r);
 
   return {
-    $r, $text,
+    $r,
+    $text,
     setValue(value: string) {
-      ($r = value);
+      $r = value;
     },
-  }
-})()
+  };
+})();
 
 export const Component = view(() => {
   <div>Hello {model.$text}!</div>;

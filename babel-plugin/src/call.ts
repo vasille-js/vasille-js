@@ -9,6 +9,7 @@ export type FnNames =
   | "mvcView"
   | "hybridView"
   | "store"
+  | "screen"
   | "awaited"
   | "calculate"
   | "forward"
@@ -75,7 +76,7 @@ function checkCall<T extends string>(
   if (name === "store") {
     internal.stateOnly = true;
   }
-  if (["compose", "view", "mvcView", "mvvmView", "hybridView"].includes(name)) {
+  if (["compose", "view", "mvcView", "mvvmView", "hybridView", "screen"].includes(name)) {
     internal.stateOnly = false;
   }
 

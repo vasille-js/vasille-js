@@ -3,14 +3,15 @@
 
   "compilerOptions": {
     "allowJs": true,
-    "declaration": false,
-    "outDir": "./lib-node",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "types",
     "target": "ES2015",
-    "module": "CommonJS",
+    "module": "ES6",
     "moduleResolution": "Node",
-    "esModuleInterop": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
+    "esModuleInterop": true,
     "types": []
   }
 }

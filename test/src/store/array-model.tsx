@@ -11,7 +11,7 @@ export const model = store(() => {
     replaceValue(index: number, value: string) {
       arr[index] = value;
     },
-  }
+  };
 })();
 
 export const Component = view(() => {

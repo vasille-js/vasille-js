@@ -1,15 +1,14 @@
 import { Fragment } from "../../core/types/index.js";
 import { StyleProps } from "../spec/css.js";
 import { Runner, TagOptions } from "vasille/web-runner";
-import { mount as coreMount, Params } from "vasille-dx";
+import { mount as coreMount } from "vasille-jsx";
 import { mvvmView as coreMvvmView, Composed as CoreComposed } from "vasille-jsx";
 import { styleSheet as coreStyleSheet } from "vasille-css";
 import { routeApp as coreRouteApp, WebRouterInitialization } from "vasille-router/web-router";
 
-export { $ } from "vasille-jsx";
-
-export { mvvmView as view } from "vasille-dx";
 export {
+    $,
+    mvvmView as view,
     mvvmView,
     mvcView,
     hybridView,
@@ -23,35 +22,12 @@ export {
     Watch,
     awaited,
     store,
-} from "vasille-dx";
-export type {
-    ref,
-    bind,
-    calculate,
-    forward,
-    arrayModel,
-    setModel,
-    mapModel,
-    reactiveObject,
-    value,
-    watch,
-} from "vasille-dx";
+} from "vasille-jsx";
 
-export { QueryParams, ScreenProps, RouteParameters } from "vasille-router";
-export { Router, WebRouterInitialization, NavigationMode } from "vasille-router/web-router";
+export { QueryParams, ScreenProps, RouteParameters, screen } from "vasille-router";
+export { Router, WebRouterInitialization, NavigationMode, routeApp } from "vasille-router/web-router";
 
-export type {
-    theme,
-    tablet,
-    dark,
-    mobile,
-    laptop,
-    prefersLight,
-    prefersDark,
-    setMobileMaxWidth,
-    setTabletMaxWidth,
-    setLaptopMaxWidth,
-} from "vasille-css";
+export type { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "vasille-css";
 
 export const styleSheet = coreStyleSheet as <
     T extends {
@@ -66,7 +42,7 @@ export const styleSheet = coreStyleSheet as <
     input: T,
 ) => { [K in keyof T]: string };
 
-export function compose<Node, Element, TagOptions extends object, In extends Params, Out>(
+export function compose<Node, Element, TagOptions extends object, In extends object, Out>(
     renderer: (f: Fragment<Node, Element, TagOptions>, input: In) => Out,
     name: string,
 ): CoreComposed<Node, Element, TagOptions, In, Out> {
@@ -91,5 +67,5 @@ export function routerApp<Routes extends string>(
     element?: Element,
     debugUi?: boolean,
 ) {
-    coreRouteApp(element ?? document.body, window, window.location, init, debugUi);
+    return coreRouteApp(element ?? document.body, window, window.location, init, debugUi);
 }

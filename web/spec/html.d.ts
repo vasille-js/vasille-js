@@ -401,8 +401,6 @@ export interface HtmlTagMap {
     font: Tag<TagAttrs, TagEvents, TagProps<HTMLElement>>;
     footer: Tag<TagAttrs, TagEvents, TagProps<HTMLElement>>;
     form: Tag<FormAttrs, TagEvents, FormProps>;
-    frame: Tag<TagAttrs, TagEvents, TagProps<HTMLFrameElement>>;
-    frameset: Tag<TagAttrs, TagEvents, TagProps<HTMLFrameSetElement>>;
     h1: Tag<TagAttrs, TagEvents, TagProps<HTMLHeadingElement>>;
     h2: Tag<TagAttrs, TagEvents, TagProps<HTMLHeadingElement>>;
     h3: Tag<TagAttrs, TagEvents, TagProps<HTMLHeadingElement>>;
@@ -426,7 +424,6 @@ export interface HtmlTagMap {
     main: Tag<TagAttrs, TagEvents, TagProps<HTMLElement>>;
     map: Tag<MapAttrs, TagEvents, MapProps>;
     mark: Tag<TagAttrs, TagEvents, TagProps<HTMLElement>>;
-    marquee: Tag<TagAttrs, TagEvents, TagProps<HTMLMarqueeElement>>;
     menu: Tag<TagAttrs, TagEvents, TagProps<HTMLMenuElement>>;
     meta: Tag<MetaAttrs, TagEvents, TagProps<HTMLMetaElement>>;
     meter: Tag<MeterAttrs, TagEvents, MeterProps>;
@@ -438,7 +435,6 @@ export interface HtmlTagMap {
     option: Tag<OptionAttrs, TagEvents, OptionProps>;
     output: Tag<OutputAttrs, TagEvents, OutputProps>;
     p: Tag<TagAttrs, TagEvents, TagProps<HTMLParagraphElement>>;
-    param: Tag<ParamAttrs, TagEvents, ParamProps>;
     picture: Tag<TagAttrs, TagEvents, TagProps<HTMLPictureElement>>;
     pre: Tag<TagAttrs, TagEvents, TagProps<HTMLPreElement>>;
     progress: Tag<ProgressAttrs, TagEvents, ProgressProps>;
@@ -462,11 +458,11 @@ export interface HtmlTagMap {
     sup: Tag<TagAttrs, TagEvents, TagProps<HTMLElement>>;
     table: Tag<TagAttrs, TagEvents, TableProps>;
     tbody: Tag<TagAttrs, TagEvents, TagProps<HTMLElement>>;
-    td: Tag<TdAttrs, TagEvents, TableCellProps<HTMLTableDataCellElement>>;
+    td: Tag<TdAttrs, TagEvents, TableCellProps>;
     template: Tag<TagAttrs, TagEvents, TagProps<HTMLTemplateElement>>;
     textarea: Tag<TextareaAttrs, TagEvents, TextAreaProps>;
     tfoot: Tag<TagAttrs, TagEvents, TagProps<HTMLElement>>;
-    th: Tag<ThAttrs, TagEvents, TableCellProps<HTMLTableHeaderCellElement>>;
+    th: Tag<ThAttrs, TagEvents, TableCellProps>;
     thead: Tag<TagAttrs, TagEvents, TagProps<HTMLElement>>;
     time: Tag<TagAttrs, TagEvents, TimeProps>;
     title: Tag<TagAttrs, TagEvents, TitleProps>;
@@ -835,11 +831,6 @@ interface OutputProps extends TagProps<HTMLOutputElement> {
     value: string;
 }
 
-interface ParamProps extends TagProps<HTMLParamElement> {
-    name: string;
-    value: string;
-}
-
 interface ProgressProps extends TagProps<HTMLProgressElement> {
     max: number;
     value: number;
@@ -891,7 +882,7 @@ interface TableProps extends TagProps<HTMLTableElement> {
     tHead: HTMLTableSectionElement | null;
 }
 
-interface TableCellProps<T extends HTMLTableCellElement> extends TagProps<T> {
+interface TableCellProps extends TagProps<HTMLTableCellElement> {
     abbr: string;
     colSpan: number;
     headers: string;

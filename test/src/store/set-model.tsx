@@ -1,7 +1,7 @@
 import { store, view, For } from "vasille-web";
 
 export const model = store(() => {
-  const s = new Set(["m"])
+  const s = new Set(["m"]);
 
   return {
     s,
@@ -11,8 +11,8 @@ export const model = store(() => {
     removeValue(value: string) {
       s.delete(value);
     },
-  }
-})()
+  };
+})();
 
 export const Component = view(() => {
   <For
