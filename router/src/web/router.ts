@@ -5,8 +5,8 @@ import { QueryParams, Answer, ScreenProps, RouteParameters } from "../types.js";
 
 export interface WebRouterInitialization<Routes extends string>
     extends RouterInitialization<Node, Element, TagOptions, Routes, {}> {
-    loadingScreen?(node: Fragment<Node, Element, TagOptions>, props: object): void;
-    loadingOverlay?(node: Fragment<Node, Element, TagOptions>, props: object): void;
+    loadingScreen?(props: object, node: Fragment<Node, Element, TagOptions>): void;
+    loadingOverlay?(props: object, node: Fragment<Node, Element, TagOptions>): void;
 }
 
 export type NavigationMode = "silent" | "loading-screen" | "loading-overlay";
@@ -122,10 +122,10 @@ export class Router<Routes extends string> extends AbstractRouter<
 
             if (mode === "loading-screen" && loadingScreen) {
                 this.clearNode(this.contentNode);
-                build(this.loadingNode, node => loadingScreen(node, {}), "::");
+                build(this.loadingNode, node => loadingScreen({}, node), "::");
             }
             if (mode === "loading-overlay" && loadingOverlay) {
-                build(this.overlayNode, node => loadingOverlay(node, {}), "::");
+                build(this.overlayNode, node => loadingOverlay({}, node), "::");
             }
 
             await this.renderScreen(target.screen, props, "found");

@@ -1,4 +1,4 @@
-import type { ArrayModel, SetModel, MapModel, IValue, App } from "vasille";
+import {ArrayModel, SetModel, MapModel, IValue, App, Fragment} from "vasille";
 import type { TagOptions } from "vasille/web-runner";
 import type { StyleProps } from "../spec/css.d.ts";
 import type { ScreenProps } from "vasille-router";
@@ -154,6 +154,8 @@ interface RouterInitialization<Routes extends string> {
     getAccessLevel?(): Promise<number>;
     fallbackScreen?(arg: { cause: "not-found" | "no-access" }): void;
     errorScreen?(data: { error: unknown }): void;
+    loadingScreen?(props: object): void;
+    loadingOverlay?(props: object): void;
 }
 
 export declare function routerApp<Routes extends string>(
