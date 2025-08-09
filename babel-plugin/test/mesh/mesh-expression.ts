@@ -1,5 +1,6 @@
 import { compose } from "vasille-web";
-import { Composed } from "vasille-dx";
+
+type Composed<In extends object, Out> = ReturnType<typeof compose<In, Out>>;
 
 !compose(() => {}) === false;
 let a = 1;

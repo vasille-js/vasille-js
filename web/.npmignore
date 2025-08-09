@@ -1,5 +1,6 @@
-.idea
+/.idea
 *.tgz
-src
-tsconfig*.json
+/src
+/tsconfig*.json
 *.tsbuildinfo
+/.*

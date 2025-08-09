@@ -277,11 +277,12 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
             }
             // class={name}
             else if (t.isJSXExpressionContainer(attr.value) && t.isExpression(attr.value.expression)) {
-              const expr = exprCall(
-                (attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.Expression>,
-                attr.value.expression,
-                internal,
-              ) ?? (attr.value.expression);
+              const expr =
+                exprCall(
+                  (attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.Expression>,
+                  attr.value.expression,
+                  internal,
+                ) ?? attr.value.expression;
 
               attrs.push(t.objectProperty(t.identifier("class"), expr));
             }
@@ -373,13 +374,13 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
               if (value) {
                 console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
               }
-            }
-            else if (t.isJSXExpressionContainer(attr.value) && t.isExpression(attr.value.expression)) {
-              const expr = exprCall(
-                (attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.Expression>,
-                attr.value.expression,
-                internal,
-              ) ?? (attr.value.expression);
+            } else if (t.isJSXExpressionContainer(attr.value) && t.isExpression(attr.value.expression)) {
+              const expr =
+                exprCall(
+                  (attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.Expression>,
+                  attr.value.expression,
+                  internal,
+                ) ?? attr.value.expression;
 
               attrs.push(t.objectProperty(t.identifier("style"), expr));
             }

@@ -22,6 +22,7 @@ export const C = compose(Vasille => {
       volume: Vasille.expr(Vasille_a => Vasille_a + 0.1, [a])
     }
   });
+  // @ts-expect-error
   Vasille.tag("video", {
     bind: {
       volume: b + 0.1

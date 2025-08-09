@@ -1,4 +1,4 @@
-import {ArrayModel, SetModel, MapModel, IValue, App, Fragment} from "vasille";
+import { ArrayModel, SetModel, MapModel, IValue, App, Fragment } from "vasille";
 import type { TagOptions } from "vasille/web-runner";
 import type { StyleProps } from "../spec/css.d.ts";
 import type { ScreenProps } from "vasille-router";

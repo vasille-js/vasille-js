@@ -159,7 +159,11 @@ export function For<
                 new SetView(
                     {
                         model,
-                        slot,
+                        slot: slot as unknown as (
+                            ctx: Fragment<Node, Element, TagOptions, object>,
+                            value: T,
+                            index: T,
+                        ) => void,
                     },
                     node.runner,
                 ),

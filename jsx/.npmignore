@@ -1,9 +1,9 @@
-.idea
-coverage
-src
-test
-.eslint*
-.prettier*
-jest.*
-tsconfig*
+/.idea
+/coverage
+/src
+/test
+/.eslint*
+/.prettier*
+/jest.*
+/tsconfig*
 *.tgz

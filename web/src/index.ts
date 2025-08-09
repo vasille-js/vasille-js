@@ -1,4 +1,4 @@
-import { Fragment } from "../../core/types/index.js";
+import { Fragment } from "vasille";
 import { StyleProps } from "../spec/css.js";
 import { Runner, TagOptions } from "vasille/web-runner";
 import { mount as coreMount } from "vasille-jsx";

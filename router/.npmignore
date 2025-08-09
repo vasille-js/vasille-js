@@ -1,8 +1,11 @@
-src/
-.idea/
+/src
+/.idea/
 /**.md
-tsconfig.json
-.eslint*
-tsconfig*.json
+/tsconfig.json
+/.eslint*
+/tsconfig*.json
+/coverage
+/test
 *config.cjs
+/.*
 *.tgz

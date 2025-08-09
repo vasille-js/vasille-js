@@ -3,7 +3,7 @@
   "description": "The first Developer eXperience Orientated front-end framework (core library).",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "3.1.0",
+  "version": "3.2.1",
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
