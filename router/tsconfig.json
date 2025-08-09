@@ -9,6 +9,7 @@
     "module": "Node16",
     "moduleResolution": "Node16",
     "strictNullChecks": true,
+    "isolatedModules": true,
     "types": [
       "debug",
       "estree",

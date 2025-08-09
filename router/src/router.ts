@@ -117,6 +117,7 @@ export abstract class Router<
 
     protected async prepareNavigation(url: string, canNavigate: boolean, async: boolean, ...args: Args) {
         const { target, ...props } = this.targetByUrl(url);
+        let error: unknown = undefined;
 
         try {
             const accessLevel = (await this.init.getAccessLevel?.()) ?? 0;

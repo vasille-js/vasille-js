@@ -598,7 +598,7 @@ it("loading screen: before first screen", function (done) {
     routeApp(body, window as unknown as Window, window.location, {
         fallbackScreen() {},
         errorScreen() {},
-        loadingScreen(node) {
+        loadingScreen(_, node) {
             node.tag("div", { class: ["loading"] });
         },
         routes: {
@@ -632,7 +632,7 @@ it("loading screen: between screens", function (done) {
     routeApp(body, window as unknown as Window, createLocation("/"), {
         fallbackScreen() {},
         errorScreen() {},
-        loadingScreen(node) {
+        loadingScreen(_, node) {
             node.tag("div", { class: ["loading"] });
         },
         routes: {
@@ -690,7 +690,7 @@ it("loading overlay", function (done) {
             }
         },
         errorScreen() {},
-        loadingOverlay(node) {
+        loadingOverlay(_, node) {
             node.tag("div", { class: ["overlay"] });
         },
         routes: {
