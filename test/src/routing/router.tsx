@@ -29,26 +29,26 @@ export const Component1 = screen<"/">(async () => {
     rvComponent1 = resolve;
   });
   <div>component 1</div>;
-})
+});
 
 export const Component2 = screen<"/page2">(async () => {
   await new Promise(resolve => {
     rvComponent2 = resolve;
   });
   <div>component 2</div>;
-})
+});
 
 export const Component3 = screen<"/page3">(async () => {
   await new Promise(resolve => {
     rvComponent3 = resolve;
   });
   <div>component 3</div>;
-})
+});
 
 export const LoadingScreen = view(() => {
   <div>loading</div>;
-})
+});
 
 export const LoadingOverlay = view(() => {
   <div>loading overlay</div>;
-})
+});

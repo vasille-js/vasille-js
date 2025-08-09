@@ -24,10 +24,10 @@ const styles = styleSheet({
     background: ["white", theme("red", "red"), theme("green", "green")],
   },
   prefersLight: {
-    background: ["grey", prefersLight("white")]
+    background: ["grey", prefersLight("white")],
   },
   prefersDark: {
-    background: ["grey", prefersDark("black")]
+    background: ["grey", prefersDark("black")],
   },
   mobile: {
     margin: [5, mobile(10)],
@@ -38,4 +38,4 @@ const styles = styleSheet({
   laptop: {
     margin: [5, laptop(10)],
   },
-})
+});
