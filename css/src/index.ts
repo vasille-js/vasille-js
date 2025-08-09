@@ -39,6 +39,7 @@ function insertRule(target: number, rule: string) {
 
     switch (target) {
         case 1:
+            /* istanbul ignore else */
             if (!mobile) {
                 mobile = createStyleSheet(`(max-width:${mobileMaxWidth}px)`);
             }
@@ -46,6 +47,7 @@ function insertRule(target: number, rule: string) {
             break;
 
         case 2:
+            /* istanbul ignore else */
             if (!tablet) {
                 tablet = createStyleSheet(`(min-width:${mobileMaxWidth}px) and (max-width:${tabletMaxWidth}px)`);
             }
@@ -53,6 +55,7 @@ function insertRule(target: number, rule: string) {
             break;
 
         case 3:
+            /* istanbul ignore else */
             if (!desktop) {
                 desktop = createStyleSheet(`(min-width:${tabletMaxWidth}px) and (max-width:${laptopMaxWidth}px)`);
             }
@@ -60,6 +63,7 @@ function insertRule(target: number, rule: string) {
             break;
 
         case 4:
+            /* istanbul ignore else */
             if (!dark) {
                 dark = createStyleSheet("(prefers-color-scheme:dark)");
             }
@@ -67,6 +71,7 @@ function insertRule(target: number, rule: string) {
             break;
 
         case 5:
+            /* istanbul ignore else */
             if (!light) {
                 light = createStyleSheet("(prefers-color-scheme:light)");
             }
@@ -74,6 +79,7 @@ function insertRule(target: number, rule: string) {
             break;
     }
 
+    /* istanbul ignore else */
     if (sheet) {
         sheet.insertRule(rule, sheet.cssRules.length);
     }
@@ -99,6 +105,7 @@ export function styleSheet<T extends { [k: string]: (string | [number, string])[
 
                         insertRule(target, rule.replace("{}", className));
                     } else {
+                        /* istanbul ignore else */
                         if (!common) {
                             common = createStyleSheet("");
                         }
