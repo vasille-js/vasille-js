@@ -276,8 +276,14 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
               }
             }
             // class={name}
-            else if (t.isJSXExpressionContainer(attr.value) && t.isIdentifier(attr.value.expression)) {
-              attrs.push(t.objectProperty(t.identifier("class"), attr.value.expression));
+            else if (t.isJSXExpressionContainer(attr.value) && t.isExpression(attr.value.expression)) {
+              const expr = exprCall(
+                (attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.Expression>,
+                attr.value.expression,
+                internal,
+              ) ?? (attr.value.expression);
+
+              attrs.push(t.objectProperty(t.identifier("class"), expr));
             }
             // class="a b"
             else if (t.isStringLiteral(attr.value)) {
@@ -367,6 +373,15 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
               if (value) {
                 console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
               }
+            }
+            else if (t.isJSXExpressionContainer(attr.value) && t.isExpression(attr.value.expression)) {
+              const expr = exprCall(
+                (attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.Expression>,
+                attr.value.expression,
+                internal,
+              ) ?? (attr.value.expression);
+
+              attrs.push(t.objectProperty(t.identifier("style"), expr));
             }
           } else {
             /* istanbul ignore else */
