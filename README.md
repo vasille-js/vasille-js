@@ -11,7 +11,7 @@
 * [Installation](#installation)
 * [How to use Vasille](#how-to-use-vasille)
 * [How SAFE is Vasille](#how-safe-is-vasille)
-* [How SIMPLE is Vasille](#how-simple-is-vasille)
+* [How INTUITIVE is Vasille](#how-intuitive-is-vasille)
 * [How POWERFUL is Vasille](#how-powerful-is-vasille)
 * [Road Map](#road-map)
 
@@ -44,6 +44,7 @@ $ npx degit vasille-js/example-javascript my-project
 
 ### Full documentation:
 * [Learn `Vasille` in 5 minutes](https://github.com/vasille-js/vasille-js/blob/v3/doc/V3-API.md)
+* [Vasille Router Documentation](https://github.com/vasille-js/vasille-js/blob/v3/doc/Router-API.md)
 
 ### Examples
 * [TypeScript Example](https://github.com/vasille-js/example-typescript)
@@ -60,7 +61,7 @@ The safe of your application is ensured by
 * `strong typing` makes your javascript/typescript code safe as C++ code.
 All entities of `vasille` core library are strongly typed, including:
   * data fields & properties.
-  * computed properties (function parameters & result).
+  * computed properties (function parameters and result).
   * methods.
   * events (defined handlers & event emit).
   * DOM events & DOM operation (attributing, styling, etc.).
@@ -68,7 +69,7 @@ All entities of `vasille` core library are strongly typed, including:
   * references to children.
 * No asynchronous code, when the line of code is executed, the DOM and reactive things are already synced.
 
-## How SIMPLE is Vasille
+## How INTUITIVE is Vasille
 
 There is the "Hello World":
 ```typescript jsx
@@ -105,7 +106,7 @@ All of these are supported:
 * [x] Develop the `Vasille Babel Plugin`.
 * [x] `100%` Test Coverage fot babel plugin.
 * [x] Add CSS support (define styles in components).
-* [ ] Add router.
+* [x] Add router.
 * [ ] Add SSR (server side rendering).
 * [ ] Develop tools extension for debugging.
 

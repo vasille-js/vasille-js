@@ -23,6 +23,13 @@ declare type ComposedNoCallback<In extends Params, Out> = (
  * create an MVVM view, which can receive external reactive value as props
  * @param renderer is the view constructor
  */
+export declare function compose<In extends object>(renderer: (input: In) => void): ComposedNoCallback<In, void>;
+export declare function compose<In extends object, Out>(renderer: (input: In) => Out): Composed<In, Out>;
+
+/**
+ * create an MVVM view, which can receive external reactive value as props
+ * @param renderer is the view constructor
+ */
 export declare function view(renderer: () => void): ComposedNoCallback<NonNullable<unknown>, void>;
 export declare function view<In extends object>(renderer: (input: In) => void): ComposedNoCallback<In, void>;
 export declare function view<Out>(renderer: (input: NonNullable<unknown>) => Out): Composed<NonNullable<unknown>, Out>;

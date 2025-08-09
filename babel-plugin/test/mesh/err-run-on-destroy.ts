@@ -4,4 +4,6 @@ export const C = store(() => {
   runOnDestroy(() => {
     console.log("destroy called");
   });
+
+  return {};
 });
