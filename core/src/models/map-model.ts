@@ -2,7 +2,7 @@ import { Listener } from "./listener.js";
 import { ListenableModel } from "./model.js";
 
 /**
- * A Map based memory
+ * A `Map` based memory
  * @class MapModel
  * @extends Map
  * @implements IModel
@@ -24,7 +24,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
     }
 
     /**
-     * Calls Map.clear and notify about changes
+     * Calls `Map.clear` and notify about changes
      */
     public clear() {
         this.forEach((value, key) => {
@@ -34,7 +34,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
     }
 
     /**
-     * Calls Map.delete and notify abut changes
+     * Calls `Map.delete` and notify abut changes
      * @param key {*} key
      * @return {boolean} true if removed something, otherwise false
      */
@@ -48,7 +48,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
     }
 
     /**
-     * Calls Map.set and notify abut changes
+     * Calls `Map.set` and notify abut changes
      * @param key {*} key
      * @param value {*} value
      * @return {MapModel} a pointer to this

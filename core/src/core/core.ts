@@ -106,7 +106,7 @@ export class Reactive<T extends object = object> extends Destroyable {
      * @param func {function} function to run on any argument change
      * @param values
      * @param name {string} used for debugging internal state
-     * @return {IValue} the created ivalue
+     * @return {IValue} the created iValue
      */
     public expr<T, Args extends unknown[]>(
         func: (...args: Args) => T,

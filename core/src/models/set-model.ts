@@ -2,7 +2,7 @@ import { Listener } from "./listener.js";
 import { ListenableModel } from "./model.js";
 
 /**
- * A Set based model
+ * A `Set` based model
  * @class SetModel
  * @extends Set
  * @implements IModel
@@ -24,7 +24,7 @@ export class SetModel<T> extends Set<T> implements ListenableModel<T, T> {
     }
 
     /**
-     * Calls Set.add and notify abut changes
+     * Calls `Set.add` and notify abut changes
      * @param value {*} value
      * @return {this} a pointer to this
      */
@@ -38,7 +38,7 @@ export class SetModel<T> extends Set<T> implements ListenableModel<T, T> {
     }
 
     /**
-     * Calls Set.clear and notify abut changes
+     * Calls `Set.clear` and notify abut changes
      */
     public clear() {
         this.forEach(item => {
@@ -48,7 +48,7 @@ export class SetModel<T> extends Set<T> implements ListenableModel<T, T> {
     }
 
     /**
-     * Calls Set.delete and notify abut changes
+     * Calls `Set.delete` and notify abut changes
      * @param value {*}
      * @return {boolean} true if a value was deleted, otherwise false
      */

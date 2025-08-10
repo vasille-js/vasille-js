@@ -9,7 +9,7 @@ import { SetModel } from "./models/set-model.js";
 import { App, Portal } from "./node/app.js";
 import { Fragment, Tag, TextNode, DebugNode } from "./node/node.js";
 import { Expression, KindOfIValue } from "./value/expression.js";
-import { Pointer } from "./value/pointer.js";
+import { Forward, Backward, ReadOnly } from "./value/pointer.js";
 import { Reference } from "./value/reference.js";
 import { ArrayView } from "./views/array-view.js";
 import { BaseView } from "./views/base-view.js";
@@ -24,7 +24,9 @@ export {
     Destroyable,
     IValue,
     Reference,
-    Pointer,
+    Forward,
+    Backward,
+    ReadOnly,
     ArrayModel,
     proxyArrayModel,
     MapModel,

@@ -30,7 +30,7 @@ export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
     public compose(): void {
         const text = this.input.text;
 
-        this.node = this.runner.document.createTextNode((text instanceof IValue ? text.$ : text)?.toString() ?? "");
+        this.node = this.runner.document.createTextNode((text instanceof IValue ? text.V : text)?.toString() ?? "");
 
         if (text instanceof IValue) {
             this.handler = (v: unknown) => {
@@ -58,7 +58,7 @@ export class DebugNode extends AbstractDebugNode<Node, Element, TagOptions> {
     public compose(): void {
         const text = this.input.text;
 
-        this.node = this.runner.document.createComment(text.$?.toString() ?? "");
+        this.node = this.runner.document.createComment(text.V?.toString() ?? "");
         this.handler = (v: unknown) => {
             this.node.replaceData(0, -1, v?.toString() ?? "");
         };
@@ -168,7 +168,7 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
                 if (!(value instanceof IValue)) {
                     node[k] = value;
                 } else {
-                    node[k] = value.$;
+                    node[k] = value.V;
                     this.watch(
                         (v: string) => {
                             node[k] = v;

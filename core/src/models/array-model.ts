@@ -27,7 +27,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
     /* Array members */
 
     /**
-     * Calls Array.fill and notify about changes
+     * Calls `Array.fill` and notify about changes
      * @param value {*} value to fill with
      * @param start {?number} begin index
      * @param end {?number} end index
@@ -53,7 +53,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
     }
 
     /**
-     * Calls Array.pop and notify about changes
+     * Calls `Array.pop` and notify about changes
      * @return {*} removed value
      */
     public pop(): T | undefined {
@@ -69,9 +69,9 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
     }
 
     /**
-     * Calls Array.push and notify about changes
+     * Calls `Array.push` and notify about changes
      * @param items {...*} values to push
-     * @return {number} new length of array
+     * @return {number} new length of the array
      */
     public push(...items: Array<T>): number {
         this.passive = true;
@@ -84,7 +84,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
     }
 
     /**
-     * Calls Array.shift and notify about changed
+     * Calls `Array.shift` and notify about changed
      * @return {*} the shifted value
      */
     public shift(): T | undefined {
@@ -100,7 +100,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
     }
 
     /**
-     * Calls Array.splice and notify about changed
+     * Calls `Array.splice` and notify about changed
      * @param start {number} start index
      * @param deleteCount {?number} delete count
      * @param items {...*}
@@ -131,7 +131,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
     /**
      * Calls Array.unshift and notify about changed
      * @param items {...*} values to insert
-     * @return {number} the length after prepend
+     * @return {number} the length after prepending
      */
     public unshift(...items: Array<T>): number {
         this.passive = true;

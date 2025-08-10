@@ -29,11 +29,11 @@ export class Reference<T> extends IValue<T> {
         this.onChange = new Set();
     }
 
-    public get $(): T {
+    public get V(): T {
         return this.state;
     }
 
-    public set $(value: T) {
+    public set V(value: T) {
         if (this.state !== value) {
             this.state = value;
 

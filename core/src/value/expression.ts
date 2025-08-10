@@ -24,11 +24,6 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
     private readonly valuesCache: Args;
 
     /**
-     * The function which will be executed on recalculation
-     */
-    private readonly func: (i?: number) => void;
-
-    /**
      * Expression will link different handler for each value of the list
      */
     private linkedFunc: Array<() => void> = [];
@@ -42,14 +37,13 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
      * Creates a function bounded to N values
      * @param func {Function} the function to bound
      * @param values
-     * @param link {Boolean} links immediately if true
      */
     public constructor(func: (...args: Args) => T, values: KindOfIValue<Args>) {
         super();
         const handler = (i?: number) => {
             /* istanbul ignore else */
             if (typeof i === "number") {
-                this.valuesCache[i] = this.values[i].$;
+                this.valuesCache[i] = this.values[i].V;
             }
             this.sync.$ = func.apply(this, this.valuesCache);
         };
@@ -69,14 +63,13 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
         });
 
         this.values = values;
-        this.func = handler;
     }
 
-    public get $(): T {
+    public get V(): T {
         return this.sync.$;
     }
 
-    public set $(value: T) {
+    public set V(value: T) {
         this.sync.$ = value;
     }
 

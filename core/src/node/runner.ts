@@ -1,6 +1,9 @@
 import { IValue } from "../core/ivalue.js";
 import { DebugNode, Tag, TextNode } from "./node.js";
 
+/**
+ * A runner executes DOM manipulations
+ */
 export interface Runner<Node, Element, TagOptions extends object> {
     debugUi: boolean;
 

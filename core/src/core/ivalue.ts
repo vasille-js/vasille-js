@@ -10,13 +10,13 @@ export abstract class IValue<T> extends Destroyable {
      * Get the encapsulated value
      * @return {*} the encapsulated value
      */
-    public abstract get $(): T;
+    public abstract get V(): T;
 
     /**
      * Sets the encapsulated value
      * @param value {*} value to encapsulate
      */
-    public abstract set $(value: T);
+    public abstract set V(value: T);
 
     /**
      * Add a new handler to value change
@@ -31,10 +31,10 @@ export abstract class IValue<T> extends Destroyable {
     public abstract off(handler: (value: T) => void): void;
 
     public toJSON() {
-        return this.$;
+        return this.V;
     }
 
     public toString() {
-        return this.$?.toString() ?? "iValue<void>";
+        return this.V?.toString() ?? "iValue<void>";
     }
 }

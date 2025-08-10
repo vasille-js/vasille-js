@@ -54,7 +54,7 @@ export class Listener<ValueT, IndexT = string | number> {
     }
 
     /**
-     * Removes an handler from added event
+     * Removes a handler from added event
      * @param handler {function} handler to remove
      */
     public offAdd(handler: (index: IndexT, value: ValueT) => void) {
@@ -62,7 +62,7 @@ export class Listener<ValueT, IndexT = string | number> {
     }
 
     /**
-     * Removes an handler form removed event
+     * Removes a handler form removed event
      * @param handler {function} handler to remove
      */
     public offRemove(handler: (index: IndexT, value: ValueT) => void) {

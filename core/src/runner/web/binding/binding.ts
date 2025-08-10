@@ -22,7 +22,7 @@ export class Binding<T> extends Destroyable {
     protected init(bounded: (v: T) => void) {
         this.func = bounded;
         this.binding.on(this.func);
-        this.func(this.binding.$);
+        this.func(this.binding.V);
     }
 
     /**

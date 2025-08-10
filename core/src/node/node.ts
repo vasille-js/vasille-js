@@ -57,7 +57,7 @@ export abstract class Root<Node, Element, TagOptions extends object, T extends o
     }
 
     /**
-     * Append a node to end of element
+     * Append a node to the end of element
      * @param node {Node} node to insert
      */
     public abstract appendNode(node: Node): void;
@@ -65,7 +65,6 @@ export abstract class Root<Node, Element, TagOptions extends object, T extends o
     /**
      * Defines a text fragment
      * @param text {String | IValue} A text fragment string
-     * @param cb {function (TextNode)} Callback if previous is slot name
      */
     public text(text: unknown): void {
         const node = this.runner.textNode(text);
@@ -109,7 +108,6 @@ export abstract class Root<Node, Element, TagOptions extends object, T extends o
      * Defines an if node
      * @param cond {IValue} condition
      * @param cb {function(Fragment)} callback to run on true
-     * @return {this}
      */
     public if(cond: IValue<unknown>, cb: (node: Fragment<Node, Element, TagOptions>) => void) {
         const node = new SwitchedNode(this.runner);
@@ -381,7 +379,7 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
      * A function that syncs index and content will be bounded to each condition
      * @type {Function}
      */
-    private sync: () => void;
+    private readonly sync: () => void;
 
     /**
      * Constructs a switch node and define a sync function
@@ -393,7 +391,7 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
             let i = 0;
 
             for (; i < this.cases.length; i++) {
-                if (this.cases[i].cond.$) {
+                if (this.cases[i].cond.V) {
                     break;
                 }
             }
