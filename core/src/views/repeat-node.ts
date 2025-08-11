@@ -31,13 +31,12 @@ export class RepeatNode<
      */
     protected nodes: Map<IdT, Fragment<Node, Element, TagOptions>> = new Map();
 
-    public constructor(input: Opts, runner: Runner<Node, Element, TagOptions>, name?: string) {
-        super(input, runner, name);
+    public constructor(input: Opts, runner: Runner<Node, Element, TagOptions>) {
+        super(runner);
     }
 
     public createChild(opts: Opts, id: IdT, item: T, before?: Fragment<Node, Element, TagOptions>): any {
-        const _id = id && typeof id === "object" && "id" in id ? id.id : id;
-        const node = new Fragment({}, this.runner, `${_id}`);
+        const node = new Fragment(this.runner);
 
         node.parent = this;
         this.destroyChild(id, item);

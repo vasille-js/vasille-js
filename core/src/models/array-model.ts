@@ -1,10 +1,11 @@
+import { Reactive } from "../core/core.js";
 import { Listener } from "./listener.js";
 import { ListenableModel } from "./model.js";
 
 /**
  * Model based on Array class
  * @extends Array
- * @implements IModel
+ * @implements ListenableModel
  */
 export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
     public listener: Listener<T, T>;
@@ -12,8 +13,9 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
 
     /**
      * @param data {Array} input data
+     * @param ctx lifetime context of model
      */
-    public constructor(data?: Array<T> | number) {
+    public constructor(data?: Array<T> | number, ctx?: Reactive) {
         super();
         this.listener = new Listener();
 
@@ -22,6 +24,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
                 super.push(data[i]);
             }
         }
+        ctx?.bind(this);
     }
 
     /* Array members */
@@ -159,18 +162,22 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
 }
 
 export function proxyArrayModel<T>(arr: ArrayModel<T>): ArrayModel<T> {
-    return new Proxy(arr, {
-        set(target, p, newValue, receiver) {
-            if (!arr.passive && typeof p === "string") {
-                const index = parseInt(p);
+    if (process.env.VASILLE_TARGET === "es5") {
+        return arr;
+    } else {
+        return new Proxy(arr, {
+            set(target, p, newValue, receiver) {
+                if (!arr.passive && typeof p === "string") {
+                    const index = parseInt(p);
 
-                if (Number.isFinite(index)) {
-                    arr.replace(index, newValue);
+                    if (Number.isFinite(index)) {
+                        arr.replace(index, newValue);
 
-                    return true;
+                        return true;
+                    }
                 }
-            }
-            return Reflect.set(target, p, newValue, receiver);
-        },
-    });
+                return Reflect.set(target, p, newValue, receiver);
+            },
+        });
+    }
 }

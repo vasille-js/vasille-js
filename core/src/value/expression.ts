@@ -1,8 +1,10 @@
+import { Reactive } from "../core/core.js";
+import { Destroyable } from "../core/destroyable.js";
 import { Reference } from "./reference.js";
 import { IValue } from "../core/ivalue.js";
 
 export type KindOfIValue<T extends unknown[]> = {
-    [K in keyof T]: IValue<T[K]>;
+    [K in keyof T]: IValue<T[K]> | undefined;
 };
 
 /**
@@ -10,7 +12,7 @@ export type KindOfIValue<T extends unknown[]> = {
  * @class Expression
  * @extends IValue
  */
-export class Expression<T, Args extends unknown[]> extends IValue<T> {
+export class Expression<T, Args extends unknown[]> extends IValue<T> implements Destroyable {
     /**
      * The array of value which will trigger recalculation
      * @type {Array}
@@ -35,22 +37,18 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
 
     /**
      * Creates a function bounded to N values
-     * @param func {Function} the function to bound
-     * @param values
      */
-    public constructor(func: (...args: Args) => T, values: KindOfIValue<Args>) {
+    public constructor(func: (...args: Args) => T, values: KindOfIValue<Args>, ctx?: Reactive) {
         super();
         const handler = (i?: number) => {
             /* istanbul ignore else */
             if (typeof i === "number") {
-                this.valuesCache[i] = this.values[i].V;
+                this.valuesCache[i] = this.values[i]?.V;
             }
-            this.sync.$ = func.apply(this, this.valuesCache);
+            this.sync.V = func.apply(this, this.valuesCache);
         };
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this.valuesCache = values.map(item => item.$);
+        this.valuesCache = values.map(item => item?.V) as Args;
 
         this.sync = new Reference(func.apply(this, this.valuesCache));
 
@@ -59,18 +57,19 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
             const updater = handler.bind(this, Number(i++));
 
             this.linkedFunc.push(updater);
-            value.on(updater);
+            value?.on(updater);
         });
 
         this.values = values;
+        ctx?.bind(this);
     }
 
     public get V(): T {
-        return this.sync.$;
+        return this.sync.V;
     }
 
     public set V(value: T) {
-        this.sync.$ = value;
+        this.sync.V = value;
     }
 
     public on(handler: (value: T) => void): void {
@@ -83,12 +82,10 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> {
 
     public destroy(): void {
         for (let i = 0; i < this.values.length; i++) {
-            this.values[i].off(this.linkedFunc[i]);
+            this.values[i]?.off(this.linkedFunc[i]);
         }
         this.values.splice(0);
         this.valuesCache.splice(0);
         this.linkedFunc.splice(0);
-
-        super.destroy();
     }
 }

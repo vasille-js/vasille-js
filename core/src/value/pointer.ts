@@ -1,3 +1,5 @@
+import { Reactive } from "../core/core.js";
+import { Destroyable } from "../core/destroyable.js";
 import { IValue } from "../core/ivalue.js";
 import { Reference } from "./reference.js";
 
@@ -6,7 +8,7 @@ import { Reference } from "./reference.js";
  * @class Forward
  * @extends Reference
  */
-export class Forward<T> extends Reference<T> {
+export class Forward<T> extends Reference<T> implements Destroyable {
     /**
      * forwarded value
      * @type IValue
@@ -21,8 +23,9 @@ export class Forward<T> extends Reference<T> {
     /**
      * Constructs a value forwarder
      * @param value {IValue} is source of forwarded data
+     * @param ctx lifetime context
      */
-    public constructor(value: IValue<T>) {
+    public constructor(value: IValue<T>, ctx?: Reactive) {
         super(value.V);
         this.handler = (v: T) => {
             this.V = v;
@@ -30,23 +33,11 @@ export class Forward<T> extends Reference<T> {
         this.target = value;
 
         value.on(this.handler);
+        ctx?.bind(this);
     }
 
     public destroy() {
         this.target.off(this.handler);
-        super.destroy();
-    }
-}
-
-/**
- * Make a value read-only
- * @class ReadOnly
- * @extends Forward
- */
-export class ReadOnly<T> extends Forward<T> {
-    public set V(v: T) {
-        void v;
-        throw new Error("This is a read-only value");
     }
 }
 

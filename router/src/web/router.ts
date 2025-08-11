@@ -58,9 +58,19 @@ export class Router<Routes extends string> extends AbstractRouter<
         build(node, node => (this.contentNode = node), ":router:content-screen");
         build(node, node => (this.overlayNode = node), ":router:loading-overlay");
 
-        window.addEventListener("popstate", () => {
-            this.doNavigate(location.href, false, "loading-screen");
-        });
+        if (process.env.VASILLE_TARGET === "es5" && window.onpopstate !== null) {
+            window.addEventListener("popstate", () => {
+                this.doNavigate(location.href, false, "loading-screen");
+            });
+        } else {
+            window.addEventListener("hashchange", () => {
+                const path = location.hash.substring(1);
+
+                if (path !== this.currentUrl.$) {
+                    this.doNavigate(path, false, "loading-screen");
+                }
+            });
+        }
 
         this.doNavigate(location.href, true, "loading-screen");
     }
@@ -130,10 +140,14 @@ export class Router<Routes extends string> extends AbstractRouter<
 
             await this.renderScreen(target.screen, props, "found");
 
-            if (this.location.href !== props.url) {
-                this.window.history.pushState({}, "", props.url);
-            }
             this.currentUrl.$ = props.url;
+            if (this.location.href !== props.url) {
+                if (process.env.VASILLE_TARGET === "es5" && !this.window.history) {
+                    this.window.location.hash = "#" + props.url;
+                } else {
+                    this.window.history.pushState({}, "", props.url);
+                }
+            }
         } catch (error) {
             if (mode !== "silent") {
                 this.clearNode(this.contentNode);
@@ -167,7 +181,11 @@ export class Router<Routes extends string> extends AbstractRouter<
         });
 
         if (scope === "not-found") {
-            this.window.history.replaceState({}, "", "/");
+            if (process.env.VASILLE_TARGET === "es5" && !this.window.history) {
+                this.window.location.hash = "#/";
+            } else {
+                this.window.history.replaceState({}, "", "/");
+            }
         }
     }
 

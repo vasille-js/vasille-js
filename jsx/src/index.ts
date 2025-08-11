@@ -1,4 +1,4 @@
 export { Debug, Delay, Else, ElseIf, For, If, Slot, Watch } from "./components.js";
-export { mvvmView, mvcView, hybridView, mount, type Composed } from "./compose.js";
-export { awaited, store } from "./library.js";
-export { internal as $ } from "./internal.js";
+export { view, mount, type Composed } from "./compose.js";
+export { awaited } from "./library.js";
+export { ref, array, backward, map, expr, set, forward } from "./internal.js";

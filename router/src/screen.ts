@@ -1,5 +1,5 @@
 import { Fragment } from "vasille";
-import { Screen, ScreenProps } from "./types.js";
+import { ScreenProps } from "./types.js";
 
 export function screen<Node, Element, TagOptions extends object, Route extends string>(
     renderer: (node: Fragment<Node, Element, TagOptions>, input: ScreenProps<Route>) => Promise<void>,

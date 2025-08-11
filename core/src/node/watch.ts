@@ -17,21 +17,33 @@ export class Watch<Node, Element, TagOptions extends object, T> extends Fragment
     TagOptions,
     WatchOptions<Node, Element, TagOptions, T>
 > {
+    private readonly model: IValue<T>;
+    private readonly slot?: (ctx: Fragment<Node, Element, TagOptions>, value: T) => void;
+    private handler?: (value: T) => void;
+
     public constructor(input: WatchOptions<Node, Element, TagOptions, T>, runner: Runner<Node, Element, TagOptions>) {
-        super(input, runner, ":watch");
+        super(runner);
+        this.model = input.model;
+        this.slot = input.slot;
     }
 
     public compose() {
-        this.watch(
-            value => {
+        this.model.on(
+            (this.handler = value => {
                 this.children.forEach(child => {
                     child.destroy();
                 });
                 this.children.clear();
                 this.lastChild = undefined;
-                this.input.slot?.(this, value);
-            },
-            [this.input.model],
+                this.slot?.(this, value);
+            }),
         );
+    }
+
+    public destroy() {
+        if (this.handler) {
+            this.model.off(this.handler);
+        }
+        super.destroy();
     }
 }

@@ -9,7 +9,7 @@ import { Runner } from "./runner.js";
  * This class is symbolic
  * @extends Reactive
  */
-export abstract class Root<Node, Element, TagOptions extends object, T extends object = object> extends Reactive<T> {
+export abstract class Root<Node, Element, TagOptions extends object, T extends object = object> extends Reactive {
     /**
      * The children list
      * @type Array
@@ -19,8 +19,8 @@ export abstract class Root<Node, Element, TagOptions extends object, T extends o
 
     public lastChild: Fragment<Node, Element, TagOptions> | undefined = undefined;
 
-    protected constructor(input: T, runner: Runner<Node, Element, TagOptions>) {
-        super(input);
+    protected constructor(runner: Runner<Node, Element, TagOptions>) {
+        super();
         this.runner = runner;
         this.children = runner.debugUi ? new SetModel() : new Set();
     }
@@ -44,14 +44,9 @@ export abstract class Root<Node, Element, TagOptions extends object, T extends o
     protected findFirstChild(): Node | Element | undefined {
         let first: Node | Element | undefined;
 
-        for (const child of this.children) {
-            first = child.findFirstChild();
-
-            /* istanbul ignore else */
-            if (first) {
-                break;
-            }
-        }
+        this.children.forEach(child => {
+            first = first ?? child.findFirstChild();
+        });
 
         return first;
     }
@@ -113,12 +108,12 @@ export abstract class Root<Node, Element, TagOptions extends object, T extends o
         const node = new SwitchedNode(this.runner);
 
         this.pushNode(node);
-        node.addCase(this.case(cond, cb));
+        node.addCase({ cond, cb });
     }
 
     public else(cb: (node: Fragment<Node, Element, TagOptions>) => void) {
         if (this.lastChild instanceof SwitchedNode) {
-            this.lastChild.addCase(this.default(cb));
+            this.lastChild.addCase({ cond: trueIValue, cb });
         } else {
             throw userError("wrong `else` function use", "logic-error");
         }
@@ -126,34 +121,10 @@ export abstract class Root<Node, Element, TagOptions extends object, T extends o
 
     public elif(cond: IValue<unknown>, cb: (node: Fragment<Node, Element, TagOptions>) => void) {
         if (this.lastChild instanceof SwitchedNode) {
-            this.lastChild.addCase(this.case(cond, cb));
+            this.lastChild.addCase({ cond, cb });
         } else {
             throw userError("wrong `elif` function use", "logic-error");
         }
-    }
-
-    /**
-     * Create a case for switch
-     * @param cond {IValue<boolean>}
-     * @param cb {function(Fragment) : void}
-     * @return {{cond : IValue, cb : (function(Fragment) : void)}}
-     */
-    public case(
-        cond: IValue<unknown>,
-        cb: (node: Fragment<Node, Element, TagOptions>) => void,
-    ): { cond: IValue<unknown>; cb: (node: Fragment<Node, Element, TagOptions>) => void } {
-        return { cond, cb };
-    }
-
-    /**
-     * @param cb {(function(Fragment) : void)}
-     * @return {{cond : IValue, cb : (function(Fragment) : void)}}
-     */
-    public default(cb: (node: Fragment<Node, Element, TagOptions>) => void): {
-        cond: IValue<boolean>;
-        cb: (node: Fragment<Node, Element, TagOptions>) => void;
-    } {
-        return { cond: trueIValue, cb };
     }
 
     public destroy() {
@@ -171,12 +142,10 @@ export class Fragment<Node, Element, TagOptions extends object, T extends object
     TagOptions,
     T
 > {
-    public readonly name?: string;
     public parent!: Root<Node, Element, TagOptions>;
 
-    public constructor(input: T, runner: Runner<Node, Element, TagOptions>, name?: string) {
-        super(input, runner);
-        this.name = name;
+    public constructor(runner: Runner<Node, Element, TagOptions>) {
+        super(runner);
     }
     /**
      * Next node
@@ -290,9 +259,11 @@ export abstract class TextNode<Node, Element, TagOptions extends object> extends
     TextProps
 > {
     protected handler: ((v: unknown) => void) | null;
+    protected readonly data: unknown;
 
     public constructor(input: TextProps, runner: Runner<Node, Element, TagOptions>) {
-        super(input, runner, ":text");
+        super(runner);
+        this.data = input.text;
     }
 
     public abstract compose(): void;
@@ -300,7 +271,7 @@ export abstract class TextNode<Node, Element, TagOptions extends object> extends
     protected abstract findFirstChild(): Node;
 
     public destroy(): void {
-        const text = this.input.text;
+        const text = this.data;
 
         if (text instanceof IValue && this.handler) {
             text.off(this.handler);
@@ -344,8 +315,13 @@ export abstract class INode<Node, Element, TagOptions extends object> extends Fr
  * @extends INode
  */
 export abstract class Tag<Node, Element, TagOptions extends object> extends INode<Node, Element, TagOptions> {
-    public constructor(input: TagOptions, runner: Runner<Node, Element, TagOptions>, tagName: string) {
-        super(input, runner, tagName);
+    public readonly name: string;
+    public readonly options: TagOptions;
+
+    public constructor(options: TagOptions, runner: Runner<Node, Element, TagOptions>, tagName: string) {
+        super(runner);
+        this.options = options;
+        this.name = tagName;
     }
 
     public abstract compose(): void;
@@ -385,7 +361,7 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
      * Constructs a switch node and define a sync function
      */
     public constructor(runner: Runner<Node, Element, TagOptions>) {
-        super({}, runner, ":switch");
+        super(runner);
 
         this.sync = () => {
             let i = 0;
@@ -426,7 +402,7 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
      * @param cb {function(Fragment)} Call-back
      */
     public createChild(cb: (node: Fragment<Node, Element, TagOptions>) => void) {
-        const node = new Fragment({}, this.runner, ":case");
+        const node = new Fragment(this.runner);
 
         node.parent = this;
         this.lastChild = node;
@@ -461,9 +437,11 @@ export abstract class DebugNode<Node, Element, TagOptions extends object> extend
     DebugProps
 > {
     protected handler: ((v: unknown) => void) | null;
+    protected readonly data: IValue<unknown>;
 
     public constructor(input: DebugProps, runner: Runner<Node, Element, TagOptions>) {
-        super(input, runner, ":debug");
+        super(runner);
+        this.data = input.text;
     }
 
     public abstract compose(): void;
@@ -471,7 +449,7 @@ export abstract class DebugNode<Node, Element, TagOptions extends object> extend
     public destroy(): void {
         /* istanbul ignore else */
         if (this.handler) {
-            this.input.text.off(this.handler);
+            this.data.off(this.handler);
         }
 
         super.destroy();

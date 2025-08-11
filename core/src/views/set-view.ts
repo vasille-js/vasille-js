@@ -19,7 +19,7 @@ export class SetView<Node, Element, TagOptions extends object, T> extends BaseVi
         input: BaseViewOptions<Node, Element, TagOptions, T, T, SetModel<T>>,
         runner: Runner<Node, Element, TagOptions>,
     ) {
-        super(input, runner, ":set-view");
+        super(input, runner);
     }
 
     public compose() {

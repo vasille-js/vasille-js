@@ -1,3 +1,4 @@
+import { Reactive } from "../core/core.js";
 import { Listener } from "./listener.js";
 import { ListenableModel } from "./model.js";
 
@@ -5,7 +6,7 @@ import { ListenableModel } from "./model.js";
  * A `Map` based memory
  * @class MapModel
  * @extends Map
- * @implements IModel
+ * @implements ListenableModel
  */
 export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
     public listener: Listener<T, K>;
@@ -13,14 +14,16 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
     /**
      * Constructs a map model
      * @param map {[*, *][]} input data
+     * @param ctx lifetime context
      */
-    public constructor(map?: [K, T][]) {
+    public constructor(map?: [K, T][], ctx?: Reactive) {
         super();
         this.listener = new Listener();
 
         map?.forEach(([key, value]) => {
             super.set(key, value);
         });
+        ctx?.bind(this);
     }
 
     /**

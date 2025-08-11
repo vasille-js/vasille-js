@@ -1,6 +1,5 @@
 import { Expression, Fragment, IValue, Reference } from "vasille";
 import { Debug, Delay, Else, ElseIf, For, If, Slot, Watch } from "../src/index.js";
-import { ContextArray, ContextMap, ContextSet } from "../src/models.js";
 import { createNode } from "./page.js";
 
 it("Slot", function () {

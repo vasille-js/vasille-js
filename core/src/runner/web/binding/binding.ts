@@ -4,9 +4,8 @@ import type { IValue } from "../../../core/ivalue.js";
 /**
  * Describe a common binding logic
  * @class Binding
- * @extends Destroyable
  */
-export class Binding<T> extends Destroyable {
+export class Binding<T> implements Destroyable {
     private binding: IValue<T>;
     private func: (value: T) => void;
 
@@ -15,7 +14,6 @@ export class Binding<T> extends Destroyable {
      * @param value {IValue} the value to bind
      */
     public constructor(value: IValue<T>) {
-        super();
         this.binding = value;
     }
 
@@ -30,6 +28,5 @@ export class Binding<T> extends Destroyable {
      */
     public destroy() {
         this.binding.off(this.func);
-        super.destroy();
     }
 }

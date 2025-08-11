@@ -1,3 +1,4 @@
+import { Reactive } from "../core/core.js";
 import { Listener } from "./listener.js";
 import { ListenableModel } from "./model.js";
 
@@ -5,22 +6,22 @@ import { ListenableModel } from "./model.js";
  * A `Set` based model
  * @class SetModel
  * @extends Set
- * @implements IModel
+ * @implements ListenableModel
  */
 export class SetModel<T> extends Set<T> implements ListenableModel<T, T> {
     public listener: Listener<T, T>;
 
     /**
      * Constructs a set model based on a set
-     * @param set {Set} input data
      */
-    public constructor(set?: T[]) {
+    public constructor(set?: T[], ctx?: Reactive) {
         super();
         this.listener = new Listener();
 
         set?.forEach(item => {
             super.add(item);
         });
+        ctx?.bind(this);
     }
 
     /**

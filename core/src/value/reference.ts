@@ -37,7 +37,13 @@ export class Reference<T> extends IValue<T> {
         if (this.state !== value) {
             this.state = value;
 
-            this.updateDeps(value);
+            this.onChange.forEach(handler => {
+                try {
+                    handler(value);
+                } catch (e) {
+                    reportError(e);
+                }
+            });
         }
     }
 
@@ -47,20 +53,5 @@ export class Reference<T> extends IValue<T> {
 
     public off(handler: (value: T) => void): void {
         this.onChange.delete(handler);
-    }
-
-    public destroy() {
-        super.destroy();
-        this.onChange.clear();
-    }
-
-    protected updateDeps(value: T) {
-        this.onChange.forEach(handler => {
-            try {
-                handler(value);
-            } catch (e) {
-                reportError(e);
-            }
-        });
     }
 }

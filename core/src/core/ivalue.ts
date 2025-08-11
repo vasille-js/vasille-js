@@ -1,11 +1,8 @@
-import { Destroyable } from "./destroyable.js";
-
 /**
  * Interface which describes a value
  * @class IValue
- * @extends Destroyable
  */
-export abstract class IValue<T> extends Destroyable {
+export abstract class IValue<T> {
     /**
      * Get the encapsulated value
      * @return {*} the encapsulated value

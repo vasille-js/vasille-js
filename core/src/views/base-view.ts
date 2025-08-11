@@ -38,9 +38,8 @@ export class BaseView<
     public constructor(
         input: BaseViewOptions<Node, Element, TagOptions, K, T, Model>,
         runner: Runner<Node, Element, TagOptions>,
-        name?: string,
     ) {
-        super(input, runner, name);
+        super(input, runner);
     }
 
     public compose() {

@@ -18,10 +18,9 @@ export class App<Node, Element, TagOptions extends object, T extends object = ob
      * Constructs an app node
      * @param node {Element} The root of application
      * @param runner {Runner} A adapter which execute DOM manipulation
-     * @param input Props of the component
      */
-    constructor(node: Element, runner: Runner<Node, Element, TagOptions>, input: T) {
-        super(input, runner);
+    constructor(node: Element, runner: Runner<Node, Element, TagOptions>) {
+        super(runner);
 
         this.node = node;
     }
@@ -40,7 +39,7 @@ export class Portal<Node, Element, TagOptions extends object> extends Fragment<N
     private readonly node: Element;
 
     constructor(input: PortalOptions<Node, Element, TagOptions>, runner: Runner<Node, Element, TagOptions>) {
-        super(input, runner, ":portal");
+        super(runner);
 
         this.node = input.node;
     }

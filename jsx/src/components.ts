@@ -11,69 +11,42 @@ import {
     Watch as CoreWatch,
 } from "vasille";
 
-type Magic<T extends object> = { [K in keyof T]: T[K] | IValue<T[K]> | undefined };
-
-export function readValue<T>(v: T | IValue<T>): T {
-    return v instanceof IValue ? v.$ : v;
-}
-
 interface SlotOptions<Node, Element, TagOptions extends object, T extends object> {
     model?: (input: T, ctx: Fragment<Node, Element, TagOptions>) => void;
     slot?: (ctx: Fragment<Node, Element, TagOptions>) => void;
 }
 
 export function Slot<Node, Element, TagOptions extends object, T extends object = {}>(
-    options: Magic<SlotOptions<Node, Element, TagOptions, T>> & T,
+    { model, slot, ...options }: SlotOptions<Node, Element, TagOptions, T> & T,
     ctx: Fragment<Node, Element, TagOptions>,
     defaultSlot?: (ctx: Fragment<Node, Element, TagOptions>) => void,
 ) {
-    const model = readValue(options.model);
-
     if (model) {
-        if (model.length <= 1) {
-            for (const key in options) {
-                if (options[key] instanceof IValue) {
-                    options[key] = options[key].$;
-                }
-            }
-        } else {
-            for (const key in options) {
-                /* istanbul ignore else */
-                if (!(options[key] instanceof IValue)) {
-                    options[key] = ctx.ref(options[key]);
-                }
-            }
-        }
-
-        model(options, ctx);
+        model(options as T, ctx);
     } else {
-        (readValue(options.slot) ?? defaultSlot)?.(ctx);
+        (slot ?? defaultSlot)?.(ctx);
     }
 }
 
 interface IfOptions {
-    condition: unknown;
+    $condition: IValue<unknown>;
     slot?: () => void;
 }
 
 export function If<Node, Element, TagOptions extends object>(
-    { condition, slot: magicSlot }: Magic<IfOptions>,
+    { $condition, slot }: IfOptions,
     ctx: Fragment<Node, Element, TagOptions>,
     defaultSlot?: () => void,
 ) {
-    const slot = readValue(magicSlot) ?? defaultSlot;
-
-    ctx.if(condition instanceof IValue ? (condition as IValue<unknown>) : ctx.ref(condition), slot ?? (() => {}));
+    ctx.if($condition, slot ?? defaultSlot ?? (() => {}));
 }
 
 export function ElseIf<Node, Element, TagOptions extends object>(
-    { condition, slot: magicSlot }: Magic<IfOptions>,
+    { $condition, slot }: IfOptions,
     ctx: Fragment<Node, Element, TagOptions>,
     defaultSlot?: () => void,
 ) {
-    const slot = readValue(magicSlot) ?? defaultSlot;
-
-    ctx.elif(condition instanceof IValue ? (condition as IValue<unknown>) : ctx.ref(condition), slot ?? (() => {}));
+    ctx.elif($condition, slot ?? defaultSlot ?? (() => {}));
 }
 
 interface ElseOptions {
@@ -81,15 +54,15 @@ interface ElseOptions {
 }
 
 export function Else<Node, Element, TagOptions extends object>(
-    { slot: magicSlot }: Magic<ElseOptions>,
+    { slot }: ElseOptions,
     ctx: Fragment<Node, Element, TagOptions>,
     defaultSlot?: () => void,
 ) {
-    const slot = readValue(magicSlot) ?? defaultSlot;
+    const _slot = slot ?? defaultSlot;
 
     /* istanbul ignore else */
-    if (slot) {
-        ctx.else(slot);
+    if (_slot) {
+        ctx.else(_slot);
     }
 }
 
@@ -106,121 +79,100 @@ export function For<
     K = T extends unknown[] ? number : T extends Set<infer R> ? R : T extends Map<infer R, unknown> ? R : never,
     V = T extends (infer R)[] ? R : T extends Set<infer R> ? R : T extends Map<unknown, infer R> ? R : never,
 >(
-    { of, slot: magicSlot }: Magic<ForOptions<Node, Element, TagOptions, T, K, V>>,
+    { of: model, slot: _slot }: ForOptions<Node, Element, TagOptions, T, K, V>,
     ctx: Fragment<Node, Element, TagOptions>,
     defaultSlot?: (ctx: Fragment<Node, Element, TagOptions>) => void,
 ) {
-    const slot = readValue(magicSlot) ?? defaultSlot;
+    const slot = _slot ?? defaultSlot;
 
-    /* istanbul ignore else */
-    if (of instanceof IValue) {
+    if (!slot) {
+        return;
+    }
+
+    if (model instanceof ArrayModel) {
         ctx.create(
-            new CoreWatch<Node, Element, TagOptions, T>(
+            new ArrayView(
                 {
-                    model: of,
-                    slot: function (ctx, model) {
-                        create(model, ctx);
-                    },
+                    model,
+                    slot: slot as unknown as (ctx: Fragment<Node, Element, TagOptions>, value: V, index: V) => void,
                 },
                 ctx.runner,
             ),
         );
-    } else if (of) {
-        create(of, ctx);
+    } else if (model instanceof MapModel) {
+        ctx.create(
+            new MapView(
+                {
+                    model,
+                    slot,
+                },
+                ctx.runner,
+            ),
+        );
+    } else if (model instanceof SetModel) {
+        ctx.create(
+            new SetView(
+                {
+                    model,
+                    slot: slot as unknown as (
+                        ctx: Fragment<Node, Element, TagOptions, object>,
+                        value: T,
+                        index: T,
+                    ) => void,
+                },
+                ctx.runner,
+            ),
+        );
     }
+    // fallback if is used external Array/Map/Set
+    else {
+        console.warn("Vasille <For of/> fallback detected. Please provide reactive data.");
 
-    function create(model: T, node: Fragment<Node, Element, TagOptions>) {
-        if (!slot) {
-            return;
-        }
-
-        if (model instanceof ArrayModel) {
-            node.create(
-                new ArrayView(
-                    {
-                        model,
-                        slot: slot as unknown as (ctx: Fragment<Node, Element, TagOptions>, value: V, index: V) => void,
-                    },
-                    node.runner,
-                ),
-            );
-        } else if (model instanceof MapModel) {
-            node.create(
-                new MapView(
-                    {
-                        model,
-                        slot,
-                    },
-                    node.runner,
-                ),
-            );
-        } else if (model instanceof SetModel) {
-            node.create(
-                new SetView(
-                    {
-                        model,
-                        slot: slot as unknown as (
-                            ctx: Fragment<Node, Element, TagOptions, object>,
-                            value: T,
-                            index: T,
-                        ) => void,
-                    },
-                    node.runner,
-                ),
-            );
-        }
-        // fallback if is used external Array/Map/Set
-        else {
-            console.warn("Vasille <For of/> fallback detected. Please provide reactive data.");
-
-            if (model instanceof Array) {
-                model.forEach((value: V) => {
-                    slot(node, value as unknown as T, value as unknown as K);
-                });
-            } else if (model instanceof Map) {
-                for (const [key, value] of model as Map<K, V>) {
-                    slot(node, value as unknown as T, key);
-                }
-            } else if (model instanceof Set) {
-                for (const value of model) {
-                    slot(node, value as unknown as T, value as unknown as K);
-                }
-            } else {
-                throw userError("wrong use of `<For of/>` component", "wrong-model");
-            }
+        if (model instanceof Array) {
+            model.forEach((value: V) => {
+                slot(ctx, value as unknown as T, value as unknown as K);
+            });
+        } else if (model instanceof Map) {
+            model.forEach((value: V, key: K) => {
+                slot(ctx, value as unknown as T, key);
+            });
+        } else if (model instanceof Set) {
+            model.forEach(value => {
+                slot(ctx, value as unknown as T, value as unknown as K);
+            });
+        } else {
+            throw userError("wrong use of `<For of/>` component", "wrong-model");
         }
     }
 }
 
 interface WatchOptions<Node, Element, TagOptions extends object, T> {
-    model: T;
+    $model: IValue<T>;
     slot?: (ctx: Fragment<Node, Element, TagOptions>, value: T) => void;
 }
 
 export function Watch<Node, Element, TagOptions extends object, T>(
-    { model, slot: magicSlot }: Magic<WatchOptions<Node, Element, TagOptions, T>>,
+    { $model, slot: _slot }: WatchOptions<Node, Element, TagOptions, T>,
     ctx: Fragment<Node, Element, TagOptions>,
     defaultSlot?: (ctx: Fragment<Node, Element, TagOptions>) => void,
 ) {
-    const slot = readValue(magicSlot) ?? defaultSlot;
+    const slot = _slot ?? defaultSlot;
 
     /* istanbul ignore else */
-    if (slot && model instanceof IValue) {
-        ctx.create(new CoreWatch({ model, slot }, ctx.runner));
+    if (slot) {
+        ctx.create(new CoreWatch({ model: $model, slot }, ctx.runner));
     }
 }
 
 interface DebugOptions {
-    model: unknown;
+    $model: IValue<unknown>;
 }
 
 export function Debug<Node, Element, TagOptions extends object>(
-    { model }: DebugOptions,
+    { $model }: DebugOptions,
     ctx: Fragment<Node, Element, TagOptions>,
 ) {
-    const value = model instanceof IValue ? model : ctx.ref(model);
-
-    ctx.debug(value as IValue<unknown>);
+    ctx.debug($model);
 }
 
 interface DelayOptions<Node, Element, TagOptions extends object> {
@@ -229,21 +181,21 @@ interface DelayOptions<Node, Element, TagOptions extends object> {
 }
 
 export function Delay<Node, Element, TagOptions extends object>(
-    { time, slot }: Magic<DelayOptions<Node, Element, TagOptions>>,
+    { time, slot: _slot }: DelayOptions<Node, Element, TagOptions>,
     ctx: Fragment<Node, Element, TagOptions>,
     defaultSlot?: (ctx: Fragment<Node, Element, TagOptions>) => void,
 ) {
-    const fragment = new Fragment({}, ctx.runner, ":timer");
-    const dSlot = readValue(slot) ?? defaultSlot;
+    const fragment = new Fragment(ctx.runner);
+    const slot = _slot ?? defaultSlot;
     let timer: number | undefined;
 
     ctx.create(fragment, function (node) {
         /* istanbul ignore else */
-        if (dSlot) {
+        if (slot) {
             timer = setTimeout(() => {
-                dSlot(node);
+                slot(node);
                 timer = undefined;
-            }, readValue(time)) as unknown as number;
+            }, time) as unknown as number;
         }
         node.runOnDestroy(() => {
             if (timer !== undefined) {
