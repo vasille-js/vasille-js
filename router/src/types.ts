@@ -18,7 +18,7 @@ export type RouteParameters<Route extends string> = string extends Route
                 (Rest extends `${GetRouteParameter<Rest>}${infer Next}` ? RouteParameters<Next> : unknown)
           : NoParams;
 
-export type QueryParams = { [k: string]: string | string[] };
+export type QueryParams = { [k: string]: string[] };
 
 export type ScreenProps<Route extends string> = {
     url: string;

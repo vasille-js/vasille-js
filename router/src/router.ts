@@ -17,9 +17,19 @@ export interface RouterInitialization<
 export type RouteRenderScope = "found" | "not-found" | "fallback" | "error";
 
 export function composeUrl<Route extends string>(route: Route, params: RouteParameters<Route>): string {
-    return Object.entries(params).reduce<string>((link, [key, value]) => {
-        return link.replace(new RegExp(`:${key}\\b`), value);
-    }, route);
+    if (process.env.VASILLE_TARGET === "es5" && !Object.entries) {
+        let link: string = route;
+
+        for (const key in params) {
+            link = link.replace("(" + key + ")", params[key] as string);
+        }
+
+        return link;
+    } else {
+        return Object.entries(params).reduce<string>((link, [key, value]) => {
+            return link.replace(new RegExp(`(${key})`), value);
+        }, route);
+    }
 }
 
 export abstract class Router<

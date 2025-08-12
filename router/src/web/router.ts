@@ -59,10 +59,6 @@ export class Router<Routes extends string> extends AbstractRouter<
         build(node, node => (this.overlayNode = node), ":router:loading-overlay");
 
         if (process.env.VASILLE_TARGET === "es5" && window.onpopstate !== null) {
-            window.addEventListener("popstate", () => {
-                this.doNavigate(location.href, false, "loading-screen");
-            });
-        } else {
             window.addEventListener("hashchange", () => {
                 const path = location.hash.substring(1);
 
@@ -70,9 +66,13 @@ export class Router<Routes extends string> extends AbstractRouter<
                     this.doNavigate(path, false, "loading-screen");
                 }
             });
+            this.doNavigate(location.hash.substring(1) || location.href, true, "loading-screen");
+        } else {
+            window.addEventListener("popstate", () => {
+                this.doNavigate(location.href, false, "loading-screen");
+            });
+            this.doNavigate(location.href, true, "loading-screen");
         }
-
-        this.doNavigate(location.href, true, "loading-screen");
     }
 
     public navigate<T extends Routes>(route: T, params: RouteParameters<T>, mode: NavigationMode) {
@@ -101,23 +101,33 @@ export class Router<Routes extends string> extends AbstractRouter<
     }
 
     protected parseUrl(url: string): [string, QueryParams, string] {
-        const parsed = new URL(url, this.location.origin);
+        if (process.env.VASILLE_TARGET === "es5" && !window.URL) {
+            const a = document.createElement("a");
+            const query: QueryParams = {};
+            const pairs = (url.split("?")[1] || "").split("&");
+            pairs.forEach(pair => {
+                const [key, value] = pair.split("=").map(decodeURIComponent);
 
-        return [
-            parsed.pathname,
-            [...parsed.searchParams.keys()].reduce(
-                (prev, key) => {
-                    const value = parsed.searchParams.getAll(key);
+                if (value) {
+                    if (key in query) {
+                        query[key].push(value);
+                    } else {
+                        query[key] = [value];
+                    }
+                }
+            });
 
-                    return {
-                        ...prev,
-                        [key]: value.length === 1 ? value[0] : value,
-                    };
-                },
-                {} as { [k: string]: string | string[] },
-            ),
-            parsed.hash,
-        ];
+            a.href = url;
+
+            return [a.pathname, query, a.hash];
+        } else {
+            const parsed = new window.URL(url, this.location.origin);
+            const query = [...parsed.searchParams.keys()].reduce((prev, key) => {
+                return { ...prev, [key]: parsed.searchParams.getAll(key) };
+            }, {} as QueryParams);
+
+            return [parsed.pathname, query, parsed.hash];
+        }
     }
 
     protected async loadTarget<Route extends string>(
