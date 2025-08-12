@@ -16,7 +16,7 @@ function build(
     run?: (node: Fragment<Node, Element, TagOptions>) => void,
     name?: string,
 ) {
-    const child = new Fragment<Node, Element, TagOptions>({}, node.runner, name);
+    const child = new Fragment<Node, Element, TagOptions>(node.runner);
 
     node.create(child, run);
 }
@@ -52,7 +52,7 @@ export class Router<Routes extends string> extends AbstractRouter<
         this.window = window;
         this.location = location;
         this.node = node;
-        this.currentUrl.$ = location.pathname;
+        this.currentUrl.V = location.pathname;
 
         build(node, node => (this.loadingNode = node), ":router:loading-screen");
         build(node, node => (this.contentNode = node), ":router:content-screen");
@@ -62,7 +62,7 @@ export class Router<Routes extends string> extends AbstractRouter<
             window.addEventListener("hashchange", () => {
                 const path = location.hash.substring(1);
 
-                if (path !== this.currentUrl.$) {
+                if (path !== this.currentUrl.V) {
                     this.doNavigate(path, false, "loading-screen");
                 }
             });
@@ -90,7 +90,7 @@ export class Router<Routes extends string> extends AbstractRouter<
     }
 
     public reload(): void {
-        this.doNavigate(this.currentUrl.$, true, "loading-screen");
+        this.doNavigate(this.currentUrl.V, true, "loading-screen");
     }
 
     protected doNavigate(url: string, canNavigate: boolean, mode: NavigationMode) {
@@ -101,8 +101,12 @@ export class Router<Routes extends string> extends AbstractRouter<
     }
 
     protected parseUrl(url: string): [string, QueryParams, string] {
-        if (process.env.VASILLE_TARGET === "es5" && !window.URL) {
-            const a = document.createElement("a");
+        if (process.env.VASILLE_TARGET === "es5" && !("URL" in this.window)) {
+            if (!/^https?:\/\//.test(url) && url.charAt(0) !== "/") {
+                throw "TypeError [ERR_INVALID_URL]: Invalid URL";
+            }
+
+            const a = this.window.document.createElement("a");
             const query: QueryParams = {};
             const pairs = (url.split("?")[1] || "").split("&");
             pairs.forEach(pair => {
@@ -121,7 +125,7 @@ export class Router<Routes extends string> extends AbstractRouter<
 
             return [a.pathname, query, a.hash];
         } else {
-            const parsed = new window.URL(url, this.location.origin);
+            const parsed = new URL(url, this.location.origin);
             const query = [...parsed.searchParams.keys()].reduce((prev, key) => {
                 return { ...prev, [key]: parsed.searchParams.getAll(key) };
             }, {} as QueryParams);
@@ -135,7 +139,7 @@ export class Router<Routes extends string> extends AbstractRouter<
         props: ScreenProps<Route>,
         mode: NavigationMode,
     ): Promise<void> {
-        this.loadingUrl.$ = props.path;
+        this.loadingUrl.V = props.path;
 
         try {
             const { loadingScreen, loadingOverlay } = this.webInit;
@@ -150,10 +154,10 @@ export class Router<Routes extends string> extends AbstractRouter<
 
             await this.renderScreen(target.screen, props, "found");
 
-            this.currentUrl.$ = props.url;
-            if (this.location.href !== props.url) {
+            this.currentUrl.V = props.url;
+            if (this.location.href !== props.url && this.location.hash !== "#" + props.url) {
                 if (process.env.VASILLE_TARGET === "es5" && !this.window.history) {
-                    this.window.location.hash = "#" + props.url;
+                    this.location.hash = "#" + props.url;
                 } else {
                     this.window.history.pushState({}, "", props.url);
                 }
@@ -165,7 +169,7 @@ export class Router<Routes extends string> extends AbstractRouter<
             throw error;
         } finally {
             this.clearLoadings();
-            this.loadingUrl.$ = null;
+            this.loadingUrl.V = null;
         }
     }
 
@@ -220,9 +224,9 @@ export function routeApp<Routes extends string>(
     debugUi?: boolean,
 ) {
     const runner = new Runner(debugUi ?? false, window.document);
-    const app = new App(node, runner, {});
+    const app = new App(node, runner);
 
-    app.create(new Fragment({}, runner, ":router:root"), node => {
+    app.create(new Fragment(runner), node => {
         const router = new Router(window, location, node, init);
 
         Object.defineProperty(runner, "router", {

@@ -105,6 +105,7 @@ function createLocation(path: string): Location {
         pathname: path,
         href: `http://localhost:8080${path}`,
         origin: "http://localhost:8080",
+        hash: "",
     } as unknown as Location;
 }
 
@@ -191,7 +192,7 @@ it("static /error/404", function (done) {
     }, 1);
 });
 
-it("dynamic /:test", function (done) {
+it("dynamic /(test)", function (done) {
     const window = page();
     const body = window.document.body;
 
@@ -199,7 +200,7 @@ it("dynamic /:test", function (done) {
         fallbackScreen() {},
         errorScreen() {},
         routes: {
-            "/:test": {
+            "/(test)": {
                 async screen(props, ctx) {
                     expect(props.path).toBe("/test-value");
                     ctx.tag("div", { class: [props.params.test] });
@@ -215,7 +216,7 @@ it("dynamic /:test", function (done) {
     }, 1);
 });
 
-it("dynamic /path/:value", function (done) {
+it("dynamic /path/(value)", function (done) {
     const window = page();
     const body = window.document.body;
 
@@ -223,7 +224,7 @@ it("dynamic /path/:value", function (done) {
         fallbackScreen() {},
         errorScreen() {},
         routes: {
-            "/path/:value": {
+            "/path/(value)": {
                 async screen(props, ctx) {
                     expect(props.path).toBe("/path/c23");
                     ctx.tag("div", { class: [props.params.value] });
@@ -239,7 +240,7 @@ it("dynamic /path/:value", function (done) {
     }, 1);
 });
 
-it("dynamic /before/:value/after", function (done) {
+it("dynamic /before/(value)/after", function (done) {
     const window = page();
     const body = window.document.body;
 
@@ -247,7 +248,7 @@ it("dynamic /before/:value/after", function (done) {
         fallbackScreen() {},
         errorScreen() {},
         routes: {
-            "/before/:value/after": {
+            "/before/(value)/after": {
                 async screen(props, ctx) {
                     expect(props.path).toBe("/before/vx/after");
                     ctx.tag("div", { class: [props.params.value] });
@@ -263,31 +264,31 @@ it("dynamic /before/:value/after", function (done) {
     }, 1);
 });
 
-it("dynamic /:v /1/:v /:v/2/3 /1/2/:v/4", function (done) {
+it("dynamic /(v) /1/(v) /(v)/2/3 /1/2/(v)/4", function (done) {
     function doTest(path: string) {
         const window = page();
         const body = window.document.body;
 
-        const init: WebRouterInitialization<"/:v" | "/1/:v" | "/:v/2/3" | "/1/2/:v/4"> = {
+        const init: WebRouterInitialization<"/(v)" | "/1/(v)" | "/(v)/2/3" | "/1/2/(v)/4"> = {
             fallbackScreen() {},
             errorScreen() {},
             routes: {
-                "/:v": {
+                "/(v)": {
                     async screen(props, ctx) {
                         ctx.tag("div", { class: [`c_${props.params.v}`] });
                     },
                 },
-                "/1/:v": {
+                "/1/(v)": {
                     async screen(props, ctx) {
                         ctx.tag("div", { class: [`c_1_${props.params.v}`] });
                     },
                 },
-                "/:v/2/3": {
+                "/(v)/2/3": {
                     async screen(props, ctx) {
                         ctx.tag("div", { class: [`c_${props.params.v}_2_3`] });
                     },
                 },
-                "/1/2/:v/4": {
+                "/1/2/(v)/4": {
                     async screen(props, ctx) {
                         ctx.tag("div", { class: [`c_1_2_${props.params.v}_4`] });
                     },
@@ -318,16 +319,16 @@ it("dynamic /:v /1/:v /:v/2/3 /1/2/:v/4", function (done) {
     }, 1);
 });
 
-it("dynamic vs static /1 /:v /1/2 /1/:v", function (done) {
+it("dynamic vs static /1 /(v) /1/2 /1/(v)", function (done) {
     function doTest(path: string) {
         const window = page();
         const body = window.document.body;
 
-        const init: WebRouterInitialization<"/:v" | "/1" | "/1/2" | "/1/:v"> = {
+        const init: WebRouterInitialization<"/(v)" | "/1" | "/1/2" | "/1/(v)"> = {
             fallbackScreen() {},
             errorScreen() {},
             routes: {
-                "/:v": {
+                "/(v)": {
                     async screen(props, ctx) {
                         ctx.tag("div", { class: [`d_${props.params.v}`] });
                     },
@@ -337,7 +338,7 @@ it("dynamic vs static /1 /:v /1/2 /1/:v", function (done) {
                         ctx.tag("div", { class: [`s_1`] });
                     },
                 },
-                "/1/:v": {
+                "/1/(v)": {
                     async screen(props, ctx) {
                         ctx.tag("div", { class: [`d_1_${props.params.v}`] });
                     },
@@ -391,7 +392,7 @@ it("switch page: found -> found", function (done) {
                     }
                 },
             },
-            "/article/:id": {
+            "/article/(id)": {
                 async screen(props, ctx) {
                     ctx.tag("div", { class: [`article_${props.params.id}`] });
                 },
@@ -402,11 +403,16 @@ it("switch page: found -> found", function (done) {
     setTimeout(() => {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("about");
-        router.silentNavigate("/article/:id", { id: "23" }).then(() => {
-            expect(body.children.length).toBe(1);
-            expect(body.children[0].className).toBe("article_23");
-            done();
-        });
+        router
+            .silentNavigate("/article/(id)", { id: "23" })
+            .then(() => {
+                expect(body.children.length).toBe(1);
+                expect(body.children[0].className).toBe("article_23");
+                done();
+            })
+            .catch(e => {
+                console.error(e);
+            });
     }, 1);
 });
 
@@ -571,19 +577,23 @@ it("window popstate event", function (done) {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("fallback");
         location.href = "http://localhost:8080/exists";
+        location.hash = "#/exists";
         window.dispatchEvent(new window.PopStateEvent("popstate"));
+        window.dispatchEvent(new window.HashChangeEvent("hashchange"));
         setTimeout(() => {
             expect(body.children.length).toBe(1);
             expect(body.children[0].className).toBe("exists");
             location.href = "http://localhost:8080/dont-exists";
+            location.hash = "#/dont-exists";
             window.dispatchEvent(new window.PopStateEvent("popstate"));
+            window.dispatchEvent(new window.HashChangeEvent("hashchange"));
             setTimeout(() => {
                 expect(body.children.length).toBe(1);
                 expect(body.children[0].className).toBe("fallback");
                 // window.location will be the initial one (from page.ts)
                 // because location.href always match the required url, no pushes are done
                 // window.location IS NOT location (we update the second one)
-                expect(window.location.href).toBe("http://localhost:8080/");
+                expect(window.location.href.split("#")[0]).toBe("http://localhost:8080/");
                 done();
             });
         }, 1);
@@ -657,19 +667,19 @@ it("loading screen: between screens", function (done) {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("first");
         resolve?.(1);
-        expect(router.loadingUrl.$).toBeNull();
-        expect(router.currentUrl.$).toBe("http://localhost:8080/");
+        expect(router.loadingUrl.V).toBeNull();
+        expect(router.currentUrl.V).toBe("http://localhost:8080/");
         router.navigate("/wait", {}, "loading-screen");
         setTimeout(() => {
             expect(body.children.length).toBe(1);
             expect(body.children[0].className).toBe("loading");
-            expect(router.loadingUrl.$).toBe("/wait");
+            expect(router.loadingUrl.V).toBe("/wait");
             resolve?.(2);
             setTimeout(() => {
                 expect(body.children.length).toBe(1);
                 expect(body.children[0].className).toBe("second");
-                expect(router.loadingUrl.$).toBeNull();
-                expect(router.currentUrl.$).toBe("/wait");
+                expect(router.loadingUrl.V).toBeNull();
+                expect(router.currentUrl.V).toBe("/wait");
                 done();
             }, 1);
         }, 1);

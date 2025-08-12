@@ -27,7 +27,7 @@ export function composeUrl<Route extends string>(route: Route, params: RoutePara
         return link;
     } else {
         return Object.entries(params).reduce<string>((link, [key, value]) => {
-            return link.replace(new RegExp(`(${key})`), value);
+            return link.replace(`(${key})`, value);
         }, route);
     }
 }
@@ -53,8 +53,8 @@ export abstract class Router<
                 .split("/")
                 .filter(value => !!value)
                 .map(value => {
-                    if (value.startsWith(":")) {
-                        return { key: value.substring(1), static: false };
+                    if (value.startsWith("(") && value.endsWith(")")) {
+                        return { key: value.substring(1, value.length - 1), static: false };
                     } else {
                         return { key: value, static: true };
                     }
