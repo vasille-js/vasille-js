@@ -22,8 +22,8 @@
     "prepack": "cp -f ../README.md ./README.md",
     "prettier": "npx prettier src test --write",
     "build": "tsc --build tsconfig.json",
-    "test": "jest",
-    "test-coverage": "jest --coverage",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test-coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "update-types": "tsc --build tsconfig-types.json"
   },
   "repository": {
@@ -61,6 +61,7 @@
     "@types/jest": "^30.0.0",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^24.2.1",
+    "cross-env": "^10.0.0",
     "eslint": "^9.33.0",
     "eslint-plugin-compat": "^6.0.2",
     "jest": "^30.0.5",

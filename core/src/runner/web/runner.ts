@@ -7,7 +7,7 @@ import {
 } from "../../index.js";
 import { internalError } from "../../core/errors.js";
 import { AttributeBinding } from "./binding/attribute.js";
-import { DynamicalClassBinding, StaticClassBinding } from "./binding/class.js";
+import { addClass, DynamicalClassBinding, removeClass, StaticClassBinding } from "./binding/class.js";
 import { PropertyBinding } from "./binding/property.js";
 import { stringifyStyleValue, StyleBinding } from "./binding/style.js";
 
@@ -125,7 +125,7 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
                 if (item instanceof IValue) {
                     this.bind(new DynamicalClassBinding(this, item));
                 } else if (typeof item == "string") {
-                    this.node.classList.add(item);
+                    addClass(this, item);
                 } else {
                     for (const name in item) {
                         const value = item[name];
@@ -133,9 +133,9 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
                         if (value instanceof IValue) {
                             this.bind(new StaticClassBinding(this, name, value));
                         } else if (value) {
-                            this.node.classList.add(name);
+                            addClass(this, name);
                         } else {
-                            this.node.classList.remove(name);
+                            removeClass(this, name);
                         }
                     }
                 }

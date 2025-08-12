@@ -10,7 +10,7 @@
     "moduleResolution": "Node",
     "skipLibCheck": true,
     "strictNullChecks": true,
-    "esModuleInterop": true,
+    "esModuleInterop": false,
     "types": ["jest"]
   }
 }

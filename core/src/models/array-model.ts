@@ -9,7 +9,6 @@ import { ListenableModel } from "./model.js";
  */
 export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
     public listener: Listener<T, T>;
-    public passive: boolean = false;
 
     /**
      * @param data {Array} input data
@@ -36,7 +35,6 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @param end {?number} end index
      */
     public fill(value: T, start?: number, end?: number): this {
-        this.passive = true;
         /* istanbul ignore else */
         if (!start) {
             start = 0;
@@ -51,7 +49,6 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
             this[i] = value;
             this.listener.emitAdded(value, value);
         }
-        this.passive = false;
         return this;
     }
 
@@ -60,14 +57,10 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @return {*} removed value
      */
     public pop(): T | undefined {
-        this.passive = true;
         const v = super.pop();
 
-        /* istanbul ignore else */
-        if (v !== undefined) {
-            this.listener.emitRemoved(v, v);
-        }
-        this.passive = false;
+        this.listener.emitRemoved(v, v);
+
         return v;
     }
 
@@ -77,12 +70,10 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @return {number} new length of the array
      */
     public push(...items: Array<T>): number {
-        this.passive = true;
         items.forEach(item => {
             this.listener.emitAdded(item, item);
             super.push(item);
         });
-        this.passive = false;
         return this.length;
     }
 
@@ -91,14 +82,10 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @return {*} the shifted value
      */
     public shift(): T | undefined {
-        this.passive = true;
         const v = super.shift();
 
-        /* istanbul ignore else */
-        if (v !== undefined) {
-            this.listener.emitRemoved(v, v);
-        }
-        this.passive = false;
+        this.listener.emitRemoved(v, v);
+
         return v;
     }
 
@@ -110,7 +97,6 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @return {ArrayModel} a pointer to this
      */
     public splice(start: number, deleteCount?: number, ...items: Array<T>): ArrayModel<T> {
-        this.passive = true;
         start = Math.min(start, this.length);
         deleteCount = typeof deleteCount === "number" ? deleteCount : this.length - start;
 
@@ -127,7 +113,6 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
             this.listener.emitAdded(before, items[i]);
         }
 
-        this.passive = false;
         return new ArrayModel<T>(super.splice(start, deleteCount, ...items));
     }
 
@@ -137,47 +122,21 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @return {number} the length after prepending
      */
     public unshift(...items: Array<T>): number {
-        this.passive = true;
         for (let i = 0; i < items.length; i++) {
             this.listener.emitAdded(this[i], items[i]);
         }
 
-        const r = super.unshift(...items);
-        this.passive = false;
-        return r;
+        return super.unshift(...items);
     }
 
     public replace(at: number, with_: T): this {
-        this.passive = true;
         this.listener.emitAdded(this[at], with_);
         this.listener.emitRemoved(this[at], this[at]);
         this[at] = with_;
-        this.passive = false;
         return this;
     }
 
     public destroy(): void {
         this.splice(0);
-    }
-}
-
-export function proxyArrayModel<T>(arr: ArrayModel<T>): ArrayModel<T> {
-    if (process.env.VASILLE_TARGET === "es5") {
-        return arr;
-    } else {
-        return new Proxy(arr, {
-            set(target, p, newValue, receiver) {
-                if (!arr.passive && typeof p === "string") {
-                    const index = parseInt(p);
-
-                    if (Number.isFinite(index)) {
-                        arr.replace(index, newValue);
-
-                        return true;
-                    }
-                }
-                return Reflect.set(target, p, newValue, receiver);
-            },
-        });
     }
 }

@@ -15,9 +15,9 @@ class FragmentTest extends Fragment<Node, Element, object> {
 it("Fragment", function () {
     const window = page();
     const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner, {});
+    const root = new App(window.document.body, runner);
 
-    root.create(new FragmentTest({}, runner));
+    root.create(new FragmentTest(runner));
     expect(root.children.size).toBe(1);
     expect(compose).toBe(true);
 
@@ -26,14 +26,14 @@ it("Fragment", function () {
 
 it("Tag", function () {
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document), {});
+    const root = new App(window.document.body, new Runner(true, window.document));
     const text = new Reference("test");
 
     root.tag("div", {}, function (div) {
         div.text(text);
         expect(div.element.childNodes.length).toBe(1);
         expect(div.element.innerHTML.trim()).toBe("test");
-        text.$ = "new";
+        text.V = "new";
         expect(div.element.innerHTML.trim()).toBe("new");
 
         div.text("test");
@@ -48,16 +48,16 @@ it("Tag", function () {
         div.debug(debugRef);
         expect(div.element.childNodes[3] instanceof window.Comment).toBe(true);
         expect(div.element.childNodes[3].textContent).toBe("");
-        debugRef.$ = "err";
+        debugRef.V = "err";
         expect(div.element.childNodes[3].textContent).toBe("err");
 
         const textRef = new Reference<string | null>(null);
         div.text(textRef);
         expect(div.element.childNodes[4] instanceof window.Text).toBe(true);
         expect(div.element.childNodes[4].textContent).toBe("");
-        textRef.$ = "ok";
+        textRef.V = "ok";
         expect(div.element.childNodes[4].textContent).toBe("ok");
-        textRef.$ = null;
+        textRef.V = null;
         expect(div.element.childNodes[4].textContent).toBe("");
     });
 
@@ -66,7 +66,7 @@ it("Tag", function () {
 
 it("if", function () {
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document), {});
+    const root = new App(window.document.body, new Runner(true, window.document));
     let check1 = false;
     let check2 = true;
 
@@ -80,7 +80,7 @@ it("if", function () {
 
 it("if else", function () {
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document), {});
+    const root = new App(window.document.body, new Runner(true, window.document));
     const iv1 = new Reference(true);
     const iv2 = new Reference(false);
 
@@ -96,8 +96,8 @@ it("if else", function () {
     expect(check1).toBe(1);
     expect(check2).toBe(2);
 
-    iv1.$ = false;
-    iv2.$ = true;
+    iv1.V = false;
+    iv2.V = true;
 
     expect(check1).toBe(2);
     expect(check2).toBe(1);
@@ -107,7 +107,7 @@ it("if else", function () {
 
 it("switch", function () {
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document), {});
+    const root = new App(window.document.body, new Runner(true, window.document));
     const v = new Reference(1);
     const v2 = new Reference(false);
     let check = 0;
@@ -118,17 +118,17 @@ it("switch", function () {
     root.elif(v2, () => (check = -2));
     root.else(() => (check = 4));
 
-    v2.$ = true;
+    v2.V = true;
     expect(check).toBe(1);
 
-    v.$ = 2;
+    v.V = 2;
     expect(check).toBe(2);
 
-    v.$ = 3;
+    v.V = 3;
     expect(check).toBe(3);
 
-    v.$ = 4;
-    v2.$ = false;
+    v.V = 4;
+    v2.V = false;
     expect(check).toBe(4);
 
     root.destroy();
@@ -137,9 +137,9 @@ it("switch", function () {
 it("INode", function () {
     const window = page();
     const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner, {});
+    const root = new App(window.document.body, runner);
 
-    root.create(new Fragment({}, runner), function (test) {
+    root.create(new Fragment(runner), function (test) {
         // attr
         (function () {
             const attrName = "data-attr";
@@ -149,10 +149,10 @@ it("INode", function () {
             test.tag("div", {
                 attr: {
                     "data-checked": true,
-                    "data-checked2": root.ref(true),
+                    "data-checked2": new Reference(true),
                     "data-set": "test",
                     [attrName]: attrValue,
-                    "data-bind": root.expr(
+                    "data-bind": new Expression(
                         (str: string) => {
                             return str.length > 1 ? str : "alternative";
                         },
@@ -168,7 +168,7 @@ it("INode", function () {
             expect(data.attr).toBe("test");
             expect(data.bind).toBe("test");
 
-            attrValue.$ = "";
+            attrValue.V = "";
 
             expect(data.attr).toBeUndefined();
             expect(data.bind).toBe("alternative");
@@ -188,13 +188,13 @@ it("INode", function () {
 
             expect(el.className).toBe("c1 c2 c3 dyn");
 
-            dyn.$ = "test";
+            dyn.V = "test";
             expect(el.className).toBe("c1 c2 c3 test");
 
-            cond.$ = true;
+            cond.V = true;
             expect(el.className).toBe("c1 c2 c3 test float");
 
-            cond.$ = false;
+            cond.V = false;
             expect(el.className).toBe("c1 c2 c3 test");
         })();
 
@@ -221,7 +221,7 @@ it("INode", function () {
             expect(el.style.width).toBe("300px");
             expect(el.style.inset).toBe("12px 23px");
 
-            dyn.$ = "100px";
+            dyn.V = "100px";
             expect(el.style.margin).toBe("100px");
             expect(el.style.padding).toBe("110px");
         })();
@@ -233,7 +233,7 @@ it("INode", function () {
 it("INode Events", function () {
     let test = false;
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document), {});
+    const root = new App(window.document.body, new Runner(true, window.document));
     const handler = () => (test = true);
     let element!: HTMLElement;
 
@@ -249,7 +249,7 @@ it("INode Events", function () {
 
 it("bind DOM api test", function () {
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document), {});
+    const root = new App(window.document.body, new Runner(true, window.document));
     const html = new Reference("test me now");
     const bool = new Reference(true);
     const num = new Reference(0.1);
@@ -286,22 +286,22 @@ it("bind DOM api test", function () {
 
     expect(el.innerHTML).toBe("test me now");
 
-    html.$ = "<i>i</i><b>b</b>";
+    html.V = "<i>i</i><b>b</b>";
     expect(el.innerHTML).toBe("<i>i</i><b>b</b>");
 
-    html.$ = "1";
+    html.V = "1";
     expect(input.value).toBe("1");
-    html.$ = "2";
+    html.V = "2";
     expect(input.value).toBe("2");
 
-    bool.$ = false;
+    bool.V = false;
     expect(checkbox.checked).toBe(false);
-    bool.$ = true;
+    bool.V = true;
     expect(checkbox.checked).toBe(true);
 
-    num.$ = 1;
+    num.V = 1;
     expect(media.volume).toBe(1);
-    num.$ = 0.5;
+    num.V = 0.5;
     expect(media.volume).toBe(0.5);
 
     expect(media2.volume).toBe(0.75);
@@ -311,7 +311,7 @@ it("bind DOM api test", function () {
 
 it("Error handling", function () {
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document), {});
+    const root = new App(window.document.body, new Runner(true, window.document));
     const bool = new Reference(true);
 
     root.tag("div", {}, function (f) {
@@ -327,7 +327,7 @@ it("Error handling", function () {
 it("Debug node order", function () {
     const window = page();
     const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner, {});
+    const root = new App(window.document.body, runner);
     const bool = new Reference(true);
     const text = new Reference<string | null>("test me now");
 
@@ -341,16 +341,16 @@ it("Debug node order", function () {
         expect(f.element.childNodes[0]).toBeInstanceOf(window.Text);
         expect(f.element.childNodes[1]).toBeInstanceOf(window.Comment);
 
-        bool.$ = false;
+        bool.V = false;
         expect(f.element.childNodes.length).toBe(1);
         expect(f.element.childNodes[0]).toBeInstanceOf(window.Comment);
 
-        bool.$ = true;
+        bool.V = true;
         expect(f.element.childNodes.length).toBe(2);
         expect(f.element.childNodes[0]).toBeInstanceOf(window.Text);
         expect(f.element.childNodes[1]).toBeInstanceOf(window.Comment);
 
-        text.$ = null;
+        text.V = null;
         expect(f.element.childNodes[0].textContent).toBe("");
     });
 });
@@ -358,7 +358,7 @@ it("Debug node order", function () {
 it("Class add/removing test", function () {
     const window = page();
     const runner = new Runner(false, window.document);
-    const root = new App(window.document.body, runner, {});
+    const root = new App(window.document.body, runner);
 
     root.tag(
         "div",
@@ -383,11 +383,11 @@ function checkSpanAfterDiv(node: Tag<Node, Element, object>, bool: IValue<boolea
     expect(node.element.childNodes[0]).toBeInstanceOf(window.HTMLDivElement);
     expect(node.element.childNodes[1]).toBeInstanceOf(window.HTMLSpanElement);
 
-    bool.$ = false;
+    bool.V = false;
     expect(node.element.childNodes.length).toBe(1);
     expect(node.element.childNodes[0]).toBeInstanceOf(window.HTMLSpanElement);
 
-    bool.$ = true;
+    bool.V = true;
     expect(node.element.childNodes.length).toBe(2);
     expect(node.element.childNodes[0]).toBeInstanceOf(window.HTMLDivElement);
     expect(node.element.childNodes[1]).toBeInstanceOf(window.HTMLSpanElement);
@@ -396,7 +396,7 @@ function checkSpanAfterDiv(node: Tag<Node, Element, object>, bool: IValue<boolea
 it("Insert adjacent", function () {
     const window = page();
     const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner, {});
+    const root = new App(window.document.body, runner);
     const bool = new Reference(true);
 
     root.tag("div", {}, function (node) {
@@ -412,14 +412,14 @@ it("Insert adjacent", function () {
 it("Find first child of tag", function () {
     const window = page();
     const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner, {});
+    const root = new App(window.document.body, runner);
     const bool = new Reference(true);
 
     root.tag("div", {}, function (node) {
         node.if(bool, node => {
             node.tag("div", {});
         });
-        node.create(new Fragment({}, runner), node => {
+        node.create(new Fragment(runner), node => {
             node.tag("span", {});
         });
 

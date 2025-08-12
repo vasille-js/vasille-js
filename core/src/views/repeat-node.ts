@@ -30,12 +30,14 @@ export class RepeatNode<
      * @type {Map}
      */
     protected nodes: Map<IdT, Fragment<Node, Element, TagOptions>> = new Map();
+    protected slot?: ((ctx: Fragment<Node, Element, TagOptions, object>, value: T, index: IdT) => void) | undefined;
 
     public constructor(input: Opts, runner: Runner<Node, Element, TagOptions>) {
         super(runner);
+        this.slot = input.slot;
     }
 
-    public createChild(opts: Opts, id: IdT, item: T, before?: Fragment<Node, Element, TagOptions>): any {
+    public createChild(id: IdT, item: T, before?: Fragment<Node, Element, TagOptions>): any {
         const node = new Fragment(this.runner);
 
         node.parent = this;
@@ -54,9 +56,7 @@ export class RepeatNode<
         }
 
         this.lastChild = node;
-
-        opts.slot && opts.slot(node, item, id);
-
+        this.slot?.(node, item, id);
         this.nodes.set(id, node);
     }
 

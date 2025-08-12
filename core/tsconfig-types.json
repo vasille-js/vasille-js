@@ -10,6 +10,7 @@
     "module": "Node16",
     "types": [
       "debug",
+      "node",
       "estree",
       "events",
       "json-schema"

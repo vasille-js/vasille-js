@@ -24,8 +24,8 @@ export class SetView<Node, Element, TagOptions extends object, T> extends BaseVi
 
     public compose() {
         super.compose();
-        this.input.model.forEach(item => {
-            this.createChild(this.input, item, item);
+        this.model.forEach(item => {
+            this.createChild(item, item);
         });
         return {};
     }

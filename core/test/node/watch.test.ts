@@ -6,15 +6,19 @@ it("Watch Test", function () {
     const model = new Reference(false);
     const window = page();
     const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner, {});
-    let test = true;
+    const body = window.document.body;
+    const root = new App(body, runner);
 
     root.create(
         new Watch(
             {
                 model,
                 slot: function (node, input) {
-                    node.create(new Fragment({}, runner), () => (test = input));
+                    node.create(new Fragment(runner), ctx => {
+                        ctx.tag("div", {}, ctx => {
+                            ctx.text(input);
+                        });
+                    });
                 },
             },
             runner,
@@ -23,8 +27,13 @@ it("Watch Test", function () {
 
     root.create(new Watch({ model }, runner));
 
-    expect(test).toBe(false);
-    model.$ = true;
-    expect(test).toBe(true);
+    expect(body.children.length).toBe(1);
+    expect(body.children[0].innerHTML).toBe("false");
+    model.V = true;
+    expect(body.children[0].innerHTML).toBe("true");
     expect(root.children.size).toBe(2);
+
+    root.destroy();
+
+    expect(body.children.length).toBe(0);
 });

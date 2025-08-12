@@ -26,6 +26,7 @@ export class Reactive implements Destroyable {
 
     public destroy() {
         this.onDestroy?.();
+        this.linked.forEach(item => item.destroy());
         this.linked.splice(0);
     }
 }

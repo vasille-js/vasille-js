@@ -28,16 +28,20 @@ export class Watch<Node, Element, TagOptions extends object, T> extends Fragment
     }
 
     public compose() {
-        this.model.on(
-            (this.handler = value => {
+        const slot = this.slot;
+
+        if (slot) {
+            const handler = (this.handler = value => {
                 this.children.forEach(child => {
                     child.destroy();
                 });
                 this.children.clear();
                 this.lastChild = undefined;
-                this.slot?.(this, value);
-            }),
-        );
+                slot(this, value);
+            });
+            this.model.on(handler);
+            handler(this.model.V);
+        }
     }
 
     public destroy() {
