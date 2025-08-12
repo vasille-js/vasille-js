@@ -1,6 +1,5 @@
 import {
     IValue,
-    proxyArrayModel,
     Reactive,
     KindOfIValue,
     Expression,
@@ -38,29 +37,26 @@ export function ref<T>(v: T): IValue<T> {
 
 /**
  * create a `Set` model
- * 1. translate `new Set(#)` to `set(this, #)`
- * 2. `import { setModel }` to `import { set as setModel }`
+ * 1. translate `new Set(#)` to `set(ctx, #)`
  */
-export function set(ctx: Reactive | undefined, data?: unknown[]) {
+export function setModel(ctx: Reactive | undefined, data?: unknown[]) {
     return new SetModel(data, ctx);
 }
 
 /**
  * create a `Map` model
- * 1. `new Map(#)` to `map(this, #)`
- * 2. `import { mapModel }` to `import { map as mapModel }`
+ * 1. `new Map(#)` to `mapModel(ctx, #)`
  */
-export function map(ctx: Reactive | undefined, data?: [unknown, unknown][]) {
+export function mapModel(ctx: Reactive | undefined, data?: [unknown, unknown][]) {
     return new MapModel(data, ctx);
 }
 
 /**
  * create an `Array` model
- * 1. `[...]` to `array(this, [...])`
- * 2. `import { arrayModel }` to `import { array as arrayModel }`
+ * 1. `[...]` to `arrayModel(ctx, [...])`
  */
-export function array(ctx: Reactive | undefined, data?: unknown[] | number) {
-    return proxyArrayModel(new ArrayModel(data, ctx));
+export function arrayModel(ctx: Reactive | undefined, data?: unknown[] | number) {
+    return new ArrayModel(data, ctx);
 }
 
 /**
@@ -71,25 +67,19 @@ export function ensure(data: unknown) {
     return data instanceof IValue ? data : new Reference(data);
 }
 
-export function write(o: object, key: string | symbol, value: unknown) {
+/**
+ * Set a value of a field (alternative to proxies)
+ * 1. `obj.$key = 23` to `set(obj, "$key", 23)`
+ * 2. `arr[0] = 23` to `set(arr, 0, 23)`
+ */
+export function set(o: object, key: string | symbol | number, value: unknown) {
     if (o[key] instanceof IValue) {
         o[key].V = value;
-    } else {
+    } else if (o instanceof ArrayModel && typeof key === "number") {
+        o.replace(key, value);
+    } else if (typeof key === "string" && key.charAt(0) === "$") {
         o[key] = new Reference(value);
-    }
-}
-
-export function writeES5(o: object, key: string | symbol, value: unknown) {
-    if (o[key] instanceof IValue) {
-        o[key].V = value;
-    } else if (o instanceof ArrayModel) {
-        const index = !o.passive && typeof key === "string" && parseInt(key);
-        if (typeof index === "number" && Number.isFinite(index)) {
-            o.replace(index, value);
-        } else {
-            o[key] = value;
-        }
     } else {
-        o[key] = new Reference(value);
+        o[key] = value;
     }
 }

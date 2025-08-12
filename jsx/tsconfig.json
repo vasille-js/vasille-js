@@ -10,7 +10,8 @@
     "moduleResolution": "node16",
     "skipLibCheck": true,
     "strictNullChecks": true,
-    "esModuleInterop": true,
+    "esModuleInterop": false,
+    "isolatedModules": true,
     "types": [
       "estree",
       "json-schema",

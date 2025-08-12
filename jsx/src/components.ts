@@ -28,44 +28,6 @@ export function Slot<Node, Element, TagOptions extends object, T extends object 
     }
 }
 
-interface IfOptions {
-    $condition: IValue<unknown>;
-    slot?: () => void;
-}
-
-export function If<Node, Element, TagOptions extends object>(
-    { $condition, slot }: IfOptions,
-    ctx: Fragment<Node, Element, TagOptions>,
-    defaultSlot?: () => void,
-) {
-    ctx.if($condition, slot ?? defaultSlot ?? (() => {}));
-}
-
-export function ElseIf<Node, Element, TagOptions extends object>(
-    { $condition, slot }: IfOptions,
-    ctx: Fragment<Node, Element, TagOptions>,
-    defaultSlot?: () => void,
-) {
-    ctx.elif($condition, slot ?? defaultSlot ?? (() => {}));
-}
-
-interface ElseOptions {
-    slot?: () => void;
-}
-
-export function Else<Node, Element, TagOptions extends object>(
-    { slot }: ElseOptions,
-    ctx: Fragment<Node, Element, TagOptions>,
-    defaultSlot?: () => void,
-) {
-    const _slot = slot ?? defaultSlot;
-
-    /* istanbul ignore else */
-    if (_slot) {
-        ctx.else(_slot);
-    }
-}
-
 interface ForOptions<Node, Element, TagOptions extends object, T, K, V> {
     of: T;
     slot?: (ctx: Fragment<Node, Element, TagOptions>, value: T, index: K) => void;

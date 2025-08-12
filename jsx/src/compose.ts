@@ -1,4 +1,4 @@
-import { Fragment, App, reportError, Runner, Reactive } from "vasille";
+import { Fragment, App, reportError, Runner, Reactive, Destroyable } from "vasille";
 
 interface CompositionProps {
     slot?: (...args: any[]) => void;
@@ -42,8 +42,19 @@ export function store<Out extends object>(fn: (ctx: Reactive) => Out): Out {
     return fn(new Reactive());
 }
 
-export function model<In extends object, Out extends object>(fn: (ctx: Reactive, o: In) => Out): (o: In) => Out {
-    return o => fn(new Reactive(), o);
+export function model<In extends object, Out extends object>(
+    fn: (ctx: Reactive, o: In) => Out,
+): (o: In) => Out & Destroyable {
+    return o => {
+        const ctx = new Reactive();
+
+        return {
+            ...fn(ctx, o),
+            destroy() {
+                ctx.destroy();
+            },
+        };
+    };
 }
 
 export function mount<Node, Element, TagOptions extends object, T>(
