@@ -10,7 +10,7 @@ export function named(
   internal: Internal,
   argPos?: number,
 ) {
-  if (internal.devMode && !internal.stateOnly && name) {
+  if (internal.devMode && name) {
     while (argPos && call.arguments.length < argPos) {
       call.arguments.push(t.buildUndefinedNode());
     }
@@ -71,16 +71,7 @@ export function exprCall(
   const calculateCall = parseCalculateCall(path, internal);
 
   if (calculateCall) {
-    return named(
-      t.callExpression(
-        internal.stateOnly
-          ? t.memberExpression(internal.id, t.identifier("ex"))
-          : t.memberExpression(ctx, t.identifier("expr")),
-        calculateCall,
-      ),
-      name,
-      internal,
-    );
+    return named(internal.expr(...calculateCall), name, internal);
   }
 
   if (
@@ -97,7 +88,7 @@ export function exprCall(
 
     /* istanbul ignore else */
     if (data && !t.isCallExpression(data)) {
-      return t.callExpression(t.memberExpression(internal.id, t.identifier("fo")), [data]);
+      return internal.forward(data);
     }
   }
 
@@ -114,16 +105,7 @@ export function exprCall(
     return [...exprData.found.values()][0];
   }
   if (names.length > 0 && path.node) {
-    return named(
-      t.callExpression(
-        internal.stateOnly
-          ? t.memberExpression(internal.id, t.identifier("ex"))
-          : t.memberExpression(ctx, t.identifier("expr")),
-        [t.arrowFunctionExpression(names, path.node), dependencies],
-      ),
-      name,
-      internal,
-    );
+    return named(internal.expr(t.arrowFunctionExpression(names, path.node), dependencies), name, internal);
   }
 
   return null;
@@ -137,104 +119,36 @@ export function forwardOnlyExpr(
   const calculateCall = parseCalculateCall(path, internal);
 
   if (calculateCall) {
-    return t.callExpression(t.memberExpression(internal.id, t.identifier("ex")), calculateCall);
+    return internal.expr(...calculateCall);
   }
 
   const exprData = checkNode(path, internal);
 
   return exprData.self
-    ? t.callExpression(t.memberExpression(internal.id, t.identifier("fo")), [exprData.self])
+    ? internal.forward(exprData.self)
     : exprData.found.size > 0 && expr
-      ? t.callExpression(t.memberExpression(internal.id, t.identifier("ex")), [
+      ? internal.expr(
           t.arrowFunctionExpression(
             [...exprData.found.keys()].map(name => encodeName(name)),
             expr,
           ),
           t.arrayExpression([...exprData.found.values()]),
-        ])
+        )
       : null;
 }
 
-export function own(expr: types.Expression, internal: Internal, name?: string) {
-  if (
-    internal.stateOnly &&
-    t.isCallExpression(expr) &&
-    t.isMemberExpression(expr.callee) &&
-    t.isIdentifier(expr.callee.property) &&
-    expr.callee.property.name === "fo" &&
-    t.isIdentifier(expr.callee.object) &&
-    expr.callee.object === internal.id
-  ) {
-    return expr;
-  }
-
-  return named(
-    t.callExpression(
-      internal.stateOnly
-        ? t.memberExpression(internal.id, t.identifier("fo"))
-        : t.memberExpression(ctx, t.identifier("own")),
-      [expr],
-    ),
-    name,
-    internal,
-  );
-}
-
 export function ref(expr: types.Expression | null | undefined, internal: Internal, name?: string) {
-  return named(
-    t.callExpression(
-      internal.stateOnly
-        ? t.memberExpression(internal.id, t.identifier("r"))
-        : t.memberExpression(ctx, t.identifier("ref")),
-      expr ? [expr] : [],
-    ),
-    name,
-    internal,
-    1,
-  );
-}
-
-export function reactiveObject(init: types.Expression, internal: Internal, name?: string) {
-  return named(
-    t.callExpression(
-      t.memberExpression(internal.id, t.identifier(internal.stateOnly ? "sro" : "ro")),
-      internal.stateOnly ? [init] : [ctx, init],
-    ),
-    name,
-    internal,
-  );
+  return named(internal.ref(expr), name, internal, 1);
 }
 
 export function arrayModel(init: types.Expression | null | undefined, internal: Internal, name?: string) {
-  return named(
-    t.callExpression(
-      t.memberExpression(internal.id, t.identifier(internal.stateOnly ? "sam" : "am")),
-      internal.stateOnly ? (init ? [init] : []) : [ctx, ...(init ? [init] : [])],
-    ),
-    name,
-    internal,
-    2,
-  );
+  return named(internal.arrayModel(init), name, internal, 2);
 }
 
 export function setModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
-  return named(
-    t.callExpression(
-      t.memberExpression(internal.id, t.identifier(internal.stateOnly ? "ssm" : "sm")),
-      internal.stateOnly ? args : [ctx, ...args],
-    ),
-    name,
-    internal,
-  );
+  return named(internal.setModel(args[0]), name, internal);
 }
 
 export function mapModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
-  return named(
-    t.callExpression(
-      t.memberExpression(internal.id, t.identifier(internal.stateOnly ? "smm" : "mm")),
-      internal.stateOnly ? args : [ctx, ...args],
-    ),
-    name,
-    internal,
-  );
+  return named(internal.mapModel(args[0]), name, internal);
 }

@@ -5,22 +5,19 @@ import { Internal, ctx } from "./internal.js";
 export type FnNames =
   | "compose"
   | "view"
-  | "mvvmView"
-  | "mvcView"
-  | "hybridView"
   | "store"
   | "screen"
   | "awaited"
   | "calculate"
   | "forward"
+  | "backward"
   | "watch"
   | "ref"
   | "bind"
-  | "value"
+  | "raw"
   | "arrayModel"
   | "setModel"
   | "mapModel"
-  | "reactiveObject"
   | "runOnDestroy"
   | "router"
   | "theme"
@@ -32,21 +29,16 @@ export type FnNames =
   | "prefersLight"
   | "styleSheet";
 
-export const composeOnly: FnNames[] = [
+export const modelFunctions: FnNames[] = [
   "forward",
   "watch",
   "calculate",
-  "ref",
   "bind",
-  "value",
-  "awaited",
   "arrayModel",
   "mapModel",
   "setModel",
-  "reactiveObject",
-  "router",
-  "runOnDestroy",
 ];
+export const composeOnly: FnNames[] = ["router", "runOnDestroy"];
 export const styleOnly: FnNames[] = [
   "theme",
   "dark",

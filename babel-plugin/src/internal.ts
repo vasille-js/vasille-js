@@ -1,12 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 
-export const enum VariableState {
-  Ignored = 1,
-  Reactive = 2,
-  ReactiveObject = 3,
-  ReactivePointer = 4,
-}
+export type VariableState = Record<string, 1>;
 
 export enum VariableScope {
   Any,
@@ -63,14 +58,23 @@ export class StackedStates {
 export interface Internal {
   mapping: Map<string, string>;
   stack: StackedStates;
-  id: types.Expression;
   global: string;
   prefix: string;
-  internalUsed: boolean;
   importStatement: NodePath<types.ImportDeclaration> | null;
   stateOnly: boolean;
   isComposing?: boolean;
+  isFunctionParsing?: boolean;
   devMode: boolean;
+  ref(arg?: types.Expression | null): types.CallExpression;
+  expr(func: types.Expression, values: types.ArrayExpression): types.CallExpression;
+  forward(arg: types.Expression): types.CallExpression;
+  backward(arg: types.Expression): types.CallExpression;
+  setModel(arg?: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null): types.CallExpression;
+  mapModel(arg?: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null): types.CallExpression;
+  arrayModel(arg?: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null): types.CallExpression;
+  ensure(arg: types.Expression): types.CallExpression;
+  match(name: types.Expression, arg?: types.Expression | null): types.CallExpression;
+  set(obj: types.Expression, field: types.Expression, value: types.Expression): types.CallExpression;
 }
 
 export const ctx = t.identifier("Vasille");

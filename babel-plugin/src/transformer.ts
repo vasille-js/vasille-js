@@ -1,21 +1,13 @@
 import { NodePath, types } from "@babel/core";
+import { ArrayExpression, CallExpression } from "@babel/types";
 import * as t from "@babel/types";
-import { Internal, StackedStates } from "./internal.js";
+import { ctx, Internal, StackedStates } from "./internal.js";
 import { meshStatement } from "./mesh.js";
 import { findStyleInNode } from "./css-transformer.js";
 
 const imports = new Map([["vasille-web", "VasilleWeb"]]);
 const ignoreMembers = new Set([
-  "value",
-  "ref",
-  "bind",
-  "calculate",
-  "watch",
-  "forward",
-  "arrayModel",
-  "mapModel",
-  "reactiveObject",
-  "setModel",
+  "raw",
   "theme",
   "dark",
   "mobile",
@@ -34,26 +26,81 @@ function extractText(node: types.Identifier | types.StringLiteral) {
 }
 
 export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
-  let id!: types.Expression;
   let stylesConnected = false;
-  const internal: Internal = {
-    get id() {
-      this.internalUsed = true;
+  const used = new Set<string>();
+  const ids = {
+    ref: "VasilleRef",
+    expr: "VasilleExpr",
+    forward: "VasilleForward",
+    backward: "VasilleBackward",
+    setModel: "VasilleSetModel",
+    mapModel: "VasilleMapModel",
+    arrayModel: "VasilleArrayModel",
+    ensure: "VasilleEnsure",
+    match: "VasilleMatch",
+    set: "VasilleSet",
+  };
 
-      return id;
-    },
-    set id(expr: types.Expression) {
-      id = expr;
-    },
+  function call(
+    key: keyof typeof ids,
+    args: (types.Expression | types.SpreadElement | types.ArgumentPlaceholder)[],
+  ): types.CallExpression {
+    used.add(key);
+
+    if (internal.global) {
+      return t.callExpression(t.memberExpression(t.identifier(internal.global), t.identifier(key)), args);
+    }
+
+    return t.callExpression(t.identifier(ids[key]), args);
+  }
+
+  const internal: Internal = {
     stack: new StackedStates(),
     mapping: new Map<string, string>(),
     global: "",
     prefix: "Vasille_",
     importStatement: null,
-    internalUsed: false,
     stateOnly: false,
     devMode: devMode,
+    ref(arg) {
+      return call("ref", arg ? [arg] : []);
+    },
+    expr(func, values) {
+      return call("expr", [getCtx(), func, values]);
+    },
+    forward(arg) {
+      return call("forward", [getCtx(), arg]);
+    },
+    backward(arg) {
+      return call("backward", [arg]);
+    },
+    setModel(arg) {
+      return call("setModel", arg ? [getCtx(), arg] : [getCtx()]);
+    },
+    mapModel(arg) {
+      return call("mapModel", arg ? [getCtx(), arg] : [getCtx()]);
+    },
+    arrayModel(arg) {
+      return call("arrayModel", arg ? [getCtx(), arg] : [getCtx()]);
+    },
+    ensure(arg) {
+      return call("ensure", [arg]);
+    },
+    match(name, arg) {
+      return call("match", arg ? [name, arg] : [name]);
+    },
+    set(obj, field, value) {
+      return call("set", [obj, field, value]);
+    },
   };
+
+  function getCtx() {
+    if (internal.isComposing) {
+      return ctx;
+    }
+
+    return t.nullLiteral();
+  }
 
   for (const statementPath of path.get("body")) {
     const statement = statementPath.node;
@@ -68,23 +115,23 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
           /* istanbul ignore else */
           if (t.isImportNamespaceSpecifier(specifier)) {
             internal.global = specifier.local.name;
-            /* istanbul ignore else */
-            if (statement.source.value === "vasille-web") {
-              stylesConnected = true;
-            }
-            internal.id = t.memberExpression(t.identifier(internal.global), t.identifier("$"));
+            stylesConnected = true;
           } else if (t.isImportSpecifier(specifier)) {
             const imported = extractText(specifier.imported);
             const local = specifier.local.name;
+
+            if (imported === "bind" || imported === "calculate") {
+              ids.expr = local;
+            }
+            if (imported in ids) {
+              ids[imported] = local;
+            }
 
             internal.mapping.set(local, imported);
             if (imported === "styleSheet") {
               stylesConnected = true;
             }
 
-            if (!id) {
-              internal.id = t.identifier(name);
-            }
             internal.importStatement = statementPath as NodePath<types.ImportDeclaration>;
           }
         }
@@ -99,32 +146,44 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
           }
         });
       }
-    } else {
-      if (!id) {
-        return;
-      } else if (!stylesConnected || !findStyleInNode(statementPath, internal)) {
-        meshStatement(statementPath, internal);
-      }
+    } else if (!stylesConnected || !findStyleInNode(statementPath, internal)) {
+      meshStatement(statementPath, internal);
     }
   }
 
-  if (internal.internalUsed && !internal.global && internal.importStatement) {
-    const statementPath = internal.importStatement;
-    const statement = statementPath.node;
-
-    statementPath.replaceWith(
+  if (used.size > 0 && !internal.importStatement) {
+    path.get("body")[0].insertBefore(
       t.importDeclaration(
-        [
-          ...statement.specifiers.filter(item => {
-            /* istanbul ignore else */
-            if (t.isImportSpecifier(item) && t.isIdentifier(item.local)) {
-              return statementPath.scope.bindings[item.local.name].referenced;
-            }
-          }),
-          t.importSpecifier(internal.id as types.Identifier, t.identifier("$")),
-        ],
-        statement.source,
+        [...used].map(name => {
+          return t.importSpecifier(t.identifier(ids[name]), t.identifier(name));
+        }),
+        t.stringLiteral("vasille-web"),
       ),
     );
+  }
+
+  if (used.size > 0 && !internal.global && internal.importStatement) {
+    const statementPath = internal.importStatement;
+    const statement = statementPath.node;
+    // This filter removes unused imports
+    const specifiers = statement.specifiers.filter(item => {
+      /* istanbul ignore else */
+      if (t.isImportSpecifier(item) && t.isIdentifier(item.local)) {
+        return statementPath.scope.bindings[item.local.name].referenced;
+      }
+    });
+
+    for (const name of used) {
+      // This code adds missing used imports
+      if (
+        !specifiers.find(specifier => {
+          return t.isImportSpecifier(specifier) && extractText(specifier.imported) === name;
+        })
+      ) {
+        specifiers.push(t.importSpecifier(t.identifier(ids[name]), t.identifier(name)));
+      }
+    }
+
+    statement.specifiers = specifiers;
   }
 }

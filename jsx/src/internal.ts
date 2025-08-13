@@ -68,6 +68,25 @@ export function ensure(data: unknown) {
 }
 
 /**
+ * Used for destruction with computed values
+ * 1. `{[a]: a1} = {x: 2}` to `{[a]: a1 = match("a1")} = {x: 2}`
+ * 1. `{[a]: a1 = 3} = {x: 2}` to `{[a]: a1 = match("a1", 3)} = {x: 2}`
+ */
+export function match(name: string, data?: unknown) {
+    const iValueRequired = name.startsWith("$");
+    const isIValue = data instanceof IValue;
+
+    if (iValueRequired && !isIValue) {
+        return new Reference(data);
+    }
+    if (!iValueRequired && isIValue) {
+        return data.V;
+    }
+
+    return data;
+}
+
+/**
  * Set a value of a field (alternative to proxies)
  * 1. `obj.$key = 23` to `set(obj, "$key", 23)`
  * 2. `arr[0] = 23` to `set(arr, 0, 23)`

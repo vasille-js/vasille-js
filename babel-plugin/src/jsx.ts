@@ -92,7 +92,6 @@ function transformJsxExpressionContainer(
       path.get("expression") as NodePath<types.FunctionExpression | types.ArrowFunctionExpression>,
       internal,
       isInternalSlot,
-      "slot",
     );
 
     if (!isInternalSlot) {
@@ -112,13 +111,7 @@ function transformJsxExpressionContainer(
   }
 
   const exprPath = path.get("expression") as NodePath<types.Expression>;
-  let call = exprCall(exprPath, expression, internal);
-
-  if (!call && t.isIdentifier(expression) && internal.stack.get(expression.name) === VariableState.ReactiveObject) {
-    call = t.callExpression(t.memberExpression(internal.id, t.identifier("rop")), [expression]);
-  }
-
-  const result = call ?? exprPath.node;
+  const result = exprCall(exprPath, expression, internal) ?? exprPath.node;
 
   result.loc = loc;
 
