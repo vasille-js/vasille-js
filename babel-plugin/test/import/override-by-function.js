@@ -4,4 +4,4 @@ export const C = compose(Vasille => {
     return 3;
   }
   const sum = compose() + 2;
-}, "VasilleWeb:C");
+}, "C");

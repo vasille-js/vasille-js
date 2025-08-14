@@ -1,7 +1,8 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { calls, composeOnly } from "./call.js";
-import { Internal, StackedStates, VariableScope, VariableState } from "./internal.js";
+import { Internal, StackedStates } from "./internal.js";
+import { err, Errors } from "./lib";
 import { ignoreParams } from "./mesh";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
@@ -27,11 +28,17 @@ function insertName(name: string, search?: Search): types.Identifier {
 }
 
 function addIdentifier(path: NodePath<types.Identifier>, search: Search) {
-  if (!search.found.has(path.node.name)) {
-    search.found.set(path.node.name, path.node);
+  const name = unprefixedName(path.node.name);
+
+  if (!search.found.has(name)) {
+    search.found.set(name, path.node);
   }
 
-  path.replaceWith(insertName(path.node.name, search));
+  path.replaceWith(insertName(name, search));
+}
+
+function unprefixedName(name: string): string {
+  return name[0] === "$" ? name.slice(1) : name;
 }
 
 function extractMemberName(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, search: Search) {
@@ -42,14 +49,14 @@ function extractMemberName(path: NodePath<types.MemberExpression | types.Optiona
     const name = stringify(it.property);
 
     if (name.startsWith("$") && it !== path.node) {
-      throw path.buildCodeFrameError("Vasille: The reactive/observable value is nested");
+      err(Errors.RulesOfVasille, path, "The reactive/observable value is nested", search.external, null);
     }
 
     it = it.object;
-    names.push(name);
+    names.push(unprefixedName(name));
   }
 
-  names.push(stringify(it));
+  names.push(unprefixedName(stringify(it)));
 
   return names.reverse().join("_");
 }
@@ -60,15 +67,6 @@ function addMemberExpr(path: NodePath<types.MemberExpression | types.OptionalMem
   /* istanbul ignore else */
   if (!search.found.has(name)) {
     search.found.set(name, path.node);
-  }
-  path.replaceWith(insertName(name, search));
-}
-
-function addExternalIValue(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, search: Search) {
-  const name = extractMemberName(path, search);
-
-  if (!search.found.has(name)) {
-    search.found.set(name, path.node.object);
   }
   path.replaceWith(insertName(name, search));
 }
@@ -105,19 +103,19 @@ function meshLValue(
   const node = path.node;
 
   /* istanbul ignore else */
-  if (t.isIdentifier(node)) {
-    meshIdentifier(path as NodePath<types.Identifier>);
-  } else if (t.isMemberExpression(node) || t.isOptionalMemberExpression(node)) {
-    meshMember(path as NodePath<types.MemberExpression | types.OptionalMemberExpression>);
-  } else if (t.isArrayPattern(node)) {
-    for (const item of (path as NodePath<types.ArrayPattern>).get("elements")) {
+  if (path.isIdentifier()) {
+    meshIdentifier(path);
+  } else if (path.isMemberExpression() || path.isOptionalMemberExpression()) {
+    meshMember(path);
+  } else if (path.isArrayPattern()) {
+    for (const item of path.get("elements")) {
       /* istanbul ignore else */
-      if (t.isOptionalMemberExpression(item.node) || t.isLVal(item.node)) {
-        meshLValue(item as NodePath<types.OptionalMemberExpression | types.LVal | null | undefined>, internal);
+      if (item.isOptionalMemberExpression() || item.isLVal()) {
+        meshLValue(item, internal);
       }
     }
-  } else if (t.isRestElement(node)) {
-    meshLValue((path as NodePath<types.RestElement>).get("argument"), internal);
+  } else if (path.isRestElement()) {
+    meshLValue(path.get("argument"), internal);
   }
 }
 
@@ -130,12 +128,12 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
     stack: internal.stack,
   };
 
-  if (t.isIdentifier(path.node)) {
-    if (idIsIValue(path as NodePath<types.Identifier>)) {
+  if (path.isIdentifier()) {
+    if (idIsIValue(path)) {
       search.self = path.node;
     }
   }
-  if (t.isMemberExpression(path.node)) {
+  if (path.isMemberExpression()) {
     if (memberIsIValue(path.node)) {
       search.self = path.node;
     } else if (t.isIdentifier(path.node.property) && path.node.property.name === "$") {
@@ -151,8 +149,8 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
   internal.stack.push();
 
   /* istanbul ignore else */
-  if (t.isExpression(path.node)) {
-    checkExpression(path as NodePath<types.Expression>, search);
+  if (path.isExpression()) {
+    checkExpression(path, search);
   }
 
   internal.stack.pop();
@@ -167,8 +165,8 @@ export function checkOrIgnoreAllExpressions<T extends types.Node>(
 ) {
   for (const path of nodePaths) {
     /* istanbul ignore else */
-    if (t.isExpression(path.node)) {
-      checkExpression(path as NodePath<types.Expression>, search);
+    if (path.isExpression()) {
+      checkExpression(path, search);
     }
   }
 }
@@ -185,10 +183,10 @@ export function checkAllUnknown(
 ) {
   for (const path of paths) {
     /* istanbul ignore else */
-    if (t.isSpreadElement(path.node)) {
-      checkExpression((path as NodePath<types.SpreadElement>).get("argument"), internal);
-    } else if (t.isExpression(path.node)) {
-      checkExpression(path as NodePath<types.Expression>, internal);
+    if (path.isSpreadElement()) {
+      checkExpression(path.get("argument"), internal);
+    } else if (path.isExpression()) {
+      checkExpression(path, internal);
     }
   }
 }
@@ -198,8 +196,8 @@ export function checkOrIgnoreExpression<T extends types.Node>(
   search: Search,
 ) {
   /* istanbul ignore else */
-  if (t.isExpression(path.node)) {
-    checkExpression(path as NodePath<types.Expression>, search);
+  if (path.isExpression()) {
+    checkExpression(path, search);
   }
 }
 
@@ -222,9 +220,9 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     }
     case "Identifier": {
       /* istanbul ignore else */
-      if (expr && t.isIdentifier(expr)) {
-        if (idIsIValue(nodePath as NodePath<types.Identifier>)) {
-          addIdentifier(nodePath as NodePath<types.Identifier>, search);
+      if (expr && nodePath.isIdentifier()) {
+        if (idIsIValue(nodePath)) {
+          addIdentifier(nodePath, search);
         }
       }
       break;
@@ -242,11 +240,11 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
         if (!search.external.stateOnly) {
           routerReplace(path);
         } else {
-          throw path.buildCodeFrameError("Vasille: The router is not available in stores");
+          err(Errors.IncompatibleContext, path, "The router is not available in stores", search.external, null);
         }
       } else {
         if (calls(path, composeOnly, search.external)) {
-          throw path.buildCodeFrameError("Vasille: Usage of hints is restricted here");
+          err(Errors.IncompatibleContext, path, "Usage of hints is restricted here", search.external, null);
         }
 
         checkOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), search);
@@ -274,8 +272,6 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
 
       if (memberIsIValue(node)) {
         addMemberExpr(path, search);
-      } else if (t.isIdentifier(node.property) && node.property.name === "$") {
-        addExternalIValue(path, search);
       } else {
         checkExpression(path.get("object"), search);
         checkOrIgnoreExpression<types.PrivateName>(path.get("property"), search);
@@ -403,10 +399,12 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       break;
     }
     case "JSXFragment": {
-      throw nodePath.buildCodeFrameError("Vasille: JSX fragment is not allowed here");
+      err(Errors.IncompatibleContext, nodePath, "JSX fragment is not allowed here", search.external, null);
+      break;
     }
     case "JSXElement": {
-      throw nodePath.buildCodeFrameError("Vasille: JSX element is not allowed here");
+      err(Errors.IncompatibleContext, nodePath, "JSX element is not allowed here", search.external, null);
+      break;
     }
   }
 }

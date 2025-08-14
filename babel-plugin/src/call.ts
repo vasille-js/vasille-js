@@ -1,6 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { Internal, ctx } from "./internal.js";
+import { ctx, Internal } from "./internal.js";
+import { err, Errors } from "./lib";
 
 export type FnNames =
   | "compose"
@@ -61,14 +62,14 @@ function checkCall<T extends string>(
 
   if (requiresContextSet.has(name) && t.isCallExpression(node)) {
     if (internal.stateOnly) {
-      throw path.buildCodeFrameError(`Vasille: ${name} function can be used only in components`);
+      err(Errors.RulesOfVasille, path, `Function "${name}" can be used only in components`, internal);
     }
     node.arguments.unshift(ctx);
   }
   if (name === "store") {
     internal.stateOnly = true;
   }
-  if (["compose", "view", "mvcView", "mvvmView", "hybridView", "screen"].includes(name)) {
+  if (["compose", "view", "screen"].includes(name)) {
     internal.stateOnly = false;
   }
 

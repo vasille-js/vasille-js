@@ -1,5 +1,4 @@
 import { NodePath, types } from "@babel/core";
-import { ArrayExpression, CallExpression } from "@babel/types";
 import * as t from "@babel/types";
 import { ctx, Internal, StackedStates } from "./internal.js";
 import { meshStatement } from "./mesh.js";
@@ -120,7 +119,7 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
             const imported = extractText(specifier.imported);
             const local = specifier.local.name;
 
-            if (imported === "bind" || imported === "calculate") {
+            if (imported === "bind" || imported === "calculate" || imported === "watch") {
               ids.expr = local;
             }
             if (imported in ids) {
@@ -151,7 +150,7 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
     }
   }
 
-  if (used.size > 0 && !internal.importStatement) {
+  if (used.size > 0 && !internal.importStatement && !internal.global) {
     path.get("body")[0].insertBefore(
       t.importDeclaration(
         [...used].map(name => {
@@ -177,7 +176,7 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
       // This code adds missing used imports
       if (
         !specifiers.find(specifier => {
-          return t.isImportSpecifier(specifier) && extractText(specifier.imported) === name;
+          return t.isImportSpecifier(specifier) && [name, ids[name]].includes(extractText(specifier.imported));
         })
       ) {
         specifiers.push(t.importSpecifier(t.identifier(ids[name]), t.identifier(name)));
@@ -185,5 +184,9 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
     }
 
     statement.specifiers = specifiers;
+  }
+
+  if (internal.firstError) {
+    throw internal.firstError;
   }
 }

@@ -1,4 +1,4 @@
-import { compose } from "vasille-web";
+import { compose, ref as VasilleRef } from "vasille-web";
 export const C = compose(Vasille => {
-  const a = Vasille.ref(3, "a");
-}, "VasilleWeb:C");
+  const $a = VasilleRef(3, "a");
+}, "C");

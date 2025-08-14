@@ -1,7 +1,8 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { FnNames, calls } from "./call.js";
+import { calls, FnNames } from "./call.js";
 import { Internal } from "./internal.js";
+import { err, Errors } from "./lib";
 
 function tryProcessProp(
   path: NodePath<types.ObjectProperty | types.ObjectMethod | types.SpreadElement>,
@@ -9,11 +10,11 @@ function tryProcessProp(
   media: string,
   internal: Internal,
 ): Rule[] {
-  if (t.isObjectMethod(path.node)) {
-    throw path.buildCodeFrameError("Vasille: Object methods not supported here");
+  if (path.isObjectMethod()) {
+    return err(Errors.TokenNotSupported, path, "Object methods not supported here", internal, []);
   }
-  if (t.isSpreadElement(path.node)) {
-    throw path.buildCodeFrameError("Vasille: Spread element not supported here");
+  if (path.isSpreadElement()) {
+    return err(Errors.TokenNotSupported, path, "Spread element not supported here", internal, []);
   }
 
   return processProp(path as NodePath<types.ObjectProperty>, pseudo, media, internal);
@@ -43,7 +44,7 @@ function processValue(
     const call = path.node as types.CallExpression;
 
     if (theme) {
-      throw path.buildCodeFrameError("Vasille: The theme seems the be defined twice");
+      err(Errors.Dilemma, path, "The theme seems the be defined twice", internal, false);
     }
     if (t.isStringLiteral(call.arguments[0])) {
       return processValue(
@@ -57,14 +58,18 @@ function processValue(
         internal,
       );
     } else {
-      throw (path as NodePath<types.CallExpression>)
-        .get("arguments")[0]
-        .buildCodeFrameError("Vasille: Expected string literal");
+      return err(
+        Errors.TokenNotSupported,
+        (path as NodePath<types.CallExpression>).get("arguments")[0],
+        "Expected string literal",
+        internal,
+        false,
+      );
     }
   }
   if (calls(path, ["dark"], internal)) {
     if (theme) {
-      throw path.buildCodeFrameError("Vasille: The theme seem the be defined twice");
+      err(Errors.Dilemma, path, "The theme seems the be defined twice", internal);
     }
 
     return processValue(
@@ -131,13 +136,13 @@ function processValue(
         ];
   }
 
-  if (t.isStringLiteral(path.node)) {
+  if (path.isStringLiteral()) {
     return composeRules(path.node.value);
   }
-  if (t.isNumericLiteral(path.node)) {
+  if (path.isNumericLiteral()) {
     return composeRules(`${path.node.value}px`);
   }
-  if (t.isArrayExpression(path.node)) {
+  if (path.isArrayExpression()) {
     if (path.node.elements.every(item => t.isNumericLiteral(item))) {
       return composeRules(path.node.elements.map(item => `${(item as types.NumericLiteral).value}px`).join(" "));
     } else if (allowFallback) {
@@ -145,7 +150,7 @@ function processValue(
         ...(path as NodePath<types.ArrayExpression>)
           .get("elements")
           .map(path => {
-            if (t.isExpression(path.node)) {
+            if (path.isExpression()) {
               return processValue(
                 name,
                 path as NodePath<types.Expression>,
@@ -157,17 +162,17 @@ function processValue(
                 internal,
               );
             } else {
-              throw path.buildCodeFrameError("Vasille: Expected expression");
+              err(Errors.TokenNotSupported, path, "Expected expression", internal);
             }
           })
           .flat(1),
       ];
     } else {
-      throw path.buildCodeFrameError("Vasille: Only numbers arrays are supported here");
+      err(Errors.TokenNotSupported, path, "Only numbers arrays are supported here", internal);
     }
   }
 
-  throw path.buildCodeFrameError("Vasille: Failed o parse value, it is not a string, number or array");
+  err(Errors.ParserError, path, "Failed o parse value, it is not a string, number or array", internal, null);
 }
 
 function processProp(path: NodePath<types.ObjectProperty>, pseudo: string, media: string, internal: Internal): Rule[] {
@@ -178,37 +183,52 @@ function processProp(path: NodePath<types.ObjectProperty>, pseudo: string, media
   } else if (t.isStringLiteral(path.node.key)) {
     name = path.node.key.value;
   } else {
-    throw path.get("key").buildCodeFrameError("Vasille: Incompatible key, expect identifier or string literal");
+    return err(
+      Errors.TokenNotSupported,
+      path.get("key"),
+      "Incompatible key, expect identifier or string literal",
+      internal,
+      [],
+    );
   }
+
+  const valuePath = path.get("value");
 
   if (name.startsWith("@")) {
     if (media || pseudo) {
-      throw path.get("key").buildCodeFrameError("Vasille: Media queries allowed only in the root of style");
+      return err(
+        Errors.TokenNotSupported,
+        path.get("key"),
+        "Media queries allowed only in the root of style",
+        internal,
+        [],
+      );
     }
-    if (t.isObjectExpression(path.node.value)) {
-      return (path.get("value") as NodePath<types.ObjectExpression>)
+
+    if (valuePath.isObjectExpression()) {
+      return valuePath
         .get("properties")
         .map(item => {
           return tryProcessProp(item, "", name, internal);
         })
         .flat(1);
     } else {
-      throw path.get("value").buildCodeFrameError("Vasille: Expected object expression");
+      err(Errors.TokenNotSupported, path.get("value"), "Expected object expression", internal, []);
     }
   }
   if (name.startsWith(":")) {
     if (pseudo) {
-      throw path.get("key").buildCodeFrameError("Vasille: Recursive pseudo classes are restricted");
+      err(Errors.ParserError, path.get("key"), "Recursive pseudo classes are restricted", internal, []);
     }
-    if (t.isObjectExpression(path.node.value)) {
-      return (path.get("value") as NodePath<types.ObjectExpression>)
+    if (valuePath.isObjectExpression()) {
+      return valuePath
         .get("properties")
         .map(item => {
           return tryProcessProp(item, name, media, internal);
         })
         .flat(1);
     } else {
-      throw path.get("value").buildCodeFrameError("Vasille: Expected object expression");
+      err(Errors.TokenNotSupported, path.get("value"), "Expected object expression", internal, []);
     }
   }
 
@@ -216,39 +236,37 @@ function processProp(path: NodePath<types.ObjectProperty>, pseudo: string, media
 }
 
 export function findStyleInNode(path: NodePath<types.Node | null | undefined>, internal: Internal) {
-  if (t.isExportNamedDeclaration(path.node)) {
-    return findStyleInNode((path as NodePath<types.ExportNamedDeclaration>).get("declaration"), internal);
+  if (path.isExportNamedDeclaration()) {
+    return findStyleInNode(path.get("declaration"), internal);
   }
 
   if (
-    t.isVariableDeclaration(path.node) &&
+    path.isVariableDeclaration() &&
     path.node.declarations.length === 1 &&
     calls(path.get("declarations")[0].get("init"), ["styleSheet"], internal)
   ) {
     const call = path.node.declarations[0].init as types.CallExpression;
-    const callPath = (path as NodePath<types.VariableDeclaration>)
-      .get("declarations")[0]
-      .get("init") as NodePath<types.CallExpression>;
+    const callPath = path.get("declarations")[0].get("init") as NodePath<types.CallExpression>;
     const objPath = callPath.get("arguments")[0] as NodePath<types.ObjectExpression>;
 
     if (call.arguments.length !== 1) {
-      throw callPath.buildCodeFrameError("Vasille: styleSheet function has 1 parameter");
+      return err(Errors.IncorrectArguments, callPath, "styleSheet function has 1 parameter", internal, true);
     }
     if (!t.isObjectExpression(call.arguments[0])) {
-      throw objPath.buildCodeFrameError("Vasille: Expected object expression");
+      return err(Errors.TokenNotSupported, objPath, "Expected object expression", internal, true);
     }
 
     for (const path of objPath.get("properties")) {
-      if (!t.isObjectProperty(path.node)) {
-        throw path.buildCodeFrameError("Vasille: Expected object property");
+      if (!path.isObjectProperty()) {
+        return err(Errors.TokenNotSupported, path, "Expected object property", internal, true);
       }
-      const prop = path as NodePath<types.ObjectProperty>;
+      const valuePath = path.get("value");
 
-      if (!t.isObjectExpression(prop.node.value)) {
-        throw prop.get("value").buildCodeFrameError("Vasille: Expected object expression");
+      if (!valuePath.isObjectExpression()) {
+        return err(Errors.TokenNotSupported, path, "Expected object expression", internal, true);
       }
-      if (!((t.isIdentifier(prop.node.key) && !prop.node.computed) || t.isStringLiteral(prop.node.key))) {
-        throw prop.get("key").buildCodeFrameError("Vasille: Expected identifier of string literal");
+      if (!((t.isIdentifier(path.node.key) && !path.node.computed) || t.isStringLiteral(path.node.key))) {
+        return err(Errors.TokenNotSupported, path.get("key"), "Expected identifier of string literal", internal, true);
       }
 
       const unsorted: Rule[] = [];
@@ -262,7 +280,7 @@ export function findStyleInNode(path: NodePath<types.Node | null | undefined>, i
         };
       } = {};
 
-      for (const path of (prop.get("value") as NodePath<types.ObjectExpression>).get("properties")) {
+      for (const path of valuePath.get("properties")) {
         unsorted.push(...tryProcessProp(path, "", "", internal));
       }
       for (const rule of unsorted) {
@@ -312,7 +330,7 @@ export function findStyleInNode(path: NodePath<types.Node | null | undefined>, i
         }
       }
 
-      prop.get("value").replaceWith(t.arrayExpression(expressions));
+      valuePath.replaceWith(t.arrayExpression(expressions));
     }
 
     return true;
