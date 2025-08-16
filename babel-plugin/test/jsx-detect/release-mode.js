@@ -11,5 +11,4 @@ export const C = compose(Vasille => {
   };
   const $f = VasilleRef(4);
   const $g = VasilleRef($a.V + $f.V);
-  ;
 });
