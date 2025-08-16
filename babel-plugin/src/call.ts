@@ -31,28 +31,13 @@ export type FnNames =
   | "prefersLight"
   | "styleSheet";
 
-export const composeFunctions = [
-  "compose", "store", "view", "component"
-] as const satisfies FnNames[];
+export const composeFunctions = ["compose", "store", "view", "component"] as const satisfies FnNames[];
 
-export const reactivityFunctions = [
-  "ref",
-  "awaited",
-  "backward",
-] as const satisfies FnNames[]
+export const reactivityFunctions = ["ref", "awaited", "backward"] as const satisfies FnNames[];
 
-export const bindFunctions = [
-  "forward",
-  "watch",
-  "calculate",
-  "bind",
-] as const  satisfies FnNames[]
+export const bindFunctions = ["forward", "watch", "calculate", "bind"] as const satisfies FnNames[];
 
-export const modelFunctions = [
-  "arrayModel",
-  "mapModel",
-  "setModel",
-] as const satisfies FnNames[];
+export const modelFunctions = ["arrayModel", "mapModel", "setModel"] as const satisfies FnNames[];
 
 export const composeOnly = ["router", "runOnDestroy"] as const satisfies FnNames[];
 export const styleOnly = [
@@ -66,7 +51,6 @@ export const styleOnly = [
   "styleSheet",
 ] as const satisfies FnNames[];
 
-
 export const hintFunctions: FnNames[] = [
   ...reactivityFunctions,
   ...composeFunctions,
@@ -74,8 +58,7 @@ export const hintFunctions: FnNames[] = [
   ...modelFunctions,
   ...composeOnly,
   ...styleOnly,
-]
-
+];
 
 function checkCall<T extends string>(
   path: NodePath<types.Expression | null | undefined>,
@@ -92,11 +75,7 @@ function checkCall<T extends string>(
   return name;
 }
 
-export function calls(
-  path: NodePath<types.CallExpression>,
-  names: FnNames[],
-  internal: Internal,
-): boolean;
+export function calls(path: NodePath<types.CallExpression>, names: FnNames[], internal: Internal): boolean;
 export function calls(
   path: NodePath<types.Expression | null | undefined>,
   names: FnNames[],

@@ -1,12 +1,12 @@
-import { For, compose, Debug, $ as VasilleWeb } from "vasille-web";
+import { For, compose, Debug, arrayModel as VasilleArrayModel, mapModel as VasilleMapModel, ref as VasilleRef } from "vasille-web";
 export const C = compose(Vasille => {
-  const a = VasilleWeb.am(Vasille, [1, 2, 3], "a");
-  const map = VasilleWeb.mm(Vasille, [["x", 1]], "map");
+  const a = VasilleArrayModel(Vasille, [1, 2, 3], "a");
+  const map = VasilleMapModel(Vasille, [["x", 1]], "map");
   For({
     of: a,
     slot: (Vasille, value) => {
       Debug({
-        model: value
+        "$model": VasilleRef(value)
       }, Vasille);
     }
   }, Vasille);
@@ -16,4 +16,4 @@ export const C = compose(Vasille => {
       console.log(value, key);
     }
   }, Vasille);
-}, "VasilleWeb:C");
+}, "C");

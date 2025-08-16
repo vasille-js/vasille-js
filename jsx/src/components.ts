@@ -7,6 +7,7 @@ import {
     MapView,
     SetModel,
     SetView,
+    SwitchedNode,
     userError,
     Watch as CoreWatch,
 } from "vasille";
@@ -26,6 +27,22 @@ export function Slot<Node, Element, TagOptions extends object, T extends object 
     } else {
         (slot ?? defaultSlot)?.(ctx);
     }
+}
+
+interface SwitchOptions<Node, Element, TagOptions extends object> {
+    cases: {
+        $case: IValue<unknown>;
+        slot: (ctx: Fragment<Node, Element, TagOptions>) => void;
+    }[];
+    default?: (ctx: Fragment<Node, Element, TagOptions>) => void;
+    slot?: never;
+}
+
+export function Switch<Node, Element, TagOptions extends object>(
+    options: SwitchOptions<Node, Element, TagOptions>,
+    ctx: Fragment<Node, Element, TagOptions>,
+) {
+    ctx.create(new SwitchedNode(ctx.runner, options.cases, options.default));
 }
 
 interface ForOptions<Node, Element, TagOptions extends object, T, K, V> {
@@ -76,11 +93,7 @@ export function For<
             new SetView(
                 {
                     model,
-                    slot: slot as unknown as (
-                        ctx: Fragment<Node, Element, TagOptions, object>,
-                        value: T,
-                        index: T,
-                    ) => void,
+                    slot: slot as unknown as (ctx: Fragment<Node, Element, TagOptions>, value: T, index: T) => void,
                 },
                 ctx.runner,
             ),

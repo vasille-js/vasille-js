@@ -18,7 +18,7 @@ export interface TagOptions {
     attr?: Record<string, AttrType<number | boolean>>;
     class?: (string | IValue<string> | Record<string, boolean | IValue<boolean>>)[];
     style?: Record<string, StyleType<string>>;
-    events?: Record<string, (...args: unknown[]) => unknown>;
+    events?: Record<string, ((...args: unknown[]) => unknown) | [(...args: unknown[]) => unknown, object | boolean]>;
     bind?: Record<string, any>;
     slot?: (ctx: Tag) => void;
     callback?: (node: Element) => void;
@@ -156,7 +156,13 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
 
         if (options.events) {
             for (const name in options.events) {
-                this.node.addEventListener(name, options.events[name]);
+                const event = options.events[name];
+
+                if (event instanceof Array) {
+                    this.node.addEventListener(name, event[0], event[1]);
+                } else {
+                    this.node.addEventListener(name, event);
+                }
             }
         }
 

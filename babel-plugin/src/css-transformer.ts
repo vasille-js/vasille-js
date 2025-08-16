@@ -162,10 +162,10 @@ function processValue(
                 internal,
               );
             } else {
-              return  err(Errors.TokenNotSupported, path, "Expected expression", internal, []);
+              return err(Errors.TokenNotSupported, path, "Expected expression", internal, []);
             }
           })
-          .flat(1)
+          .flat(1),
       ];
     } else {
       err(Errors.TokenNotSupported, path, "Only numbers arrays are supported here", internal);

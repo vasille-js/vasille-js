@@ -46,11 +46,11 @@ function extractMemberName(path: NodePath<types.MemberExpression | types.Optiona
   let it: types.Expression = path.node;
 
   while (t.isMemberExpression(it)) {
-    names.push((stringify(it.property)));
+    names.push(stringify(it.property));
     it = it.object;
   }
 
-  names.push((stringify(it)));
+  names.push(stringify(it));
 
   if (names.filter(name => name.startsWith("$")).length > 1) {
     err(Errors.RulesOfVasille, path, "The reactive/observable value is nested", search.external, null);
@@ -588,11 +588,11 @@ export function checkFunction(
     ignoreLocals(param, search);
   }
 
-  if ((t.isFunctionDeclaration(node)) && node.id) {
+  if (t.isFunctionDeclaration(node) && node.id) {
     search.stack.set(node.id.name, {});
   }
   if (t.isFunctionExpression(node) && node.id) {
-    search.stack.push()
+    search.stack.push();
     search.stack.set(node.id.name, {});
   }
 
@@ -605,6 +605,6 @@ export function checkFunction(
   }
 
   if (t.isFunctionExpression(node) && node.id) {
-    search.stack.pop()
+    search.stack.pop();
   }
 }

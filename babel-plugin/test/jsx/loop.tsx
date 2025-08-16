@@ -7,7 +7,7 @@ export const C = compose(() => {
   <For
     of={a}
     slot={value => {
-      <Debug model={value} />;
+      <Debug $model={value} />;
     }}
   />;
   <For

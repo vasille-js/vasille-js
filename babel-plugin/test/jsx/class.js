@@ -1,19 +1,19 @@
-import { compose } from "vasille-web";
+import { compose, ref as VasilleRef, expr as VasilleExpr } from "vasille-web";
 let c = "c";
 export const C = compose(Vasille => {
-  const a = Vasille.ref("a", "a");
-  const b = Vasille.ref(false, "b");
+  const $a = VasilleRef("a", "a");
+  const $b = VasilleRef(false, "b");
   Vasille.tag("div", {
     attr: {
       class: "static1 static2"
     }
   });
   Vasille.tag("div", {
-    class: [a]
+    class: [$a]
   });
   Vasille.tag("div", {
     class: [{
-      aIsB: Vasille.expr(Vasille_a => Vasille_a === "b", [a])
+      aIsB: VasilleExpr(Vasille, Vasille_a => Vasille_a === "b", [$a])
     }]
   });
   Vasille.tag("div", {
@@ -27,14 +27,14 @@ export const C = compose(Vasille => {
   Vasille.tag("div", {
     class: [{
       hover: true,
-      "b": b,
+      "b": $b,
       ...{
         active: true
       }
     }]
   });
   Vasille.tag("div", {
-    class: [...[a]]
+    class: [...[$a]]
   });
   Vasille.tag("div", {
     attr: {
@@ -48,7 +48,7 @@ export const C = compose(Vasille => {
   });
   Vasille.tag("div", {
     attr: {
-      class: Vasille.expr(Vasille_a => `${Vasille_a} b`, [a])
+      class: VasilleExpr(Vasille, Vasille_a => `${Vasille_a} b`, [$a])
     }
   });
   Vasille.tag("div", {
@@ -58,7 +58,7 @@ export const C = compose(Vasille => {
   });
   Vasille.tag("div", {
     attr: {
-      class: a
+      class: $a
     }
   });
-}, "VasilleWeb:C");
+}, "C");

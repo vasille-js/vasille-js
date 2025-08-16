@@ -1,4 +1,5 @@
 import { NodePath, types } from "@babel/core";
+import { CallExpression, ObjectExpression } from "@babel/types";
 import * as t from "@babel/types";
 import { ctx, Internal, StackedStates } from "./internal.js";
 import { meshStatement } from "./mesh.js";
@@ -17,6 +18,9 @@ const ignoreMembers = new Set([
   "bridge",
   "router",
   "runOnDestroy",
+  "If",
+  "ElseIf",
+  "Else",
 ]);
 
 function extractText(node: types.Identifier | types.StringLiteral) {
@@ -38,6 +42,7 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
     ensure: "VasilleEnsure",
     match: "VasilleMatch",
     set: "VasilleSet",
+    Switch: "VasilleSwitch",
   };
 
   function call(
@@ -90,6 +95,9 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
     },
     set(obj, field, value) {
       return call("set", [obj, field, value]);
+    },
+    Switch(arg) {
+      return call("Switch", [arg, ctx]);
     },
   };
 

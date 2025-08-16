@@ -3,7 +3,7 @@ import * as t from "@babel/types";
 import { calls, composeFunctions, hintFunctions, modelFunctions, reactivityFunctions } from "./call.js";
 import { checkNode, idIsIValue, memberIsIValue } from "./expression.js";
 import { ctx, Internal, VariableState } from "./internal.js";
-import { transformJsx } from "./jsx.js";
+import { ConditionCollection, processConditions, transformJsx } from "./jsx.js";
 import {
   arrayModel,
   err,
@@ -54,7 +54,7 @@ export function meshComposeCall(
     );
   }
 
-  compose(arg, internal, false);
+  compose(arg, internal, false, false);
   arg.node.params.unshift(ctx);
 
   if (internal.devMode && path.isCallExpression()) {
@@ -130,7 +130,7 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
     }
     case "CallExpression":
     case "OptionalCallExpression": {
-      const path = nodePath ;
+      const path = nodePath;
       const argPath = path.get("arguments")[0];
 
       // compose call
@@ -781,7 +781,14 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
       if (internal.stateOnly) {
         return err(Errors.IncompatibleContext, path, "JSX is not allowed in states", internal);
       }
-      path.replaceWithMultiple(transformJsx(path as NodePath<types.JSXElement | types.JSXFragment>, internal));
+      const conditions: ConditionCollection = {cases: null};
+
+      path.replaceWithMultiple(
+        [
+          ...transformJsx(path as NodePath<types.JSXElement | types.JSXFragment>, conditions, internal),
+          ...processConditions(conditions, internal),
+        ]
+      );
       break;
     default:
       meshExpression(path, internal);
@@ -973,13 +980,13 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             checkNonReactiveName();
           }
           // const map = mapModel();
-          else if ((calls(initPath, ["mapModel"], internal))) {
+          else if (calls(initPath, ["mapModel"], internal)) {
             processModelCall(initPath, "Map", kind === "const", internal, idName());
             meshInit = false;
             checkNonReactiveName();
           }
           // const set = setModel();
-          else if ((calls(initPath, ["setModel"], internal))) {
+          else if (calls(initPath, ["setModel"], internal)) {
             processModelCall(initPath, "Set", kind === "const", internal, idName());
             meshInit = false;
             checkNonReactiveName();
@@ -1006,7 +1013,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             checkNonReactiveName();
           }
           // const s = new Set(), const m = new Map()
-          else if (initPath.isNewExpression()  && t.isIdentifier(initPath.node.callee)) {
+          else if (initPath.isNewExpression() && t.isIdentifier(initPath.node.callee)) {
             const name = initPath.node.callee.name;
 
             if (name === "Map" || name === "Set") {
@@ -1066,6 +1073,7 @@ export function compose(
   path: NodePath<types.ArrowFunctionExpression | types.FunctionExpression | types.FunctionDeclaration>,
   internal: Internal,
   isInternalSlot: boolean,
+  isSlot: boolean,
 ) {
   internal.stack.push();
 
@@ -1085,7 +1093,9 @@ export function compose(
     ignoreParams(param, internal);
   }
 
-  internal.isComposing = true;
+  if (!isSlot) {
+    internal.isComposing = true;
+  }
 
   /* istanbul ignore else */
   if (t.isExpression(body)) {
@@ -1094,7 +1104,9 @@ export function compose(
     composeStatement(path.get("body") as NodePath<types.BlockStatement>, internal);
   }
 
-  internal.isComposing = false;
+  if (!isSlot) {
+    internal.isComposing = false;
+  }
 
   internal.stack.pop();
 }

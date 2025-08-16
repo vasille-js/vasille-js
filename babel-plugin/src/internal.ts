@@ -76,6 +76,7 @@ export interface Internal {
   ensure(arg: types.Expression): types.CallExpression;
   match(name: types.Expression, arg?: types.Expression | null): types.CallExpression;
   set(obj: types.Expression, field: types.Expression, value: types.Expression): types.CallExpression;
+  Switch(arg: types.ObjectExpression): types.CallExpression;
 }
 
 export const ctx = t.identifier("Vasille");

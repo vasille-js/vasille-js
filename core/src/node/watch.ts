@@ -11,12 +11,7 @@ interface WatchOptions<Node, Element, TagOptions extends object, T> {
  * @class Watch
  * @extends Fragment
  */
-export class Watch<Node, Element, TagOptions extends object, T> extends Fragment<
-    Node,
-    Element,
-    TagOptions,
-    WatchOptions<Node, Element, TagOptions, T>
-> {
+export class Watch<Node, Element, TagOptions extends object, T> extends Fragment<Node, Element, TagOptions> {
     private readonly model: IValue<T>;
     private readonly slot?: (ctx: Fragment<Node, Element, TagOptions>, value: T) => void;
     private handler?: (value: T) => void;

@@ -209,20 +209,24 @@ export function mapModel(args: types.CallExpression["arguments"], internal: Inte
   return named(internal.mapModel(args[0]), name, internal, 2);
 }
 
-export function processModelCall(path: NodePath<types.CallExpression|types.NewExpression>, type: "Map"|"Set"|"Array", isConst: boolean, internal: Internal, name?: string) {
-  const args = (path.node).arguments;
+export function processModelCall(
+  path: NodePath<types.CallExpression | types.NewExpression>,
+  type: "Map" | "Set" | "Array",
+  isConst: boolean,
+  internal: Internal,
+  name?: string,
+) {
+  const args = path.node.arguments;
 
   if (!isConst) {
-    err(
-      Errors.RulesOfVasille,
-      path,
-      `Vasille: ${type} models must be declared as constants`,
-      internal,
-    );
+    err(Errors.RulesOfVasille, path, `Vasille: ${type} models must be declared as constants`, internal);
   }
   meshAllUnknown(path.get("arguments"), internal);
-  path
-    .replaceWith(
-      type === "Map" ? mapModel(args, internal, name) : type === "Set" ? setModel(args, internal, name) : arrayModel(args, internal, name),
-    );
+  path.replaceWith(
+    type === "Map"
+      ? mapModel(args, internal, name)
+      : type === "Set"
+        ? setModel(args, internal, name)
+        : arrayModel(args, internal, name),
+  );
 }

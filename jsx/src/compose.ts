@@ -19,7 +19,7 @@ export function view<Node, Element, TagOptions extends object, In extends Compos
         if (!node) {
             throw new Error("Vasille: Component context is missing");
         }
-        const frag = new Fragment<Node, Element, TagOptions, object>(node.runner);
+        const frag = new Fragment<Node, Element, TagOptions>(node.runner);
 
         if (slot) {
             props.slot = slot;

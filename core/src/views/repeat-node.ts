@@ -24,13 +24,13 @@ export class RepeatNode<
         T,
         IdT
     >,
-> extends Fragment<Node, Element, TagOptions, Opts> {
+> extends Fragment<Node, Element, TagOptions> {
     /**
      * Children node hash
      * @type {Map}
      */
     protected nodes: Map<IdT, Fragment<Node, Element, TagOptions>> = new Map();
-    protected slot?: ((ctx: Fragment<Node, Element, TagOptions, object>, value: T, index: IdT) => void) | undefined;
+    protected slot?: ((ctx: Fragment<Node, Element, TagOptions>, value: T, index: IdT) => void) | undefined;
 
     public constructor(input: Opts, runner: Runner<Node, Element, TagOptions>) {
         super(runner);

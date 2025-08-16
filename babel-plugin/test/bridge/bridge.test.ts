@@ -9,7 +9,7 @@ it("bridge/router global import", function () {
 });
 
 it("router outside of compose error", function () {
-  throwTest(__dirname, "router", 'Usage of hints is restricted here');
+  throwTest(__dirname, "router", "Usage of hints is restricted here");
 });
 
 it("router in store error 1", function () {

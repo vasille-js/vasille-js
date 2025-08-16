@@ -9,8 +9,7 @@ import { Runner } from "./runner.js";
 export class App<Node, Element, TagOptions extends object, T extends object = object> extends Root<
     Node,
     Element,
-    TagOptions,
-    T
+    TagOptions
 > {
     private readonly node: Element;
 

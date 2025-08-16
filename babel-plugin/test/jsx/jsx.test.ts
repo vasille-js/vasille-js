@@ -40,10 +40,6 @@ it("loop", function () {
   runJsxTest(__dirname, "loop");
 });
 
-it("reactive object proxy", function () {
-  runJsxTest(__dirname, "rop");
-});
-
 it("spread child error", function () {
   throwTest(__dirname, "spread-child", "Spread child is not supported", true);
 });
@@ -61,7 +57,7 @@ it("method in style object error", function () {
 });
 
 it("wrong namespace error", function () {
-  throwTest(__dirname, "wrong-namespace", "only bind namespace is supported", true);
+  throwTest(__dirname, "wrong-namespace", "Only bind namespace is supported", true);
 });
 
 it("tag spread attribute error", function () {

@@ -9,7 +9,7 @@ import { Runner } from "./runner.js";
  * This class is symbolic
  * @extends Reactive
  */
-export abstract class Root<Node, Element, TagOptions extends object, T extends object = object> extends Reactive {
+export abstract class Root<Node, Element, TagOptions extends object> extends Reactive {
     /**
      * The children list
      * @type Array
@@ -99,34 +99,6 @@ export abstract class Root<Node, Element, TagOptions extends object, T extends o
         callback?.(node);
     }
 
-    /**
-     * Defines an if node
-     * @param cond {IValue} condition
-     * @param cb {function(Fragment)} callback to run on true
-     */
-    public if(cond: IValue<unknown>, cb: (node: Fragment<Node, Element, TagOptions>) => void) {
-        const node = new SwitchedNode(this.runner);
-
-        this.pushNode(node);
-        node.addCase({ cond, cb });
-    }
-
-    public else(cb: (node: Fragment<Node, Element, TagOptions>) => void) {
-        if (this.lastChild instanceof SwitchedNode) {
-            this.lastChild.addCase({ cond: trueIValue, cb });
-        } else {
-            throw userError("wrong `else` function use", "logic-error");
-        }
-    }
-
-    public elif(cond: IValue<unknown>, cb: (node: Fragment<Node, Element, TagOptions>) => void) {
-        if (this.lastChild instanceof SwitchedNode) {
-            this.lastChild.addCase({ cond, cb });
-        } else {
-            throw userError("wrong `elif` function use", "logic-error");
-        }
-    }
-
     public destroy() {
         this.children.forEach(child => child.destroy());
 
@@ -136,12 +108,7 @@ export abstract class Root<Node, Element, TagOptions extends object, T extends o
     }
 }
 
-export class Fragment<Node, Element, TagOptions extends object, T extends object = object> extends Root<
-    Node,
-    Element,
-    TagOptions,
-    T
-> {
+export class Fragment<Node, Element, TagOptions extends object> extends Root<Node, Element, TagOptions> {
     public parent!: Root<Node, Element, TagOptions>;
 
     public constructor(runner: Runner<Node, Element, TagOptions>) {
@@ -241,8 +208,6 @@ export class Fragment<Node, Element, TagOptions extends object, T extends object
     }
 }
 
-const trueIValue = new Reference(true);
-
 export interface TextProps {
     text: unknown;
 }
@@ -252,12 +217,7 @@ export interface TextProps {
  * @class TextNode
  * @extends Fragment
  */
-export abstract class TextNode<Node, Element, TagOptions extends object> extends Fragment<
-    Node,
-    Element,
-    TagOptions,
-    TextProps
-> {
+export abstract class TextNode<Node, Element, TagOptions extends object> extends Fragment<Node, Element, TagOptions> {
     protected handler: ((v: unknown) => void) | null;
     protected readonly data: unknown;
 
@@ -286,12 +246,7 @@ export abstract class TextNode<Node, Element, TagOptions extends object> extends
  * @class INode
  * @extends Fragment
  */
-export abstract class INode<Node, Element, TagOptions extends object> extends Fragment<
-    Node,
-    Element,
-    TagOptions,
-    TagOptions
-> {
+export abstract class INode<Node, Element, TagOptions extends object> extends Fragment<Node, Element, TagOptions> {
     /**
      * The element of vasille node
      * @type Element
@@ -335,6 +290,13 @@ export abstract class Tag<Node, Element, TagOptions extends object> extends INod
     }
 }
 
+interface SwitchedNodeCase<Node, Element, TagOptions extends object> {
+    $case: IValue<unknown>;
+    slot: (node: Fragment<Node, Element, TagOptions>) => void;
+}
+
+const alwaysTrue = new Reference(true);
+
 /**
  * Defines a node which can switch its children conditionally
  */
@@ -349,7 +311,7 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
      * Array of possible cases
      * @type {Array<{cond : IValue<unknown>, cb : function(Fragment)}>}
      */
-    private cases: { cond: IValue<unknown>; cb: (node: Fragment<Node, Element, TagOptions>) => void }[] = [];
+    private cases: SwitchedNodeCase<Node, Element, TagOptions>[];
 
     /**
      * A function that syncs index and content will be bounded to each condition
@@ -360,17 +322,20 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
     /**
      * Constructs a switch node and define a sync function
      */
-    public constructor(runner: Runner<Node, Element, TagOptions>) {
+    public constructor(
+        runner: Runner<Node, Element, TagOptions>,
+        cases: SwitchedNodeCase<Node, Element, TagOptions>[],
+        _default?: (node: Fragment<Node, Element, TagOptions>) => void,
+    ) {
         super(runner);
 
-        this.sync = () => {
-            let i = 0;
+        if (_default) {
+            cases.push({ $case: alwaysTrue, slot: _default });
+        }
+        this.cases = cases;
 
-            for (; i < this.cases.length; i++) {
-                if (this.cases[i].cond.V) {
-                    break;
-                }
-            }
+        this.sync = () => {
+            let i = this.cases.findIndex(item => item.$case.V);
 
             if (i === this.index) {
                 return;
@@ -383,37 +348,29 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
             }
 
             if (i !== this.cases.length) {
+                const node = new Fragment(this.runner);
+
+                node.parent = this;
+                this.lastChild = node;
+                this.children.add(node);
+
                 this.index = i;
-                this.createChild(this.cases[i].cb);
+                this.cases[i].slot(node);
             } else {
                 this.index = -1;
             }
         };
-    }
 
-    public addCase(case_: { cond: IValue<unknown>; cb: (node: Fragment<Node, Element, TagOptions>) => void }) {
-        this.cases.push(case_);
-        case_.cond.on(this.sync);
+        cases.forEach(_case => {
+            _case.$case.on(this.sync);
+        });
+
         this.sync();
-    }
-
-    /**
-     * Creates a child node
-     * @param cb {function(Fragment)} Call-back
-     */
-    public createChild(cb: (node: Fragment<Node, Element, TagOptions>) => void) {
-        const node = new Fragment(this.runner);
-
-        node.parent = this;
-        this.lastChild = node;
-        this.children.add(node);
-
-        cb(node);
     }
 
     public destroy() {
         this.cases.forEach(c => {
-            c.cond.off(this.sync);
+            c.$case.off(this.sync);
         });
         this.cases.splice(0);
 
@@ -430,12 +387,7 @@ export interface DebugProps {
  * @class DebugNode
  * @extends Fragment
  */
-export abstract class DebugNode<Node, Element, TagOptions extends object> extends Fragment<
-    Node,
-    Element,
-    TagOptions,
-    DebugProps
-> {
+export abstract class DebugNode<Node, Element, TagOptions extends object> extends Fragment<Node, Element, TagOptions> {
     protected handler: ((v: unknown) => void) | null;
     protected readonly data: IValue<unknown>;
 
