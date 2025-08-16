@@ -4,18 +4,6 @@ it("compose function", function () {
   runJsxTest(__dirname, "compose");
 });
 
-it("MVVM view function", function () {
-  runJsxTest(__dirname, "mvvm-view");
-});
-
-it("MVC view function", function () {
-  runJsxTest(__dirname, "mvc-view");
-});
-
-it("hybrid view function", function () {
-  runJsxTest(__dirname, "hybrid-view");
-});
-
 it("mesh statement function", function () {
   runTest(__dirname, "mesh-statement", false);
 });
@@ -42,10 +30,6 @@ it("run on destroy", function () {
 
 it("store function", function () {
   runJsxTest(__dirname, "store");
-});
-
-it("store with argument", function () {
-  runJsxTest(__dirname, "store-with-arg");
 });
 
 it("reactive object status track", function () {

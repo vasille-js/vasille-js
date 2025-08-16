@@ -39,7 +39,7 @@ function processValue(
   mediaDefault: number[],
   allowFallback: boolean,
   internal: Internal,
-) {
+): Rule[] {
   if (calls(path, ["theme"], internal)) {
     const call = path.node as types.CallExpression;
 
@@ -63,7 +63,7 @@ function processValue(
         (path as NodePath<types.CallExpression>).get("arguments")[0],
         "Expected string literal",
         internal,
-        false,
+        [],
       );
     }
   }
@@ -84,10 +84,10 @@ function processValue(
     );
   }
 
-  let callee: string | boolean | undefined;
+  const called = mediaDefaults.map(item => calls(path, [item], internal));
 
-  if ((callee = calls(path, mediaDefaults, internal))) {
-    const index = mediaDefaults.indexOf(callee as FnNames) + 1;
+  if (called.some(v => v)) {
+    const index = called.indexOf(true) + 1;
 
     if (mediaDefault.includes(index)) {
       return processValue(
@@ -162,17 +162,17 @@ function processValue(
                 internal,
               );
             } else {
-              err(Errors.TokenNotSupported, path, "Expected expression", internal);
+              return  err(Errors.TokenNotSupported, path, "Expected expression", internal, []);
             }
           })
-          .flat(1),
+          .flat(1)
       ];
     } else {
       err(Errors.TokenNotSupported, path, "Only numbers arrays are supported here", internal);
     }
   }
 
-  err(Errors.ParserError, path, "Failed o parse value, it is not a string, number or array", internal, null);
+  return err(Errors.ParserError, path, "Failed o parse value, it is not a string, number or array", internal, []);
 }
 
 function processProp(path: NodePath<types.ObjectProperty>, pseudo: string, media: string, internal: Internal): Rule[] {

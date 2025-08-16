@@ -1,11 +1,11 @@
 import { calculate, compose, router } from "vasille-web";
 
 export const C = compose(() => {
-  let a = 2;
-  const b = calculate(() => {
+  let $a = 2;
+  const $b = calculate(() => {
     router()?.navigate("/:a", { a: "1" }, "loading-screen");
 
-    return a + 1;
+    return $a + 1;
   });
 
   router()?.navigate("/", {}, "silent");

@@ -9,7 +9,5 @@ export const C = compose(() => {
   console.log($sum);
 
   $sum = $b;
-  $sum = calculate(() => {
-    return $b + $c;
-  });
+  $sum = $b + $c;
 });

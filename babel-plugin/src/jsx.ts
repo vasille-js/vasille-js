@@ -1,8 +1,9 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
+import { calls } from "./call";
 import { ctx, Internal } from "./internal.js";
 import { bodyHasJsx } from "./jsx-detect.js";
-import { err, Errors, exprCall } from "./lib.js";
+import { err, Errors, exprCall, ref } from "./lib.js";
 import { compose, meshExpression } from "./mesh.js";
 
 export function transformJsx(
@@ -58,7 +59,7 @@ export function transformJsxArray(
         result.push(t.expressionStatement(call));
       }
     } else if (path.isJSXExpressionContainer()) {
-      const value = transformJsxExpressionContainer(path, internal, false, false);
+      const value = transformJsxExpressionContainer(path, internal, false, false, true, true);
       const call = t.callExpression(t.memberExpression(ctx, t.identifier("text")), [value]);
 
       call.loc = value.loc;
@@ -76,6 +77,9 @@ function transformJsxExpressionContainer(
   internal: Internal,
   acceptSlots: boolean,
   isInternalSlot: boolean,
+  acceptsReactive: boolean,
+  acceptsRaw: boolean,
+
 ): types.Expression {
   const expression = path.get("expression");
   const loc = expression.node.loc;
@@ -104,7 +108,61 @@ function transformJsxExpressionContainer(
   }
 
   if (expression.isExpression()) {
-    exprCall(expression, expression.node, internal);
+    if (acceptsReactive) {
+      // cals backward
+      if (calls(expression, ["backward"], internal)) {
+        const argPath = (expression as NodePath<types.CallExpression>).get("arguments")[0];
+
+        if (argPath && argPath.isExpression()) {
+          const argValue = argPath.node;
+
+          if (exprCall(argPath, argPath.node, internal)) {
+            path.replaceWith(argPath);
+
+            if (!argPath.isMemberExpression() && !argPath.isIdentifier()) {
+              argPath.node = argValue;
+              err(
+                Errors.RulesOfVasille,
+                argPath,
+                "A reactive variable or object field expected, reactive expression are forward only",
+                internal,
+              );
+            }
+          } else {
+            argPath.node = argValue;
+            err(Errors.RulesOfVasille, argPath, "The backward argument is not reactive", internal);
+          }
+        }
+      }
+      // calls forward
+        else if (calls(expression, ["forward"], internal)) {
+        const argPath = (expression as NodePath<types.CallExpression>).get("arguments")[0];
+
+        if (argPath && argPath.isExpression()) {
+          const argValue = argPath.node;
+
+          if (!exprCall(expression, expression.node, internal)) {
+            argPath.node = argValue;
+            err(
+              Errors.RulesOfVasille,
+              argPath,
+              "A reactive expression expected, argument value constant",
+              internal,
+            );
+          }
+        }
+      }
+      // two-side binding
+      else {
+        const isReactive = exprCall(expression, expression.node, internal);
+
+        if (!isReactive && !acceptsRaw) {
+          expression.replaceWith(internal.ref(expression.node));
+        }
+      }
+    } else {
+      meshExpression(expression, internal)
+    }
   }
 
   expression.node.loc = loc;
@@ -201,7 +259,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
                           exprCall(valuePath, valuePath.node, internal);
                         }
 
-                        if (keyPath.isExpression() && !keyPath.isIdentifier()) {
+                        if (keyPath .isExpression() && !keyPath.isIdentifier()) {
                           meshExpression(keyPath, internal);
                         }
 
@@ -435,11 +493,14 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
         // <A prop={..}/>
         else if (valuePath && valuePath.isJSXExpressionContainer()) {
           const isSystem = internal.mapping.has(name.name);
+          const requiresReactive = attr.name.name.startsWith("$");
           const value = transformJsxExpressionContainer(
             valuePath,
             internal,
             !isSystem || attr.name.name === "slot",
             isSystem && attr.name.name === "slot",
+            requiresReactive,
+            !requiresReactive,
           );
 
           props.push(idToProp(attr.name, value));
@@ -448,8 +509,9 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
         }
       }
       // <A {...arg}/>
-      else if (t.isJSXSpreadAttribute(attr)) {
-        props.push(t.spreadElement(attr.argument));
+      else if (attrPath.isJSXSpreadAttribute()) {
+        meshExpression(attrPath.get("argument"), internal);
+        props.push(t.spreadElement(attrPath.node.argument));
       }
       // <A space:name=../>
       else {
@@ -478,6 +540,8 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
         internal,
         true,
         isInternal,
+        false,
+        true,
       );
       run = filteredChildren[0].expression;
     } else {

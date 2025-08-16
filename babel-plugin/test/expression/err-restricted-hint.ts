@@ -1,5 +1,9 @@
-import { compose, value } from "vasille-web";
+import { compose, calculate, arrayModel } from "vasille-web";
 
 const C = compose(() => {
-  const a = value(1) + value(2);
+  const $a = calculate(() => {
+    const arr = arrayModel([1]);
+
+    return arr.length;
+  });
 });

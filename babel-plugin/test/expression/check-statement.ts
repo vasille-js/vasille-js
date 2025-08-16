@@ -1,52 +1,52 @@
 import { calculate, compose } from "vasille-web";
 
 export const C = compose(() => {
-  let a = 1;
+  let $a = 1;
   const o = { b: 1 };
 
-  const c = calculate(() => {
+  const $c = calculate(() => {
     o.b++;
 
     do {
-      a++;
-    } while (a < 1);
+      $a++;
+    } while ($a < 1);
 
     for (const i in [0, 1]) {
-      a++;
+      $a++;
     }
 
     for (const i of [0, 1]) {
-      a++;
+      $a++;
     }
 
-    for (let i = a; i < a; i += a) {
-      a++;
+    for (let i = $a; i < $a; i += $a) {
+      $a++;
     }
 
-    for (a = 3; a < 4; a++) {
-      a++;
+    for ($a = 3; $a < 4; $a++) {
+      $a++;
     }
 
-    label: if (a < 3) {
-      a++;
+    label: if ($a < 3) {
+      $a++;
     }
 
-    switch (a) {
-      case a:
-        a++;
+    switch ($a) {
+      case $a:
+        $a++;
         break;
     }
 
     try {
-      throw a;
+      throw $a;
     } catch (e) {
-      a++;
+      $a++;
     } finally {
-      a++;
+      $a++;
     }
 
-    while (a < 1) {
-      a++;
+    while ($a < 1) {
+      $a++;
     }
 
     return 0;

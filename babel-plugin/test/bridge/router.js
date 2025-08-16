@@ -1,12 +1,12 @@
-import { compose } from "vasille-web";
+import { calculate, compose, ref as VasilleRef } from "vasille-web";
 export const C = compose(Vasille => {
-  const a = Vasille.ref(2, "a");
-  const b = Vasille.expr(Vasille_a => {
+  const $a = VasilleRef(2, "a");
+  const $b = calculate(Vasille, Vasille_a => {
     Vasille.runner.router?.navigate("/:a", {
       a: "1"
     }, "loading-screen");
     return Vasille_a + 1;
-  }, [a], "b");
+  }, [$a], "b");
   Vasille.runner.router?.navigate("/", {}, "silent");
   Vasille.runner.router;
   function goNext() {
@@ -14,4 +14,4 @@ export const C = compose(Vasille => {
       test: "x"
     }, "loading-overlay");
   }
-}, "VasilleWeb:C");
+}, "C");

@@ -14,16 +14,16 @@ const C = compose(function C(Vasille, {
     $more: VasilleRef("more")
   }], "model");
   Vasille.tag("div", {}, Vasille => {
-    Vasille.text(VasilleExpr(Vasille, Vasille_$d => Vasille_$d.id, [$d]));
+    Vasille.text(VasilleExpr(Vasille, Vasille_d => Vasille_d.id, [$d]));
     Vasille.text(":");
     Vasille.text($name);
-    Vasille.text(VasilleExpr(Vasille, Vasille_$d => Vasille_$d.width, [$d]));
+    Vasille.text(VasilleExpr(Vasille, Vasille_d => Vasille_d.width, [$d]));
     Vasille.text("/");
-    Vasille.text(VasilleExpr(Vasille, Vasille_$d => Vasille_$d.height, [$d]));
+    Vasille.text(VasilleExpr(Vasille, Vasille_d => Vasille_d.height, [$d]));
     Vasille.text("...");
     Vasille.text(rest.$more);
   });
-  console.log($d.V.id, $d.V.width, $d.V.height, $name.V, rest.$more.$);
+  console.log($d.V.id, $d.V.width, $d.V.height, $name.V, rest.$more.V);
   For({
     of: model,
     slot: (Vasille, {
@@ -32,16 +32,16 @@ const C = compose(function C(Vasille, {
       ...rest2
     }) => {
       Vasille.tag("div", {}, Vasille => {
-        Vasille.text(VasilleExpr(Vasille, Vasille_$data => Vasille_$data.id, [$data]));
+        Vasille.text(VasilleExpr(Vasille, Vasille_data => Vasille_data.id, [$data]));
         Vasille.text(":");
         Vasille.text($name);
-        Vasille.text(VasilleExpr(Vasille, Vasille_$data => Vasille_$data.width, [$data]));
+        Vasille.text(VasilleExpr(Vasille, Vasille_data => Vasille_data.width, [$data]));
         Vasille.text("/");
-        Vasille.text(VasilleExpr(Vasille, Vasille_$data => Vasille_$data.height, [$data]));
+        Vasille.text(VasilleExpr(Vasille, Vasille_data => Vasille_data.height, [$data]));
         Vasille.text("...");
         Vasille.text(rest2.$more);
       });
-      console.log($data.V.id, $data.V.width, $data.V.height, $name.V, rest2.$more.$);
+      console.log($data.V.id, $data.V.width, $data.V.height, $name.V, rest2.$more.V);
     }
   }, Vasille);
 }, "C");

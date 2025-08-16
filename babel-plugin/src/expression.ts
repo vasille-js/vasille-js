@@ -1,9 +1,9 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { calls, composeOnly } from "./call.js";
+import { calls, composeOnly, hintFunctions } from "./call.js";
 import { Internal, StackedStates } from "./internal.js";
 import { err, Errors } from "./lib";
-import { ignoreParams } from "./mesh";
+import { ignoreParams, meshAllUnknown, meshExpression } from "./mesh";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
 
@@ -46,19 +46,17 @@ function extractMemberName(path: NodePath<types.MemberExpression | types.Optiona
   let it: types.Expression = path.node;
 
   while (t.isMemberExpression(it)) {
-    const name = stringify(it.property);
-
-    if (name.startsWith("$") && it !== path.node) {
-      err(Errors.RulesOfVasille, path, "The reactive/observable value is nested", search.external, null);
-    }
-
+    names.push((stringify(it.property)));
     it = it.object;
-    names.push(unprefixedName(name));
   }
 
-  names.push(unprefixedName(stringify(it)));
+  names.push((stringify(it)));
 
-  return names.reverse().join("_");
+  if (names.filter(name => name.startsWith("$")).length > 1) {
+    err(Errors.RulesOfVasille, path, "The reactive/observable value is nested", search.external, null);
+  }
+
+  return names.reverse().map(unprefixedName).join("_");
 }
 
 function addMemberExpr(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, search: Search) {
@@ -92,7 +90,7 @@ export function memberIsIValue(node: types.MemberExpression | types.OptionalMemb
 
 function meshMember(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>) {
   if (memberIsIValue(path.node)) {
-    path.replaceWith(t.optionalMemberExpression(path.node, t.identifier("V"), false, true));
+    path.replaceWith(t.memberExpression(path.node, t.identifier("V"), false, true));
   }
 }
 
@@ -100,13 +98,17 @@ function meshLValue(
   path: NodePath<types.LVal | types.OptionalMemberExpression | null | undefined>,
   internal: Internal,
 ) {
-  const node = path.node;
-
   /* istanbul ignore else */
   if (path.isIdentifier()) {
     meshIdentifier(path);
   } else if (path.isMemberExpression() || path.isOptionalMemberExpression()) {
+    const object = path.get("object") as NodePath<unknown>;
+
     meshMember(path);
+
+    if (object.isLVal()) {
+      meshLValue(object, internal);
+    }
   } else if (path.isArrayPattern()) {
     for (const item of path.get("elements")) {
       /* istanbul ignore else */
@@ -139,6 +141,10 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
     } else if (t.isIdentifier(path.node.property) && path.node.property.name === "$") {
       search.self = path.node.object;
     }
+  }
+  if (path.isExpression() && calls(path, ["ref"], internal)) {
+    meshAllUnknown(path.get("arguments"), internal);
+    search.self = path.node;
   }
 
   if (search.self) {
@@ -243,7 +249,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
           err(Errors.IncompatibleContext, path, "The router is not available in stores", search.external, null);
         }
       } else {
-        if (calls(path, composeOnly, search.external)) {
+        if (calls(path, hintFunctions, search.external)) {
           err(Errors.IncompatibleContext, path, "Usage of hints is restricted here", search.external, null);
         }
 
@@ -582,11 +588,23 @@ export function checkFunction(
     ignoreLocals(param, search);
   }
 
+  if ((t.isFunctionDeclaration(node)) && node.id) {
+    search.stack.set(node.id.name, {});
+  }
+  if (t.isFunctionExpression(node) && node.id) {
+    search.stack.push()
+    search.stack.set(node.id.name, {});
+  }
+
   if (t.isExpression(node.body)) {
     checkExpression(path.get("body") as NodePath<types.Expression>, search);
   } else {
     const bodyPath = path.get("body") as NodePath<types.BlockStatement>;
 
     checkStatement(bodyPath, search);
+  }
+
+  if (t.isFunctionExpression(node) && node.id) {
+    search.stack.pop()
   }
 }

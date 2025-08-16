@@ -1,10 +1,21 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { calls, composeOnly, styleOnly } from "./call.js";
+import { calls, composeFunctions, hintFunctions, modelFunctions, reactivityFunctions } from "./call.js";
 import { checkNode, idIsIValue, memberIsIValue } from "./expression.js";
 import { ctx, Internal, VariableState } from "./internal.js";
 import { transformJsx } from "./jsx.js";
-import { arrayModel, err, Errors, exprCall, mapModel, named, parseCalculateCall, ref, setModel } from "./lib.js";
+import {
+  arrayModel,
+  err,
+  Errors,
+  exprCall,
+  mapModel,
+  named,
+  parseCalculateCall,
+  processModelCall,
+  ref,
+  setModel,
+} from "./lib.js";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
 
@@ -92,16 +103,6 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
     return;
   }
 
-  if (calls(nodePath, ["compose", "store", "view"], internal)) {
-    meshComposeCall(null, nodePath, internal);
-
-    return;
-  }
-  if (calls(nodePath, ["calculate"], internal)) {
-    nodePath.replaceWith(
-      t.callExpression((nodePath.node as types.CallExpression).arguments[0] as types.Expression, []),
-    );
-  }
   switch (expr.type) {
     case "TemplateLiteral": {
       const path = nodePath as NodePath<types.TemplateLiteral>;
@@ -129,23 +130,43 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
     }
     case "CallExpression":
     case "OptionalCallExpression": {
-      const path = nodePath as NodePath<types.CallExpression>;
+      const path = nodePath ;
+      const argPath = path.get("arguments")[0];
 
-      if (internal.isComposing && calls(path, ["router"], internal)) {
+      // compose call
+      if (!internal.isComposing && calls(nodePath, composeFunctions, internal)) {
+        meshComposeCall(null, nodePath, internal);
+      }
+      // ref call
+      else if (calls(path, reactivityFunctions, internal)) {
+        meshAllUnknown(path.get("arguments"), internal);
+      }
+      // raw call
+      else if (calls(path, ["raw"], internal)) {
+        if (argPath && argPath.isExpression()) {
+          meshExpression(argPath, internal);
+          path.replaceWith(argPath);
+        }
+      }
+      // arrayModel/setModel/mapModel call
+      else if (!internal.isComposing && calls(path, modelFunctions, internal)) {
+        if (argPath && argPath.isExpression()) {
+          meshExpression(argPath, internal);
+        }
+        path.node.arguments.unshift(t.nullLiteral());
+      }
+      // router call
+      else if (internal.isComposing && calls(path, ["router"], internal)) {
         if (!internal.stateOnly) {
           routerReplace(path);
         } else {
           err(Errors.IncompatibleContext, path, "The router is not available in stores", internal);
         }
-      } else {
-        const callsFn = calls(path, composeOnly, internal);
-        const callsStyleHint = calls(path, styleOnly, internal);
-
-        if (callsFn) {
-          err(Errors.IncompatibleContext, path, `Usage of hint "${callsFn}" is restricted here`, internal);
-        }
-        if (callsStyleHint) {
-          err(Errors.IncompatibleContext, path, `Usage of style hint "${callsStyleHint}" is restricted here`, internal);
+      }
+      // call any other function, invalid if code calls a hint
+      else {
+        if (calls(path, hintFunctions, internal)) {
+          err(Errors.IncompatibleContext, path, `Usage of hints is restricted here`, internal);
         }
 
         meshOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), internal);
@@ -885,16 +906,19 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
         function idDoubleName(): [string, string] {
           const pattern = id as types.ArrayPattern;
 
-          return [idName(pattern.elements[0]), idName(pattern.elements[1])];
+          return [idName(pattern.elements?.[0]), idName(pattern.elements?.[1])];
         }
 
         ignoreParams(declaration.get("id"), internal);
 
         /* istanbul ignore else */
         if (calls(declaration.get("init"), ["awaited"], internal)) {
+          const callPath = declaration.get("init") as NodePath<types.CallExpression>;
+
           reactiveArrayPattern(declaration.get("id"), internal);
-          meshAllUnknown((declaration.get("init") as NodePath<types.CallExpression>).get("arguments"), internal);
-          named(declaration.node.init as types.CallExpression, idDoubleName(), internal);
+          meshAllUnknown(callPath.get("arguments"), internal);
+          callPath.node.arguments.unshift(ctx);
+          named(callPath.node, idDoubleName(), internal, 2);
           meshInit = false;
         } else if (t.isIdentifier(id)) {
           const idPath = declaration.get("id") as NodePath<types.Identifier>;
@@ -944,35 +968,20 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
           }
           // const arr = arrayModel()
           else if (calls(initPath, ["arrayModel"], internal)) {
-            const value = (init as types.CallExpression).arguments[0];
-
-            if (kind !== "const") {
-              err(Errors.RulesOfVasille, declaration, "Array models must be must be declared as constants", internal);
-            }
-            if (t.isArrayExpression(value)) {
-              declaration.get("init").replaceWith(arrayModel(value, internal, idName()));
-            } else {
-              declaration.get("init").replaceWith(arrayModel(null, internal, idName()));
-            }
+            processModelCall(initPath, "Array", kind === "const", internal, idName());
+            meshInit = false;
             checkNonReactiveName();
           }
           // const map = mapModel();
-          else if ((callName = calls(initPath, ["mapModel", "setModel"], internal))) {
-            const args = (init as types.CallExpression).arguments;
-
-            if (kind !== "const") {
-              err(
-                Errors.RulesOfVasille,
-                declaration,
-                `Vasille: ${callName === "mapModel" ? "Map" : "Set"} models must be declared as constants`,
-                internal,
-              );
-            }
-            declaration
-              .get("init")
-              .replaceWith(
-                callName === "mapModel" ? mapModel(args, internal, idName()) : setModel(args, internal, idName()),
-              );
+          else if ((calls(initPath, ["mapModel"], internal))) {
+            processModelCall(initPath, "Map", kind === "const", internal, idName());
+            meshInit = false;
+            checkNonReactiveName();
+          }
+          // const set = setModel();
+          else if ((calls(initPath, ["setModel"], internal))) {
+            processModelCall(initPath, "Set", kind === "const", internal, idName());
+            meshInit = false;
             checkNonReactiveName();
           }
           // const x = { .. }
@@ -985,33 +994,26 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             checkNonReactiveName();
           }
           // const a = []
-          else if (t.isArrayExpression(init)) {
+          else if (initPath.isArrayExpression()) {
             if (kind !== "const") {
               err(Errors.RulesOfVasille, declaration, "Arrays must be must be declared as constants", internal);
             }
-            declaration.get("init").replaceWith(arrayModel(init, internal, idName()));
+
+            meshExpression(initPath, internal);
+            meshInit = false;
+
+            initPath.replaceWith(arrayModel([initPath.node], internal, idName()));
             checkNonReactiveName();
           }
           // const s = new Set(), const m = new Map()
-          else if (t.isNewExpression(init) && t.isIdentifier(init.callee)) {
-            if (init.callee.name === "Map" || init.callee.name === "Set") {
-              if (kind !== "const") {
-                err(
-                  Errors.RulesOfVasille,
-                  declaration,
-                  `Vasille: ${init.callee.name === "Map" ? "Maps" : "Sets"} must be declared as constants`,
-                  internal,
-                );
-              }
-              declaration
-                .get("init")
-                .replaceWith(
-                  init.callee.name === "Map"
-                    ? mapModel(init.arguments, internal, idName())
-                    : setModel(init.arguments, internal, idName()),
-                );
+          else if (initPath.isNewExpression()  && t.isIdentifier(initPath.node.callee)) {
+            const name = initPath.node.callee.name;
+
+            if (name === "Map" || name === "Set") {
+              processModelCall(initPath, name, kind === "const", internal, idName());
+              meshInit = false;
+              checkNonReactiveName();
             }
-            checkNonReactiveName();
           } else if (kind === "let") {
             declaration.get("init").replaceWith(ref(declaration.node.init, internal, idName()));
             checkReactiveName();

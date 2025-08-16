@@ -5,7 +5,7 @@
     "allowJs": true,
     "declaration": false,
     "outDir": "./lib-node",
-    "target": "ES2019",
+    "target": "ES2024",
     "module": "CommonJS",
     "moduleResolution": "Node",
     "esModuleInterop": true,

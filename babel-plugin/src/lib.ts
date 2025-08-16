@@ -3,6 +3,7 @@ import * as t from "@babel/types";
 import { checkNode, encodeName } from "./expression.js";
 import { Internal, ctx } from "./internal.js";
 import { calls } from "./call.js";
+import { meshAllUnknown } from "./mesh";
 
 export enum Errors {
   IncorrectArguments = 1,
@@ -40,7 +41,7 @@ export function named(
   call: types.CallExpression,
   name: undefined | string | string[],
   internal: Internal,
-  argPos?: number,
+  argPos: number,
 ) {
   if (internal.devMode && name) {
     while (argPos && call.arguments.length < argPos) {
@@ -114,7 +115,7 @@ export function bindCall(
     return true;
   }
   if (names.length > 0 && expr) {
-    path.replaceWith(named(internal.expr(t.arrowFunctionExpression(names, expr), dependencies), name, internal));
+    path.replaceWith(named(internal.expr(t.arrowFunctionExpression(names, expr), dependencies), name, internal, 3));
 
     return true;
   }
@@ -127,9 +128,10 @@ export function exprCall(
   expr: types.Expression | null | undefined,
   internal: Internal,
   name?: string,
+  acceptsForwarding?: boolean,
 ): boolean {
   if (parseCalculateCall(path, internal)) {
-    named(path.node as types.CallExpression, name, internal);
+    named(path.node as types.CallExpression, name, internal, 3);
 
     return true;
   }
@@ -158,6 +160,7 @@ export function exprCall(
   }
 
   if (
+    acceptsForwarding &&
     t.isCallExpression(expr) &&
     calls(path, ["forward"], internal) &&
     expr.arguments.length === 1 &&
@@ -170,6 +173,8 @@ export function exprCall(
 
     if (exprData.self) {
       expr.arguments[0] = exprData.self;
+      expr.arguments.unshift(ctx);
+      named(expr, name, internal, 2);
     } else if (!bindCall(path, expr.arguments[0], exprData.found, internal, name)) {
       path.replaceWith(internal.ref(expr.arguments[0]));
     }
@@ -192,14 +197,32 @@ export function ref(expr: types.Expression | null | undefined, internal: Interna
   return named(internal.ref(expr), name, internal, 1);
 }
 
-export function arrayModel(init: types.Expression | null | undefined, internal: Internal, name?: string) {
-  return named(internal.arrayModel(init), name, internal, 2);
+export function arrayModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
+  return named(internal.arrayModel(args[0]), name, internal, 2);
 }
 
 export function setModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
-  return named(internal.setModel(args[0]), name, internal);
+  return named(internal.setModel(args[0]), name, internal, 2);
 }
 
 export function mapModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
-  return named(internal.mapModel(args[0]), name, internal);
+  return named(internal.mapModel(args[0]), name, internal, 2);
+}
+
+export function processModelCall(path: NodePath<types.CallExpression|types.NewExpression>, type: "Map"|"Set"|"Array", isConst: boolean, internal: Internal, name?: string) {
+  const args = (path.node).arguments;
+
+  if (!isConst) {
+    err(
+      Errors.RulesOfVasille,
+      path,
+      `Vasille: ${type} models must be declared as constants`,
+      internal,
+    );
+  }
+  meshAllUnknown(path.get("arguments"), internal);
+  path
+    .replaceWith(
+      type === "Map" ? mapModel(args, internal, name) : type === "Set" ? setModel(args, internal, name) : arrayModel(args, internal, name),
+    );
 }
