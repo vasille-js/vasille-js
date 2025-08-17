@@ -1,5 +1,5 @@
 import { DOMWindow } from "jsdom";
-import { App, Expression, Fragment, IValue, Reference, Tag } from "../../src/index.js";
+import { App, Expression, Fragment, IValue, Reference, SwitchedNode, Tag } from "../../src/index.js";
 import { DebugNode, Runner } from "../../src/runner/web/runner.js";
 import { page } from "../page.js";
 
@@ -70,8 +70,22 @@ it("if", function () {
     let check1 = false;
     let check2 = true;
 
-    root.if(new Reference(true), () => (check1 = true));
-    root.if(new Reference(false), () => (check2 = false));
+    root.create(
+        new SwitchedNode(root.runner, [
+            {
+                $case: new Reference(true),
+                slot: () => (check1 = true),
+            },
+        ]),
+    );
+    root.create(
+        new SwitchedNode(root.runner, [
+            {
+                $case: new Reference(false),
+                slot: () => (check2 = false),
+            },
+        ]),
+    );
 
     expect(check1).toBe(true);
     expect(check2).toBe(true);
@@ -87,11 +101,9 @@ it("if else", function () {
     let check1 = 1,
         check2 = 1;
 
-    root.if(iv1, () => (check1 = 1));
-    root.else(() => (check1 = 2));
+    root.create(new SwitchedNode(root.runner, [{ $case: iv1, slot: () => (check1 = 1) }], () => (check1 = 2)));
 
-    root.if(iv2, () => (check2 = 1));
-    root.else(() => (check2 = 2));
+    root.create(new SwitchedNode(root.runner, [{ $case: iv2, slot: () => (check2 = 1) }], () => (check2 = 2)));
 
     expect(check1).toBe(1);
     expect(check2).toBe(2);
@@ -112,11 +124,18 @@ it("switch", function () {
     const v2 = new Reference(false);
     let check = 0;
 
-    root.if(new Expression(v => v == 1, [v]), () => (check = 1));
-    root.elif(new Expression(v => v == 2, [v]), () => (check = 2));
-    root.elif(new Expression(v => v == 3, [v]), () => (check = 3));
-    root.elif(v2, () => (check = -2));
-    root.else(() => (check = 4));
+    root.create(
+        new SwitchedNode(
+            root.runner,
+            [
+                { $case: new Expression(v => v == 1, [v]), slot: () => (check = 1) },
+                { $case: new Expression(v => v == 2, [v]), slot: () => (check = 2) },
+                { $case: new Expression(v => v == 3, [v]), slot: () => (check = 3) },
+                { $case: v2, slot: () => (check = -2) },
+            ],
+            () => (check = 4),
+        ),
+    );
 
     v2.V = true;
     expect(check).toBe(1);
@@ -312,14 +331,11 @@ it("bind DOM api test", function () {
 it("Error handling", function () {
     const window = page();
     const root = new App(window.document.body, new Runner(true, window.document));
-    const bool = new Reference(true);
 
     root.tag("div", {}, function (f) {
         // eslint-disable-next-line
         // @ts-ignore
         f.node = null;
-        expect(() => f.else(() => 0)).toThrow("logic-error");
-        expect(() => f.elif(bool, () => 0)).toThrow("logic-error");
         expect(() => f.tag("" as unknown as "a", {})).toThrow("internal-error");
     });
 });
@@ -332,9 +348,16 @@ it("Debug node order", function () {
     const text = new Reference<string | null>("test me now");
 
     root.tag("div", {}, function (f) {
-        f.if(bool, node => {
-            node.text(text);
-        });
+        f.create(
+            new SwitchedNode(f.runner, [
+                {
+                    $case: bool,
+                    slot(node) {
+                        node.text(text);
+                    },
+                },
+            ]),
+        );
         f.create(new DebugNode({ text }, runner));
 
         expect(f.element.childNodes.length).toBe(2);
@@ -400,9 +423,16 @@ it("Insert adjacent", function () {
     const bool = new Reference(true);
 
     root.tag("div", {}, function (node) {
-        node.if(bool, node => {
-            node.tag("div", {});
-        });
+        node.create(
+            new SwitchedNode(node.runner, [
+                {
+                    $case: bool,
+                    slot(node) {
+                        node.tag("div", {});
+                    },
+                },
+            ]),
+        );
         node.tag("span", {});
 
         checkSpanAfterDiv(node, bool, window);
@@ -416,9 +446,16 @@ it("Find first child of tag", function () {
     const bool = new Reference(true);
 
     root.tag("div", {}, function (node) {
-        node.if(bool, node => {
-            node.tag("div", {});
-        });
+        node.create(
+            new SwitchedNode(node.runner, [
+                {
+                    $case: bool,
+                    slot(node) {
+                        node.tag("div", {});
+                    },
+                },
+            ]),
+        );
         node.create(new Fragment(runner), node => {
             node.tag("span", {});
         });

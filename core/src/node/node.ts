@@ -2,7 +2,6 @@ import { Reactive } from "../core/core.js";
 import { IValue } from "../core/ivalue.js";
 import { SetModel } from "../models/set-model.js";
 import { Reference } from "../value/reference.js";
-import { userError } from "../core/errors.js";
 import { Runner } from "./runner.js";
 
 /**
@@ -347,7 +346,7 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
                 this.lastChild = undefined;
             }
 
-            if (i !== this.cases.length) {
+            if (i !== -1) {
                 const node = new Fragment(this.runner);
 
                 node.parent = this;
@@ -364,7 +363,9 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
         cases.forEach(_case => {
             _case.$case.on(this.sync);
         });
+    }
 
+    public compose() {
         this.sync();
     }
 
