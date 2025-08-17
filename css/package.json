@@ -14,8 +14,8 @@
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
     "prettier": "prettier src test --write",
+    "prebuild": "rm -rf lib types",
     "build": "tsc --build tsconfig.json",
-    "build-types": "tsc --build tsconfig-types.json",
     "test": "jest",
     "test-coverage": "jest --coverage"
   },

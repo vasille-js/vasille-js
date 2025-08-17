@@ -1,5 +1,5 @@
 import { IValue } from "vasille";
-import { arrayModel, backward, ensure, expr, forward, mapModel, ref, set, setModel } from "../src/internal.js";
+import { arrayModel, backward, ensure, expr, forward, mapModel, ref, set, setModel, match } from "../src/internal.js";
 import { createNode } from "./page.js";
 
 it("model functions", function () {
@@ -79,4 +79,18 @@ it("set test", function () {
     expect(o.c).toBe(c);
     expect(arr.length).toBe(1);
     expect(arr[0]).toBe(1);
+});
+
+it("match test", function () {
+    const a = match("a", 2);
+    const $a = match("$a", 3);
+    const b = match("b", $a);
+    const $b = match("$b", $a);
+
+    expect(a).toBe(2);
+    expect($a).toBeInstanceOf(IValue);
+    expect($a.V).toBe(3);
+    expect(b).toBe(3);
+    expect($b).toBeInstanceOf(IValue);
+    expect($b.V).toBe(3);
 });

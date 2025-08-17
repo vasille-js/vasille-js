@@ -33,8 +33,6 @@ export const C = store(() => {
   const r = setModel();
   const s = mapModel();
   const t = {};
-  const $u = forward($m);
-  const $t = backward($m);
 
   watch(() => {
     console.log($o);

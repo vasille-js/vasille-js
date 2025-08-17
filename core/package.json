@@ -21,10 +21,10 @@
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
     "prettier": "npx prettier src test --write",
+    "prebuild": "rm -rf types lib",
     "build": "tsc --build tsconfig.json",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
-    "test-coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
-    "update-types": "tsc --build tsconfig-types.json"
+    "test-coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
   },
   "repository": {
     "type": "git",

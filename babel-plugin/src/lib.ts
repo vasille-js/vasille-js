@@ -219,7 +219,7 @@ export function processModelCall(
   const args = path.node.arguments;
 
   if (!isConst) {
-    err(Errors.RulesOfVasille, path, `Vasille: ${type} models must be declared as constants`, internal);
+    err(Errors.RulesOfVasille, path, `${type} models must be declared as constants`, internal);
   }
   meshAllUnknown(path.get("arguments"), internal);
   path.replaceWith(

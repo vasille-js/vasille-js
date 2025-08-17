@@ -9,7 +9,7 @@ export function screen<Node, Element, TagOptions extends object, Route extends s
             throw new Error("Vasille: Screen context is missing");
         }
 
-        const frag = new Fragment<Node, Element, TagOptions, object>(node.runner);
+        const frag = new Fragment<Node, Element, TagOptions>(node.runner);
 
         node.create(frag);
 

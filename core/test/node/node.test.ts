@@ -249,7 +249,7 @@ it("INode", function () {
     root.destroy();
 });
 
-it("INode Events", function () {
+it("INode Events 1", function () {
     let test = false;
     const window = page();
     const root = new App(window.document.body, new Runner(true, window.document));
@@ -258,6 +258,23 @@ it("INode Events", function () {
 
     root.tag("button", {
         events: { click: handler },
+        callback: node => (element = node as HTMLElement),
+    });
+    element.click();
+    expect(test).toBe(true);
+
+    root.destroy();
+});
+
+it("INode Events 2", function () {
+    let test = false;
+    const window = page();
+    const root = new App(window.document.body, new Runner(true, window.document));
+    const handler = () => (test = true);
+    let element!: HTMLElement;
+
+    root.tag("button", {
+        events: { click: [handler, { once: true }] },
         callback: node => (element = node as HTMLElement),
     });
     element.click();

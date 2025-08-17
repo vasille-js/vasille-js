@@ -1,4 +1,4 @@
-import { arrayModel, bind, calculate, compose, forward, backward, mapModel, ref, setModel, store, watch } from "vasille-web";
+import { arrayModel, bind, calculate, compose, mapModel, ref, setModel, store, watch } from "vasille-web";
 export const C = store(Vasille => {
   const $a = ref(2, "a");
   const $b = ref(2, "b");
@@ -25,8 +25,6 @@ export const C = store(Vasille => {
   const r = setModel(Vasille, void 0, "r");
   const s = mapModel(Vasille, void 0, "s");
   const t = {};
-  const $u = forward(Vasille, $m, "u");
-  const $t = backward($m);
   watch(Vasille, Vasille_o => {
     console.log(Vasille_o);
   }, [$o]);

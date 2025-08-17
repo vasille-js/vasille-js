@@ -14,7 +14,6 @@
     "prepack": "cp -f ../README.md ./README.md",
     "prettier": "prettier src test/**/*.ts* --write",
     "build": "tsc --build tsconfig-build.json",
-    "build-node": "tsc --build tsconfig-build-node.json",
     "tsc-tests": "tsc --build test/tsconfig.json",
     "test": "jest",
     "test-coverage": "jest --coverage"

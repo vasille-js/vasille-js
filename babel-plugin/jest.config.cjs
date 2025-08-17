@@ -12,4 +12,5 @@ module.exports = {
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
+  coverageReporters: ['clover', 'json', 'lcov', ['text', {skipFull: false}]],
 };

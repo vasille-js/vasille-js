@@ -1,5 +1,5 @@
 import { Expression, Fragment, IValue, Reference } from "vasille";
-import { arrayModel, Debug, Delay, For, mapModel, setModel, Slot, Watch } from "../src/index.js";
+import { arrayModel, Debug, Delay, For, mapModel, setModel, Slot, Switch, Watch } from "../src/index.js";
 import { createNode } from "./page.js";
 
 it("Slot", function () {
@@ -149,4 +149,37 @@ it("Delay", function (done) {
             done();
         }, 20);
     }, 10);
+});
+
+it("Switch", function () {
+    const [node] = createNode();
+    const ref = new Reference(true);
+    let element!: Element;
+
+    node.tag("div", {
+        callback: n => (element = n),
+        slot(node) {
+            Switch(
+                {
+                    cases: [
+                        {
+                            $case: ref,
+                            slot(node) {
+                                node.text("true");
+                            },
+                        },
+                    ],
+                    default(node) {
+                        node.text("false");
+                    },
+                },
+                node,
+            );
+        },
+    });
+
+    expect(element.childNodes.length).toBe(1);
+    expect((element.childNodes[0] as Text).textContent).toBe("true");
+    ref.V = false;
+    expect((element.childNodes[0] as Text).textContent).toBe("false");
 });
