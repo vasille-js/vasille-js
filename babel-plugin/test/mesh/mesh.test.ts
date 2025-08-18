@@ -103,3 +103,19 @@ it("compose nested destruction error", function () {
 it("run on destroy error", function () {
   throwTest(__dirname, "run-on-destroy", "Stores in Vasille.JS are not destroyable");
 });
+
+it("param name starts with $", function () {
+  throwTest(__dirname, "param-name", "Non-reactive variable name must not start with $");
+})
+
+it("param name in array destruction starts with $", function () {
+  throwTest(__dirname, "param-name-destruction", "Non-reactive variable name must not start with $");
+})
+
+it("param name of rest element starts with $", function () {
+  throwTest(__dirname, "param-name-rest", "Non-reactive variable name must not start with $");
+})
+
+it("param name with default value starts with $", function () {
+  throwTest(__dirname, "param-name-with-default-value", "Non-reactive variable name must not start with $");
+})

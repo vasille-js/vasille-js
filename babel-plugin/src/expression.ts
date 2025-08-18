@@ -426,10 +426,10 @@ function ignoreLocals(path: NodePath<types.LVal | types.VariableDeclaration | ty
 
   if (t.isVariableDeclaration(val)) {
     for (const declarator of (path as NodePath<types.VariableDeclaration>).get("declarations")) {
-      ignoreParams(declarator.get("id"), search.external);
+      ignoreParams(declarator.get("id"), search.external, ["id", "array"]);
     }
   } else {
-    ignoreParams(path as NodePath<types.LVal>, search.external);
+    ignoreParams(path as NodePath<types.LVal>, search.external, ["id", "array"]);
   }
 }
 

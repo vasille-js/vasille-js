@@ -1,4 +1,5 @@
 import { NodePath, types } from "@babel/core";
+import { Identifier } from "@babel/types";
 import * as t from "@babel/types";
 import { calls, composeFunctions, hintFunctions, modelFunctions, reactivityFunctions } from "./call.js";
 import { checkNode, idIsIValue, memberIsIValue } from "./expression.js";
@@ -18,6 +19,17 @@ import {
 } from "./lib.js";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
+
+function checkReactiveName (idPath: NodePath<Identifier>, internal: Internal) {
+  if (!idPath.node.name.startsWith("$")) {
+    err(Errors.RulesOfVasille, idPath, "Reactive variable name must start with $", internal);
+  }
+};
+function checkNonReactiveName (idPath: NodePath<Identifier>, internal: Internal) {
+  if (idPath.node.name.startsWith("$")) {
+    err(Errors.RulesOfVasille, idPath, "Non-reactive variable name must not start with $", internal);
+  }
+};
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
   nodePaths: NodePath<types.Expression | null | T>[],
@@ -315,24 +327,47 @@ export function meshStatements(paths: NodePath<types.Statement>[], internal: Int
   }
 }
 
-export function ignoreParams(path: NodePath<types.LVal | types.VoidPattern | null | undefined>, internal: Internal) {
+export function ignoreParams(path: NodePath<types.LVal | types.VoidPattern | null | undefined>, internal: Internal, allowReactiveId: false | ("id"|"array")[]) {
   /* istanbul ignore else */
+  // param with default value
   if (path.isAssignmentPattern()) {
+    const left = path.get("left");
+
     meshExpression(path.get("right"), internal);
-    ignoreParams(path.get("left"), internal);
-  } else if (path.isIdentifier()) {
+    ignoreParams(left, internal, false);
+
+    if ((!allowReactiveId || !allowReactiveId.includes("id")) && left.isIdentifier()) {
+      checkNonReactiveName(left, internal);
+    }
+  }
+  // param is identifier
+  else if (path.isIdentifier()) {
     internal.stack.set(path.node.name, {});
-  } else if (path.isObjectPattern()) {
+    if (!allowReactiveId || !allowReactiveId.includes("id")){
+      checkNonReactiveName(path, internal);
+    }
+  }
+  // param is object destruction
+  else if (path.isObjectPattern()) {
     ignoreObjectPattern(path, internal);
-  } else if (path.isArrayPattern()) {
+  }
+  // param is array destruction
+  else if (path.isArrayPattern()) {
     for (const element of path.get("elements")) {
       if (element) {
-        ignoreParams(element, internal);
+        ignoreParams(element, internal, allowReactiveId && allowReactiveId.includes("array") && ["id", "array"]);
+        if ((!allowReactiveId || !allowReactiveId.includes("array")) && element.isIdentifier()) {
+          checkNonReactiveName(element, internal);
+        }
       }
     }
-  } else if (path.isRestElement()) {
-    ignoreParams(path.get("argument"), internal);
-  } else {
+  }
+  // rest element
+  else if (path.isRestElement()) {
+    ignoreParams(path.get("argument"), internal, false);
+  }
+  // something else
+  else {
     meshLValue(path, internal);
   }
 }
@@ -371,7 +406,7 @@ function ignoreObjectPattern(pattern: NodePath<types.ObjectPattern>, internal: I
       } else if (valuePath.isAssignmentPattern()) {
         const right = valuePath.get("right");
 
-        ignoreParams(valuePath.get("left"), internal);
+        ignoreParams(valuePath.get("left"), internal, ["id"]);
         meshExpression(right, internal);
 
         if (property.computed && t.isIdentifier(property.key)) {
@@ -425,7 +460,7 @@ function meshForEachHeader(path: NodePath<types.ForInStatement | types.ForOfStat
   meshExpression(path.get("right"), internal);
   /* istanbul ignore else */
   if (t.isVariableDeclaration(left) && t.isVariableDeclarator(left.declarations[0])) {
-    ignoreParams(path.get("left").get("declarations")[0].get("id"), internal);
+    ignoreParams(path.get("left").get("declarations")[0].get("id"), internal, false);
   }
 }
 
@@ -441,7 +476,7 @@ function meshForHeader(path: NodePath<types.ForStatement>, internal: Internal) {
     } else {
       for (const declarationPath of initPath.get("declarations")) {
         meshExpression(declarationPath.get("init"), internal);
-        ignoreParams(declarationPath.get("id"), internal);
+        ignoreParams(declarationPath.get("id"), internal, false);
       }
     }
   }
@@ -661,7 +696,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
           meshComposeCall(declaration.node.id, initPath, internal);
         } else {
           meshExpression(initPath, internal);
-          ignoreParams(declaration.get("id"), internal);
+          ignoreParams(declaration.get("id"), internal, ["id", "array"]);
         }
       }
       break;
@@ -725,7 +760,7 @@ export function meshFunction(
   }
 
   for (const param of path.get("params")) {
-    ignoreParams(param, internal);
+    ignoreParams(param, internal, false);
   }
 
   const bodyPath = path.get("body");
@@ -916,7 +951,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
           return [idName(pattern.elements?.[0]), idName(pattern.elements?.[1])];
         }
 
-        ignoreParams(declaration.get("id"), internal);
+        ignoreParams(declaration.get("id"), internal, ["id", "array"]);
 
         /* istanbul ignore else */
         if (calls(declaration.get("init"), ["awaited"], internal)) {
@@ -930,17 +965,6 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
         } else if (t.isIdentifier(id)) {
           const idPath = declaration.get("id") as NodePath<types.Identifier>;
 
-          const checkReactiveName = () => {
-            if (!id.name.startsWith("$")) {
-              err(Errors.RulesOfVasille, idPath, "Reactive variable name must start with $", internal);
-            }
-          };
-          const checkNonReactiveName = () => {
-            if (id.name.startsWith("$")) {
-              err(Errors.RulesOfVasille, idPath, "Non-reactive variable name must not start with $", internal);
-            }
-          };
-
           internal.stack.set(id.name, {});
 
           const init = declaration.node.init;
@@ -952,7 +976,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             declaration.get("init").replaceWith((init as types.CallExpression).arguments[0]);
             _path.node.kind = kind;
             switchToConst = false;
-            checkNonReactiveName();
+            checkNonReactiveName(idPath, internal);
           }
           // const x = bind(a + b);
           else if (calls(initPath, ["bind"], internal)) {
@@ -964,32 +988,32 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             if (!isReactive) {
               declaration.get("init").replaceWith(ref(argument, internal, idName()));
             }
-            checkReactiveName();
+            checkReactiveName(idPath, internal);
           }
           // let y = ref(2)
           else if (calls(initPath, ["ref"], internal)) {
             const argument = (init as types.CallExpression).arguments[0];
 
             declaration.get("init").replaceWith(ref(t.isExpression(argument) ? argument : null, internal, idName()));
-            checkReactiveName();
+            checkReactiveName(idPath, internal);
           }
           // const arr = arrayModel()
           else if (calls(initPath, ["arrayModel"], internal)) {
             processModelCall(initPath, "Array", kind === "const", internal, idName());
             meshInit = false;
-            checkNonReactiveName();
+            checkNonReactiveName(idPath, internal);
           }
           // const map = mapModel();
           else if (calls(initPath, ["mapModel"], internal)) {
             processModelCall(initPath, "Map", kind === "const", internal, idName());
             meshInit = false;
-            checkNonReactiveName();
+            checkNonReactiveName(idPath, internal);
           }
           // const set = setModel();
           else if (calls(initPath, ["setModel"], internal)) {
             processModelCall(initPath, "Set", kind === "const", internal, idName());
             meshInit = false;
-            checkNonReactiveName();
+            checkNonReactiveName(idPath, internal);
           }
           // const x = { .. }
           else if (t.isObjectExpression(init)) {
@@ -998,7 +1022,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
               processObjectExpression(initPath as NodePath<types.ObjectExpression>, internal),
             );
             meshInit = false;
-            checkNonReactiveName();
+            checkNonReactiveName(idPath, internal);
           }
           // const a = []
           else if (initPath.isArrayExpression()) {
@@ -1010,7 +1034,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             meshInit = false;
 
             initPath.replaceWith(arrayModel([initPath.node], internal, idName()));
-            checkNonReactiveName();
+            checkNonReactiveName(idPath, internal);
           }
           // const s = new Set(), const m = new Map()
           else if (initPath.isNewExpression() && t.isIdentifier(initPath.node.callee)) {
@@ -1019,18 +1043,18 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             if (name === "Map" || name === "Set") {
               processModelCall(initPath, name, kind === "const", internal, idName());
               meshInit = false;
-              checkNonReactiveName();
+              checkNonReactiveName(idPath, internal);
             }
           } else if (kind === "let") {
             declaration.get("init").replaceWith(ref(declaration.node.init, internal, idName()));
-            checkReactiveName();
+            checkReactiveName(idPath, internal);
           } else {
             const isReactive = exprCall(declaration.get("init"), declaration.node.init, internal, idName());
 
             if (isReactive) {
-              checkReactiveName();
+              checkReactiveName(idPath, internal);
             } else {
-              checkNonReactiveName();
+              checkNonReactiveName(idPath, internal);
             }
             meshInit = !isReactive;
           }
@@ -1090,7 +1114,7 @@ export function compose(
   }
 
   for (const param of path.get("params")) {
-    ignoreParams(param, internal);
+    ignoreParams(param, internal, false);
   }
 
   if (!isSlot) {
