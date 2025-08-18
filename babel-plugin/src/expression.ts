@@ -2,7 +2,7 @@ import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { calls, composeOnly, hintFunctions } from "./call.js";
 import { Internal, StackedStates } from "./internal.js";
-import { err, Errors } from "./lib";
+import { checkNonReactiveName, err, Errors } from "./lib";
 import { ignoreParams, meshAllUnknown, meshExpression } from "./mesh";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
@@ -588,8 +588,13 @@ export function checkFunction(
     ignoreLocals(param, search);
   }
 
-  if (t.isFunctionDeclaration(node) && node.id) {
-    search.stack.set(node.id.name, {});
+  if (path.isFunctionDeclaration() && path.node.id) {
+    const idPath = path.get("id");
+
+    if (idPath.isIdentifier()){
+      search.stack.set(idPath.node.name, {});
+      checkNonReactiveName(idPath, search.external);
+    }
   }
   if (t.isFunctionExpression(node) && node.id) {
     search.stack.push();

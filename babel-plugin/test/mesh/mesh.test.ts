@@ -119,3 +119,15 @@ it("param name of rest element starts with $", function () {
 it("param name with default value starts with $", function () {
   throwTest(__dirname, "param-name-with-default-value", "Non-reactive variable name must not start with $");
 })
+
+it("function name starts with $", function () {
+  throwTest(__dirname, "function-name", "Non-reactive variable name must not start with $");
+})
+
+it("class name starts with $", function () {
+  throwTest(__dirname, "class-name", "Non-reactive variable name must not start with $");
+})
+
+it("class expression name starts with $", function () {
+  throwTest(__dirname, "class-name-expression", "Non-reactive variable name must not start with $");
+})

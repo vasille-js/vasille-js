@@ -39,3 +39,7 @@ it("check node", function () {
 it("restricted hints error", function () {
   throwTest(__dirname, "restricted-hint", "Usage of hints is restricted here");
 });
+
+it("function name starts with $", function () {
+  throwTest(__dirname, "function-name", "Non-reactive variable name must not start with $");
+})

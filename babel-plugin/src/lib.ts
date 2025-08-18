@@ -1,4 +1,5 @@
 import { NodePath, types } from "@babel/core";
+import { Identifier } from "@babel/types";
 import * as t from "@babel/types";
 import { checkNode, encodeName } from "./expression.js";
 import { Internal, ctx } from "./internal.js";
@@ -229,4 +230,16 @@ export function processModelCall(
         ? setModel(args, internal, name)
         : arrayModel(args, internal, name),
   );
+}
+
+export function checkReactiveName (idPath: NodePath<Identifier>, internal: Internal) {
+  if (!idPath.node.name.startsWith("$")) {
+    err(Errors.RulesOfVasille, idPath, "Reactive variable name must start with $", internal);
+  }
+}
+
+export function checkNonReactiveName (idPath: NodePath<Identifier>, internal: Internal) {
+  if (idPath.node.name.startsWith("$")) {
+    err(Errors.RulesOfVasille, idPath, "Non-reactive variable name must not start with $", internal);
+  }
 }

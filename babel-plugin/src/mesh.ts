@@ -1,5 +1,4 @@
 import { NodePath, types } from "@babel/core";
-import { Identifier } from "@babel/types";
 import * as t from "@babel/types";
 import { calls, composeFunctions, hintFunctions, modelFunctions, reactivityFunctions } from "./call.js";
 import { checkNode, idIsIValue, memberIsIValue } from "./expression.js";
@@ -7,29 +6,18 @@ import { ctx, Internal, VariableState } from "./internal.js";
 import { ConditionCollection, processConditions, transformJsx } from "./jsx.js";
 import {
   arrayModel,
+  checkNonReactiveName,
+  checkReactiveName,
   err,
   Errors,
   exprCall,
-  mapModel,
   named,
   parseCalculateCall,
   processModelCall,
   ref,
-  setModel,
 } from "./lib.js";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
-
-function checkReactiveName (idPath: NodePath<Identifier>, internal: Internal) {
-  if (!idPath.node.name.startsWith("$")) {
-    err(Errors.RulesOfVasille, idPath, "Reactive variable name must start with $", internal);
-  }
-};
-function checkNonReactiveName (idPath: NodePath<Identifier>, internal: Internal) {
-  if (idPath.node.name.startsWith("$")) {
-    err(Errors.RulesOfVasille, idPath, "Non-reactive variable name must not start with $", internal);
-  }
-};
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
   nodePaths: NodePath<types.Expression | null | T>[],
@@ -307,7 +295,13 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       break;
     }
     case "ClassExpression": {
-      meshClassBody((nodePath as NodePath<types.ClassExpression>).get("body"), internal);
+      const classPath = (nodePath as NodePath<types.ClassExpression>);
+      const idPath = classPath.get("id");
+
+      if (idPath.isIdentifier()) {
+        checkNonReactiveName(idPath, internal);
+      }
+      meshClassBody(classPath.get("body"), internal);
       break;
     }
     case "JSXFragment": {
@@ -714,9 +708,17 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
       meshStatement((path as NodePath<types.ExportNamedDeclaration>).get("declaration"), internal);
       break;
     }
-    case "ClassDeclaration":
-      meshClassBody((path as NodePath<types.ClassDeclaration>).get("body"), internal);
+    case "ClassDeclaration":{
+      const classPath = (path as NodePath<types.ClassDeclaration>);
+      const idPath = classPath.get("id");
+
+      if (idPath.isIdentifier()) {
+        checkNonReactiveName(idPath, internal);
+      }
+      meshClassBody(classPath.get("body"), internal);
+
       break;
+    }
 
     case "ExportDefaultDeclaration": {
       const declarationPath = (path as NodePath<types.ExportDefaultDeclaration>).get("declaration");
@@ -750,7 +752,12 @@ export function meshFunction(
   internal: Internal,
 ) {
   if (path.isFunctionDeclaration() && path.node.id) {
-    internal.stack.set(path.node.id.name, {});
+    const idPath = path.get("id");
+
+    if (idPath.isIdentifier()){
+      internal.stack.set(path.node.id.name, {});
+      checkNonReactiveName(idPath, internal);
+    }
   }
 
   internal.stack.push();
