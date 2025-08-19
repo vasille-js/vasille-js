@@ -3,7 +3,7 @@ import * as t from "@babel/types";
 import { calls, hintFunctions } from "./call.js";
 import { Internal, StackedStates } from "./internal.js";
 import { checkNonReactiveName, err, Errors } from "./lib";
-import { ignoreParams, meshAllUnknown } from "./mesh";
+import { ignoreParams, meshAllUnknown, meshExpression } from "./mesh";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
 
@@ -89,6 +89,10 @@ export function memberIsIValue(node: types.MemberExpression | types.OptionalMemb
 }
 
 export function exprIsSure(path: NodePath<types.Expression|null|undefined>, internal: Internal) {
+  if (!path.isMemberExpression() || !stringify(path.node.property).startsWith("$")) {
+    return true;
+  }
+
   let it : types.Expression|null|undefined = path.node;
   let names: string[] = [];
 
@@ -100,7 +104,7 @@ export function exprIsSure(path: NodePath<types.Expression|null|undefined>, inte
   const reactivityData = t.isIdentifier(it) && internal.stack.get(it.name);
   const propPath = names.reverse().join(".");
 
-  return reactivityData && reactivityData[propPath] || it === path.node || t.isMemberExpression(path.parent);
+  return reactivityData && reactivityData[propPath] || t.isMemberExpression(path.parent);
 }
 
 function meshMember(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>) {
@@ -280,8 +284,23 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     }
     case "AssignmentExpression": {
       const path = nodePath as NodePath<types.AssignmentExpression>;
-      meshLValue(path.get("left"), search.external);
-      checkExpression(path.get("right"), search);
+      const left = path.get("left");
+      const right = path.get("right");
+
+      if (left.isMemberExpression() && !exprIsSure(left, search.external)) {
+        const property = left.node.property;
+
+        meshExpression(left.get("object"), search.external);
+        checkExpression(right, search);
+
+        if (!t.isPrivateName(property)){
+          path.replaceWith(search.external.set(left.node.object, property, right.node));
+        }
+      }
+      else {
+        meshLValue(left, search.external);
+        checkExpression(right, search);
+      }
       break;
     }
     case "MemberExpression":

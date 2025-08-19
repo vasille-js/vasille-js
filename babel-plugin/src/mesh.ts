@@ -177,9 +177,23 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
     }
     case "AssignmentExpression": {
       const path = nodePath as NodePath<types.AssignmentExpression>;
+      const left = path.get("left");
+      const right = path.get("right");
 
-      meshLValue(path.get("left"), internal);
-      meshExpression(path.get("right"), internal);
+      if (left.isMemberExpression() && !exprIsSure(left, internal)) {
+        const property = left.node.property;
+
+        meshExpression(left.get("object"), internal);
+        meshExpression(right, internal);
+
+        if (!t.isPrivateName(property)){
+          path.replaceWith(internal.set(left.node.object, property, right.node));
+        }
+      }
+      else {
+        meshLValue(left, internal);
+        meshExpression(right, internal);
+      }
       break;
     }
     case "MemberExpression":

@@ -28,6 +28,10 @@ it("run on destroy", function () {
   runTest(__dirname, "run-on-destroy", false);
 });
 
+it("reactive field set", function () {
+  runTest(__dirname, "reactive-field-set", false);
+})
+
 it("store function", function () {
   runJsxTest(__dirname, "store");
 });

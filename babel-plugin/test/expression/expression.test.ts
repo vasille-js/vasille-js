@@ -16,6 +16,10 @@ it("check statements", function () {
   runTest(__dirname, "check-statement");
 });
 
+it("reactive field set", function () {
+  runTest(__dirname, "reactive-field-set", false);
+})
+
 it("nested observable error", function () {
   throwTest(__dirname, "nested-observable", "The reactive/observable value is nested");
 });
