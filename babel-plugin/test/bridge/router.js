@@ -7,11 +7,11 @@ export const C = compose(Vasille => {
     }, "loading-screen");
     return Vasille_a + 1;
   }, [$a], "b");
-  Vasille.runner.router?.navigate("/", {}, "silent");
-  Vasille.runner.router;
   function goNext() {
     Vasille.runner.router?.navigate("/:test", {
       test: "x"
     }, "loading-overlay");
   }
+  Vasille.runner.router?.navigate("/", {}, "silent");
+  Vasille.runner.router;
 }, "C");

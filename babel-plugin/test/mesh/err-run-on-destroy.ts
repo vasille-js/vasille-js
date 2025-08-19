@@ -1,7 +1,7 @@
-import { runOnDestroy, store } from "vasille-web";
+import { beforeDestroy, store } from "vasille-web";
 
 export const C = store(() => {
-  runOnDestroy(() => {
+  beforeDestroy(() => {
     console.log("destroy called");
   });
 

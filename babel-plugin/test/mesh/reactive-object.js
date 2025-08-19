@@ -25,10 +25,10 @@ const Component = compose(Vasille => {
   const $b = VasilleEnsure(s.$b);
   const $bc1 = watch(Vasille, Vasille_s_o_b => Vasille_s_o_b.c, [s.o.$b], "bc1");
   const $bc2 = watch(Vasille, Vasille_s_o_b => Vasille_s_o_b?.c, [s.o.$b], "bc2");
-  console.log($a.V, $b.V, s.o.$b.V.c, s.o.$b?.V?.c);
   watch(Vasille, (Vasille_a, Vasille_b, Vasille_s_o_b) => {
     console.log(Vasille_a, Vasille_b, Vasille_s_o_b.c, Vasille_s_o_b?.c);
   }, [$a, $b, s.o.$b]);
+  console.log($a.V, $b.V, s.o.$b.V.c, s.o.$b?.V?.c);
   Vasille.tag("div", {}, Vasille => {
     Vasille.text($a);
     Vasille.text($b);

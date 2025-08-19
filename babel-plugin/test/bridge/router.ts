@@ -1,4 +1,4 @@
-import { calculate, compose, router } from "vasille-web";
+import { beforeMount, calculate, compose, router } from "vasille-web";
 
 export const C = compose(() => {
   let $a = 2;
@@ -8,10 +8,11 @@ export const C = compose(() => {
     return $a + 1;
   });
 
-  router()?.navigate("/", {}, "silent");
-  router();
-
   function goNext() {
     router()?.navigate("/:test", { test: "x" }, "loading-overlay");
   }
+
+  beforeMount(() => router()?.navigate("/", {}, "silent"));
+  beforeMount(() => router());
+
 });

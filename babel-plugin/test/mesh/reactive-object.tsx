@@ -1,4 +1,4 @@
-import { bind, compose, store, watch } from "vasille-web";
+import { beforeMount, bind, compose, store, watch } from "vasille-web";
 
 const obj = { a: 1, b: 2 };
 
@@ -7,7 +7,7 @@ export const S = store(() => {
   let $b = bind(3);
   const o = { a: 1, $b: { c: 3 } };
 
-  console.log(o.$b.c);
+  beforeMount(() => console.log(o.$b.c));
 
   return {
     $a: $a,
@@ -24,11 +24,11 @@ const Component = compose(() => {
   const $bc1 = s.o.$b.c;
   const $bc2 = s.o.$b?.c;
 
-  console.log($a, $b, s.o.$b.c, s.o.$b?.c);
-
   watch(() => {
     console.log($a, $b, s.o.$b.c, s.o.$b?.c);
   });
+
+  beforeMount(() => console.log($a, $b, s.o.$b.c, s.o.$b?.c));
 
   <div>
     {$a}

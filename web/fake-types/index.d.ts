@@ -192,8 +192,14 @@ export declare function routerApp<Routes extends string>(
     debugUi?: boolean,
 ): App<Node, Element, TagOptions>;
 
+/** Run a function before component mount */
+export declare function beforeMount(fn: () => void): void;
+
+/** Run a function after component mount */
+export declare function afterMount(fn: () => void): void;
+
 /** Run a function before component destroy */
-export declare function runOnDestroy(fn: () => void): void;
+export declare function beforeDestroy(fn: () => void): void;
 
 /** Returns the current used router */
 export declare function router(): Router<string> | undefined;

@@ -1,7 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { calls, composeFunctions, hintFunctions, modelFunctions, reactivityFunctions } from "./call.js";
-import { checkNode, idIsIValue, memberIsIValue, exprIsSure } from "./expression.js";
+import { checkNode, exprIsSure, idIsIValue, memberIsIValue } from "./expression.js";
 import { ctx, Internal, VariableState } from "./internal.js";
 import { ConditionCollection, processConditions, transformJsx } from "./jsx.js";
 import {
@@ -16,6 +16,7 @@ import {
   processModelCall,
   ref,
 } from "./lib.js";
+import { checkOrder } from "./order-check";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
 
@@ -186,11 +187,10 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
         meshExpression(left.get("object"), internal);
         meshExpression(right, internal);
 
-        if (!t.isPrivateName(property)){
+        if (!t.isPrivateName(property)) {
           path.replaceWith(internal.set(left.node.object, property, right.node));
         }
-      }
-      else {
+      } else {
         meshLValue(left, internal);
         meshExpression(right, internal);
       }
@@ -210,9 +210,8 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       if (memberIsIValue(node)) {
         if (exprIsSure(path, internal)) {
           path.replaceWith(t.memberExpression(path.node, t.identifier("V")));
-        }
-        else {
-          path.replaceWith((t.optionalMemberExpression(path.node, t.identifier("V"), false, true)));
+        } else {
+          path.replaceWith(t.optionalMemberExpression(path.node, t.identifier("V"), false, true));
         }
       }
 
@@ -314,7 +313,7 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       break;
     }
     case "ClassExpression": {
-      const classPath = (nodePath as NodePath<types.ClassExpression>);
+      const classPath = nodePath as NodePath<types.ClassExpression>;
       const idPath = classPath.get("id");
 
       if (idPath.isIdentifier()) {
@@ -340,7 +339,11 @@ export function meshStatements(paths: NodePath<types.Statement>[], internal: Int
   }
 }
 
-export function ignoreParams(path: NodePath<types.LVal | types.VoidPattern | null | undefined>, internal: Internal, allowReactiveId: false | ("id"|"array")[]) {
+export function ignoreParams(
+  path: NodePath<types.LVal | types.VoidPattern | null | undefined>,
+  internal: Internal,
+  allowReactiveId: false | ("id" | "array")[],
+) {
   /* istanbul ignore else */
   // param with default value
   if (path.isAssignmentPattern()) {
@@ -356,7 +359,7 @@ export function ignoreParams(path: NodePath<types.LVal | types.VoidPattern | nul
   // param is identifier
   else if (path.isIdentifier()) {
     internal.stack.set(path.node.name, {});
-    if (!allowReactiveId || !allowReactiveId.includes("id")){
+    if (!allowReactiveId || !allowReactiveId.includes("id")) {
       checkNonReactiveName(path, internal);
     }
   }
@@ -712,10 +715,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
           ignoreParams(declaration.get("id"), internal, ["id", "array"]);
 
           if (initPath.isObjectExpression() && t.isIdentifier(declaration.node.id) && _path.node.kind === "const") {
-            internal.stack.set(
-              declaration.node.id.name,
-              processObjectExpression(initPath, internal),
-            );
+            internal.stack.set(declaration.node.id.name, processObjectExpression(initPath, internal));
           }
         }
       }
@@ -734,8 +734,8 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
       meshStatement((path as NodePath<types.ExportNamedDeclaration>).get("declaration"), internal);
       break;
     }
-    case "ClassDeclaration":{
-      const classPath = (path as NodePath<types.ClassDeclaration>);
+    case "ClassDeclaration": {
+      const classPath = path as NodePath<types.ClassDeclaration>;
       const idPath = classPath.get("id");
 
       if (idPath.isIdentifier()) {
@@ -780,7 +780,7 @@ export function meshFunction(
   if (path.isFunctionDeclaration() && path.node.id) {
     const idPath = path.get("id");
 
-    if (idPath.isIdentifier()){
+    if (idPath.isIdentifier()) {
       internal.stack.set(path.node.id.name, {});
       checkNonReactiveName(idPath, internal);
     }
@@ -824,7 +824,24 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
             path.replaceWith(t.callExpression(args[1] as types.Expression, []));
           }
         }
-      } else if (calls(path, ["runOnDestroy"], internal)) {
+      } else if (calls(path, ["beforeMount", "afterMount"], internal)) {
+        const arg = path.get("arguments")[0];
+
+        if (arg.isFunctionExpression() || arg.isArrowFunctionExpression()) {
+          const body = arg.isFunctionExpression() ? arg.get("body") : arg.get("body");
+
+          if (body.isBlockStatement()) {
+            composeStatements(body.get("body"), internal);
+            path.replaceWith(t.callExpression(arg.node, []));
+          }
+          else if (body.isExpression()) {
+            composeExpression(body, internal);
+            path.replaceWith(body);
+          }
+        } else {
+          err(Errors.IncorrectArguments, path, "Incorrect hint argument", internal);
+        }
+      } else if (calls(path, ["beforeDestroy"], internal)) {
         if (internal.stateOnly) {
           err(Errors.IncompatibleContext, path, "Stores in Vasille.JS are not destroyable", internal);
         }
@@ -849,14 +866,12 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
       if (internal.stateOnly) {
         return err(Errors.IncompatibleContext, path, "JSX is not allowed in states", internal);
       }
-      const conditions: ConditionCollection = {cases: null};
+      const conditions: ConditionCollection = { cases: null };
 
-      path.replaceWithMultiple(
-        [
-          ...transformJsx(path as NodePath<types.JSXElement | types.JSXFragment>, conditions, internal),
-          ...processConditions(conditions, internal),
-        ]
-      );
+      path.replaceWithMultiple([
+        ...transformJsx(path as NodePath<types.JSXElement | types.JSXFragment>, conditions, internal),
+        ...processConditions(conditions, internal),
+      ]);
       break;
     default:
       meshExpression(path, internal);
@@ -1013,7 +1028,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
           // const x = bind(a + b);
           else if (calls(initPath, ["bind"], internal)) {
             const argument = (init as types.CallExpression).arguments[0] as types.Expression;
-            const isReactive = exprCall(initPath, initPath.node, internal, {name: idName(), strong: true});
+            const isReactive = exprCall(initPath, initPath.node, internal, { name: idName(), strong: true });
 
             meshInit = !isReactive;
 
@@ -1081,7 +1096,10 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             declaration.get("init").replaceWith(ref(declaration.node.init, internal, idName()));
             checkReactiveName(idPath, internal);
           } else {
-            const isReactive = exprCall(declaration.get("init"), declaration.node.init, internal, {name: idName(), strong: true});
+            const isReactive = exprCall(declaration.get("init"), declaration.node.init, internal, {
+              name: idName(),
+              strong: true,
+            });
 
             if (isReactive) {
               checkReactiveName(idPath, internal);
@@ -1135,7 +1153,7 @@ export function compose(
 
   const node = path.node;
   const params = node.params;
-  const body = node.body;
+  const body = path.isArrowFunctionExpression() ? path.get("body") : path.isFunctionExpression() ? path.get("body") : path.get("body");
 
   if (t.isFunctionExpression(node) && node.id) {
     internal.stack.set(node.id.name, {});
@@ -1154,10 +1172,13 @@ export function compose(
   }
 
   /* istanbul ignore else */
-  if (t.isExpression(body)) {
-    composeExpression(path.get("body") as NodePath<types.Expression>, internal);
-  } else if (t.isBlockStatement(body)) {
-    composeStatement(path.get("body") as NodePath<types.BlockStatement>, internal);
+  if (body.isExpression()) {
+    composeExpression(body, internal);
+  } else if (body.isBlockStatement()) {
+    if (!isSlot) {
+      checkOrder(body.get("body"), internal);
+    }
+    composeStatement(body, internal);
   }
 
   if (!isSlot) {

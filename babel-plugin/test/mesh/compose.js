@@ -13,6 +13,7 @@ const C = compose(function C(Vasille, {
     }),
     $more: VasilleRef("more")
   }], "model");
+  console.log($d.V.id, $d.V.width, $d.V.height, $name.V, rest.$more?.V);
   Vasille.tag("div", {}, Vasille => {
     Vasille.text(VasilleExpr(Vasille, Vasille_d => Vasille_d.id, [$d]));
     Vasille.text(":");
@@ -23,7 +24,6 @@ const C = compose(function C(Vasille, {
     Vasille.text("...");
     Vasille.text(rest.$more);
   });
-  console.log($d.V.id, $d.V.width, $d.V.height, $name.V, rest.$more?.V);
   For({
     of: model,
     slot: (Vasille, {

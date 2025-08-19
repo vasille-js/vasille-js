@@ -1,4 +1,4 @@
-import { Slot, compose } from "vasille-web";
+import { Slot, compose, afterMount } from "vasille-web";
 
 export const C1 = compose(({ slot }: { slot(props: { $a: number }): void }) => {
   let $a = 0;
@@ -29,5 +29,5 @@ export const C2 = compose(() => {
     }}
   />;
 
-  console.log($a);
+  afterMount(() => console.log($a));
 });

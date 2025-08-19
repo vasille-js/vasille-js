@@ -1,4 +1,4 @@
-import { compose, ref } from "vasille-web";
+import { beforeMount, compose, ref } from "vasille-web";
 
 let o1 = {
   $x: ref(1),
@@ -13,8 +13,8 @@ const C = compose(() => {
     $x: 1,
   }
 
-  o1.$x = 2;
-  o2.$x = 2;
-  o3.$x = 3;
+  beforeMount(() => o1.$x = 2);
+  beforeMount(() => o2.$x = 2);
+  beforeMount(() => o3.$x = 3);
 })
 

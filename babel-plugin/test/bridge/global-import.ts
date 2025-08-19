@@ -3,8 +3,6 @@ import * as Web from "vasille-web";
 const $a = Web.ref(2);
 
 const C = Web.compose(() => {
-  Web.router();
-
   function overrideTest() {
     const Web = {
       ref(x) {
@@ -13,4 +11,6 @@ const C = Web.compose(() => {
     };
     const xx = Web.ref(2);
   }
+
+  Web.beforeMount(() => Web.router());
 });

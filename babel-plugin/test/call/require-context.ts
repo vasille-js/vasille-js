@@ -8,5 +8,5 @@ export const C = DX.compose(() => {
       }),
   );
 
-  console.log($err, $result, retry);
+  DX.beforeMount(() => console.log($err, $result, retry));
 });

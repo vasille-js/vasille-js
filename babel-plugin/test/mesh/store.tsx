@@ -10,7 +10,7 @@ import {
   setModel,
   store,
   raw,
-  watch,
+  watch, beforeMount,
 } from "vasille-web";
 
 export const C = store(() => {
@@ -57,7 +57,6 @@ export const C = store(() => {
 const c = C;
 
 const Component = compose(() => {
-  console.log(c["$a"], c.$b, c.$c, c.$d, c.e, c.f, c.g, c["$$h"].a, c.$i, c.j, c.$k, c.$o.a.b);
 
   watch(() => {
     console.log(c.$a, c.$b, c.$c, c.$d);
@@ -65,6 +64,8 @@ const Component = compose(() => {
     console.log(c.$$h.a, c.$i, c.j);
     console.log(c.$k, c.$o.a.b);
   });
+
+  beforeMount(() => console.log(c["$a"], c.$b, c.$c, c.$d, c.e, c.f, c.g, c["$$h"].a, c.$i, c.j, c.$k, c.$o.a.b));
 
   <div>
     {c.$a}

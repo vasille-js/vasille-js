@@ -1,4 +1,4 @@
-import { arrayModel, compose, mapModel, ref, setModel } from "vasille-web";
+import { arrayModel, beforeMount, compose, mapModel, ref, setModel } from "vasille-web";
 
 export const C = compose(() => {
   let $a = 3;
@@ -22,6 +22,6 @@ export const C = compose(() => {
   let $n = ref(new Map([[1, [2]]]));
   const z = arrayModel();
 
-  console.log($a, b[0], c.has($a), d.get(1), e.$g);
-  console.log(f.$a, g[0], h.has(2), i.get(1), $k[0], $m.has(2), $n.get(1));
+  beforeMount(() => console.log($a, b[0], c.has($a), d.get(1), e.$g));
+  beforeMount(() => console.log(f.$a, g[0], h.has(2), i.get(1), $k[0], $m.has(2), $n.get(1)));
 });

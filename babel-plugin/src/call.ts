@@ -7,6 +7,7 @@ export type FnNames =
   | "view"
   | "component"
   | "store"
+  | "model"
   | "screen"
   | "awaited"
   | "calculate"
@@ -19,7 +20,9 @@ export type FnNames =
   | "arrayModel"
   | "setModel"
   | "mapModel"
-  | "runOnDestroy"
+  | "beforeMount"
+  | "afterMount"
+  | "beforeDestroy"
   | "router"
   | "theme"
   | "dark"
@@ -30,7 +33,7 @@ export type FnNames =
   | "prefersLight"
   | "styleSheet";
 
-export const composeFunctions = ["compose", "store", "view", "component"] as const satisfies FnNames[];
+export const composeFunctions = ["compose", "store", "model", "view", "component"] as const satisfies FnNames[];
 
 export const reactivityFunctions = ["ref", "awaited", "backward"] as const satisfies FnNames[];
 
@@ -38,7 +41,7 @@ export const bindFunctions = ["forward", "watch", "calculate", "bind"] as const 
 
 export const modelFunctions = ["arrayModel", "mapModel", "setModel"] as const satisfies FnNames[];
 
-export const composeOnly = ["router", "runOnDestroy"] as const satisfies FnNames[];
+export const composeOnly = ["router", "beforeMount", "afterMount", "beforeDestroy"] as const satisfies FnNames[];
 export const styleOnly = [
   "theme",
   "dark",
@@ -60,7 +63,6 @@ export const hintFunctions: FnNames[] = [
 ];
 
 function checkCall<T extends string>(
-  path: NodePath<types.Expression | null | undefined>,
   name: T,
   internal: Internal,
 ): T {
@@ -94,7 +96,7 @@ export function calls(
       const mapped = internal.mapping.get(callee.name);
 
       if (mapped && set.has(mapped) && internal.stack.get(callee.name) === undefined) {
-        return !!checkCall(path, mapped, internal);
+        return !!checkCall(mapped, internal);
       }
       return false;
     }
@@ -118,7 +120,7 @@ export function calls(
       callee.object.name === internal.global &&
       internal.stack.get(internal.global) === undefined
     ) {
-      return !!checkCall(path, propName, internal);
+      return !!checkCall(propName, internal);
     }
   }
 

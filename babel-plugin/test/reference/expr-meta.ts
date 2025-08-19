@@ -1,4 +1,4 @@
-import { compose, raw, ref, bind, calculate } from "vasille-web";
+import { compose, raw, ref, bind, calculate, beforeMount } from "vasille-web";
 
 export const C = compose(() => {
   let $a = ref(2);
@@ -14,5 +14,5 @@ export const C = compose(() => {
   let $h = bind(3);
   const $j = bind(4);
 
-  console.log($a, b, $c, $d, $e, f, $g, $h, $j);
+  beforeMount(() => console.log($a, b, $c, $d, $e, f, $g, $h, $j));
 });
