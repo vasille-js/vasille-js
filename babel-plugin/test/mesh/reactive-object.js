@@ -1,4 +1,4 @@
-import { bind, compose, store, watch, ref as VasilleRef } from "vasille-web";
+import { bind, compose, store, watch, ref as VasilleRef, ensure as VasilleEnsure } from "vasille-web";
 const obj = {
   a: 1,
   b: 2
@@ -8,39 +8,31 @@ export const S = store(Vasille => {
   const $b = VasilleRef(3, "b");
   const o = {
     a: 1,
-    b: {
+    $b: VasilleRef({
       c: 3
-    }
+    })
   };
-  const {
-    b: b0,
-    ...o0
-  } = o;
-  console.log(b0, o0.a);
+  console.log(o.$b.V.c);
   return {
     $a: $a,
     $b: $b,
-    o: o,
-    $b0: VasilleRef(b0),
-    o0: o0
+    o: o
   };
 }, "S");
 const s = S;
 const Component = compose(Vasille => {
-  const $a = s.$a;
-  const $b = s.$b;
-  const o0 = s["o"];
-  const o1 = s.o;
-  const o2 = obj;
-  console.log($a.V, $b.V, o0.b.c, o1.a, o2.a);
-  watch(Vasille, (Vasille_a, Vasille_b) => {
-    console.log(Vasille_a, Vasille_b, o0.b.c, o1.a, o2.a);
-  }, [$a, $b]);
+  const $a = VasilleEnsure(s.$a);
+  const $b = VasilleEnsure(s.$b);
+  const $bc1 = watch(Vasille, Vasille_s_o_b => Vasille_s_o_b.c, [s.o.$b], "bc1");
+  const $bc2 = watch(Vasille, Vasille_s_o_b => Vasille_s_o_b?.c, [s.o.$b], "bc2");
+  console.log($a.V, $b.V, s.o.$b.V.c, s.o.$b?.V?.c);
+  watch(Vasille, (Vasille_a, Vasille_b, Vasille_s_o_b) => {
+    console.log(Vasille_a, Vasille_b, Vasille_s_o_b.c, Vasille_s_o_b?.c);
+  }, [$a, $b, s.o.$b]);
   Vasille.tag("div", {}, Vasille => {
     Vasille.text($a);
     Vasille.text($b);
-    Vasille.text(o0.b.c);
-    Vasille.text(o1.a);
-    Vasille.text(o2.a);
+    Vasille.text(watch(Vasille, Vasille_s_o_b => Vasille_s_o_b.c, [s.o.$b]));
+    Vasille.text(watch(Vasille, Vasille_s_o_b => Vasille_s_o_b?.c, [s.o.$b]));
   });
 }, "Component");

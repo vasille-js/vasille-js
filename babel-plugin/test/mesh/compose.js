@@ -23,7 +23,7 @@ const C = compose(function C(Vasille, {
     Vasille.text("...");
     Vasille.text(rest.$more);
   });
-  console.log($d.V.id, $d.V.width, $d.V.height, $name.V, rest.$more.V);
+  console.log($d.V.id, $d.V.width, $d.V.height, $name.V, rest.$more?.V);
   For({
     of: model,
     slot: (Vasille, {
@@ -41,7 +41,7 @@ const C = compose(function C(Vasille, {
         Vasille.text("...");
         Vasille.text(rest2.$more);
       });
-      console.log($data.V.id, $data.V.width, $data.V.height, $name.V, rest2.$more.V);
+      console.log($data.V.id, $data.V.width, $data.V.height, $name.V, rest2.$more?.V);
     }
   }, Vasille);
 }, "C");

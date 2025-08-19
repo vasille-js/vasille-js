@@ -1,7 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { calls, composeFunctions, hintFunctions, modelFunctions, reactivityFunctions } from "./call.js";
-import { checkNode, idIsIValue, memberIsIValue } from "./expression.js";
+import { checkNode, idIsIValue, memberIsIValue, exprIsSure } from "./expression.js";
 import { ctx, Internal, VariableState } from "./internal.js";
 import { ConditionCollection, processConditions, transformJsx } from "./jsx.js";
 import {
@@ -194,7 +194,12 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       }
 
       if (memberIsIValue(node)) {
-        path.replaceWith(t.memberExpression(node, t.identifier("V")));
+        if (exprIsSure(path, internal)) {
+          path.replaceWith(t.memberExpression(path.node, t.identifier("V")));
+        }
+        else {
+          path.replaceWith((t.optionalMemberExpression(path.node, t.identifier("V"), false, true)));
+        }
       }
 
       break;
@@ -691,6 +696,13 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
         } else {
           meshExpression(initPath, internal);
           ignoreParams(declaration.get("id"), internal, ["id", "array"]);
+
+          if (initPath.isObjectExpression() && t.isIdentifier(declaration.node.id) && _path.node.kind === "const") {
+            internal.stack.set(
+              declaration.node.id.name,
+              processObjectExpression(initPath, internal),
+            );
+          }
         }
       }
       break;
@@ -976,7 +988,6 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
 
           const init = declaration.node.init;
           const initPath = declaration.get("init");
-          let callName: string | false = false;
 
           // let a = raw(0)
           if (calls(initPath, ["raw"], internal)) {
@@ -988,7 +999,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
           // const x = bind(a + b);
           else if (calls(initPath, ["bind"], internal)) {
             const argument = (init as types.CallExpression).arguments[0] as types.Expression;
-            const isReactive = exprCall(initPath, initPath.node, internal, idName());
+            const isReactive = exprCall(initPath, initPath.node, internal, {name: idName(), strong: true});
 
             meshInit = !isReactive;
 
@@ -1056,7 +1067,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             declaration.get("init").replaceWith(ref(declaration.node.init, internal, idName()));
             checkReactiveName(idPath, internal);
           } else {
-            const isReactive = exprCall(declaration.get("init"), declaration.node.init, internal, idName());
+            const isReactive = exprCall(declaration.get("init"), declaration.node.init, internal, {name: idName(), strong: true});
 
             if (isReactive) {
               checkReactiveName(idPath, internal);

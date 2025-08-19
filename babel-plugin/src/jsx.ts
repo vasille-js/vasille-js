@@ -125,7 +125,7 @@ function transformJsxExpressionContainer(
         if (argPath && argPath.isExpression()) {
           const argValue = argPath.node;
 
-          if (exprCall(argPath, argPath.node, internal)) {
+          if (exprCall(argPath, argPath.node, internal, {strong: true})) {
             path.replaceWith(argPath);
 
             if (!argPath.isMemberExpression() && !argPath.isIdentifier()) {
@@ -150,7 +150,7 @@ function transformJsxExpressionContainer(
         if (argPath && argPath.isExpression()) {
           const argValue = argPath.node;
 
-          if (!exprCall(expression, expression.node, internal)) {
+          if (!exprCall(expression, expression.node, internal, {strong: true})) {
             argPath.node = argValue;
             err(Errors.RulesOfVasille, argPath, "A reactive expression expected, argument value constant", internal);
           }
@@ -158,7 +158,7 @@ function transformJsxExpressionContainer(
       }
       // two-side binding
       else {
-        const isReactive = exprCall(expression, expression.node, internal);
+        const isReactive = exprCall(expression, expression.node, internal, {strong: !acceptsRaw});
 
         if (!isReactive && !acceptsRaw) {
           expression.replaceWith(internal.ref(expression.node));
@@ -283,7 +283,7 @@ function transformJsxElement(
                     elementPath.node.operator === "&&" &&
                     t.isStringLiteral(elementPath.node.right)
                   ) {
-                    exprCall(elementPath.get("left"), elementPath.node.left, internal);
+                    exprCall(elementPath.get("left"), elementPath.node.left, internal, {});
 
                     classObject.push(idToProp(elementPath.node.right, elementPath.node.left));
                   }
@@ -296,7 +296,7 @@ function transformJsxElement(
                         const valuePath = propPath.get("value");
 
                         if (valuePath.isExpression()) {
-                          exprCall(valuePath, valuePath.node, internal);
+                          exprCall(valuePath, valuePath.node, internal, {});
                         }
 
                         if (keyPath.isExpression() && !keyPath.isIdentifier()) {
@@ -321,7 +321,7 @@ function transformJsxElement(
                   }
                   // class={[..]}
                   else {
-                    exprCall(elementPath, elementPath.node, internal);
+                    exprCall(elementPath, elementPath.node, internal, {strong: true});
 
                     classElements.push(elementPath.node);
                   }
@@ -338,7 +338,7 @@ function transformJsxElement(
             }
             // class={`a ${b}`}
             else if (expressionPath && expressionPath.isExpression()) {
-              if (exprCall(expressionPath, expressionPath.node, internal)) {
+              if (exprCall(expressionPath, expressionPath.node, internal, {strong: true})) {
                 console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
               }
 
@@ -346,7 +346,7 @@ function transformJsxElement(
             }
             // class={name}
             else if (expressionPath && expressionPath.isExpression()) {
-              exprCall(expressionPath, expressionPath.node, internal);
+              exprCall(expressionPath, expressionPath.node, internal, {});
               attrs.push(t.objectProperty(t.identifier("class"), expressionPath.node));
             }
             // class="a b"
@@ -364,7 +364,7 @@ function transformJsxElement(
                   const valuePath = prop.get("value");
 
                   if (valuePath.isExpression()) {
-                    exprCall(valuePath, valuePath.node, internal);
+                    exprCall(valuePath, valuePath.node, internal, {strong: true});
                   }
 
                   const value = valuePath.node;
@@ -424,7 +424,7 @@ function transformJsxElement(
             }
             // style={`a: ${b}px`}
             else if (expressionPath && expressionPath.isExpression()) {
-              if (exprCall(expressionPath, expressionPath.node, internal)) {
+              if (exprCall(expressionPath, expressionPath.node, internal, {strong: true})) {
                 console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
               }
 
@@ -448,7 +448,7 @@ function transformJsxElement(
             /* istanbul ignore else */
             if (expressionPath) {
               if (expressionPath.isExpression()) {
-                exprCall(expressionPath, expressionPath.node, internal);
+                exprCall(expressionPath, expressionPath.node, internal, {strong: true});
                 bind.push(idToProp(name.name, expressionPath.node));
                 pushed = true;
               }

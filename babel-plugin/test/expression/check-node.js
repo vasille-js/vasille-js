@@ -1,5 +1,5 @@
 import { compose, ref, expr as VasilleExpr } from "vasille-web";
-let o = {
+const o = {
   $a: ref(2)
 };
 const c = compose(Vasille => {

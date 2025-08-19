@@ -1,9 +1,9 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { calls, composeOnly, hintFunctions } from "./call.js";
+import { calls, hintFunctions } from "./call.js";
 import { Internal, StackedStates } from "./internal.js";
 import { checkNonReactiveName, err, Errors } from "./lib";
-import { ignoreParams, meshAllUnknown, meshExpression } from "./mesh";
+import { ignoreParams, meshAllUnknown } from "./mesh";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
 
@@ -88,6 +88,21 @@ export function memberIsIValue(node: types.MemberExpression | types.OptionalMemb
   );
 }
 
+export function exprIsSure(path: NodePath<types.Expression|null|undefined>, internal: Internal) {
+  let it : types.Expression|null|undefined = path.node;
+  let names: string[] = [];
+
+  while (t.isMemberExpression(it) || t.isOptionalMemberExpression(it)) {
+    names.push(stringify(it.property));
+    it = it.object;
+  }
+
+  const reactivityData = t.isIdentifier(it) && internal.stack.get(it.name);
+  const propPath = names.reverse().join(".");
+
+  return reactivityData && reactivityData[propPath] || it === path.node || t.isMemberExpression(path.parent);
+}
+
 function meshMember(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>) {
   if (memberIsIValue(path.node)) {
     path.replaceWith(t.memberExpression(path.node, t.identifier("V"), false, true));
@@ -138,8 +153,6 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
   if (path.isMemberExpression()) {
     if (memberIsIValue(path.node)) {
       search.self = path.node;
-    } else if (t.isIdentifier(path.node.property) && path.node.property.name === "$") {
-      search.self = path.node.object;
     }
   }
   if (path.isExpression() && calls(path, ["ref"], internal)) {

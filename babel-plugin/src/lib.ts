@@ -1,7 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import { Identifier } from "@babel/types";
 import * as t from "@babel/types";
-import { checkNode, encodeName } from "./expression.js";
+import { checkNode, encodeName, exprIsSure } from "./expression.js";
 import { Internal, ctx } from "./internal.js";
 import { calls } from "./call.js";
 import { meshAllUnknown } from "./mesh";
@@ -128,11 +128,14 @@ export function exprCall(
   path: NodePath<types.Expression | null | undefined>,
   expr: types.Expression | null | undefined,
   internal: Internal,
-  name?: string,
-  acceptsForwarding?: boolean,
+  opts: {
+    name?: string;
+    acceptsForwarding?: boolean;
+    strong?: boolean;
+  },
 ): boolean {
   if (parseCalculateCall(path, internal)) {
-    named(path.node as types.CallExpression, name, internal, 3);
+    named(path.node as types.CallExpression, opts.name, internal, 3);
 
     return true;
   }
@@ -152,16 +155,16 @@ export function exprCall(
       argPath.replaceWith(t.arrowFunctionExpression([...exprData.found.keys()].map(encodeName), argPath.node));
       expr.arguments.unshift(ctx);
       expr.arguments.push(t.arrayExpression([...exprData.found.values()]));
-      named(expr, name, internal, 3);
+      named(expr, opts.name, internal, 3);
     } else {
-      path.replaceWith(named(internal.ref(argPath.node), name, internal, 1));
+      path.replaceWith(named(internal.ref(argPath.node), opts.name, internal, 1));
     }
 
     return true;
   }
 
   if (
-    acceptsForwarding &&
+    opts.acceptsForwarding &&
     t.isCallExpression(expr) &&
     calls(path, ["forward"], internal) &&
     expr.arguments.length === 1 &&
@@ -175,8 +178,8 @@ export function exprCall(
     if (exprData.self) {
       expr.arguments[0] = exprData.self;
       expr.arguments.unshift(ctx);
-      named(expr, name, internal, 2);
-    } else if (!bindCall(path, expr.arguments[0], exprData.found, internal, name)) {
+      named(expr, opts.name, internal, 2);
+    } else if (!bindCall(path, expr.arguments[0], exprData.found, internal, opts.name)) {
       path.replaceWith(internal.ref(expr.arguments[0]));
     }
 
@@ -186,12 +189,17 @@ export function exprCall(
   const exprData = checkNode(path, internal);
 
   if (exprData.self) {
-    path.replaceWith(exprData.self);
+    if (!opts.strong || exprIsSure(path, internal)) {
+      path.replaceWith(exprData.self);
+    }
+    else {
+      path.replaceWith(internal.ensure(exprData.self));
+    }
 
     return true;
   }
 
-  return bindCall(path, expr, exprData.found, internal, name);
+  return bindCall(path, expr, exprData.found, internal, opts.name);
 }
 
 export function ref(expr: types.Expression | null | undefined, internal: Internal, name?: string) {

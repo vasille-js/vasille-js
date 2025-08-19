@@ -1,5 +1,4 @@
 import { NodePath, types } from "@babel/core";
-import { CallExpression, ObjectExpression } from "@babel/types";
 import * as t from "@babel/types";
 import { ctx, Internal, StackedStates } from "./internal.js";
 import { meshStatement } from "./mesh.js";

@@ -45,7 +45,7 @@ export const C = store(Vasille => {
 }, "C");
 const c = C;
 const Component = compose(Vasille => {
-  console.log(c["$a"].V, c.$b.V, c.$c.V, c.$d.V, c.e, c.f, c.g, c["$$h"].V.a, c.$i.V, c.j, c.$k.V, c.$o.V.a.b);
+  console.log(c["$a"]?.V, c.$b?.V, c.$c?.V, c.$d?.V, c.e, c.f, c.g, c["$$h"].V.a, c.$i?.V, c.j, c.$k?.V, c.$o.V.a.b);
   watch(Vasille, (Vasille_c_a, Vasille_c_b, Vasille_c_c, Vasille_c_d, Vasille_c_$h, Vasille_c_i, Vasille_c_k, Vasille_c_o) => {
     console.log(Vasille_c_a, Vasille_c_b, Vasille_c_c, Vasille_c_d);
     console.log(c.e, c.f, c.g);
