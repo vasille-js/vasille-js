@@ -22,6 +22,8 @@ export {
     Slot,
     Watch,
     awaited,
+    store,
+    model,
     setErrorHandler,
 } from "vasille-jsx";
 

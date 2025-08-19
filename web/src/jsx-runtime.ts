@@ -6,7 +6,7 @@ type prefixedObject<T, P extends string> = {
 };
 type EventHandlers<T> = {
     [K in keyof T]: T[K] | [T[K], boolean | AddEventListenerOptions];
-}
+};
 
 type HtmlInput<K extends keyof HTMLElementTagNameMap & keyof HtmlTagMap> = {
     callback?: (node: HTMLElementTagNameMap[K]) => unknown;

@@ -13,7 +13,7 @@ declare interface Params {
 
 declare type Composed<In extends Params, Out> = (
     $: (In["slot"] extends (() => unknown) | undefined ? Omit<In, "slot"> & { slot?: unknown } : In) & {
-        callback?(data: Out | undefined): void;
+        callback?(data: Out): void;
     },
     slot?: In["slot"],
 ) => void;
@@ -99,9 +99,33 @@ export declare function Debug(props: { $model: unknown }): void;
 /** Render content after a while */
 export declare function Delay(props: { time?: number; slot?: unknown }): void;
 
-/** Stores a state to memory */
-export declare function store<Return extends object>(fn: () => Return): Return;
-export declare function store<Input extends object, Return extends object>(fn: (input: Input) => Return): Return;
+export type DeepReadonly<T> =
+    T extends Map<infer K, infer V>
+        ? ReadonlyMap<DeepReadonly<K>, DeepReadonly<V>>
+        : T extends ReadonlyMap<infer K, infer V>
+          ? ReadonlyMap<DeepReadonly<K>, DeepReadonly<V>>
+          : T extends WeakMap<infer K, infer V>
+            ? WeakMap<DeepReadonly<K>, DeepReadonly<V>>
+            : T extends Set<infer U>
+              ? ReadonlySet<DeepReadonly<U>>
+              : T extends ReadonlySet<infer U>
+                ? ReadonlySet<DeepReadonly<U>>
+                : T extends WeakSet<infer U>
+                  ? WeakSet<DeepReadonly<U>>
+                  : T extends Promise<infer U>
+                    ? Promise<DeepReadonly<U>>
+                    : T extends {}
+                      ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+                      : T;
+
+/** Stores a singleton state to memory */
+export declare function store<Return extends object>(fn: () => Return): DeepReadonly<Return>;
+
+/** Creates a model (state) constructor */
+export declare function model<Return extends object>(fn: () => Return): () => DeepReadonly<Return>;
+export declare function model<Input extends object, Return extends object>(
+    fn: (input: Input) => Return,
+): (input: Input) => DeepReadonly<Return>;
 
 export { $ } from "vasille-jsx";
 
