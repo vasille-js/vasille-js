@@ -42,19 +42,24 @@ export function checkOrder(paths: NodePath<types.Statement | null | undefined>[]
     }
 
     if (index === componentOrder.length) {
-      err(Errors.RulesOfVasille, path, [
-        "Malformed component detected, required component structure is:",
-        "1. Variable declarations.",
-        "2. Watchers/effects (calls of `watch` function).",
-        "3. Function declarations.",
-        "4. Before mount hint (call of `beforeMount` function)",
-        "5. JSX elements and fragments",
-        "6. After mount hint (call of `afterMount` function)",
-        "7. Before destroy hint (call of `beforeDestroy` function)",
-        "8. Return statement",
-        "All steps are optional, but the order is strict.",
-        "Unlisted statements are not accepted."
-      ].join("\n"), internal);
+      err(
+        Errors.RulesOfVasille,
+        path,
+        [
+          "Malformed component detected, required component structure is:",
+          "1. Variable declarations.",
+          "2. Watchers/effects (calls of `watch` function).",
+          "3. Function declarations.",
+          "4. Before mount hint (call of `beforeMount` function)",
+          "5. JSX elements and fragments",
+          "6. After mount hint (call of `afterMount` function)",
+          "7. Before destroy hint (call of `beforeDestroy` function)",
+          "8. Return statement",
+          "All steps are optional, but the order is strict.",
+          "Unlisted statements are not accepted.",
+        ].join("\n"),
+        internal,
+      );
     }
   }
 }

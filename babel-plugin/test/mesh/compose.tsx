@@ -1,4 +1,4 @@
-import { beforeMount, compose, For } from "vasille-web";
+import { afterMount, beforeMount, compose, For } from "vasille-web";
 
 interface Props {
   $name: string;
@@ -26,7 +26,7 @@ const C = compose(function C({ $name = "name", ["$data"]: $d, ...rest }: Props) 
         {$data.id}:{$name} {$data.width}/{$data.height}...{rest2.$more}
       </div>;
 
-      console.log($data.id, $data.width, $data.height, $name, rest2.$more);
+      afterMount(() => console.log($data.id, $data.width, $data.height, $name, rest2.$more));
     }}
   />;
 });

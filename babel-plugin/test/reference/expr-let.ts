@@ -8,6 +8,6 @@ export const C = compose(() => {
 
   beforeMount(() => console.log($sum));
 
-  beforeMount(() => $sum = $b);
-  beforeMount(() => $sum = $b + $c);
+  beforeMount(() => ($sum = $b));
+  beforeMount(() => ($sum = $b + $c));
 });

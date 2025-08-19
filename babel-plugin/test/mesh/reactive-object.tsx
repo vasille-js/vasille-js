@@ -11,7 +11,7 @@ export const S = store(() => {
 
   return {
     $a: $a,
-    $b: ($b),
+    $b: $b,
     o: o,
   };
 });

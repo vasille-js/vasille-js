@@ -30,7 +30,7 @@ it("run on destroy", function () {
 
 it("reactive field set", function () {
   runTest(__dirname, "reactive-field-set", false);
-})
+});
 
 it("store function", function () {
   runJsxTest(__dirname, "store");
@@ -45,7 +45,7 @@ it("invalid compose call error", function () {
 });
 
 it("style hint error", function () {
-  throwTest(__dirname, "style-hint", 'Usage of hints is restricted here');
+  throwTest(__dirname, "style-hint", "Usage of hints is restricted here");
 });
 
 it("calculate call error", function () {
@@ -110,28 +110,28 @@ it("run on destroy error", function () {
 
 it("param name starts with $", function () {
   throwTest(__dirname, "param-name", "Non-reactive variable name must not start with $");
-})
+});
 
 it("param name in array destruction starts with $", function () {
   throwTest(__dirname, "param-name-destruction", "Non-reactive variable name must not start with $");
-})
+});
 
 it("param name of rest element starts with $", function () {
   throwTest(__dirname, "param-name-rest", "Non-reactive variable name must not start with $");
-})
+});
 
 it("param name with default value starts with $", function () {
   throwTest(__dirname, "param-name-with-default-value", "Non-reactive variable name must not start with $");
-})
+});
 
 it("function name starts with $", function () {
   throwTest(__dirname, "function-name", "Non-reactive variable name must not start with $");
-})
+});
 
 it("class name starts with $", function () {
   throwTest(__dirname, "class-name", "Non-reactive variable name must not start with $");
-})
+});
 
 it("class expression name starts with $", function () {
   throwTest(__dirname, "class-name-expression", "Non-reactive variable name must not start with $");
-})
+});

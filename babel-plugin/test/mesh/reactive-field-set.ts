@@ -11,10 +11,9 @@ const o2 = {
 const C = compose(() => {
   const o3 = {
     $x: 1,
-  }
+  };
 
-  beforeMount(() => o1.$x = 2);
-  beforeMount(() => o2.$x = 2);
-  beforeMount(() => o3.$x = 3);
-})
-
+  beforeMount(() => (o1.$x = 2));
+  beforeMount(() => (o2.$x = 2));
+  beforeMount(() => (o3.$x = 3));
+});

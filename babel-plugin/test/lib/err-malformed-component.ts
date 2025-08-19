@@ -4,4 +4,4 @@ const C = compose(() => {
   if (false) {
     throw 1;
   }
-})
+});

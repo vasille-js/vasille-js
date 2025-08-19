@@ -191,8 +191,7 @@ export function exprCall(
   if (exprData.self) {
     if (!opts.strong || exprIsSure(path, internal)) {
       path.replaceWith(exprData.self);
-    }
-    else {
+    } else {
       path.replaceWith(internal.ensure(exprData.self));
     }
 
@@ -240,13 +239,13 @@ export function processModelCall(
   );
 }
 
-export function checkReactiveName (idPath: NodePath<Identifier>, internal: Internal) {
+export function checkReactiveName(idPath: NodePath<Identifier>, internal: Internal) {
   if (!idPath.node.name.startsWith("$")) {
     err(Errors.RulesOfVasille, idPath, "Reactive variable name must start with $", internal);
   }
 }
 
-export function checkNonReactiveName (idPath: NodePath<Identifier>, internal: Internal) {
+export function checkNonReactiveName(idPath: NodePath<Identifier>, internal: Internal) {
   if (idPath.node.name.startsWith("$")) {
     err(Errors.RulesOfVasille, idPath, "Non-reactive variable name must not start with $", internal);
   }

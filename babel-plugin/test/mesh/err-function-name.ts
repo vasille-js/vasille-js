@@ -1,3 +1,3 @@
-function $zx () {
+function $zx() {
   void 0;
 }

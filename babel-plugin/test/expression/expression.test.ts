@@ -18,7 +18,7 @@ it("check statements", function () {
 
 it("reactive field set", function () {
   runTest(__dirname, "reactive-field-set", false);
-})
+});
 
 it("nested observable error", function () {
   throwTest(__dirname, "nested-observable", "The reactive/observable value is nested");
@@ -46,4 +46,4 @@ it("restricted hints error", function () {
 
 it("function name starts with $", function () {
   throwTest(__dirname, "function-name", "Non-reactive variable name must not start with $");
-})
+});

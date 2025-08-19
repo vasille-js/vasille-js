@@ -11,7 +11,7 @@ const o2 = {
 const C = compose(() => {
   const o3 = {
     $x: 1,
-  }
+  };
 
   watch(() => {
     o1.$x = 2;
@@ -19,4 +19,3 @@ const C = compose(() => {
     o3.$x = 3;
   });
 });
-

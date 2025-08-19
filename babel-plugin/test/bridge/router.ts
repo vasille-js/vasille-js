@@ -14,5 +14,4 @@ export const C = compose(() => {
 
   beforeMount(() => router()?.navigate("/", {}, "silent"));
   beforeMount(() => router());
-
 });

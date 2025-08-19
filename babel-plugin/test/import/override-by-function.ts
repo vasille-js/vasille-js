@@ -5,6 +5,6 @@ export const C = compose(() => {
     return 3;
   }
   beforeMount(() => {
-    const sum = compose() + 2
+    const sum = compose() + 2;
   });
 });

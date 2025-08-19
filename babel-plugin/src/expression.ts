@@ -88,12 +88,12 @@ export function memberIsIValue(node: types.MemberExpression | types.OptionalMemb
   );
 }
 
-export function exprIsSure(path: NodePath<types.Expression|null|undefined>, internal: Internal) {
+export function exprIsSure(path: NodePath<types.Expression | null | undefined>, internal: Internal) {
   if (!path.isMemberExpression() || !stringify(path.node.property).startsWith("$")) {
     return true;
   }
 
-  let it : types.Expression|null|undefined = path.node;
+  let it: types.Expression | null | undefined = path.node;
   let names: string[] = [];
 
   while (t.isMemberExpression(it) || t.isOptionalMemberExpression(it)) {
@@ -104,7 +104,7 @@ export function exprIsSure(path: NodePath<types.Expression|null|undefined>, inte
   const reactivityData = t.isIdentifier(it) && internal.stack.get(it.name);
   const propPath = names.reverse().join(".");
 
-  return reactivityData && reactivityData[propPath] || t.isMemberExpression(path.parent);
+  return (reactivityData && reactivityData[propPath]) || t.isMemberExpression(path.parent);
 }
 
 function meshMember(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>) {
@@ -293,11 +293,10 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
         meshExpression(left.get("object"), search.external);
         checkExpression(right, search);
 
-        if (!t.isPrivateName(property)){
+        if (!t.isPrivateName(property)) {
           path.replaceWith(search.external.set(left.node.object, property, right.node));
         }
-      }
-      else {
+      } else {
         meshLValue(left, search.external);
         checkExpression(right, search);
       }
@@ -623,7 +622,7 @@ export function checkFunction(
   if (path.isFunctionDeclaration() && path.node.id) {
     const idPath = path.get("id");
 
-    if (idPath.isIdentifier()){
+    if (idPath.isIdentifier()) {
       search.stack.set(idPath.node.name, {});
       checkNonReactiveName(idPath, search.external);
     }

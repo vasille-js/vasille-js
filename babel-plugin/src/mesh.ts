@@ -833,8 +833,7 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
           if (body.isBlockStatement()) {
             composeStatements(body.get("body"), internal);
             path.replaceWith(t.callExpression(arg.node, []));
-          }
-          else if (body.isExpression()) {
+          } else if (body.isExpression()) {
             composeExpression(body, internal);
             path.replaceWith(body);
           }
@@ -863,15 +862,17 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
       break;
     case "JSXElement":
     case "JSXFragment":
-      if (internal.stateOnly) {
-        return err(Errors.IncompatibleContext, path, "JSX is not allowed in states", internal);
-      }
-      const conditions: ConditionCollection = { cases: null };
+      if (path.parentPath.isExpressionStatement()) {
+        if (internal.stateOnly) {
+          return err(Errors.IncompatibleContext, path, "JSX is not allowed in states", internal);
+        }
+        const conditions: ConditionCollection = { cases: null };
 
-      path.replaceWithMultiple([
-        ...transformJsx(path as NodePath<types.JSXElement | types.JSXFragment>, conditions, internal),
-        ...processConditions(conditions, internal),
-      ]);
+        path.replaceWithMultiple([
+          ...transformJsx(path as NodePath<types.JSXElement | types.JSXFragment>, conditions, internal),
+          ...processConditions(conditions, internal),
+        ]);
+      }
       break;
     default:
       meshExpression(path, internal);
@@ -1153,7 +1154,11 @@ export function compose(
 
   const node = path.node;
   const params = node.params;
-  const body = path.isArrowFunctionExpression() ? path.get("body") : path.isFunctionExpression() ? path.get("body") : path.get("body");
+  const body = path.isArrowFunctionExpression()
+    ? path.get("body")
+    : path.isFunctionExpression()
+      ? path.get("body")
+      : path.get("body");
 
   if (t.isFunctionExpression(node) && node.id) {
     internal.stack.set(node.id.name, {});
@@ -1175,9 +1180,7 @@ export function compose(
   if (body.isExpression()) {
     composeExpression(body, internal);
   } else if (body.isBlockStatement()) {
-    if (!isSlot) {
-      checkOrder(body.get("body"), internal);
-    }
+    checkOrder(body.get("body"), internal);
     composeStatement(body, internal);
   }
 

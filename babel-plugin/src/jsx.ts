@@ -125,7 +125,7 @@ function transformJsxExpressionContainer(
         if (argPath && argPath.isExpression()) {
           const argValue = argPath.node;
 
-          if (exprCall(argPath, argPath.node, internal, {strong: true})) {
+          if (exprCall(argPath, argPath.node, internal, { strong: true })) {
             path.replaceWith(argPath);
 
             if (!argPath.isMemberExpression() && !argPath.isIdentifier()) {
@@ -150,7 +150,7 @@ function transformJsxExpressionContainer(
         if (argPath && argPath.isExpression()) {
           const argValue = argPath.node;
 
-          if (!exprCall(expression, expression.node, internal, {strong: true})) {
+          if (!exprCall(expression, expression.node, internal, { strong: true })) {
             argPath.node = argValue;
             err(Errors.RulesOfVasille, argPath, "A reactive expression expected, argument value constant", internal);
           }
@@ -158,7 +158,7 @@ function transformJsxExpressionContainer(
       }
       // two-side binding
       else {
-        const isReactive = exprCall(expression, expression.node, internal, {strong: !acceptsRaw});
+        const isReactive = exprCall(expression, expression.node, internal, { strong: !acceptsRaw });
 
         if (!isReactive && !acceptsRaw) {
           expression.replaceWith(internal.ref(expression.node));
@@ -321,7 +321,7 @@ function transformJsxElement(
                   }
                   // class={[..]}
                   else {
-                    exprCall(elementPath, elementPath.node, internal, {strong: true});
+                    exprCall(elementPath, elementPath.node, internal, { strong: true });
 
                     classElements.push(elementPath.node);
                   }
@@ -338,7 +338,7 @@ function transformJsxElement(
             }
             // class={`a ${b}`}
             else if (expressionPath && expressionPath.isExpression()) {
-              if (exprCall(expressionPath, expressionPath.node, internal, {strong: true})) {
+              if (exprCall(expressionPath, expressionPath.node, internal, { strong: true })) {
                 console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
               }
 
@@ -364,7 +364,7 @@ function transformJsxElement(
                   const valuePath = prop.get("value");
 
                   if (valuePath.isExpression()) {
-                    exprCall(valuePath, valuePath.node, internal, {strong: true});
+                    exprCall(valuePath, valuePath.node, internal, { strong: true });
                   }
 
                   const value = valuePath.node;
@@ -424,7 +424,7 @@ function transformJsxElement(
             }
             // style={`a: ${b}px`}
             else if (expressionPath && expressionPath.isExpression()) {
-              if (exprCall(expressionPath, expressionPath.node, internal, {strong: true})) {
+              if (exprCall(expressionPath, expressionPath.node, internal, { strong: true })) {
                 console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
               }
 
@@ -448,7 +448,7 @@ function transformJsxElement(
             /* istanbul ignore else */
             if (expressionPath) {
               if (expressionPath.isExpression()) {
-                exprCall(expressionPath, expressionPath.node, internal, {strong: true});
+                exprCall(expressionPath, expressionPath.node, internal, { strong: true });
                 bind.push(idToProp(name.name, expressionPath.node));
                 pushed = true;
               }
@@ -560,7 +560,12 @@ function transformJsxElement(
         props.push(t.spreadElement(attrPath.node.argument));
 
         if (mapped === "If" || mapped === "ElseIf" || mapped === "Else") {
-          err(Errors.RulesOfVasille, attrPath, "If, Else and ElseIf are syntax sugar, use Switch if you need more runtime elasticity", internal);
+          err(
+            Errors.RulesOfVasille,
+            attrPath,
+            "If, Else and ElseIf are syntax sugar, use Switch if you need more runtime elasticity",
+            internal,
+          );
         }
       }
       // <A space:name=../>

@@ -62,10 +62,7 @@ export const hintFunctions: FnNames[] = [
   ...styleOnly,
 ];
 
-function checkCall<T extends string>(
-  name: T,
-  internal: Internal,
-): T {
+function checkCall<T extends string>(name: T, internal: Internal): T {
   if (name === "store") {
     internal.stateOnly = true;
   }
