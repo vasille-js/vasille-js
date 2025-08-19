@@ -4,6 +4,9 @@ import type { StyleProps } from "../spec/css.d.ts";
 import type { ScreenProps } from "vasille-router";
 import type { Router } from "vasille-router/web-router";
 
+/** Set a handler for component errors */
+export declare function setErrorHandler(handler: (e: unknown) => void): void;
+
 declare interface Params {
     slot?(...args: unknown[]): unknown;
 }

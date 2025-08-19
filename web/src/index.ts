@@ -22,6 +22,7 @@ export {
     Slot,
     Watch,
     awaited,
+    setErrorHandler,
 } from "vasille-jsx";
 
 export { QueryParams, ScreenProps, RouteParameters, screen } from "vasille-router";
