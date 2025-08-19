@@ -203,3 +203,17 @@ export declare function beforeDestroy(fn: () => void): void;
 
 /** Returns the current used router */
 export declare function router(): Router<string> | undefined;
+
+/** Composes a modal window (v4+) */
+export declare function modal<T extends object>(modal: (input: T) => void): (input: T) => void;
+
+/** Describes properties of a prompt window */
+export interface PromptProps<T> {
+    resolve(data: T): void;
+    reject(err: unknown): void;
+}
+
+/** Composes a function which will show a prompt on call */
+export declare function prompt<Input extends PromptProps<unknown>>(
+    modal: (input: Input) => void,
+): (input: Input, timeout?: number) => Promise<unknown>;

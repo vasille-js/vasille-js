@@ -1,3 +1,4 @@
+import { Fragment, Portal, reportError } from "vasille";
 import { StyleProps } from "../spec/css.js";
 import { Runner, TagOptions } from "vasille/web-runner";
 import { mount as coreMount } from "vasille-jsx";
@@ -44,6 +45,74 @@ export const styleSheet = coreStyleSheet as <
 >(
     input: T,
 ) => { [K in keyof T]: string };
+
+function createPortal(node: Fragment<Node, Element, TagOptions>) {
+    const portal = new Portal<Node, Element, TagOptions>({ node: document.body }, node.runner);
+
+    node.create(portal);
+
+    return portal;
+}
+
+export function modal<T extends object>(
+    modal: (node: Fragment<Node, Element, TagOptions>, input: T) => void,
+): (input: T, node: Fragment<Node, Element, TagOptions>) => void {
+    return function (props, node) {
+        if (!node) {
+            throw new Error("Vasille: Modal context is missing");
+        }
+        const portal = createPortal(node);
+
+        try {
+            modal(portal, props);
+        } catch (e) {
+            reportError(e);
+        }
+    };
+}
+
+export interface PromptProps {
+    resolve(data: unknown): void;
+    reject(err: unknown): void;
+}
+
+export function prompt<T extends PromptProps>(
+    modal: (node: Fragment<Node, Element, TagOptions>, input: T) => void,
+): (node: Fragment<Node, Element, TagOptions>, input: T, timeout?: number) => Promise<unknown> {
+    return function (node, input, timeout) {
+        return new Promise((resolve, reject) => {
+            const portal = createPortal(node);
+            const timer =
+                timeout &&
+                setTimeout(() => {
+                    destroy();
+                    reject(new Error("Timeout"));
+                }, timeout);
+
+            function destroy() {
+                timer && clearTimeout(timer);
+                portal.destroy();
+            }
+
+            try {
+                modal(portal, {
+                    ...input,
+                    resolve(value) {
+                        destroy();
+                        resolve(value);
+                    },
+                    reject(error) {
+                        destroy();
+                        reject(error);
+                    },
+                });
+            } catch (e) {
+                destroy();
+                reject(e);
+            }
+        });
+    };
+}
 
 export function mount<T>(element: Element, component: ($: T) => void, $: T, debugUi?: boolean) {
     return coreMount<Node, Element, TagOptions, T>(
