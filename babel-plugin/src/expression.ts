@@ -89,6 +89,13 @@ export function memberIsIValue(node: types.MemberExpression | types.OptionalMemb
 }
 
 export function exprIsSure(path: NodePath<types.Expression | null | undefined>, internal: Internal) {
+  if (
+    path.isMemberExpression() &&
+    path.node.computed &&
+    (!t.isStringLiteral(path.node.property) || /^\d+$/.test(path.node.property.value))
+  ) {
+    return false;
+  }
   if (!path.isMemberExpression() || !stringify(path.node.property).startsWith("$")) {
     return true;
   }

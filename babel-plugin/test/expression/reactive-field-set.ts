@@ -1,4 +1,4 @@
-import { compose, ref, watch } from "vasille-web";
+import { compose, raw, ref, watch } from "vasille-web";
 
 let o1 = {
   $x: ref(1),
@@ -9,6 +9,9 @@ const o2 = {
 };
 
 const C = compose(() => {
+  const arr = raw([0, 1]);
+  let index = raw(0);
+
   const o3 = {
     $x: 1,
   };
@@ -17,5 +20,9 @@ const C = compose(() => {
     o1.$x = 2;
     o2.$x = 2;
     o3.$x = 3;
+    arr[0] = 1;
+    arr[index] = 2;
+    arr["1"] = 3;
+    o3["$x"] = 4;
   });
 });
