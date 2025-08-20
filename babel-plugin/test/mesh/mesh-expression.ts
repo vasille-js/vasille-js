@@ -37,7 +37,7 @@ async function fn() {
 const VMap = Map<string, number>;
 // @ts-ignore
 const v10 = new VMap([[2, a]]);
-const composed: Composed<object, void> = compose(() => {});
+const Composed: Composed<object, void> = compose(() => {});
 
 compose(() => {}) as Composed<object, void>;
 <Composed<object, void>>compose(() => {});

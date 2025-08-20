@@ -3,7 +3,7 @@ const obj = {
   a: 1,
   b: 2
 };
-export const S = store(Vasille => {
+export const sStore = store(Vasille => {
   const $a = VasilleRef(2, "a");
   const $b = VasilleRef(3, "b");
   const o = {
@@ -18,8 +18,8 @@ export const S = store(Vasille => {
     $b: $b,
     o: o
   };
-}, "S");
-const s = S;
+}, "sStore");
+const s = sStore;
 const Component = compose(Vasille => {
   const $a = VasilleEnsure(s.$a);
   const $b = VasilleEnsure(s.$b);

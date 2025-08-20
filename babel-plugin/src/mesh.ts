@@ -706,9 +706,66 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
 
       for (const declaration of _path.get("declarations")) {
         const initPath = declaration.get("init");
-        const composeMethod = calls(initPath, ["compose", "store", "view", "screen"], internal);
+        const composeMethod = calls(initPath, composeFunctions, internal);
 
         if (t.isIdentifier(declaration.node.id) && composeMethod) {
+          const name = declaration.node.id.name;
+          const idPath = declaration.get("id");
+          const isNotUpperCase = name[0].toUpperCase() !== name[0];
+          const isNotLowerCase = name[0].toLowerCase() !== name[0];
+
+          function report(error: string) {
+            err(Errors.RulesOfVasille, idPath, error, internal);
+          }
+
+          if (calls(initPath, ["compose", "component"], internal)) {
+            if (isNotUpperCase) {
+              report("The component name must start with a uppercase letter");
+            }
+          }
+          if (calls(initPath, ["view"], internal)) {
+            if (isNotUpperCase) {
+              report("The view name must start with a uppercase letter");
+            }
+            if (!name.endsWith("View")) {
+              report("The view name must end with `View`");
+            }
+          }
+          if (calls(initPath, ["store"], internal)) {
+            if (isNotLowerCase) {
+              report("The store name must start with a lowercase letter");
+            }
+            if(!name.endsWith("Store")) {
+              report("The store name must end with `Store`");
+            }
+          }
+          if (calls(initPath, ["model"], internal)) {
+            if (isNotLowerCase) {
+              report("The model constructor function name must start with a lowercase letter");
+            }
+            if (!name.endsWith("Model")) {
+              report("The model constructor function name must end with `Model`");
+            }
+          }
+          if (calls(initPath, ["modal"], internal)) {
+            if (isNotUpperCase) {
+              report("The modal component name must start with a uppercase letter");
+            }
+            if (!name.endsWith("Modal")) {
+              report("The modal component name must end with `Modal`");
+            }
+          }
+          if (calls(initPath, ["prompt"], internal)) {
+            if (isNotLowerCase) {
+              report("The prompt function name must start with a lowercase letter");
+            }
+            if (!name.startsWith("prompt")) {
+              report("The prompt function name must start with `prompt`");
+            }
+          }
+          if (calls(initPath, ["page"], internal)) {
+            report("Use export default instead");
+          }
           meshComposeCall(declaration.node.id, initPath, internal);
         } else {
           meshExpression(initPath, internal);

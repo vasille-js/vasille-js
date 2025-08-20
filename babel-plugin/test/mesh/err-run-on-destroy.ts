@@ -1,6 +1,6 @@
 import { beforeDestroy, store } from "vasille-web";
 
-export const C = store(() => {
+export const cStore = store(() => {
   beforeDestroy(() => {
     console.log("destroy called");
   });

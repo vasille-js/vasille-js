@@ -8,7 +8,9 @@ export type FnNames =
   | "component"
   | "store"
   | "model"
-  | "screen"
+  | "page"
+  | "modal"
+  | "prompt"
   | "awaited"
   | "calculate"
   | "forward"
@@ -33,7 +35,16 @@ export type FnNames =
   | "prefersLight"
   | "styleSheet";
 
-export const composeFunctions = ["compose", "store", "model", "view", "component"] as const satisfies FnNames[];
+export const composeFunctions = [
+  "compose",
+  "store",
+  "model",
+  "view",
+  "component",
+  "page",
+  "modal",
+  "prompt",
+] as const satisfies FnNames[];
 
 export const reactivityFunctions = ["ref", "awaited", "backward"] as const satisfies FnNames[];
 

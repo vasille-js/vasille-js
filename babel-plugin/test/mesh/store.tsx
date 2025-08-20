@@ -14,7 +14,7 @@ import {
   beforeMount,
 } from "vasille-web";
 
-export const C = store(() => {
+export const cStore = store(() => {
   let $a = 2;
   let $b = 2;
   const $c = calculate(() => $a + $b);
@@ -55,7 +55,7 @@ export const C = store(() => {
   };
 });
 
-const c = C;
+const c = cStore;
 
 const Component = compose(() => {
   watch(() => {

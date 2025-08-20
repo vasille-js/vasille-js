@@ -2,7 +2,7 @@ import { beforeMount, bind, compose, store, watch } from "vasille-web";
 
 const obj = { a: 1, b: 2 };
 
-export const S = store(() => {
+export const sStore = store(() => {
   let $a = 2;
   let $b = bind(3);
   const o = { a: 1, $b: { c: 3 } };
@@ -15,9 +15,7 @@ export const S = store(() => {
     o: o,
   };
 });
-
-const s = S;
-
+const s = sStore;
 const Component = compose(() => {
   const $a = s.$a;
   const $b = s.$b;

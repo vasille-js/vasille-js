@@ -39,8 +39,8 @@ try {
 } finally {
   compose(Vasille => {});
 }
-let l = compose(Vasille => {});
-const f = compose(Vasille => {});
+let L = compose(Vasille => {});
+const F = compose(Vasille => {});
 while (a < 1) {
   compose(Vasille => {});
 }

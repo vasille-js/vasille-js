@@ -1,5 +1,5 @@
 import { arrayModel, bind, calculate, compose, mapModel, ref, setModel, store, watch } from "vasille-web";
-export const C = store(Vasille => {
+export const cStore = store(Vasille => {
   const $a = ref(2, "a");
   const $b = ref(2, "b");
   const $c = calculate(Vasille, (Vasille_a, Vasille_b) => Vasille_a + Vasille_b, [$a, $b], "c");
@@ -42,8 +42,8 @@ export const C = store(Vasille => {
     $k: $k,
     $o: $o
   };
-}, "C");
-const c = C;
+}, "cStore");
+const c = cStore;
 const Component = compose(Vasille => {
   watch(Vasille, (Vasille_c_a, Vasille_c_b, Vasille_c_c, Vasille_c_d, Vasille_c_$h, Vasille_c_i, Vasille_c_k, Vasille_c_o) => {
     console.log(Vasille_c_a, Vasille_c_b, Vasille_c_c, Vasille_c_d);

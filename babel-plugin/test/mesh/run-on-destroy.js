@@ -1,5 +1,5 @@
-import { view } from "vasille-web";
-export const C = view(Vasille => {
+import { compose } from "vasille-web";
+export const C = compose(Vasille => {
   Vasille.runOnDestroy(() => {
     console.log("destroy called");
   });

@@ -1,5 +1,5 @@
 import { compose } from "vasille-web";
 
-export const c = compose(() => {
+export const C = compose(() => {
   let a = new Map();
 });
