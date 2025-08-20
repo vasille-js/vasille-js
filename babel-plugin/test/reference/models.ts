@@ -1,6 +1,6 @@
 import { arrayModel, beforeMount, compose, mapModel, ref, setModel } from "vasille-web";
 
- const C = compose(() => {
+const C = compose(() => {
   let $a = 3;
   const b = [1, 2, $a];
   const c = new Set([1, 2, $a]);

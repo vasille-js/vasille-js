@@ -29,8 +29,102 @@ function extractText(node: types.Identifier | types.StringLiteral) {
   return (node as types.Identifier).name;
 }
 
+// Handles import declarations and updates internal state
+function handleImportDeclaration(
+  statementPath: NodePath<types.ImportDeclaration>,
+  internal: Internal,
+  ids: Record<string, string>,
+  used: Set<string>,
+  stylesConnected: { value: boolean },
+) {
+  const statement = statementPath.node;
+  const name = imports.get(statement.source.value);
+
+  if (!name) return;
+
+  internal.prefix = name;
+
+  for (const specifier of statement.specifiers) {
+    if (t.isImportNamespaceSpecifier(specifier)) {
+      internal.global = specifier.local.name;
+      stylesConnected.value = true;
+    } else if (t.isImportSpecifier(specifier)) {
+      const imported = extractText(specifier.imported);
+      const local = specifier.local.name;
+
+      if (imported === "bind" || imported === "calculate" || imported === "watch") {
+        ids.expr = local;
+      }
+      if (imported in ids) {
+        ids[imported] = local;
+      }
+
+      internal.mapping.set(local, imported);
+      if (imported === "styleSheet") {
+        stylesConnected.value = true;
+      }
+
+      internal.importStatement = statementPath;
+    }
+  }
+  statement.specifiers = statement.specifiers.filter(spec => {
+    if (!t.isImportSpecifier(spec)) return true;
+    return !(
+      ignoreMembers.has(extractText(spec.imported)) ||
+      (!internal.devMode && extractText(spec.imported) === "Debug")
+    );
+  });
+}
+
+// Handles mesh and style transformation
+function handleStatement(statementPath: NodePath<types.Statement>, internal: Internal, stylesConnected: boolean) {
+  if (!stylesConnected || !findStyleInNode(statementPath, internal)) {
+    meshStatement(statementPath, internal);
+  }
+}
+
+// Handles import insertion and cleanup
+function updateImports(
+  path: NodePath<types.Program>,
+  internal: Internal,
+  ids: Record<string, string>,
+  used: Set<string>,
+) {
+  if (used.size > 0 && !internal.importStatement && !internal.global) {
+    path.get("body")[0].insertBefore(
+      t.importDeclaration(
+        [...used].map(name => t.importSpecifier(t.identifier(ids[name]), t.identifier(name))),
+        t.stringLiteral("vasille-web"),
+      ),
+    );
+  }
+
+  if (used.size > 0 && !internal.global && internal.importStatement) {
+    const statementPath = internal.importStatement;
+    const statement = statementPath.node;
+    const specifiers = statement.specifiers.filter(item => {
+      if (t.isImportSpecifier(item) && t.isIdentifier(item.local)) {
+        return statementPath.scope.bindings[item.local.name].referenced;
+      }
+    });
+
+    for (const name of used) {
+      if (
+        !specifiers.find(
+          specifier => t.isImportSpecifier(specifier) && [name, ids[name]].includes(extractText(specifier.imported)),
+        )
+      ) {
+        specifiers.push(t.importSpecifier(t.identifier(ids[name]), t.identifier(name)));
+      }
+    }
+
+    statement.specifiers = specifiers;
+  }
+}
+
+// Main transformer function
 export function trProgram(path: NodePath<types.Program>, filename: string, devMode: boolean) {
-  let stylesConnected = false;
+  const stylesConnected = { value: false };
   const used = new Set<string>();
   const ids = {
     ref: "VasilleRef",
@@ -51,11 +145,9 @@ export function trProgram(path: NodePath<types.Program>, filename: string, devMo
     args: (types.Expression | types.SpreadElement | types.ArgumentPlaceholder)[],
   ): types.CallExpression {
     used.add(key);
-
     if (internal.global) {
       return t.callExpression(t.memberExpression(t.identifier(internal.global), t.identifier(key)), args);
     }
-
     return t.callExpression(t.identifier(ids[key]), args);
   }
 
@@ -66,137 +158,36 @@ export function trProgram(path: NodePath<types.Program>, filename: string, devMo
     prefix: "Vasille_",
     importStatement: null,
     stateOnly: false,
-    filename: filename,
-    devMode: devMode,
-    ref(arg) {
-      return call("ref", arg ? [arg] : []);
-    },
-    expr(func, values) {
-      return call("expr", [getCtx(), func, values]);
-    },
-    forward(arg) {
-      return call("forward", [getCtx(), arg]);
-    },
-    backward(arg) {
-      return call("backward", [arg]);
-    },
-    setModel(arg) {
-      return call("setModel", arg ? [getCtx(), arg] : [getCtx()]);
-    },
-    mapModel(arg) {
-      return call("mapModel", arg ? [getCtx(), arg] : [getCtx()]);
-    },
-    arrayModel(arg) {
-      return call("arrayModel", arg ? [getCtx(), arg] : [getCtx()]);
-    },
-    ensure(arg) {
-      return call("ensure", [arg]);
-    },
-    match(name, arg) {
-      return call("match", arg ? [name, arg] : [name]);
-    },
-    set(obj, field, value) {
-      return call("set", [obj, field, value]);
-    },
-    Switch(arg) {
-      return call("Switch", [arg, ctx]);
-    },
+    filename,
+    devMode,
+    ref: arg => call("ref", arg ? [arg] : []),
+    expr: (func, values) => call("expr", [getCtx(), func, values]),
+    forward: arg => call("forward", [getCtx(), arg]),
+    backward: arg => call("backward", [arg]),
+    setModel: arg => call("setModel", arg ? [getCtx(), arg] : [getCtx()]),
+    mapModel: arg => call("mapModel", arg ? [getCtx(), arg] : [getCtx()]),
+    arrayModel: arg => call("arrayModel", arg ? [getCtx(), arg] : [getCtx()]),
+    ensure: arg => call("ensure", [arg]),
+    match: (name, arg) => call("match", arg ? [name, arg] : [name]),
+    set: (obj, field, value) => call("set", [obj, field, value]),
+    Switch: arg => call("Switch", [arg, ctx]),
   };
 
   function getCtx() {
-    if (internal.isComposing) {
-      return ctx;
-    }
-
+    if (internal.isComposing) return ctx;
     return t.nullLiteral();
   }
 
   for (const statementPath of path.get("body")) {
     const statement = statementPath.node;
-
     if (t.isImportDeclaration(statement)) {
-      const name = imports.get(statement.source.value);
-
-      if (name) {
-        internal.prefix = name;
-
-        for (const specifier of statement.specifiers) {
-          /* istanbul ignore else */
-          if (t.isImportNamespaceSpecifier(specifier)) {
-            internal.global = specifier.local.name;
-            stylesConnected = true;
-          } else if (t.isImportSpecifier(specifier)) {
-            const imported = extractText(specifier.imported);
-            const local = specifier.local.name;
-
-            if (imported === "bind" || imported === "calculate" || imported === "watch") {
-              ids.expr = local;
-            }
-            if (imported in ids) {
-              ids[imported] = local;
-            }
-
-            internal.mapping.set(local, imported);
-            if (imported === "styleSheet") {
-              stylesConnected = true;
-            }
-
-            internal.importStatement = statementPath as NodePath<types.ImportDeclaration>;
-          }
-        }
-        statement.specifiers = statement.specifiers.filter(spec => {
-          if (!t.isImportSpecifier(spec)) {
-            return true;
-          } else {
-            return !(
-              ignoreMembers.has(extractText(spec.imported)) ||
-              (!internal.devMode && extractText(spec.imported) === "Debug")
-            );
-          }
-        });
-      }
-    } else if (!stylesConnected || !findStyleInNode(statementPath, internal)) {
-      meshStatement(statementPath, internal);
+      handleImportDeclaration(statementPath as NodePath<types.ImportDeclaration>, internal, ids, used, stylesConnected);
+    } else {
+      handleStatement(statementPath, internal, stylesConnected.value);
     }
   }
 
-  if (used.size > 0 && !internal.importStatement && !internal.global) {
-    path.get("body")[0].insertBefore(
-      t.importDeclaration(
-        [...used].map(name => {
-          return t.importSpecifier(t.identifier(ids[name]), t.identifier(name));
-        }),
-        t.stringLiteral("vasille-web"),
-      ),
-    );
-  }
+  updateImports(path, internal, ids, used);
 
-  if (used.size > 0 && !internal.global && internal.importStatement) {
-    const statementPath = internal.importStatement;
-    const statement = statementPath.node;
-    // This filter removes unused imports
-    const specifiers = statement.specifiers.filter(item => {
-      /* istanbul ignore else */
-      if (t.isImportSpecifier(item) && t.isIdentifier(item.local)) {
-        return statementPath.scope.bindings[item.local.name].referenced;
-      }
-    });
-
-    for (const name of used) {
-      // This code adds missing used imports
-      if (
-        !specifiers.find(specifier => {
-          return t.isImportSpecifier(specifier) && [name, ids[name]].includes(extractText(specifier.imported));
-        })
-      ) {
-        specifiers.push(t.importSpecifier(t.identifier(ids[name]), t.identifier(name)));
-      }
-    }
-
-    statement.specifiers = specifiers;
-  }
-
-  if (internal.firstError) {
-    throw internal.firstError;
-  }
+  if (internal.firstError) throw internal.firstError;
 }

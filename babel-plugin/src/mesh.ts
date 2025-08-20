@@ -735,7 +735,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             if (isNotLowerCase) {
               report("The store name must start with a lowercase letter");
             }
-            if(!name.endsWith("Store")) {
+            if (!name.endsWith("Store")) {
               report("The store name must end with `Store`");
             }
           }
@@ -767,9 +767,11 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             report("Use export default instead");
           }
           if (t.isExportNamedDeclaration(path.parent)) {
-            if (![".ts", ".tsx", ".js", ".jsx"].some(ext => {
-              return internal.filename.endsWith(`${name}${ext}`);
-            })) {
+            if (
+              ![".ts", ".tsx", ".js", ".jsx"].some(ext => {
+                return internal.filename.endsWith(`${name}${ext}`);
+              })
+            ) {
               report(`File name is not correct, expected ${name}.ts, ${name}.tsx, ${name}.js or ${name}.jsx`);
             }
           }
