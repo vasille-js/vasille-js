@@ -2,7 +2,7 @@ import { compose } from "vasille-web";
 
 let c = "c";
 
-export const C = compose(() => {
+const C = compose(() => {
   let $a = "a";
   let $b = false;
 

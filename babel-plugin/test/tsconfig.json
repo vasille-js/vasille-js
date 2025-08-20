@@ -6,7 +6,7 @@
     "declaration": false,
     "noEmit": true,
     "target": "ES2024",
-    "module": "ES2020",
+    "module": "ES2022",
     "moduleResolution": "bundler",
     "jsx": "preserve",
     "jsxImportSource": "vasille-web",

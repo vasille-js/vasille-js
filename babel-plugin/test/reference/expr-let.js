@@ -1,5 +1,5 @@
 import { compose, ref as VasilleRef } from "vasille-web";
-export const C = compose(Vasille => {
+const C = compose(Vasille => {
   const $a = VasilleRef(2, "a");
   const $b = VasilleRef(3, "b");
   const $c = VasilleRef(4, "c");

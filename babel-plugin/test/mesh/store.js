@@ -1,5 +1,5 @@
 import { arrayModel, bind, calculate, compose, mapModel, ref, setModel, store, watch } from "vasille-web";
-export const cStore = store(Vasille => {
+const cStore = store(Vasille => {
   const $a = ref(2, "a");
   const $b = ref(2, "b");
   const $c = calculate(Vasille, (Vasille_a, Vasille_b) => Vasille_a + Vasille_b, [$a, $b], "c");

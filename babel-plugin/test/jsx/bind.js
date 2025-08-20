@@ -1,5 +1,5 @@
 import { compose, ref as VasilleRef, expr as VasilleExpr } from "vasille-web";
-export const C = compose(Vasille => {
+const C = compose(Vasille => {
   const $a = VasilleRef(0.5, "a");
   const b = 0;
   Vasille.tag("video", {

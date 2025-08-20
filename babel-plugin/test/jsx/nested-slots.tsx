@@ -1,6 +1,6 @@
 import { Slot, compose, afterMount, beforeMount } from "vasille-web";
 
-export const C1 = compose(({ slot }: { slot(props: { $a: number }): void }) => {
+const C1 = compose(({ slot }: { slot(props: { $a: number }): void }) => {
   let $a = 0;
 
   <div>
@@ -8,7 +8,7 @@ export const C1 = compose(({ slot }: { slot(props: { $a: number }): void }) => {
   </div>;
 });
 
-export const C2 = compose(() => {
+const C2 = compose(() => {
   let $a = 2;
 
   <C1

@@ -8,7 +8,7 @@ export function runTest(dir: string, name: string, devMode = true) {
     const result = babel.transformSync(input, { plugins: [
       [vasillePlugin, {devMode}],
         "@babel/plugin-transform-typescript"
-      ], filename: path.join(dir, `${name}.ts`) });
+      ], filename: path.join(dir, `${name}.ts`), sourceFileName: `${name}.js` });
     const expected = fs.readFileSync(path.join(dir, `${name}.js`), { encoding: "utf8" });
 
     expect(result?.code).toBe(expected.replace(/\n$/, ''));

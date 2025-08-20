@@ -1,5 +1,5 @@
 import { Slot, compose, ref as VasilleRef } from "vasille-web";
-export const C1 = compose((Vasille, {
+const C1 = compose((Vasille, {
   slot
 }) => {
   const $a = VasilleRef(0, "a");
@@ -10,7 +10,7 @@ export const C1 = compose((Vasille, {
     }, Vasille);
   });
 }, "C1");
-export const C2 = compose(Vasille => {
+const C2 = compose(Vasille => {
   const $a = VasilleRef(2, "a");
   C1({
     slot: ({

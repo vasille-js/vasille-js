@@ -8,11 +8,11 @@ interface Props {
   slot?(): void;
 }
 
-export const C1 = compose((props: Props) => {
+const C1 = compose((props: Props) => {
   <div />;
 });
 
-export const C2 = compose(() => {
+const C2 = compose(() => {
   let $a = 1;
 
   <div>

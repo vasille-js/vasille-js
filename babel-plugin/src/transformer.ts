@@ -29,7 +29,7 @@ function extractText(node: types.Identifier | types.StringLiteral) {
   return (node as types.Identifier).name;
 }
 
-export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
+export function trProgram(path: NodePath<types.Program>, filename: string, devMode: boolean) {
   let stylesConnected = false;
   const used = new Set<string>();
   const ids = {
@@ -66,6 +66,7 @@ export function trProgram(path: NodePath<types.Program>, devMode: boolean) {
     prefix: "Vasille_",
     importStatement: null,
     stateOnly: false,
+    filename: filename,
     devMode: devMode,
     ref(arg) {
       return call("ref", arg ? [arg] : []);

@@ -1,6 +1,6 @@
 import { afterMount, compose, Slot } from "vasille-web";
 
-export const C = compose(
+const C = compose(
   ({
     slot02,
   }: {
@@ -12,7 +12,7 @@ export const C = compose(
   },
 );
 
-export const C1 = compose(() => {
+const C1 = compose(() => {
   <C
     slot01={({ a, b }) => {
       console.log(a, b);

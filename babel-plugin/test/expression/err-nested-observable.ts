@@ -4,7 +4,7 @@ const $obj = ref({
   $nested: ref(2),
 });
 
-export const C = compose(() => {
+const C = compose(() => {
   let $a = 0;
   const $c = $a + $obj.$nested;
 });

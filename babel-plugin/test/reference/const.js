@@ -1,4 +1,4 @@
 import { compose } from "vasille-web";
-export const C = compose(Vasille => {
+const C = compose(Vasille => {
   const a = 3;
 }, "C");

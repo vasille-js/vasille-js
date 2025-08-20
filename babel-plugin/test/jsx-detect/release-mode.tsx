@@ -1,6 +1,6 @@
 import { compose, Debug } from "vasille-web";
 
-export const C = compose(() => {
+const C = compose(() => {
   let $a = 3;
   const b = [1, 2, $a];
   const c = new Set([1, 2, $a]);

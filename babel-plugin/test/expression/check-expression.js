@@ -6,7 +6,7 @@ function tag(args, count) {
 function tag2(a1, a2) {
   return a1 + a2;
 }
-export const C = compose(Vasille => {
+const C = compose(Vasille => {
   const $a = VasilleRef(3, "a");
   const $b = bind(Vasille, Vasille_a => Vasille_a + 1, [$a], "b");
   const $s = VasilleRef("s", "s");

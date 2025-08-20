@@ -1,6 +1,6 @@
 import { compose, raw, ref, bind, calculate, beforeMount } from "vasille-web";
 
-export const C = compose(() => {
+const C = compose(() => {
   let $a = ref(2);
   let b = raw($a);
   const $c = bind($a + b);

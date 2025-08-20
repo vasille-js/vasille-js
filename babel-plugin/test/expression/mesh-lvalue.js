@@ -4,7 +4,7 @@ const obj = {
     level2: 2
   })
 };
-export const C = compose(Vasille => {
+const C = compose(Vasille => {
   const $a = ref(2, "a");
   const $sum = calculate(Vasille, (Vasille_a, Vasille_obj_nested) => {
     return Vasille_a + Vasille_obj_nested.level2;

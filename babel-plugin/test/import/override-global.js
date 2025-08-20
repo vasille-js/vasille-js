@@ -1,5 +1,5 @@
 import * as DX from "vasille-web";
-export const C = DX.compose(Vasille => {
+const C = DX.compose(Vasille => {
   const DX1 = {
     compose() {
       return 3;

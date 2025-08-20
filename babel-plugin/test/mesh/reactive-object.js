@@ -3,7 +3,7 @@ const obj = {
   a: 1,
   b: 2
 };
-export const sStore = store(Vasille => {
+const sStore = store(Vasille => {
   const $a = VasilleRef(2, "a");
   const $b = VasilleRef(3, "b");
   const o = {

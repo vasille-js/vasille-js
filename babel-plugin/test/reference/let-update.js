@@ -1,5 +1,5 @@
 import { compose, ref as VasilleRef } from "vasille-web";
-export const C = compose(Vasille => {
+const C = compose(Vasille => {
   const $count = VasilleRef(1, "count");
   function inc() {
     $count.V += 1;

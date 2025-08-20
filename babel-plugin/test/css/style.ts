@@ -1,6 +1,6 @@
 import { styleSheet, dark, prefersDark, prefersLight, mobile, laptop, tablet, theme } from "vasille-web";
 
-export const styles = styleSheet({
+const styles = styleSheet({
   c1: {
     margin: 0,
     padding: [10, 5],

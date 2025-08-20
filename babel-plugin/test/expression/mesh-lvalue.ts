@@ -6,7 +6,7 @@ const obj = {
   }),
 };
 
-export const C = compose(() => {
+const C = compose(() => {
   let $a = 2;
   const $sum = calculate(() => {
     return $a + obj.$nested.level2;

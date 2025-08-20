@@ -1,1 +1,1 @@
-function err($param: string) {}
+function error2($param: string) {}

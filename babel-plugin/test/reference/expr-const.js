@@ -1,5 +1,5 @@
 import { compose, ref as VasilleRef, expr as VasilleExpr } from "vasille-web";
-export const C = compose(Vasille => {
+const C = compose(Vasille => {
   const $a = VasilleRef(2, "a");
   const $b = VasilleRef(3, "b");
   const $sum = VasilleExpr(Vasille, (Vasille_a, Vasille_b) => Vasille_a + Vasille_b, [$a, $b], "sum");

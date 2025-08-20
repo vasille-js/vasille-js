@@ -22,8 +22,7 @@
     "prepack": "cp -f ../README.md ./README.md",
     "prettier": "prettier src fake-types --write",
     "build": "tsc --build tsconfig.json",
-    "check-types": "tsc --noEmit --lib es2020 --types web --moduleResolution Node16 --module Node16 ./fake-types/index.d.ts",
-    "update-types": "tsc --build tsconfig-types.json"
+    "check-types": "tsc --noEmit --lib es2020 --types web --moduleResolution Node16 --module Node16 ./fake-types/index.d.ts"
   },
   "type": "module",
   "repository": {

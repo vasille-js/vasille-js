@@ -9,7 +9,7 @@ function tag2(a1: string, a2: string) {
   return a1 + a2;
 }
 
-export const C = compose(() => {
+const C = compose(() => {
   let $a = 3;
   let $b = bind($a + 1);
   let $s = "s";

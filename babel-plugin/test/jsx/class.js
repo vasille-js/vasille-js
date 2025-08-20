@@ -1,6 +1,6 @@
 import { compose, ref as VasilleRef, expr as VasilleExpr } from "vasille-web";
 let c = "c";
-export const C = compose(Vasille => {
+const C = compose(Vasille => {
   const $a = VasilleRef("a", "a");
   const $b = VasilleRef(false, "b");
   Vasille.tag("div", {

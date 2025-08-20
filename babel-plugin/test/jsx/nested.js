@@ -1,8 +1,8 @@
 import { compose, ref as VasilleRef, expr as VasilleExpr, Switch as VasilleSwitch } from "vasille-web";
-export const C1 = compose((Vasille, props) => {
+const C1 = compose((Vasille, props) => {
   Vasille.tag("div", {});
 }, "C1");
-export const C2 = compose(Vasille => {
+const C2 = compose(Vasille => {
   const $a = VasilleRef(1, "a");
   Vasille.tag("div", {}, Vasille => {
     C1({

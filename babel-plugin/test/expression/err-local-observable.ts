@@ -1,6 +1,6 @@
 import { calculate, compose, ref } from "vasille-web";
 
-export const C = compose(() => {
+const C = compose(() => {
   let $a = 0;
   const $c = calculate(() => {
     let $obj = {

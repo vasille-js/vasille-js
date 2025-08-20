@@ -1,5 +1,5 @@
 import { arrayModel, compose, mapModel, ref, setModel } from "vasille-web";
-export const C = compose(Vasille => {
+const C = compose(Vasille => {
   const $a = ref(3, "a");
   const b = arrayModel(Vasille, [1, 2, $a.V], "b");
   const c = setModel(Vasille, [1, 2, $a.V], "c");

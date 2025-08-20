@@ -14,7 +14,7 @@ import {
   beforeMount,
 } from "vasille-web";
 
-export const cStore = store(() => {
+const cStore = store(() => {
   let $a = 2;
   let $b = 2;
   const $c = calculate(() => $a + $b);

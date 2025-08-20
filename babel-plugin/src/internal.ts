@@ -65,6 +65,7 @@ export interface Internal {
   isComposing?: boolean;
   isFunctionParsing?: boolean;
   firstError?: Error;
+  filename: string;
   devMode: boolean;
   ref(arg?: types.Expression | null): types.CallExpression;
   expr(func: types.Expression, values: types.ArrayExpression): types.CallExpression;

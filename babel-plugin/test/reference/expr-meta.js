@@ -1,5 +1,5 @@
 import { compose, ref, bind, calculate } from "vasille-web";
-export const C = compose(Vasille => {
+const C = compose(Vasille => {
   const $a = ref(2, "a");
   let b = $a.V;
   const $c = bind(Vasille, Vasille_a => Vasille_a + b, [$a], "c");

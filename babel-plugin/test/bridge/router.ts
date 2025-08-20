@@ -1,6 +1,6 @@
 import { beforeMount, calculate, compose, router } from "vasille-web";
 
-export const C = compose(() => {
+const C = compose(() => {
   let $a = 2;
   const $b = calculate(() => {
     router()?.navigate("/:a", { a: "1" }, "loading-screen");

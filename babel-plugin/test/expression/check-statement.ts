@@ -1,6 +1,6 @@
 import { calculate, compose } from "vasille-web";
 
-export const C = compose(() => {
+const C = compose(() => {
   let $a = 1;
   const o = { b: 1 };
 

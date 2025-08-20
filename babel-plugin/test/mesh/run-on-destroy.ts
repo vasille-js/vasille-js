@@ -1,6 +1,6 @@
 import { beforeDestroy, compose } from "vasille-web";
 
-export const C = compose(() => {
+const C = compose(() => {
   beforeDestroy(() => {
     console.log("destroy called");
   });

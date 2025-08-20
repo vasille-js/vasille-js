@@ -1,6 +1,6 @@
 import { beforeMount, compose } from "vasille-web";
 
-export const C = compose(() => {
+const C = compose(() => {
   function compose() {
     return 3;
   }
