@@ -722,6 +722,9 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             if (isNotUpperCase) {
               report("The component name must start with a uppercase letter");
             }
+            if (internal.strictFolders && !internal.filename.includes("/components/")) {
+              report("Components must be placed in a folder named `components`");
+            }
           }
           if (calls(initPath, ["view"], internal)) {
             if (isNotUpperCase) {
@@ -729,6 +732,9 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             }
             if (!name.endsWith("View")) {
               report("The view name must end with `View`");
+            }
+            if (internal.strictFolders && !internal.filename.includes("/views/")) {
+              report("Views must be placed in a folder named `views`");
             }
           }
           if (calls(initPath, ["store"], internal)) {
@@ -738,6 +744,9 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             if (!name.endsWith("Store")) {
               report("The store name must end with `Store`");
             }
+            if (internal.strictFolders && !internal.filename.includes("/stores/")) {
+              report("Stores must be placed in a folder named `stores`");
+            }
           }
           if (calls(initPath, ["model"], internal)) {
             if (isNotLowerCase) {
@@ -745,6 +754,9 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             }
             if (!name.endsWith("Model")) {
               report("The model constructor function name must end with `Model`");
+            }
+            if (internal.strictFolders && !internal.filename.includes("/models/")) {
+              report("Models must be placed in a folder named `models`");
             }
           }
           if (calls(initPath, ["modal"], internal)) {
@@ -754,6 +766,9 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             if (!name.endsWith("Modal")) {
               report("The modal component name must end with `Modal`");
             }
+            if (internal.strictFolders && !internal.filename.includes("/modals/")) {
+              report("Modals must be placed in a folder named `modals`");
+            }
           }
           if (calls(initPath, ["prompt"], internal)) {
             if (isNotLowerCase) {
@@ -761,6 +776,9 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             }
             if (!name.startsWith("prompt")) {
               report("The prompt function name must start with `prompt`");
+            }
+            if (internal.strictFolders && !internal.filename.includes("/prompts/")) {
+              report("Prompts must be placed in a folder named `prompts`");
             }
           }
           if (calls(initPath, ["page"], internal)) {

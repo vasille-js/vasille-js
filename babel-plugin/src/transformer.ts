@@ -122,8 +122,13 @@ function updateImports(
   }
 }
 
+export interface TransformerOptions {
+  devMode: boolean;
+  strictFolders: boolean;
+}
+
 // Main transformer function
-export function trProgram(path: NodePath<types.Program>, filename: string, devMode: boolean) {
+export function transformProgram(path: NodePath<types.Program>, filename: string, opts: TransformerOptions) {
   const stylesConnected = { value: false };
   const used = new Set<string>();
   const ids = {
@@ -159,7 +164,8 @@ export function trProgram(path: NodePath<types.Program>, filename: string, devMo
     importStatement: null,
     stateOnly: false,
     filename,
-    devMode,
+    devMode: opts.devMode,
+    strictFolders: opts.strictFolders,
     ref: arg => call("ref", arg ? [arg] : []),
     expr: (func, values) => call("expr", [getCtx(), func, values]),
     forward: arg => call("forward", [getCtx(), arg]),

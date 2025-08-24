@@ -67,6 +67,7 @@ export interface Internal {
   firstError?: Error;
   filename: string;
   devMode: boolean;
+  strictFolders: boolean;
   ref(arg?: types.Expression | null): types.CallExpression;
   expr(func: types.Expression, values: types.ArrayExpression): types.CallExpression;
   forward(arg: types.Expression): types.CallExpression;
