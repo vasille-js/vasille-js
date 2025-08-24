@@ -41,6 +41,8 @@ type Screen<Route extends string> = (input: ScreenProps<Route>) => Promise<void>
 
 /** Composes a screen, the router navigates between screens */
 export declare function screen<Route extends string>(renderer: Screen<Route>): Screen<Route>;
+/** Composes a page, the file-based router navigates between pages (used for tests only) */
+export declare function page<Route extends string>(renderer: Screen<Route>): Screen<Route>;
 
 /** Returns the raw value of expression */
 export declare function raw<T>(v: T): T;

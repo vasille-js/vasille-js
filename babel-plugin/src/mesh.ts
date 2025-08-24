@@ -771,9 +771,6 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             }
           }
           if (calls(initPath, ["prompt"], internal)) {
-            if (isNotLowerCase) {
-              report("The prompt function name must start with a lowercase letter");
-            }
             if (!name.startsWith("prompt")) {
               report("The prompt function name must start with `prompt`");
             }
