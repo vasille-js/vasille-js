@@ -83,7 +83,7 @@ it("report invalid URL error", function (done) {
     const body = window.document.body;
 
     const reportError = jest.fn().mockImplementation((e: unknown) => {
-        expect(`${e}`).toBe("TypeError [ERR_INVALID_URL]: Invalid URL");
+        expect(`${e}`).toBe("TypeError: Invalid URL");
     });
 
     setErrorHandler(reportError);

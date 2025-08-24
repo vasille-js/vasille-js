@@ -103,7 +103,7 @@ export class Router<Routes extends string> extends AbstractRouter<
     protected parseUrl(url: string): [string, QueryParams, string] {
         if (process.env.VASILLE_TARGET === "es5" && !("URL" in this.window)) {
             if (!/^https?:\/\//.test(url) && url.charAt(0) !== "/") {
-                throw "TypeError [ERR_INVALID_URL]: Invalid URL";
+                throw new TypeError("Invalid URL");
             }
 
             const a = this.window.document.createElement("a");
