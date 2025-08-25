@@ -110,11 +110,6 @@ export function bindCall(
   const names = [...data.keys()].map(encodeName);
   const dependencies = t.arrayExpression([...data.values()]);
 
-  if (expr !== path.node && names.length === 1 && path.isIdentifier() && path.node.name === names[0].name) {
-    path.replaceWith([...data.values()][0]);
-
-    return true;
-  }
   if (names.length > 0 && expr) {
     path.replaceWith(named(internal.expr(t.arrowFunctionExpression(names, expr), dependencies), name, internal, 3));
 
@@ -130,7 +125,6 @@ export function exprCall(
   internal: Internal,
   opts: {
     name?: string;
-    acceptsForwarding?: boolean;
     strong?: boolean;
   },
 ): boolean {
@@ -158,29 +152,6 @@ export function exprCall(
       named(expr, opts.name, internal, 3);
     } else {
       path.replaceWith(named(internal.ref(argPath.node), opts.name, internal, 1));
-    }
-
-    return true;
-  }
-
-  if (
-    opts.acceptsForwarding &&
-    t.isCallExpression(expr) &&
-    calls(path, ["forward"], internal) &&
-    expr.arguments.length === 1 &&
-    t.isExpression(expr.arguments[0])
-  ) {
-    const exprData = checkNode(
-      (path as NodePath<types.CallExpression>).get("arguments")[0] as NodePath<types.Expression>,
-      internal,
-    );
-
-    if (exprData.self) {
-      expr.arguments[0] = exprData.self;
-      expr.arguments.unshift(ctx);
-      named(expr, opts.name, internal, 2);
-    } else if (!bindCall(path, expr.arguments[0], exprData.found, internal, opts.name)) {
-      path.replaceWith(internal.ref(expr.arguments[0]));
     }
 
     return true;

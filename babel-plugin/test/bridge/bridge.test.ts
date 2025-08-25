@@ -8,6 +8,10 @@ it("bridge/router global import", function () {
   runTest(__dirname, "global-import");
 });
 
+it("bind test", function () {
+  runTest(__dirname, "bind");
+});
+
 it("router outside of compose error", function () {
   throwTest(__dirname, "router", "Usage of hints is restricted here");
 });

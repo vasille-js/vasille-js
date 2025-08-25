@@ -46,9 +46,9 @@ export const composeFunctions = [
   "prompt",
 ] as const satisfies FnNames[];
 
-export const reactivityFunctions = ["ref", "awaited", "backward"] as const satisfies FnNames[];
+export const reactivityFunctions = ["ref", "awaited"] as const satisfies FnNames[];
 
-export const bindFunctions = ["forward", "watch", "calculate", "bind"] as const satisfies FnNames[];
+export const bindFunctions = ["forward", "backward", "watch", "calculate", "bind"] as const satisfies FnNames[];
 
 export const modelFunctions = ["arrayModel", "mapModel", "setModel"] as const satisfies FnNames[];
 
