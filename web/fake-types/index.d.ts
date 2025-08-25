@@ -129,8 +129,6 @@ export declare function model<Input extends object, Return extends object>(
     fn: (input: Input) => Return,
 ): (input: Input) => DeepReadonly<Return>;
 
-export { $ } from "vasille-jsx";
-
 export { QueryParams, ScreenProps, RouteParameters } from "vasille-router";
 export { Router, NavigationMode } from "vasille-router/web-router";
 

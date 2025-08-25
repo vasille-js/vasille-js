@@ -126,8 +126,6 @@ function transformJsxExpressionContainer(
           const argValue = argPath.node;
 
           if (exprCall(argPath, argPath.node, internal, { strong: true })) {
-            path.replaceWith(argPath);
-
             if (!argPath.isMemberExpression() && !argPath.isIdentifier()) {
               argPath.node = argValue;
               err(
@@ -141,6 +139,8 @@ function transformJsxExpressionContainer(
             argPath.node = argValue;
             err(Errors.RulesOfVasille, argPath, "The backward argument is not reactive", internal);
           }
+        } else {
+          err(Errors.IncorrectArguments, expression, "The argument is missing", internal);
         }
       }
       // calls forward
@@ -150,10 +150,12 @@ function transformJsxExpressionContainer(
         if (argPath && argPath.isExpression()) {
           const argValue = argPath.node;
 
-          if (!exprCall(expression, expression.node, internal, { strong: true })) {
+          if (!exprCall(argPath, argPath.node, internal, { strong: true })) {
             argPath.node = argValue;
-            err(Errors.RulesOfVasille, argPath, "A reactive expression expected, argument value constant", internal);
+            err(Errors.RulesOfVasille, argPath, "A reactive expression expected, argument value is constant", internal);
           }
+        } else {
+          err(Errors.IncorrectArguments, expression, "The argument is missing", internal);
         }
       }
       // two-side binding
@@ -171,7 +173,7 @@ function transformJsxExpressionContainer(
 
   expression.node.loc = loc;
 
-  return expression.isExpression() ? expression.node : t.booleanLiteral(true);
+  return expression.node as types.Expression;
 }
 
 function idToProp(
