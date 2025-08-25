@@ -1,3 +1,3 @@
-import {component} from "vasille-web"
+import { component } from "vasille-web";
 
 const C = component(() => {});

@@ -1,3 +1,3 @@
-import {view} from "vasille-web";
+import { view } from "vasille-web";
 
 const XV = view(() => {});

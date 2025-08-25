@@ -1,3 +1,3 @@
-import {page} from "vasille-web";
+import { page } from "vasille-web";
 
 const c = page(async () => {});

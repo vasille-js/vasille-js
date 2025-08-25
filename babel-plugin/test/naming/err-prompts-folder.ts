@@ -1,3 +1,3 @@
-import {prompt} from "vasille-web";
+import { prompt } from "vasille-web";
 
 const promptName = prompt(() => {});

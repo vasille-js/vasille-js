@@ -1,5 +1,4 @@
-import {throwTest} from "../run-test"
-
+import { throwTest } from "../run-test";
 
 it("component not uppercase error", function () {
   throwTest(__dirname, "component-not-uppercase", "The component name must start with a uppercase letter", false, true);
@@ -10,7 +9,13 @@ it("components folder test", function () {
 });
 
 it("export filename error", function () {
-  throwTest(__dirname, "export", "File name is not correct, expected MyView.ts, MyView.tsx, MyView.js or MyView.jsx", false, false);
+  throwTest(
+    __dirname,
+    "export",
+    "File name is not correct, expected MyView.ts, MyView.tsx, MyView.js or MyView.jsx",
+    false,
+    false,
+  );
 });
 
 it("modal missing suffix error", function () {
@@ -18,7 +23,13 @@ it("modal missing suffix error", function () {
 });
 
 it("modal not uppercase error", function () {
-  throwTest(__dirname, "modal-not-uppercase", "The modal component name must start with a uppercase letter", false, true);
+  throwTest(
+    __dirname,
+    "modal-not-uppercase",
+    "The modal component name must start with a uppercase letter",
+    false,
+    true,
+  );
 });
 
 it("modals folder test", function () {
@@ -26,11 +37,23 @@ it("modals folder test", function () {
 });
 
 it("model missing suffix error", function () {
-  throwTest(__dirname, "model-missing-suffix", "The model constructor function name must end with `Model`", false, true);
+  throwTest(
+    __dirname,
+    "model-missing-suffix",
+    "The model constructor function name must end with `Model`",
+    false,
+    true,
+  );
 });
 
 it("model not lowercase error", function () {
-  throwTest(__dirname, "model-not-lowercase", "The model constructor function name must start with a lowercase letter", false, true);
+  throwTest(
+    __dirname,
+    "model-not-lowercase",
+    "The model constructor function name must start with a lowercase letter",
+    false,
+    true,
+  );
 });
 
 it("models folder test", function () {

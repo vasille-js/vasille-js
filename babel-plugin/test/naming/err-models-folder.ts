@@ -1,3 +1,3 @@
-import {model} from "vasille-web";
+import { model } from "vasille-web";
 
 const userModel = model(() => ({}));

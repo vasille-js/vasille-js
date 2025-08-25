@@ -1,3 +1,3 @@
-import {view} from "vasille-web";
+import { view } from "vasille-web";
 
-export const MyView = view(() => {})
+export const MyView = view(() => {});

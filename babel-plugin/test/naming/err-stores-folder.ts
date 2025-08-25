@@ -1,3 +1,3 @@
-import {store} from "vasille-web";
+import { store } from "vasille-web";
 
-const userStore = store(() => ({}))
+const userStore = store(() => ({}));
