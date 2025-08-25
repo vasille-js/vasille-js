@@ -175,7 +175,6 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
     return search;
   }
 
-  internal.stack.fixLocalIndex();
   internal.stack.push();
 
   /* istanbul ignore else */
@@ -184,7 +183,6 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
   }
 
   internal.stack.pop();
-  internal.stack.resetLocalIndex();
 
   return search;
 }
