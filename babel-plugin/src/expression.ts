@@ -300,6 +300,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
         meshExpression(left.get("object"), search.external);
         checkExpression(right, search);
 
+        /* istanbul ignore else */
         if (!t.isPrivateName(property)) {
           path.replaceWith(search.external.set(left.node.object, property, right.node));
         }
@@ -629,6 +630,7 @@ export function checkFunction(
   if (path.isFunctionDeclaration() && path.node.id) {
     const idPath = path.get("id");
 
+    /* istanbul ignore else */
     if (idPath.isIdentifier()) {
       search.stack.set(idPath.node.name, {});
       checkNonReactiveName(idPath, search.external);
