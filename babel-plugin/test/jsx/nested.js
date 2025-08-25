@@ -9,7 +9,8 @@ const C2 = compose(Vasille => {
       "$bool": VasilleRef(true),
       "$a": VasilleRef(1),
       "$b": VasilleRef(2),
-      "$c": VasilleRef("text")
+      "$c": VasilleRef("text"),
+      str: "str"
     }, Vasille, (_VasilleWeb, Vasille) => {
       C1({
         ...{

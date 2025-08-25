@@ -32,7 +32,7 @@ export function transformJsxArray(
   const conditions: ConditionCollection = { cases: null };
 
   paths.forEach(path => {
-    if (!path.isJSXElement()) {
+    if (!path.isJSXElement() && !(path.isJSXText() && /^\s+$/.test(path.node.value))) {
       result.push(...processConditions(conditions, internal));
     }
 
@@ -116,6 +116,7 @@ function transformJsxExpressionContainer(
     expression.node.params.unshift(ctx);
   }
 
+  /* istanbul ignore else */
   if (expression.isExpression()) {
     if (acceptsReactive) {
       // cals backward
@@ -297,6 +298,7 @@ function transformJsxElement(
                         const keyPath = propPath.get("key");
                         const valuePath = propPath.get("value");
 
+                        /* istanbul ignore else */
                         if (valuePath.isExpression()) {
                           exprCall(valuePath, valuePath.node, internal, {});
                         }
@@ -365,6 +367,7 @@ function transformJsxElement(
                   const prop = propPath;
                   const valuePath = prop.get("value");
 
+                  /* istanbul ignore else */
                   if (valuePath.isExpression()) {
                     exprCall(valuePath, valuePath.node, internal, { strong: true });
                   }
@@ -449,6 +452,7 @@ function transformJsxElement(
 
             /* istanbul ignore else */
             if (expressionPath) {
+              /* istanbul ignore else */
               if (expressionPath.isExpression()) {
                 exprCall(expressionPath, expressionPath.node, internal, { strong: true });
                 bind.push(idToProp(name.name, expressionPath.node));

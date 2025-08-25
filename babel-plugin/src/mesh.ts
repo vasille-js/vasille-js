@@ -943,17 +943,15 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
       break;
     case "JSXElement":
     case "JSXFragment":
-      if (path.parentPath.isExpressionStatement()) {
-        if (internal.stateOnly) {
-          return err(Errors.IncompatibleContext, path, "JSX is not allowed in states", internal);
-        }
-        const conditions: ConditionCollection = { cases: null };
-
-        path.replaceWithMultiple([
-          ...transformJsx(path as NodePath<types.JSXElement | types.JSXFragment>, conditions, internal),
-          ...processConditions(conditions, internal),
-        ]);
+      if (internal.stateOnly) {
+        return err(Errors.IncompatibleContext, path, "JSX is not allowed in states", internal);
       }
+      const conditions: ConditionCollection = { cases: null };
+
+      path.replaceWithMultiple([
+        ...transformJsx(path as NodePath<types.JSXElement | types.JSXFragment>, conditions, internal),
+        ...processConditions(conditions, internal),
+      ]);
       break;
     default:
       meshExpression(path, internal);

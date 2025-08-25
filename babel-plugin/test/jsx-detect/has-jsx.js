@@ -23,6 +23,6 @@ const C1 = compose(Vasille => {
       Vasille.tag("div", {});
       console.log($a.V, $b.V);
     },
-    slot03: (_VasilleWeb, Vasille) => <div />
+    slot03: (_VasilleWeb, Vasille) => Vasille.tag("div", {})
   }, Vasille);
 }, "C1");

@@ -5,6 +5,7 @@ interface Props {
   $a?: number;
   $b?: number;
   $c?: string;
+  str?: string;
   slot?(): void;
 }
 
@@ -16,7 +17,7 @@ const C2 = compose(() => {
   let $a = 1;
 
   <div>
-    <C1 $bool $a={1} $b={2} $c="text">
+    <C1 $bool $a={1} $b={2} $c="text" str="str">
       {() => {
         <C1 {...{ $a: 1 }} $b={$a + 1} $bool={true}>
           <div />

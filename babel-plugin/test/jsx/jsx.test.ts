@@ -52,6 +52,10 @@ it("default prop value", function () {
   runJsxTest(__dirname, "default-prop");
 });
 
+it("conditions test", function () {
+  runJsxTest(__dirname, "conditions");
+});
+
 it("spread child error", function () {
   throwTest(__dirname, "spread-child", "Spread child is not supported", true);
 });
@@ -112,4 +116,21 @@ it("forward const value error", function () {
 
 it("forward missing argument error", function () {
   throwTest(__dirname, "forward-missing-argument", "The argument is missing", true);
+});
+
+it("condition spread attribute error", function () {
+  throwTest(
+    __dirname,
+    "conditions-spread",
+    "If, Else and ElseIf are syntax sugar, use Switch if you need more runtime elasticity",
+    true,
+  );
+});
+
+it("condition unexpected else error", function () {
+  throwTest(__dirname, "conditions-else", "Malformed JSX If tag is missing", true);
+});
+
+it("condition unexpected else-if error", function () {
+  throwTest(__dirname, "conditions-else-if", "Malformed JSX If tag is missing", true);
 });
