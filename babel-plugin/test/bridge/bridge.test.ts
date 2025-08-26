@@ -20,6 +20,10 @@ it("object property key-value match test", function () {
   runTest(__dirname, "object-property-match");
 });
 
+it("array item set test", function () {
+  runTest(__dirname, "array-item-set");
+});
+
 it("router outside of compose error", function () {
   throwTest(__dirname, "router", "Usage of hints is restricted here");
 });

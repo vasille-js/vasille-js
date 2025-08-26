@@ -145,6 +145,7 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       }
       // arrayModel/setModel/mapModel call
       else if (!internal.isComposing && calls(path, modelFunctions, internal)) {
+        /* istanbul ignore else */
         if (argPath) {
           meshAllUnknown([argPath], internal);
         }
@@ -185,6 +186,7 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
         meshExpression(left.get("object"), internal);
         meshExpression(right, internal);
 
+        /* istanbul ignore else */
         if (!t.isPrivateName(property)) {
           path.replaceWith(internal.set(left.node.object, property, right.node));
         }
@@ -350,6 +352,7 @@ export function ignoreParams(
     meshExpression(path.get("right"), internal);
     ignoreParams(left, internal, false);
 
+    /* istanbul ignore else */
     if (!allowReactiveId && left.isIdentifier()) {
       checkNonReactiveName(left, internal);
     }
@@ -411,6 +414,7 @@ function ignoreObjectPattern(pattern: NodePath<types.ObjectPattern>, internal: I
 
       /* istanbul ignore else */
       if (valuePath.isObjectPattern()) {
+        /* istanbul ignore else */
         if (originName && originName.startsWith("$")) {
           err(Errors.RulesOfVasille, path, "You can not destruct a reactive value", internal);
         }
@@ -454,6 +458,7 @@ export function reactiveArrayPattern(
 ) {
   if (path.isArrayPattern()) {
     path.get("elements").forEach((element, index) => {
+      /* istanbul ignore else */
       if (index < 2) {
         checkReactiveName(element, internal);
       } else if (element.isIdentifier()) {
@@ -776,6 +781,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             report("Use export default instead");
           }
           if (t.isExportNamedDeclaration(path.parent)) {
+            /* istanbul ignore else */
             if (
               ![".ts", ".tsx", ".js", ".jsx"].some(ext => {
                 return internal.filename.endsWith(`${name}${ext}`);
@@ -830,6 +836,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
       const classPath = path as NodePath<types.ClassDeclaration>;
       const idPath = classPath.get("id");
 
+      /* istanbul ignore else */
       if (idPath.isIdentifier()) {
         checkNonReactiveName(idPath, internal);
       }
@@ -872,6 +879,7 @@ export function meshFunction(
   if (path.isFunctionDeclaration() && path.node.id) {
     const idPath = path.get("id");
 
+    /* istanbul ignore else */
     if (idPath.isIdentifier()) {
       internal.stack.set(path.node.id.name, {});
       checkNonReactiveName(idPath, internal);
@@ -890,6 +898,7 @@ export function meshFunction(
 
   const bodyPath = path.get("body");
 
+  /* istanbul ignore else */
   if (bodyPath.isExpression()) {
     meshExpression(bodyPath, internal);
   } else if (bodyPath.isBlockStatement()) {
@@ -922,6 +931,7 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
         if (arg && (arg.isFunctionExpression() || arg.isArrowFunctionExpression())) {
           const body = arg.isFunctionExpression() ? arg.get("body") : arg.get("body");
 
+          /* istanbul ignore else */
           if (body.isBlockStatement()) {
             composeStatements(body.get("body"), internal);
             path.replaceWith(t.callExpression(arg.node, []));

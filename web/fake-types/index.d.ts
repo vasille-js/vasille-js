@@ -8,33 +8,31 @@ import type { Router } from "vasille-router/web-router";
 export declare function setErrorHandler(handler: (e: unknown) => void): void;
 
 declare interface Params {
-    slot?(...args: unknown[]): unknown;
+    slot(...args: unknown[]): unknown;
 }
 
-declare type Composed<In extends Params, Out> = (
-    $: (In["slot"] extends (() => unknown) | undefined ? Omit<In, "slot"> & { slot?: unknown } : In) & {
+declare type Composed<In extends object, Out> = (
+    $: (Required<In> extends Params ? Omit<In, "slot"> & { slot?: unknown } : In) & {
         callback?(data: Out): void;
-    },
-    slot?: In["slot"],
+    }
 ) => void;
-declare type ComposedNoCallback<In extends Params, Out> = (
-    $: In["slot"] extends (() => unknown) | undefined ? Omit<In, "slot"> & { slot?: unknown } : In,
-    slot?: In["slot"],
+declare type ComposedNoCallback<In extends object, Out> = (
+    $: Required<In> extends Params ? Omit<In, "slot"> & { slot?: unknown } : In
 ) => void;
 
 /** Composes a component (v3), which can receive external reactive values via props */
+export declare function compose<In extends object, Out extends NonNullable<unknown>>(renderer: (input: In) => Out): Composed<In, Out>;
 export declare function compose<In extends object>(renderer: (input: In) => void): ComposedNoCallback<In, void>;
-export declare function compose<In extends object, Out>(renderer: (input: In) => Out): Composed<In, Out>;
 
 /** Composes a component (v4), which can receive external reactive values via props */
+export declare function component<In extends object, Out extends NonNullable<unknown>>(renderer: (input: In) => Out): Composed<In, Out>;
 export declare function component<In extends object>(renderer: (input: In) => void): ComposedNoCallback<In, void>;
-export declare function component<In extends object, Out>(renderer: (input: In) => Out): Composed<In, Out>;
 
 /** Composes a view, which can receive external reactive values via props */
+export declare function view<Out extends NonNullable<unknown>>(renderer: () => Out): Composed<NonNullable<unknown>, Out>;
+export declare function view<In extends object, Out extends NonNullable<unknown>>(renderer: (input: In) => Out): Composed<In, Out>;
 export declare function view(renderer: () => void): ComposedNoCallback<NonNullable<unknown>, void>;
 export declare function view<In extends object>(renderer: (input: In) => void): ComposedNoCallback<In, void>;
-export declare function view<Out>(renderer: (input: NonNullable<unknown>) => Out): Composed<NonNullable<unknown>, Out>;
-export declare function view<In extends object, Out>(renderer: (input: In) => Out): Composed<In, Out>;
 
 /** A Vasille.JS App screen */
 type Screen<Route extends string> = (input: ScreenProps<Route>) => Promise<void>;
@@ -214,6 +212,6 @@ export interface PromptProps<T> {
 }
 
 /** Composes a function which will show a prompt on call */
-export declare function prompt<Input extends PromptProps<unknown>>(
+export declare function prompt<T, Input extends PromptProps<T> = PromptProps<T>>(
     modal: (input: Input) => void,
-): (input: Input, timeout?: number) => Promise<unknown>;
+): (input: Omit<Input, keyof PromptProps<unknown>>, timeout?: number) => Promise<T>;

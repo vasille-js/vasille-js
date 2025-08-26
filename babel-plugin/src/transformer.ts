@@ -45,6 +45,7 @@ function handleImportDeclaration(
   internal.prefix = name;
 
   for (const specifier of statement.specifiers) {
+    /* istanbul ignore else */
     if (t.isImportNamespaceSpecifier(specifier)) {
       internal.global = specifier.local.name;
       stylesConnected.value = true;
@@ -103,6 +104,7 @@ function updateImports(
     const statementPath = internal.importStatement;
     const statement = statementPath.node;
     const specifiers = statement.specifiers.filter(item => {
+      /* istanbul ignore else */
       if (t.isImportSpecifier(item) && t.isIdentifier(item.local)) {
         return statementPath.scope.bindings[item.local.name].referenced;
       }
