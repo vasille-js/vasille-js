@@ -49,7 +49,6 @@ export interface Internal {
   ref(arg?: types.Expression | null): types.CallExpression;
   expr(func: types.Expression, values: types.ArrayExpression): types.CallExpression;
   forward(arg: types.Expression): types.CallExpression;
-  backward(arg: types.Expression): types.CallExpression;
   setModel(arg?: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null): types.CallExpression;
   mapModel(arg?: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null): types.CallExpression;
   arrayModel(arg?: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null): types.CallExpression;

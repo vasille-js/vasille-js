@@ -401,7 +401,7 @@ function ignoreObjectPattern(pattern: NodePath<types.ObjectPattern>, internal: I
         err(
           Errors.RulesOfVasille,
           path.get("value"),
-          `Vasille: Property "${originName}" can not be renamed to "${newName}": ` +
+          `Property "${originName}" can not be renamed to "${newName}": ` +
             (originName.startsWith("$") ? `rename it to "$${newName}"` : `rename it to "${newName.substring(1)}"`),
           internal,
         );
@@ -525,12 +525,16 @@ function procedureProcessObjectExpression(
     if (prop.isObjectProperty()) {
       // the property name is known in compile time
       if ((!prop.node.computed || keyPath.isStringLiteral()) && valuePath.isExpression()) {
-        const call = checkNode(valuePath, internal);
+        const call =
+          (internal.isComposing && !internal.isFunctionParsing) ||
+          calls(valuePath, ["ref", "bind", "calculate"], internal)
+            ? checkNode(valuePath, internal)
+            : null;
         const name = stringify(keyPath.node);
 
-        if (call.found.size > 0) {
+        if ((call?.found.size ?? 0) > 0) {
           err(Errors.RulesOfVasille, valuePath, "Objects can not contains bind expressions", internal);
-        } else if (call.self) {
+        } else if (call?.self) {
           if (!name.startsWith("$")) {
             err(Errors.RulesOfVasille, keyPath, "Reactive field name must start with $", internal);
           }
@@ -798,6 +802,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
         // variable declaration
         else {
           ignoreParams(declaration.get("id"), internal, ["id", "array"]);
+          idPath.isIdentifier() && checkNonReactiveName(idPath, internal);
 
           if (initPath.isObjectExpression() && t.isIdentifier(declaration.node.id) && _path.node.kind === "const") {
             internal.stack.set(declaration.node.id.name, processObjectExpression(initPath, internal));
@@ -914,7 +919,7 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
       } else if (calls(path, ["beforeMount", "afterMount"], internal)) {
         const arg = path.get("arguments")[0];
 
-        if (arg.isFunctionExpression() || arg.isArrowFunctionExpression()) {
+        if (arg && (arg.isFunctionExpression() || arg.isArrowFunctionExpression())) {
           const body = arg.isFunctionExpression() ? arg.get("body") : arg.get("body");
 
           if (body.isBlockStatement()) {

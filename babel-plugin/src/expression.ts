@@ -156,9 +156,6 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
     stack: internal.stack,
   };
 
-  if (path.isExpression() && calls(path, ["raw"], internal)) {
-    return search;
-  }
   if (path.isIdentifier()) {
     if (idIsIValue(path)) {
       search.self = path.node;

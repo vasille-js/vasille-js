@@ -169,7 +169,6 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     ref: arg => call("ref", arg ? [arg] : []),
     expr: (func, values) => call("expr", [getCtx(), func, values]),
     forward: arg => call("forward", [getCtx(), arg]),
-    backward: arg => call("backward", [arg]),
     setModel: arg => call("setModel", arg ? [getCtx(), arg] : [getCtx()]),
     mapModel: arg => call("mapModel", arg ? [getCtx(), arg] : [getCtx()]),
     arrayModel: arg => call("arrayModel", arg ? [getCtx(), arg] : [getCtx()]),

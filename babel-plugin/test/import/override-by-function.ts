@@ -4,7 +4,7 @@ const C = compose(() => {
   function compose() {
     return 3;
   }
-  beforeMount(() => {
+  beforeMount(function () {
     const sum = compose() + 2;
   });
 });

@@ -1,4 +1,4 @@
-import { runJsxTest, runTest, throwTest } from "../run-test";
+import { runTest, throwTest } from "../run-test";
 
 it("router test", function () {
   runTest(__dirname, "router");
@@ -34,4 +34,28 @@ it("router in store error 2", function () {
 
 it("router in store error 3", function () {
   throwTest(__dirname, "router-in-store-3", "The router is not available in stores");
+});
+
+it("bind in object error", function () {
+  throwTest(__dirname, "bind-in-object", "Objects can not contains bind expressions");
+});
+
+it("field renaming error", function () {
+  throwTest(__dirname, "field-renaming", 'Property "$a" can not be renamed to "a": rename it to "$a"');
+});
+
+it("field renaming error 2", function () {
+  throwTest(__dirname, "field-renaming-2", 'Property "a" can not be renamed to "$a": rename it to "a"');
+});
+
+it("property is not reactive error", function () {
+  throwTest(__dirname, "prop-not-reactive", "This property is not a reactive");
+});
+
+it("raw without args error", function () {
+  throwTest(__dirname, "raw-no-args", "Failed to parse raw value");
+});
+
+it("beforeMount arg error", function () {
+  throwTest(__dirname, "before-mount-arg", "Incorrect hint argument");
 });
