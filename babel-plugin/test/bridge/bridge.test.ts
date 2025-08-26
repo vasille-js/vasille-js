@@ -12,6 +12,14 @@ it("bind test", function () {
   runTest(__dirname, "bind");
 });
 
+it("module level reactivity test", function () {
+  runTest(__dirname, "module-level-reactivity");
+});
+
+it("object property key-value match test", function () {
+  runTest(__dirname, "object-property-match");
+});
+
 it("router outside of compose error", function () {
   throwTest(__dirname, "router", "Usage of hints is restricted here");
 });

@@ -84,7 +84,7 @@ export function processCalculateCall(path: NodePath<types.CallExpression>, inter
     );
 
     call.params = [...exprData.found.keys()].map(name => encodeName(name));
-    path.node.arguments.unshift(ctx);
+    path.node.arguments.unshift(internal.isComposing ? ctx : t.nullLiteral());
     path.node.arguments.push(t.arrayExpression([...exprData.found.values()]));
 
     return true;
@@ -147,7 +147,7 @@ export function exprCall(
       path.replaceWith(internal.forward(exprData.self));
     } else if (exprData.found.size > 0) {
       argPath.replaceWith(t.arrowFunctionExpression([...exprData.found.keys()].map(encodeName), argPath.node));
-      expr.arguments.unshift(ctx);
+      expr.arguments.unshift(internal.isComposing ? ctx : t.nullLiteral());
       expr.arguments.push(t.arrayExpression([...exprData.found.values()]));
       named(expr, opts.name, internal, 3);
     } else {
@@ -210,8 +210,8 @@ export function processModelCall(
   );
 }
 
-export function checkReactiveName(idPath: NodePath<Identifier>, internal: Internal) {
-  if (!idPath.node.name.startsWith("$")) {
+export function checkReactiveName(idPath: NodePath<unknown>, internal: Internal) {
+  if (!(idPath.isIdentifier() && idPath.node.name.startsWith("$"))) {
     err(Errors.RulesOfVasille, idPath, "Reactive variable name must start with $", internal);
   }
 }

@@ -1,5 +1,4 @@
-import {compose, ref, bind} from "vasille-web";
-
+import { compose, ref, bind } from "vasille-web";
 
 const C = compose(() => {
   let $a = ref(1);
@@ -7,4 +6,4 @@ const C = compose(() => {
   const $c = bind($a + $b);
   const $d = bind($c);
   const $e = bind(3);
-})
+});

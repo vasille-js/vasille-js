@@ -48,9 +48,11 @@ export const composeFunctions = [
 
 export const reactivityFunctions = ["ref", "awaited"] as const satisfies FnNames[];
 
-export const bindFunctions = ["forward", "backward", "watch", "calculate", "bind"] as const satisfies FnNames[];
+export const bindFunctions = ["watch", "calculate", "bind"] as const satisfies FnNames[];
 
 export const modelFunctions = ["arrayModel", "mapModel", "setModel"] as const satisfies FnNames[];
+
+export const boundaryFunctions = ["forward", "backward"] as const satisfies FnNames[];
 
 export const composeOnly = ["router", "beforeMount", "afterMount", "beforeDestroy"] as const satisfies FnNames[];
 export const styleOnly = [
@@ -71,6 +73,7 @@ export const hintFunctions: FnNames[] = [
   ...modelFunctions,
   ...composeOnly,
   ...styleOnly,
+  ...boundaryFunctions,
 ];
 
 function checkCall<T extends string>(name: T, internal: Internal): T {
