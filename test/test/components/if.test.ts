@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { Component, control } from "../../src/components/if";
+import { IfTest, control } from "../../src/components/IfTest";
 import { page } from "../page";
 
 it("If component test", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, IfTest, {});
 
   expect(body.children.length).toBe(0);
   control.setValue("if");

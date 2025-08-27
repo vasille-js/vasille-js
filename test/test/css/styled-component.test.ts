@@ -1,5 +1,5 @@
 import { mount } from "vasille-web";
-import { StyledComponent } from "../../src/css/styled-component";
+import { StyledComponent } from "../../src/css/StyledComponent";
 import { page } from "../page";
 
 it("styled component", function () {

@@ -14,23 +14,31 @@ declare interface Params {
 declare type Composed<In extends object, Out> = (
     $: (Required<In> extends Params ? Omit<In, "slot"> & { slot?: unknown } : In) & {
         callback?(data: Out): void;
-    }
+    },
 ) => void;
 declare type ComposedNoCallback<In extends object, Out> = (
-    $: Required<In> extends Params ? Omit<In, "slot"> & { slot?: unknown } : In
+    $: Required<In> extends Params ? Omit<In, "slot"> & { slot?: unknown } : In,
 ) => void;
 
 /** Composes a component (v3), which can receive external reactive values via props */
-export declare function compose<In extends object, Out extends NonNullable<unknown>>(renderer: (input: In) => Out): Composed<In, Out>;
+export declare function compose<In extends object, Out extends NonNullable<unknown>>(
+    renderer: (input: In) => Out,
+): Composed<In, Out>;
 export declare function compose<In extends object>(renderer: (input: In) => void): ComposedNoCallback<In, void>;
 
 /** Composes a component (v4), which can receive external reactive values via props */
-export declare function component<In extends object, Out extends NonNullable<unknown>>(renderer: (input: In) => Out): Composed<In, Out>;
+export declare function component<In extends object, Out extends NonNullable<unknown>>(
+    renderer: (input: In) => Out,
+): Composed<In, Out>;
 export declare function component<In extends object>(renderer: (input: In) => void): ComposedNoCallback<In, void>;
 
 /** Composes a view, which can receive external reactive values via props */
-export declare function view<Out extends NonNullable<unknown>>(renderer: () => Out): Composed<NonNullable<unknown>, Out>;
-export declare function view<In extends object, Out extends NonNullable<unknown>>(renderer: (input: In) => Out): Composed<In, Out>;
+export declare function view<Out extends NonNullable<unknown>>(
+    renderer: () => Out,
+): Composed<NonNullable<unknown>, Out>;
+export declare function view<In extends object, Out extends NonNullable<unknown>>(
+    renderer: (input: In) => Out,
+): Composed<In, Out>;
 export declare function view(renderer: () => void): ComposedNoCallback<NonNullable<unknown>, void>;
 export declare function view<In extends object>(renderer: (input: In) => void): ComposedNoCallback<In, void>;
 
@@ -86,9 +94,18 @@ export declare function ElseIf(props: { $condition: unknown; slot?: unknown }): 
 export declare function Else(props: { slot?: unknown }): void;
 
 /** Renders content several times using a model (array, map or set) */
-export declare function For<T>(props: { of: T[]; slot?: (value: T) => void }): void;
-export declare function For<T>(props: { of: Set<T>; slot?: (value: T) => void }): void;
-export declare function For<K, T>(props: { of: Map<K, T>; slot?: (value: T, index: K) => void }): void;
+export declare function For<T>(props: {
+    of: readonly DeepReadonly<T>[];
+    slot?: (value: DeepReadonly<T>) => void;
+}): void;
+export declare function For<T>(props: {
+    of: ReadonlySet<DeepReadonly<T>>;
+    slot?: (value: DeepReadonly<T>) => void;
+}): void;
+export declare function For<K, T>(props: {
+    of: ReadonlyMap<DeepReadonly<K>, DeepReadonly<T>>;
+    slot?: (value: DeepReadonly<T>, index: DeepReadonly<K>) => void;
+}): void;
 
 /** Refresh the content each time then the reactive model is updated */
 export declare function Watch<T>(props: { $model: T; slot?: (value: T) => void }): void;
@@ -114,9 +131,11 @@ export type DeepReadonly<T> =
                   ? WeakSet<DeepReadonly<U>>
                   : T extends Promise<infer U>
                     ? Promise<DeepReadonly<U>>
-                    : T extends {}
-                      ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
-                      : T;
+                    : T extends (...args: unkbown[]) => unknown
+                      ? T
+                      : T extends {}
+                        ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+                        : T;
 
 /** Stores a singleton state to memory */
 export declare function store<Return extends object>(fn: () => Return): DeepReadonly<Return>;

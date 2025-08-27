@@ -1,6 +1,6 @@
-import { view, store, bind } from "vasille-web";
+import { view, store, bind, component } from "vasille-web";
 
-export const model = store(() => {
+const modelStore = store(() => {
   let $r = "test";
   const $text = bind("+" + $r);
 
@@ -11,8 +11,10 @@ export const model = store(() => {
       $r = value;
     },
   };
-})();
-
-export const Component = view(() => {
-  <div>Hello {model.$text}!</div>;
 });
+
+const Component = component(() => {
+  <div>Hello {modelStore.$text}!</div>;
+});
+
+export const x = { model: modelStore, Component };

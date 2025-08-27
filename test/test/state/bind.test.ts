@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { control, Component } from "../../src/state/bind";
+import { control, BindStateTest } from "../../src/state/BindStateTest";
 import { page } from "../page";
 
 it("bind expression in component", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, BindStateTest, {});
 
   expect(body.children.length).toBe(1);
   expect(body.children[0].innerHTML).toBe("Hello +test!");

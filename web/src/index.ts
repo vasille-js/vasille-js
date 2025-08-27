@@ -12,6 +12,7 @@ export {
     forward,
     backward,
     ensure,
+    ref,
     expr,
     expr as bind,
     expr as calculate,
@@ -25,6 +26,10 @@ export {
     awaited,
     store,
     model,
+    setModel,
+    mapModel,
+    arrayModel,
+    Switch,
     setErrorHandler,
 } from "vasille-jsx";
 

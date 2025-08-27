@@ -10,9 +10,9 @@ const C2 = compose(Vasille => {
     $test: VasilleRef("3")
   };
   C1({
-    "$test": forward($test)
+    "$test": forward(Vasille, $test)
   }, Vasille);
   C2({
-    "$test": forward(obj.$test)
+    "$test": forward(Vasille, obj.$test)
   }, Vasille);
 }, "C2");

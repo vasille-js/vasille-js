@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { control, Component } from "../../src/state/array-model";
+import { control, ArrayModelStateTest } from "../../src/state/ArrayModelStateTest";
 import { page } from "../page";
 
 it("array model in component", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, ArrayModelStateTest, {});
 
   expect(body.children.length).toBe(1);
   expect(body.children[0].innerHTML).toBe("Hello x!");

@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { control, Component } from "../../src/mvc/interpolation";
+import { control, InterpolationTest } from "../../src/mvc/InterpolationTest";
 import { page } from "../page";
 
 it("Interpolation of hybrid & MVVM", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, InterpolationTest, {});
 
   expect(body.children.length).toBe(1);
   expect(body.children[0].innerHTML).toBe("10 to 12");

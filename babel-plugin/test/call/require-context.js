@@ -1,7 +1,7 @@
 import * as DX from "vasille-web";
 const C = DX.compose(Vasille => {
-  const [$err, $result, retry] = DX.awaited(Vasille, () => new Promise(rv => {
+  const [$err, $result, retry] = DX.awaited(() => new Promise(rv => {
     rv(0);
-  }), "err", "result");
+  }), Vasille, "err", "result");
   console.log($err.V, $result.V, retry);
 }, "C");

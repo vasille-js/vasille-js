@@ -8,7 +8,7 @@ const C = compose(Vasille => {
 const C2 = component((Vasille, props) => {}, "C2");
 C({
   callback(data) {
-    data.$a;
+    data.$a?.V;
   }
 });
 C2({

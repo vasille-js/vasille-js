@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { Component, control } from "../../src/components/if-else-if";
+import { IfElseIfTest, control } from "../../src/components/IfElseIfTest";
 import { page } from "../page";
 
 it("ElseIf component test", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, IfElseIfTest, {});
 
   expect(body.children.length).toBe(1);
   expect(body.children[0].innerHTML).toBe("else");

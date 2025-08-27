@@ -154,6 +154,8 @@ function transformJsxExpressionContainer(
           if (!exprCall(argPath, argPath.node, internal, { strong: true })) {
             argPath.node = argValue;
             err(Errors.RulesOfVasille, argPath, "A reactive expression expected, argument value is constant", internal);
+          } else {
+            expression.node.arguments.unshift(ctx);
           }
         } else {
           err(Errors.IncorrectArguments, expression, "The argument is missing", internal);

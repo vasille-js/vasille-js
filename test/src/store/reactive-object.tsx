@@ -1,16 +1,18 @@
-import { store, view } from "vasille-web";
+import { component, store, view } from "vasille-web";
 
-export const model = store(() => {
-  const $$obj = { text: "test" };
+const modelStore = store(() => {
+  const obj = { $text: "test" };
 
   return {
-    $$obj,
+    obj: obj,
     setValue(value: string) {
-      $$obj.text = value;
+      obj.$text = value;
     },
   };
-})();
-
-export const Component = view(() => {
-  <div>Hello {model.$$obj.text}!</div>;
 });
+
+const Component = component(() => {
+  <div>Hello {modelStore.obj.$text}!</div>;
+});
+
+export const x = { model: modelStore, Component };

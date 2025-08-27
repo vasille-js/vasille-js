@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { Component, control } from "../../src/state/forward";
+import { ForwardStateTest, control } from "../../src/state/ForwardStateTest";
 import { page } from "../page";
 
 it("forward to embed component", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, ForwardStateTest, {});
 
   expect(body.children.length).toBe(2);
   expect(body.children[0].innerHTML).toBe("Hello test!");
@@ -18,5 +18,5 @@ it("forward to embed component", function () {
   expect(body.children[1].innerHTML).toBe("Embed +");
   control.setParentValue?.("*");
   expect(body.children[0].innerHTML).toBe("Hello *!");
-  expect(body.children[1].innerHTML).toBe("Embed +");
+  expect(body.children[1].innerHTML).toBe("Embed *");
 });

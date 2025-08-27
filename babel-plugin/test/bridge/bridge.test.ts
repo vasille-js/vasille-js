@@ -63,3 +63,7 @@ it("raw without args error", function () {
 it("beforeMount arg error", function () {
   throwTest(__dirname, "before-mount-arg", "Incorrect hint argument");
 });
+
+it("non reactive module var name check error", function () {
+  throwTest(__dirname, "non-reactive-module-var", "Non-reactive variable name must not start with $");
+});

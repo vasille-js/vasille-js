@@ -27,3 +27,7 @@ it("store test", function () {
 it("view test", function () {
   runTest(__dirname, "view");
 });
+
+it("screen test", function () {
+  runTest(__dirname, "screen");
+});

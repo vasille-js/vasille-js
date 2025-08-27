@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { control, Component } from "../../src/mvc/calculate";
+import { control, CalculateTest } from "../../src/mvc/CalculateTest";
 import { page } from "../page";
 
 it("MVC calculate call", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, CalculateTest, {});
 
   expect(body.children.length).toBe(1);
   expect(body.children[0].innerHTML).toBe("Hello +test!");

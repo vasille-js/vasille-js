@@ -1,6 +1,6 @@
 import { routerApp } from "vasille-web";
 import { Router } from "vasille-router/web-router";
-import { UserScreen, FailScreen, IndexScreen, ErrorView, FallbackView } from "../../src/routing/router";
+import { x } from "../../src/routing/router";
 import { page } from "../page";
 
 it("routing test", function (done) {
@@ -8,12 +8,12 @@ it("routing test", function (done) {
 
   const app = routerApp(
     {
-      fallbackScreen: FallbackView,
-      errorScreen: ErrorView,
+      fallbackScreen: x.FallbackView,
+      errorScreen: x.ErrorView,
       routes: {
-        "/index": { screen: IndexScreen },
-        "/user/:id": { screen: UserScreen },
-        "/fail": { screen: FailScreen },
+        "/index": { screen: x.IndexScreen },
+        "/user/(id)": { screen: x.UserScreen },
+        "/fail": { screen: x.FailScreen },
       },
     },
     body,
@@ -28,7 +28,7 @@ it("routing test", function (done) {
     setTimeout(function () {
       expect(body.children.length).toBe(1);
       expect(body.children[0].innerHTML).toBe("index");
-      router.navigate("/user/:id", { id: "1" }, "silent");
+      router.navigate("/user/(id)", { id: "1" }, "silent");
 
       setTimeout(function () {
         expect(body.children.length).toBe(1);

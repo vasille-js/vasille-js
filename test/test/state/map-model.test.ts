@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { control, Component } from "../../src/state/map-model";
+import { control, MapModelStateTest } from "../../src/state/MapModelStateTest";
 import { page } from "../page";
 
 it("map model in component", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, MapModelStateTest, {});
 
   expect(body.children.length).toBe(1);
   expect(body.children[0].innerHTML).toBe("Hello a!");

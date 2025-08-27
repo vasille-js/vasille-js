@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { control, Component } from "../../src/mvc/set-model";
+import { control, SetModelTest } from "../../src/mvc/SetModelTest";
 import { page } from "../page";
 
 it("MVC set model", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, SetModelTest, {});
 
   expect(body.children.length).toBe(1);
   expect(body.children[0].innerHTML).toBe("Hello m!");

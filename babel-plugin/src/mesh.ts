@@ -577,6 +577,7 @@ function procedureProcessObjectExpression(
       ) {
         err(Errors.RulesOfVasille, prop.get("key"), "Method name can not start with $", internal);
       }
+      meshStatement(prop.get("body"), internal);
     } else if (prop.isSpreadElement()) {
       const argumentPath = prop.get("argument");
 
@@ -775,6 +776,14 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             }
             if (internal.strictFolders && !internal.filename.includes("/prompts/")) {
               report("Prompts must be placed in a folder named `prompts`");
+            }
+          }
+          if (calls(initPath, ["screen"], internal)) {
+            if (!name.endsWith("Screen")) {
+              report("The screen name must start with `Screen`");
+            }
+            if (internal.strictFolders && !internal.filename.includes("/screens/")) {
+              report("Screens must be placed in a folder named `screens`");
             }
           }
           if (calls(initPath, ["page"], internal)) {
@@ -1033,7 +1042,10 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
 
           reactiveArrayPattern(declaration.get("id"), internal);
           meshAllUnknown(callPath.get("arguments"), internal);
-          callPath.node.arguments.unshift(ctx);
+          /* istanbul ignore else */
+          if (internal.devMode) {
+            callPath.node.arguments.push(ctx);
+          }
           named(callPath.node, idDoubleName(), internal, 2);
           meshInit = false;
         } else if (t.isIdentifier(id)) {
@@ -1052,7 +1064,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             checkNonReactiveName(idPath, internal);
           }
           // const x = bind(a + b);
-          else if (calls(initPath, ["bind"], internal)) {
+          else if (calls(initPath, ["bind", "calculate"], internal)) {
             const argument = (init as types.CallExpression).arguments[0] as types.Expression;
             const isReactive = exprCall(initPath, initPath.node, internal, { name: idName(), strong: true });
 

@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { Component } from "../../src/state/static-embed";
+import { StaticEmbedStateTest } from "../../src/state/StaticEmbedStateTest";
 import { page } from "../page";
 
 it("static embed component", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, StaticEmbedStateTest, {});
 
   expect(body.children.length).toBe(2);
   expect(body.children[0].innerHTML).toBe("Hello world!");

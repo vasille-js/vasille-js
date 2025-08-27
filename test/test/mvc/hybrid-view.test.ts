@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { control, Component } from "../../src/mvc/hybrid-view";
+import { control, HybridTest } from "../../src/mvc/HybridTest";
 import { page } from "../page";
 
 it("Hybrid view call", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, HybridTest, {});
 
   expect(body.children.length).toBe(2);
   expect(body.children[0].innerHTML).toBe("1+10");

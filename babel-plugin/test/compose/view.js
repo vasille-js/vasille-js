@@ -23,7 +23,7 @@ X2View({
 X3View({
   a: 1,
   callback(data) {
-    data.$a;
+    data.$a?.V;
     data.b;
   }
 });

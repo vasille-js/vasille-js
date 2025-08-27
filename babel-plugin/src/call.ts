@@ -8,6 +8,7 @@ export type FnNames =
   | "component"
   | "store"
   | "model"
+  | "screen"
   | "page"
   | "modal"
   | "prompt"
@@ -44,6 +45,7 @@ export const composeFunctions = [
   "page",
   "modal",
   "prompt",
+  "screen",
 ] as const satisfies FnNames[];
 
 export const reactivityFunctions = ["ref", "awaited"] as const satisfies FnNames[];
@@ -77,10 +79,9 @@ export const hintFunctions: FnNames[] = [
 ];
 
 function checkCall<T extends string>(name: T, internal: Internal): T {
-  if (name === "store") {
+  if (name === "store" || name === "model") {
     internal.stateOnly = true;
-  }
-  if (["compose", "view", "screen"].includes(name)) {
+  } else if ((composeFunctions as string[]).includes(name)) {
     internal.stateOnly = false;
   }
 

@@ -95,3 +95,11 @@ it("view not uppercase error", function () {
 it("views folder test", function () {
   throwTest(__dirname, "views-folder", "Views must be placed in a folder named `views`", false, true);
 });
+
+it("screen missing suffix error", function () {
+  throwTest(__dirname, "screen-missing-suffix", "The screen name must start with `Screen`", false, true);
+});
+
+it("screens folder test", function () {
+  throwTest(__dirname, "screens-folder", "Screens must be placed in a folder named `screens`", false, true);
+});

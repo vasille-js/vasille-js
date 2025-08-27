@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { control, Component } from "../../src/mvc/bind";
+import { control, BindTest } from "../../src/mvc/BindTest";
 import { page } from "../page";
 
 it("MVC bind expression", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, BindTest, {});
 
   expect(body.children.length).toBe(1);
   expect(body.children[0].innerHTML).toBe("Hello +test!");
