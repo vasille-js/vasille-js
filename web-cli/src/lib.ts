@@ -1,11 +1,5 @@
 import { transform } from "esbuild";
 
-export function runBeforeProcessExit(fn: () => void) {
-    process.on("SIGTERM", fn);
-    process.on("SIGQUIT", fn);
-    process.on("SIGINT", fn);
-}
-
 export function compress() {
     return {
         name: "minifyEs",

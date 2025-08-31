@@ -86,7 +86,7 @@ async function run() {
                 outDir: "dist/spa",
                 emptyOutDir: true,
             },
-            plugins: [await indexPlugin(srcDir, routerDir, pagesDir), ...getVitePlugins(true), compress()],
+            plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins(true), compress()],
         });
 
         exit(0);
@@ -100,12 +100,12 @@ async function run() {
             esbuild: false,
             appType: "spa",
             command: "serve",
-            plugins: [await indexPlugin(srcDir, routerDir, pagesDir), ...getVitePlugins(true), inspect()],
+            plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins(true), inspect()],
         });
 
         await server.listen();
 
-        await watchForIndexUpdates(srcDir, routerDir, pagesDir, () => {
+        await watchForIndexUpdates(routerDir, pagesDir, () => {
             server.restart();
         });
 

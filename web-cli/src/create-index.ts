@@ -6,7 +6,7 @@ import { watchFolder } from "./watch-folder.js";
 
 const initializationFields = ["getAccessLevel", "fallbackScreen", "errorScreen", "loadingScreen", "loadingOverlay"];
 
-export async function createIndex(srcDir: string, routerDir: string, pagesDir: string): Promise<string> {
+export async function createIndex(routerDir: string, pagesDir: string): Promise<string> {
     const indexJs: string[] = [];
     const present: string[] = [];
 
@@ -76,11 +76,11 @@ export async function createIndex(srcDir: string, routerDir: string, pagesDir: s
 
 let indexContent: string;
 
-export async function indexPlugin(srcDir: string, routerDir: string, pagesDir: string) {
+export async function indexPlugin(routerDir: string, pagesDir: string) {
     const virtualModuleId = "/src/index.vasille.js";
     const resolvedVirtualModuleId = "\0" + virtualModuleId;
 
-    indexContent = await createIndex(srcDir, routerDir, pagesDir);
+    indexContent = await createIndex(routerDir, pagesDir);
 
     return {
         name: "VasilleIndexJs",
@@ -99,7 +99,7 @@ export async function indexPlugin(srcDir: string, routerDir: string, pagesDir: s
     };
 }
 
-export async function watchForIndexUpdates(srcDir: string, routerDir: string, pagesDir: string, restart: () => void) {
+export async function watchForIndexUpdates(routerDir: string, pagesDir: string, restart: () => void) {
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     function handler() {
@@ -107,7 +107,7 @@ export async function watchForIndexUpdates(srcDir: string, routerDir: string, pa
             timer = setTimeout(async () => {
                 timer = null;
 
-                const newContent = await createIndex(srcDir, routerDir, pagesDir);
+                const newContent = await createIndex(routerDir, pagesDir);
 
                 if (indexContent !== newContent) {
                     indexContent = newContent;

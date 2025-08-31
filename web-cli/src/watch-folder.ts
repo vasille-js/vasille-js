@@ -13,9 +13,7 @@ export async function watchFolder(path: string, handler: () => void) {
             });
 
             for await (const change of it) {
-                if (change.eventType === "rename") {
-                    handler();
-                }
+                handler();
             }
         })().catch(e => {
             console.error("Watch failed", e);
