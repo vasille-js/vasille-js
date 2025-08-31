@@ -1,8 +1,8 @@
 # Vasille
 
-![Vasille.js logo](https://gitlab.com/vasille-js/vasille-js/-/raw/v2/doc/img/logo.png)
+![Vasille.js logo](https://raw.githubusercontent.com/vasille-js/vasille-js/refs/heads/v4/doc/img/logo.png)
 
-`Vasille Web` is a front-end framework, which is developed to provide the best `developer experience` ever. **Our goal is to keep it as simple as possible.** Developing web applications using Vasille must be *as fast as possible*.
+`Vasille Web` is a front-end framework, which is developed to provide bulletproof frontends.
 
 [![npm](https://img.shields.io/npm/v/vasille?style=flat-square)](https://www.npmjs.com/package/vasille)
 
@@ -43,8 +43,8 @@ $ npx degit vasille-js/example-javascript my-project
 ```
 
 ### Full documentation:
-* [Learn `Vasille` in 5 minutes](https://github.com/vasille-js/vasille-js/blob/v3/doc/V3-API.md)
-* [Vasille Router Documentation](https://github.com/vasille-js/vasille-js/blob/v3/doc/Router-API.md)
+* [Learn `Vasille` in 5 minutes](https://github.com/vasille-js/vasille-js/blob/v4/doc/V4-API.md)
+* [Vasille Router Documentation](https://github.com/vasille-js/vasille-js/blob/v4/doc/Router-API.md)
 
 ### Examples
 * [TypeScript Example](https://github.com/vasille-js/example-typescript)

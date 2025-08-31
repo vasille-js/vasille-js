@@ -5,7 +5,7 @@
    viewBox="0 0 67.733332 33.866668"
    version="1.1"
    id="svg8"
-   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
    sodipodi:docname="favicon.svg"
    inkscape:export-filename="/home/lixcode/web/vasille-js/core/img/favicon.png"
    inkscape:export-xdpi="384"
@@ -22,15 +22,39 @@
      id="defs2">
     <linearGradient
        inkscape:collect="always"
-       id="linearGradient47003">
+       id="linearGradient6">
       <stop
-         style="stop-color:#000000;stop-opacity:0.97647059"
+         style="stop-color:#7015cb;stop-opacity:0.97647059;"
          offset="0"
-         id="stop46999" />
+         id="stop5" />
       <stop
-         style="stop-color:#575757;stop-opacity:1"
+         style="stop-color:#564866;stop-opacity:1;"
          offset="1"
-         id="stop47001" />
+         id="stop6" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient4">
+      <stop
+         style="stop-color:#2fee16;stop-opacity:0.97647059;"
+         offset="0"
+         id="stop3" />
+      <stop
+         style="stop-color:#005f00;stop-opacity:1;"
+         offset="1"
+         id="stop4" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient2">
+      <stop
+         style="stop-color:#df2f2f;stop-opacity:0.97647059;"
+         offset="0"
+         id="stop1" />
+      <stop
+         style="stop-color:#fac100;stop-opacity:1;"
+         offset="1"
+         id="stop2" />
     </linearGradient>
     <meshgradient
        inkscape:collect="always"
@@ -158,7 +182,7 @@
        gradientUnits="userSpaceOnUse"
        x="35.447127"
        y="0.82586901"
-       gradientTransform="translate(0,3.1750001)">
+       gradientTransform="translate(0,4.7625002)">
       <meshrow
          id="meshrow1763">
         <meshpatch
@@ -184,21 +208,10 @@
     </meshgradient>
     <radialGradient
        inkscape:collect="always"
-       xlink:href="#linearGradient47003"
-       id="radialGradient47005"
-       cx="50.981927"
-       cy="27.615949"
-       fx="50.981927"
-       fy="27.615949"
-       r="15.122179"
-       gradientTransform="matrix(1,0,0,0.34101651,0,18.198454)"
-       gradientUnits="userSpaceOnUse" />
-    <radialGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient47003"
+       xlink:href="#linearGradient4"
        id="radialGradient52958"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1,0,0,0.34101651,0,18.198454)"
+       gradientTransform="matrix(0.97848866,0,0,0.33368079,0.89361362,10.948315)"
        cx="50.981927"
        cy="27.615949"
        fx="50.981927"
@@ -206,14 +219,25 @@
        r="15.122179" />
     <radialGradient
        inkscape:collect="always"
-       xlink:href="#linearGradient47003"
+       xlink:href="#linearGradient2"
        id="radialGradient52960"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1,0,0,0.34101651,0,18.198454)"
+       gradientTransform="matrix(1,0,0,0.34101651,-0.03167732,10.79012)"
        cx="50.981927"
        cy="27.615949"
        fx="50.981927"
        fy="27.615949"
+       r="15.122179" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient6"
+       id="radialGradient4"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.0844505,0,0,0.36981552,-4.5921662,20.02946)"
+       cx="51.132881"
+       cy="16.67592"
+       fx="51.132881"
+       fy="16.67592"
        r="15.122179" />
   </defs>
   <sodipodi:namedview
@@ -223,24 +247,26 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6568542"
-     inkscape:cx="123.39013"
-     inkscape:cy="61.606678"
+     inkscape:zoom="4"
+     inkscape:cx="208.75"
+     inkscape:cy="79.875001"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
      showgrid="false"
      units="px"
      inkscape:window-width="2560"
-     inkscape:window-height="1364"
-     inkscape:window-x="0"
+     inkscape:window-height="1347"
+     inkscape:window-x="2560"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:snap-smooth-nodes="true"
      showguides="false"
      inkscape:guide-bbox="true"
      inkscape:snap-global="false"
-     inkscape:pagecheckerboard="false">
+     inkscape:pagecheckerboard="false"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1">
     <inkscape:grid
        type="axonomgrid"
        id="grid833"
@@ -248,31 +274,38 @@
        gridanglez="45"
        spacingy="2.1166667"
        originx="1.0583333"
-       units="px" />
+       units="px"
+       originy="0" />
     <sodipodi:guide
        position="0.92604165,12.898438"
        orientation="1,0"
-       id="guide9091" />
+       id="guide9091"
+       inkscape:locked="false" />
     <sodipodi:guide
        position="19.413802,23.977866"
        orientation="0,-1"
-       id="guide9093" />
+       id="guide9093"
+       inkscape:locked="false" />
     <sodipodi:guide
        position="18.289323,1.0914064"
        orientation="0,-1"
-       id="guide9095" />
+       id="guide9095"
+       inkscape:locked="false" />
     <sodipodi:guide
        position="30.923176,7.0776045"
        orientation="1,0"
-       id="guide9097" />
+       id="guide9097"
+       inkscape:locked="false" />
     <sodipodi:guide
        position="35.983333,32.940626"
        orientation="1,0"
-       id="guide41214" />
+       id="guide41214"
+       inkscape:locked="false" />
     <sodipodi:guide
        position="66.145833,29.038022"
        orientation="1,0"
-       id="guide41216" />
+       id="guide41216"
+       inkscape:locked="false" />
   </sodipodi:namedview>
   <metadata
      id="metadata5">
@@ -335,40 +368,46 @@
        xml:space="preserve"
        style="font-size:10.5887px;line-height:6.61794px;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:url(#meshgradient44333);fill-opacity:1;stroke-width:0.264718"
        x="51.279263"
-       y="12.196752"
+       y="13.784249"
        id="text3660"><tspan
          sodipodi:role="line"
          id="tspan3658"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Droid Sans';-inkscape-font-specification:'Droid Sans';fill:url(#meshgradient44333);fill-opacity:1;stroke-width:0.264718"
          x="51.279263"
-         y="12.196752">Vasille</tspan></text>
-    <g
-       id="g46568"
-       style="fill:url(#radialGradient47005);fill-opacity:1"
-       transform="translate(0,-3.7041668)">
-      <text
-         xml:space="preserve"
-         style="font-size:6.53725px;line-height:4.08579px;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:url(#radialGradient52958);fill-opacity:1;stroke-width:0.163432"
-         x="51.052151"
-         y="27.192797"
-         id="text15666"><tspan
-           sodipodi:role="line"
-           id="tspan15664"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Droid Sans';-inkscape-font-specification:'Droid Sans';fill:url(#radialGradient52958);fill-opacity:1;stroke-width:0.163432"
-           x="51.052151"
-           y="27.192797">JUST KEEP</tspan></text>
-      <text
-         xml:space="preserve"
-         style="font-size:5.89872px;line-height:3.68671px;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:url(#radialGradient52960);fill-opacity:1;stroke-width:0.147468"
-         x="50.938103"
-         y="32.689335"
-         id="text16462"><tspan
-           sodipodi:role="line"
-           id="tspan16460"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Droid Sans';-inkscape-font-specification:'Droid Sans';fill:url(#radialGradient52960);fill-opacity:1;stroke-width:0.147468"
-           x="50.938103"
-           y="32.689335">IT SIMPLE</tspan></text>
-    </g>
+         y="13.784249">Vasille</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.48746px;line-height:1.07939px;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:url(#radialGradient52958);fill-opacity:1;stroke-width:0.159916"
+       x="50.847561"
+       y="19.74918"
+       id="text15666"><tspan
+         sodipodi:role="line"
+         id="tspan15664"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.48746px;line-height:1.07939px;font-family:'Droid Sans';-inkscape-font-specification:'Droid Sans';fill:url(#radialGradient52958);fill-opacity:1;stroke-width:0.159916"
+         x="50.847561"
+         y="19.74918">BULLETPROOF</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:5.89872px;line-height:3.68671px;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:url(#radialGradient52960);fill-opacity:1;stroke-width:0.147468"
+       x="50.906425"
+       y="25.281002"
+       id="text16462"><tspan
+         sodipodi:role="line"
+         id="tspan16460"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Droid Sans';-inkscape-font-specification:'Droid Sans';fill:url(#radialGradient52960);fill-opacity:1;stroke-width:0.147468"
+         x="50.906425"
+         y="25.281002">FRONTEND</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.97341px;line-height:1.19628px;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:url(#radialGradient4);fill-opacity:1;stroke-width:0.177234"
+       x="50.771366"
+       y="29.783382"
+       id="text4"><tspan
+         sodipodi:role="line"
+         id="tspan4"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.97341px;line-height:1.19628px;font-family:'Droid Sans';-inkscape-font-specification:'Droid Sans';fill:url(#radialGradient4);fill-opacity:1;stroke-width:0.177234"
+         x="50.771366"
+         y="29.783382">FRAMEWORK</tspan></text>
   </g>
   <script
      id="mesh_polyfill"
