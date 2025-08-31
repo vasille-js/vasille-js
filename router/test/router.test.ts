@@ -518,11 +518,11 @@ it("no access fallback", function (done) {
     const window = page();
     const body = window.document.body;
     let router!: Router<string>;
-    let accessLevel = 0;
+    let giveAccess = false;
 
     routeApp(body, window as unknown as Window, createLocation("/exists"), {
-        getAccessLevel(): Promise<number> {
-            return Promise.resolve(accessLevel);
+        checkAccess(path) {
+            return Promise.resolve(path !== "/exists" || giveAccess);
         },
         fallbackScreen(props, ctx) {
             ctx.tag("div", { class: [props.cause] });
@@ -536,7 +536,6 @@ it("no access fallback", function (done) {
                 async screen(props, ctx) {
                     ctx.tag("div", { class: [`exists`] });
                 },
-                minAccessLevel: 1,
             },
         },
     });
@@ -544,7 +543,7 @@ it("no access fallback", function (done) {
     setTimeout(() => {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("no-access");
-        accessLevel = 2;
+        giveAccess = true;
         router.reload();
         setTimeout(() => {
             expect(body.children.length).toBe(1);

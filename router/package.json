@@ -24,8 +24,7 @@
     "prebuild": "rm -rf lib types",
     "build": "tsc --build tsconfig.json",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
-    "test-coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
-    "update-types": "tsc --build tsconfig-types.json"
+    "test-coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
   },
   "repository": {
     "type": "git",

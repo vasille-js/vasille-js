@@ -1,6 +1,14 @@
 import { Fragment } from "vasille";
 import { Answer, Routing, RouteParameters, QueryParams, ScreenProps } from "./types.js";
 
+export interface FallbackScreenProps {
+    cause: "not-found" | "no-access";
+}
+
+export interface ErrorScreenProps {
+    error: unknown;
+}
+
 export interface RouterInitialization<
     Node,
     Element,
@@ -9,9 +17,9 @@ export interface RouterInitialization<
     Extras extends object,
 > {
     routes: { [K in Routes]: Answer<Node, Element, TagOptions, K, Extras> };
-    getAccessLevel?(): Promise<number>;
-    fallbackScreen?(arg: { cause: "not-found" | "no-access" }, ctx: Fragment<Node, Element, TagOptions>): void;
-    errorScreen?(data: { error: unknown }, ctx: Fragment<Node, Element, TagOptions>): void;
+    checkAccess?(path: string): Promise<boolean>;
+    fallbackScreen?(arg: FallbackScreenProps, ctx: Fragment<Node, Element, TagOptions>): void;
+    errorScreen?(data: ErrorScreenProps, ctx: Fragment<Node, Element, TagOptions>): void;
 }
 
 export type RouteRenderScope = "found" | "not-found" | "fallback" | "error";
@@ -109,10 +117,9 @@ export abstract class Router<
         const { target, ...props } = this.targetByUrl(url);
 
         try {
-            const accessLevel = (await this.init.getAccessLevel?.()) ?? 0;
-            const minLevel = target?.minAccessLevel ?? 0;
+            const hasAccess = (await this.init.checkAccess?.(props.path)) ?? true;
 
-            if (target && accessLevel >= minLevel) {
+            if (target && hasAccess) {
                 await this.loadTarget(target, props as ScreenProps<Routes>, ...args);
             } else if (this.init.fallbackScreen) {
                 await this.renderScreen(

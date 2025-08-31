@@ -1,7 +1,7 @@
 # Documentation
 
 The main goal of the Vasille project is to create a framework which just works as expected.
-No special knowledge required, just HTML, CSS, JavaScript, minimal JSX.
+No special knowledge required, just HTML, CSS, JavaScript.
 
 ## Table of content
 1. [Components](#components)
@@ -28,20 +28,20 @@ Components are reusable parts of Vasille applications. They are written in `.jsx
 Components are designed as functions, which are executed each time when the component is used.
 
 ```typescript jsx
-export const MyComponent = compose(() => {
+export const MyComponent = component(() => {
   // logic here
 });
 ```
 
-The `compose` function contains code that runs when the component is created.
+The `component` function contains code that runs when the component is created.
 
-Component props are sent as the first parameter of the compose function.
+Component props are sent as the first parameter of the `component` function.
 ```typescript jsx
 interface Props {
   foo: number;
 }
 
-export const MyComponent = compose(({foo}: Props) => {
+export const MyComponent = component(({foo}: Props) => {
   // value is immmediately available
   console.log(foo);
 });
@@ -51,26 +51,31 @@ export const MyComponent = compose(({foo}: Props) => {
 
 On local variable assigment the component will be updated.
 
+**Attention: local variable name must start with `$`.**
+
 ```typescript jsx
-export const MyComponent = compose(() => {
-  let count = 1;
+export const MyComponent = component(() => {
+  let $count = 1;
   
   function inc () {
     // calling this function will update
     // all usage of count in user interface
-    count += 1;
+    $count += 1;
   }
 });
 ```
 
+The framework tracks changes in variables and object fields which names start with `$`.
 Operations on arrays/sets/maps like `push` & `pull` are also reactive.
+
+## Asyncronous data
 
 Component data can contains asynchronous data.
 
 ```typescript jsx
-export const MyComponent = compose(() => {
-  const [err1, data1] = awaited(new Promise());
-  const [err2, data2] = awaited(async () => {
+export const MyComponent = component(() => {
+  const [$err1, $data1] = awaited(new Promise());
+  const [$err2, $data2] = awaited(async () => {
     const response = await fetch('https://..');
     return response.json()
   });
@@ -82,11 +87,11 @@ export const MyComponent = compose(() => {
 ## Inline expressions are reactive
 
 ```typescript jsx
-export const MyComponent = compose(() => {
-  let a = 1;
-  let b = 3;
-  // sum will be updated each time when a or b changes it's value
-  const sum = a + b;
+export const MyComponent = component(() => {
+  let $a = 1;
+  let $b = 3;
+  // $sum will be updated each time when $a or $b changes it's value
+  const $sum = $a + $b;
 });
 ```
 
@@ -95,24 +100,24 @@ export const MyComponent = compose(() => {
 Use the `calculate` function to create multiline reactive expression.
 
 ```typescript jsx
-export const MyComponent = compose(() => {
-  let a = 1;
-  let b = 3;
-  // sum will be updated each time when a or b changes it's value
-  const sum = calculate(() => {
-    return a + b;
+export const MyComponent = component(() => {
+  let $a = 1;
+  let $b = 3;
+  // $sum will be updated each time when $a or $b changes it's value
+  const $sum = calculate(() => {
+    return $a + $b;
   });
 });
 ```
 
 It the goal is to watch for changes instead of calculate a value, use `watch` function.
 ```typescript jsx
-export const MyComponent = compose(() => {
-  let a = 1;
-  let b = 3;
-  // run each time when a or b changes it's value
+export const MyComponent = component(() => {
+  let $a = 1;
+  let $b = 3;
+  // run each time when $a or $b changes it's value
   watch(() => {
-    console.log(a, b);
+    console.log($a, $b);
   });
 });
 ```
@@ -122,7 +127,7 @@ export const MyComponent = compose(() => {
 A lowercase tag like `<a>`, denotes a regular HTML tag. A capitalized tag, such `MyComponent`, indicates a *component*.
 
 ```typescript jsx
-export const MyApp = compose(() => {
+export const MyApp = component(() => {
   <div>
     <MyComponent/>
   </div>
@@ -133,7 +138,7 @@ export const MyApp = compose(() => {
 
 Attributes work exactly like HTML ones.
 ```typescript jsx
-export const MyApp = compose(() => {
+export const MyApp = component(() => {
   <a href="/main">To Main Page</a>
 });
 ```
@@ -141,19 +146,19 @@ export const MyApp = compose(() => {
 Attribute values can be JavaScript expressions.
 
 ```typescript jsx
-export const MyApp = compose(() => {
-  let path = '/main';
+export const MyApp = component(() => {
+  let $path = '/main';
   
-  <a href={path}>To Main Page</a>
+  <a href={$path}>To Main Page</a>
 });
 ```
 
 Conditionally attributes are controlled using boolean values.
 ```typescript jsx
-export const MyApp = compose(() => {
-  let readonly = false;
+export const MyApp = component(() => {
+  let $readonly = false;
   
-  <button disabled={readonly}>To Main Page</button>
+  <button disabled={$readonly}>To Main Page</button>
 });
 ```
 
@@ -166,11 +171,11 @@ interface Props {
   count: number;
 }
 
-const MyComponent = compose(({count}: Props) => {
+const MyComponent = component(({count}: Props) => {
   <div>{count}</div>
 });
 
-export const MyApp = compose(() => {
+export const MyApp = component(() => {
   <MyComponent count={2}/>
 });
 ```
@@ -179,10 +184,10 @@ export const MyApp = compose(() => {
 
 In JSX a text expression can be included in HTML using curly braces.
 ```typescript jsx
-export const MyApp = compose(() => {
-  let text = 'Main';
+export const MyApp = component(() => {
+  let $text = 'Main';
   
-  <a href="/main">To {text} Page</a>
+  <a href="/main">To {$text} Page</a>
 });
 ```
 
@@ -194,13 +199,13 @@ interface Props {
   slot?: () => void;
 }
 
-const MyComponent = compose(({slot}: Props) => {
+const MyComponent = component(({slot}: Props) => {
   <div>
     <Slot model={slot}/>
   </div>
 });
 
-export const MyApp = compose(() => {
+export const MyApp = component(() => {
   <MyComponent>
     <div>Text</div>
   </MyComponent>
@@ -213,7 +218,7 @@ interface Props {
   slot?: (p: {name: string; count: number}) => void;
 }
 
-const MyComponent = compose(({slot}: Props) => {
+const MyComponent = component(({slot}: Props) => {
   <div>
     <Slot model={slot} name={"Name"} count={1}>
       Default content
@@ -221,7 +226,7 @@ const MyComponent = compose(({slot}: Props) => {
   </div>
 });
 
-export const MyApp = compose(() => {
+export const MyApp = component(() => {
   <MyComponent slot={({name, count}) => {
     <div>{name}: x{count}</div>
   }}/>
@@ -237,7 +242,7 @@ interface InputControl {
   focus(): void;
 }
 
-const MyComponent = compose((): InputControl|null => {
+const MyComponent = component((): InputControl|null => {
   let input: HTMLInputElement|null = null;
   
   <input callback={node => input = node}/>
@@ -252,7 +257,7 @@ const MyComponent = compose((): InputControl|null => {
   return null;
 });
 
-export const MyApp = compose(() => {
+export const MyApp = component(() => {
   let control: InputControl|null = null;
   
   <MyComponent callback={obj => control = obj}/>
@@ -267,16 +272,18 @@ export const MyApp = compose(() => {
 
 All logic blocks are predefined components, no any special syntax.
 ```typescript jsx
-export const MyApp = compose(() => {
-  <If condition={true}>
-    ..
-  </If>
-  <ElseIf condition={true}>
-    ..
-  </ElseIf>
-  <Else>
-    ..
-  </Else>
+export const MyApp = component(() => {
+  <>
+    <If $condition={true}>
+      ..
+    </If>
+    <ElseIf $condition={true}>
+      ..
+    </ElseIf>
+    <Else>
+      ..
+    </Else>
+  </>
 });
 ```
 
@@ -284,34 +291,36 @@ export const MyApp = compose(() => {
 
 Iterating over a list can be done using `For` component.
 ```typescript jsx
-export const MyApp = compose(() => {
+export const MyApp = component(() => {
   const arr = [1, 2, 3];
   const set = new Set([2, 3]);
   const map = new Map([[1, 2], [2, 3]]);
   
-  <For of={arr} slot={(value, key) => {}}/>
-  <For of={set} slot={(value) => {}}/>
-  <For of={map} slot={(value, key) => {}}/>
+  <>
+    <For of={arr} slot={(value, key) => {}}/>
+    <For of={set} slot={(value) => {}}/>
+    <For of={map} slot={(value, key) => {}}/>
+  </>;
 });
 ```
 
 Lists of objects are supported.
 ```typescript jsx
-export const MyApp = compose(() => {
+export const MyApp = component(() => {
   const arr = [
-    {name: "Human1", age: 20},
-    {name: "Human2", age: 30},
+    {name: "Human1", $age: 20},
+    {name: "Human2", $age: 30},
   ];
   
   <ol>
     <For of={arr} slot={(value, key) => {
-      <li>{value.name} is {value.age} years old</li>
+      <li>{value.name} is {value.$age} years old</li>
     }}/>
   </ol>
-  <button onclick={() => arr.push({name: "Human", age: arr.length})}>
+  <button onclick={() => arr.push({name: "Human", $age: arr.length})}>
     Add human
   </button>
-  <button onclick={() => arr[0].age = 30}>
+  <button onclick={() => arr[0].$age = 30}>
     Correct age of first human
   </button>
 });
@@ -321,10 +330,10 @@ export const MyApp = compose(() => {
 
 Watching a value will lead to content destroyed and created each time when the model is updated.
 ```typescript jsx
-export const MyApp = compose(() => {
-  let model = 2;
+export const MyApp = component(() => {
+  let $model = 2;
   
-  <Watch model={model}>
+  <Watch $model={$model}>
     ..
   </Watch>
 });
@@ -335,20 +344,19 @@ export const MyApp = compose(() => {
 Debug allows you to see some values of states or properties in DOM as comments. Values will be cast to string using `toString` method.
 
 ```typescript jsx
-export const MyApp = compose(() => {
-  let model = 1;
+export const MyApp = component(() => {
+  let $model = 1;
   
-  <Debug model={model}/>
+  <Debug $model={$model}/>
 });
 ```
 
 ## Styling
-*(since 3.0.3)*
 
 The `styleSheet` function will create ready-to-use stylesheet in compile time.
 
 ```typescript jsx
-export const MyComponent = compose(() => {
+export const MyComponent = component(() => {
   <div class={styles.root}>
     <div class={styles.container}>
       Red/Black text.
@@ -390,7 +398,7 @@ const styles = styleSheet({
 Dynamical styles can be added using style attribute on elements. To define styles, you can use *object notation* or classic *string notation*.
 
 ```typescript jsx
-export const MyComponent = compose(() => {
+export const MyComponent = component(() => {
   let padding = 10;
   
   <div style={{padding: [padding, 'px']}}>
@@ -402,20 +410,14 @@ export const MyComponent = compose(() => {
 ```
 
 ## Store
-*(since 3.1.5)*
 
 To create a store constructor use `store` function,
 the return object can contain reactive data, static data and dispatch function.
 
 In stores, you can use same reactive states, expressions and watches.
 
-```typescript
-interface Props {
-    name: string;
-    nickname: string;
-}
-
-const userStore = store(({name, nickname}: Props) => {
+```typescript jsx
+const userStore = store(() => {
     let $name = name;
     let $nickname = nickname;
     
@@ -428,9 +430,8 @@ const userStore = store(({name, nickname}: Props) => {
     }
 });
 
-const user = userStore({
-    name: "Fake Name",
-    nickname: "nick",
+const MyComponent = component(() => {
+  <div>{userStore.$name}</div>;
 });
 ```
 
@@ -452,5 +453,5 @@ const auth = store(() => {
             $token = token;
         }
     }
-})();
+});
 ```

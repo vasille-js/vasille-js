@@ -35,7 +35,6 @@ export type Screen<Node, Element, TagOptions extends object, Route extends strin
 
 export type Answer<Node, Element, TagOptions extends object, Route extends string, Extras extends object> = {
     screen: Screen<Node, Element, TagOptions, Route>;
-    minAccessLevel?: number;
 } & Extras;
 
 export type Routing<Node, Element, TagOptions extends object, RoutePath extends string, Extras extends object> = {

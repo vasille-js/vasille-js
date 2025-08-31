@@ -4,7 +4,7 @@ import path from "node:path";
 import { Dirent } from "node:fs";
 import { watchFolder } from "./watch-folder.js";
 
-const initializationFields = ["getAccessLevel", "fallbackScreen", "errorScreen", "loadingScreen", "loadingOverlay"];
+const initializationFields = ["checkAccess", "fallbackScreen", "errorScreen", "loadingScreen", "loadingOverlay"];
 
 export async function createIndex(routerDir: string, pagesDir: string): Promise<string> {
     const indexJs: string[] = [];

@@ -33,8 +33,17 @@ export {
     setErrorHandler,
 } from "vasille-jsx";
 
-export { QueryParams, ScreenProps, RouteParameters, screen, screen as page } from "vasille-router";
-export { Router, WebRouterInitialization, NavigationMode, routeApp } from "vasille-router/web-router";
+export {
+    type QueryParams,
+    type ScreenProps,
+    type RouteParameters,
+    screen,
+    screen as page,
+    type FallbackScreenProps,
+    type ErrorScreenProps,
+} from "vasille-router";
+
+export { Router, type WebRouterInitialization, type NavigationMode, routeApp } from "vasille-router/web-router";
 
 export type { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "vasille-css";
 

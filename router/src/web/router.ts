@@ -11,11 +11,7 @@ export interface WebRouterInitialization<Routes extends string>
 
 export type NavigationMode = "silent" | "loading-screen" | "loading-overlay";
 
-function build(
-    node: Fragment<Node, Element, TagOptions>,
-    run?: (node: Fragment<Node, Element, TagOptions>) => void,
-    name?: string,
-) {
+function build(node: Fragment<Node, Element, TagOptions>, run?: (node: Fragment<Node, Element, TagOptions>) => void) {
     const child = new Fragment<Node, Element, TagOptions>(node.runner);
 
     node.create(child, run);
@@ -54,9 +50,9 @@ export class Router<Routes extends string> extends AbstractRouter<
         this.node = node;
         this.currentUrl.V = location.pathname;
 
-        build(node, node => (this.loadingNode = node), ":router:loading-screen");
-        build(node, node => (this.contentNode = node), ":router:content-screen");
-        build(node, node => (this.overlayNode = node), ":router:loading-overlay");
+        build(node, node => (this.loadingNode = node));
+        build(node, node => (this.contentNode = node));
+        build(node, node => (this.overlayNode = node));
 
         if (process.env.VASILLE_TARGET === "es5" && window.onpopstate !== null) {
             window.addEventListener("hashchange", () => {
@@ -153,10 +149,10 @@ export class Router<Routes extends string> extends AbstractRouter<
 
             if (mode === "loading-screen" && loadingScreen) {
                 this.clearNode(this.contentNode);
-                build(this.loadingNode, node => loadingScreen({}, node), "::");
+                build(this.loadingNode, node => loadingScreen({}, node));
             }
             if (mode === "loading-overlay" && loadingOverlay) {
-                build(this.overlayNode, node => loadingOverlay({}, node), "::");
+                build(this.overlayNode, node => loadingOverlay({}, node));
             }
 
             await this.renderScreen(target.screen, props, "found");
@@ -189,7 +185,7 @@ export class Router<Routes extends string> extends AbstractRouter<
         const oldChildren = [...children];
         let ctx: Fragment<Node, Element, TagOptions> | null = null;
 
-        build(this.contentNode, node => (ctx = node), "::");
+        build(this.contentNode, node => (ctx = node));
 
         /* istanbul ignore else */
         if (ctx) {
