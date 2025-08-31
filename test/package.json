@@ -9,6 +9,7 @@
   "scripts": {
     "typecheck": "tsc",
     "prettier": "prettier src test/**/*.ts* --write",
+    "dev": "vasille-web dev",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "dependencies": {
@@ -31,5 +32,8 @@
     "vasille-jsx": "file:../jsx",
     "vasille-router": "file:../router",
     "vasille-web": "file:../web"
+  },
+  "devDependencies": {
+    "vasille-web-cli": "file:../web-cli"
   }
 }

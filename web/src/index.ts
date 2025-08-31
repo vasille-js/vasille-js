@@ -33,7 +33,7 @@ export {
     setErrorHandler,
 } from "vasille-jsx";
 
-export { QueryParams, ScreenProps, RouteParameters, screen } from "vasille-router";
+export { QueryParams, ScreenProps, RouteParameters, screen, screen as page } from "vasille-router";
 export { Router, WebRouterInitialization, NavigationMode, routeApp } from "vasille-router/web-router";
 
 export type { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "vasille-css";
@@ -119,12 +119,12 @@ export function prompt<T extends PromptProps>(
     };
 }
 
-export function mount<T>(element: Element, component: ($: T) => void, $: T, debugUi?: boolean) {
+export function mount<T>(element: Element, component: ($: T) => void, input: T, debugUi?: boolean) {
     return coreMount<Node, Element, TagOptions, T>(
         element,
         component,
         new Runner(debugUi ?? false, window.document),
-        $,
+        input,
     );
 }
 

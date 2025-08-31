@@ -3,9 +3,8 @@
 
   "compilerOptions": {
     "allowJs": true,
-    "declaration": true,
-    "outDir": "lib",
-    "declarationDir": "types",
+    "declaration": false,
+    "outDir": "bin",
     "target": "ES2020",
     "module": "Node16",
     "moduleResolution": "node16",

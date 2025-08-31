@@ -23,17 +23,17 @@ it("routing test", function (done) {
   setTimeout(function () {
     expect(body.children.length).toBe(1);
     expect(body.children[0].innerHTML).toBe("fallback");
-    router.navigate("/index", {}, "silent");
+    router.goTo("/index");
 
     setTimeout(function () {
       expect(body.children.length).toBe(1);
       expect(body.children[0].innerHTML).toBe("index");
-      router.navigate("/user/(id)", { id: "1" }, "silent");
+      router.goTo("/user/1");
 
       setTimeout(function () {
         expect(body.children.length).toBe(1);
         expect(body.children[0].innerHTML).toBe("user:1");
-        router.navigate("/fail", {}, "silent");
+        router.goTo("/fail");
 
         setTimeout(function () {
           expect(body.children.length).toBe(1);

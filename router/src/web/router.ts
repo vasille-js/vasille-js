@@ -1,7 +1,7 @@
 import { App, Fragment, Reference, reportError } from "vasille";
 import { Runner, TagOptions } from "vasille/web-runner";
-import { composeUrl, Router as AbstractRouter, RouteRenderScope, RouterInitialization } from "../router.js";
-import { QueryParams, Answer, ScreenProps, RouteParameters } from "../types.js";
+import { Router as AbstractRouter, RouteRenderScope, RouterInitialization } from "../router.js";
+import { QueryParams, Answer, ScreenProps } from "../types.js";
 
 export interface WebRouterInitialization<Routes extends string>
     extends RouterInitialization<Node, Element, TagOptions, Routes, {}> {
@@ -75,18 +75,25 @@ export class Router<Routes extends string> extends AbstractRouter<
         }
     }
 
-    public navigate<T extends Routes>(route: T, params: RouteParameters<T>, mode: NavigationMode) {
-        super.navigate(route, params, mode);
+    /**
+     * Navigate to new page, showing the loading screen
+     */
+    public goTo(url: string) {
+        this.doNavigate(url, true, "loading-screen");
     }
 
     /**
-     * Do a silent navigation without any modification in DOM until successful
-     * @param route target route
-     * @param params target route params
-     * @throws {Error} a lot of errors
+     * Navigate to new page in an AJAX way, showing a loading overlay
      */
-    public silentNavigate<T extends Routes>(route: T, params: RouteParameters<T>) {
-        return this.prepareNavigation(composeUrl(route, params), true, true, "silent");
+    public ajax(url: string) {
+        this.doNavigate(url, true, "loading-overlay");
+    }
+
+    /**
+     * Load the new page in background, will throw on errors
+     */
+    public load(url: string): Promise<void> {
+        return this.prepareNavigation(url, true, true, "silent");
     }
 
     public reload(): void {

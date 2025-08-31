@@ -4,6 +4,9 @@
   "description": "The first Developer eXperience Orientated web front-end framework.",
   "main": "index.js",
   "types": "./index.d.ts",
+  "bin": {
+    "vasille-web": "./lib/bin.js"
+  },
   "exports": {
     ".": {
       "types": "./fake-types/index.d.ts",
@@ -50,8 +53,9 @@
     "vasille-router": "file:../router"
   },
   "devDependencies": {
-    "prettier": "^3.6.2",
+    "@types/node": "^24.3.0",
     "@types/web": "^0.0.256",
+    "prettier": "^3.6.2",
     "typescript": "^5.8.3"
   }
 }

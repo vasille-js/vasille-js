@@ -3,15 +3,15 @@ import { beforeMount, calculate, compose, router } from "vasille-web";
 const C = compose(() => {
   let $a = 2;
   const $b = calculate(() => {
-    router()?.navigate("/:a", { a: "1" }, "loading-screen");
+    router()?.goTo("/1");
 
     return $a + 1;
   });
 
   function goNext() {
-    router()?.navigate("/:test", { test: "x" }, "loading-overlay");
+    router()?.goTo("/x");
   }
 
-  beforeMount(() => router()?.navigate("/", {}, "silent"));
+  beforeMount(() => router()?.goTo("/"));
   beforeMount(() => router());
 });

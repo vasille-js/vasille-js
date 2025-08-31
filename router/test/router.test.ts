@@ -404,7 +404,7 @@ it("switch page: found -> found", function (done) {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("about");
         router
-            .silentNavigate("/article/(id)", { id: "23" })
+            .load("/article/23")
             .then(() => {
                 expect(body.children.length).toBe(1);
                 expect(body.children[0].className).toBe("article_23");
@@ -441,7 +441,7 @@ it("switch page: found -> fallback", function (done) {
     setTimeout(() => {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("found");
-        router.navigate("/missing", {}, "silent");
+        router.goTo("/missing");
         setTimeout(() => {
             expect(body.children.length).toBe(1);
             expect(body.children[0].className).toBe("fallback");
@@ -475,7 +475,7 @@ it("switch page: fallback -> error", function (done) {
     setTimeout(() => {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("fallback");
-        expect(router.silentNavigate("/error", {})).rejects.toThrow("catch me").finally(done);
+        expect(router.load("/error")).rejects.toThrow("catch me").finally(done);
     }, 1);
 });
 
@@ -506,7 +506,7 @@ it("switch page: error -> found", function (done) {
     setTimeout(() => {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("error");
-        router.silentNavigate("/exists", {}).then(() => {
+        router.load("/exists").then(() => {
             expect(body.children.length).toBe(1);
             expect(body.children[0].className).toBe("exists");
             done();
@@ -669,7 +669,7 @@ it("loading screen: between screens", function (done) {
         resolve?.(1);
         expect(router.loadingUrl.V).toBeNull();
         expect(router.currentUrl.V).toBe("http://localhost:8080/");
-        router.navigate("/wait", {}, "loading-screen");
+        router.goTo("/wait");
         setTimeout(() => {
             expect(body.children.length).toBe(1);
             expect(body.children[0].className).toBe("loading");
@@ -717,7 +717,7 @@ it("loading overlay", function (done) {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("fallback");
         resolve?.(1);
-        router.navigate("/content", {}, "loading-overlay");
+        router.ajax("/content");
         setTimeout(() => {
             expect(body.children.length).toBe(2);
             expect(body.children[1].className).toBe("overlay");

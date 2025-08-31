@@ -28,7 +28,7 @@ it("loading screen/overlay test", function (done) {
     setTimeout(function () {
       expect(body.children.length).toBe(1);
       expect(body.children[0].innerHTML).toBe("component 1");
-      router.navigate("/page2", {}, "loading-screen");
+      router.goTo("/page2");
 
       setTimeout(function () {
         expect(body.children.length).toBe(1);
@@ -38,7 +38,7 @@ it("loading screen/overlay test", function (done) {
         setTimeout(function () {
           expect(body.children.length).toBe(1);
           expect(body.children[0].innerHTML).toBe("component 2");
-          router.navigate("/page3", {}, "loading-overlay");
+          router.ajax("/page3");
 
           setTimeout(function () {
             expect(body.children.length).toBe(2);

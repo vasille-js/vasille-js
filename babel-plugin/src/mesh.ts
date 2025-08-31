@@ -20,6 +20,7 @@ import {
 import { checkOrder } from "./order-check";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
+import { TSLiteralType } from "@babel/types";
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
   nodePaths: NodePath<types.Expression | null | T>[],
@@ -40,7 +41,7 @@ export function meshAllExpressions(nodePaths: NodePath<types.Expression | null>[
 }
 
 export function meshComposeCall(
-  name: types.Identifier | null,
+  name: string | null | undefined,
   path: NodePath<types.Node | null | undefined>,
   internal: Internal,
 ) {
@@ -55,7 +56,7 @@ export function meshComposeCall(
   arg.node.params.unshift(ctx);
 
   if (internal.devMode && path.isCallExpression()) {
-    path.node.arguments.push(t.stringLiteral(name ? name.name : "#"));
+    path.node.arguments.push(t.stringLiteral(name ? name : "#"));
   }
 }
 
@@ -131,7 +132,20 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       const argPath = path.get("arguments")[0];
 
       // compose call
-      if (!internal.isComposing && calls(nodePath, composeFunctions, internal)) {
+      if (!internal.isComposing && calls(nodePath, ["page"], internal)) {
+        const firstArg = nodePath.node.typeParameters?.params[0];
+        const string = t.isTSLiteralType(firstArg) && t.isStringLiteral(firstArg.literal) && firstArg.literal.value;
+
+        if (string && !internal.filename.replace(/\.[tj]sx?$/, "").endsWith(string)) {
+          err(
+            Errors.RulesOfVasille,
+            nodePath.get("typeParameters"),
+            "Page path does not match the file path",
+            internal,
+          );
+        }
+        meshComposeCall(null, nodePath, internal);
+      } else if (!internal.isComposing && calls(nodePath, composeFunctions, internal)) {
         meshComposeCall(null, nodePath, internal);
       }
       // raw call
@@ -799,7 +813,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
               report(`File name is not correct, expected ${name}.ts, ${name}.tsx, ${name}.js or ${name}.jsx`);
             }
           }
-          meshComposeCall(id, initPath, internal);
+          meshComposeCall(id.name, initPath, internal);
         }
         // calculate call
         else if (calls(initPath, ["calculate"], internal) && processCalculateCall(initPath, internal)) {

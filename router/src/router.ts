@@ -16,22 +16,6 @@ export interface RouterInitialization<
 
 export type RouteRenderScope = "found" | "not-found" | "fallback" | "error";
 
-export function composeUrl<Route extends string>(route: Route, params: RouteParameters<Route>): string {
-    if (process.env.VASILLE_TARGET === "es5" && !Object.entries) {
-        let link: string = route;
-
-        for (const key in params) {
-            link = link.replace("(" + key + ")", params[key] as string);
-        }
-
-        return link;
-    } else {
-        return Object.entries(params).reduce<string>((link, [key, value]) => {
-            return link.replace(`(${key})`, value);
-        }, route);
-    }
-}
-
 export abstract class Router<
     Node,
     Element,
@@ -71,10 +55,6 @@ export abstract class Router<
             // typescript is going crazy here
             it.self = target as unknown as Answer<Node, Element, TagOptions, Routes, Extras>;
         }
-    }
-
-    public navigate<T extends Routes>(route: T, params: RouteParameters<T>, ...args: Args) {
-        this.doNavigate(composeUrl(route, params), true, ...args);
     }
 
     protected createRouting(): Routing<Node, Element, TagOptions, Routes, Extras> {
