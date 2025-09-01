@@ -1,4 +1,4 @@
-import { prompt, PromptProps } from "vasille-web";
+import { beforeMount, compose, prompt, PromptProps } from "vasille-web";
 
 const promptName = prompt<string>(props => {
   function save() {
@@ -17,5 +17,9 @@ const promptWithRules = prompt<string, Props>(props => {
   }
 });
 
-promptName({}) satisfies Promise<string>;
-promptWithRules({ rules: ["x"] }) satisfies Promise<string>;
+const App = compose(() => {
+  beforeMount(() => {
+    promptName({}) satisfies Promise<string>;
+    promptWithRules({ rules: ["x"] }) satisfies Promise<string>;
+  });
+});

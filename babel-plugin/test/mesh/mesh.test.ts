@@ -135,3 +135,7 @@ it("class name starts with $", function () {
 it("class expression name starts with $", function () {
   throwTest(__dirname, "class-name-expression", "Non-reactive variable name must not start with $");
 });
+
+it("prompt called outside of context", function () {
+  throwTest(__dirname, "prompt", "Prompts can be constructed only from components");
+});

@@ -20,7 +20,6 @@ import {
 import { checkOrder } from "./order-check";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
-import { TSLiteralType } from "@babel/types";
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
   nodePaths: NodePath<types.Expression | null | T>[],
@@ -176,6 +175,15 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       // watch call
       else if (calls(path, ["watch"], internal)) {
         processCalculateCall(path, internal);
+      } else if (
+        path.isCallExpression() &&
+        t.isIdentifier(path.node.callee) &&
+        path.node.callee.name.startsWith("prompt")
+      ) {
+        if (!internal.isComposing) {
+          err(Errors.IncompatibleContext, path, "Prompts can be constructed only from components", internal);
+        }
+        path.node.arguments.unshift(ctx);
       }
       // call any other function, invalid if code calls a hint
       else {
