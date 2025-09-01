@@ -1,14 +1,9 @@
-import { IValue, Reactive } from "vasille";
-import { storeReactiveObject } from "./objects.js";
+import { IValue } from "vasille";
+import { ref } from "./internal.js";
 
-export function awaited<T>(
-    node: Reactive,
-    target: Promise<T> | (() => Promise<T>),
-    errName?: string,
-    dataName?: string,
-): [IValue<unknown>, IValue<unknown>, () => void] {
-    const value = node.ref<unknown>(undefined, dataName);
-    const err = node.ref<unknown>(undefined, errName);
+export function awaited<T>(target: () => Promise<T>): [IValue<unknown>, IValue<unknown>, () => void] {
+    const value = ref<unknown>(undefined);
+    const err = ref<unknown>(undefined);
     let running = false;
 
     function run() {
@@ -16,28 +11,26 @@ export function awaited<T>(
             return;
         }
 
-        let current: Promise<T> | (() => Promise<T>) | undefined = target;
+        let current: Promise<T> | undefined;
 
         running = true;
-        err.$ = undefined;
-        value.$ = undefined;
+        err.V = undefined;
+        value.V = undefined;
 
-        if (typeof current === "function") {
-            try {
-                current = current();
-            } catch (e) {
-                current = undefined;
-                err.$ = e;
-            }
+        try {
+            current = target();
+        } catch (e) {
+            current = undefined;
+            err.V = e;
         }
 
         if (current instanceof Promise) {
             current
-                .then(result => (value.$ = result))
-                .catch(e => (err.$ = e))
+                .then(result => (value.V = result))
+                .catch(e => (err.V = e))
                 .finally(() => (running = false));
         } else {
-            value.$ = current;
+            value.V = current;
             running = false;
         }
     }
@@ -45,14 +38,4 @@ export function awaited<T>(
     run();
 
     return [err, value, run];
-}
-
-export function store(fn: (input?: object) => object): (input?: object) => object {
-    return (input?: object) => {
-        return input ? fn(storeReactiveObject(input)) : fn();
-    };
-}
-
-export function ensureIValue<T>(node: Reactive, value: T | IValue<T>): IValue<T> {
-    return value instanceof IValue ? value : node.ref(value);
 }

@@ -1,33 +1,13 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 
-export const enum VariableState {
-  Ignored = 1,
-  Reactive = 2,
-  ReactiveObject = 3,
-  ReactivePointer = 4,
-}
-
-export enum VariableScope {
-  Any,
-  Local,
-  Global,
-}
+export type VariableState = Record<string, 1>;
 
 export class StackedStates {
   private maps: Map<string, VariableState>[] = [];
-  private localIndex = -1;
 
   public constructor() {
     this.push();
-  }
-
-  public fixLocalIndex() {
-    this.localIndex = this.maps.length;
-  }
-
-  public resetLocalIndex() {
-    this.localIndex = -1;
   }
 
   public push() {
@@ -38,15 +18,8 @@ export class StackedStates {
     this.maps.pop();
   }
 
-  public get(name: string, scope?: VariableScope): VariableState | undefined {
-    for (
-      let i =
-        (this.localIndex === -1 || scope !== VariableScope.Global
-          ? this.maps.length
-          : Math.min(this.maps.length, this.localIndex)) - 1;
-      i >= (this.localIndex === -1 || scope !== VariableScope.Local ? 0 : this.localIndex);
-      i--
-    ) {
+  public get(name: string): VariableState | undefined {
+    for (let i = this.maps.length - 1; i >= 0; i--) {
       if (this.maps[i].has(name)) {
         return this.maps[i].get(name);
       }
@@ -63,14 +36,26 @@ export class StackedStates {
 export interface Internal {
   mapping: Map<string, string>;
   stack: StackedStates;
-  id: types.Expression;
   global: string;
   prefix: string;
-  internalUsed: boolean;
   importStatement: NodePath<types.ImportDeclaration> | null;
   stateOnly: boolean;
   isComposing?: boolean;
+  isFunctionParsing?: boolean;
+  firstError?: Error;
+  filename: string;
   devMode: boolean;
+  strictFolders: boolean;
+  ref(arg?: types.Expression | null): types.CallExpression;
+  expr(func: types.Expression, values: types.ArrayExpression): types.CallExpression;
+  forward(arg: types.Expression): types.CallExpression;
+  setModel(arg?: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null): types.CallExpression;
+  mapModel(arg?: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null): types.CallExpression;
+  arrayModel(arg?: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null): types.CallExpression;
+  ensure(arg: types.Expression): types.CallExpression;
+  match(name: types.Expression, arg?: types.Expression | null): types.CallExpression;
+  set(obj: types.Expression, field: types.Expression, value: types.Expression): types.CallExpression;
+  Switch(arg: types.ObjectExpression): types.CallExpression;
 }
 
 export const ctx = t.identifier("Vasille");

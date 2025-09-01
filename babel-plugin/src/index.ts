@@ -1,12 +1,21 @@
 import * as Babel from "@babel/core";
-import { trProgram } from "./transformer.js";
+import { transformProgram } from "./transformer.js";
 
-export default function (): Babel.PluginObj<{ opts: { devMode: unknown } }> {
+export default function (): Babel.PluginObj<{
+  file: { opts: { filename: string } };
+  opts: {
+    devMode: unknown;
+    strictFolders: unknown;
+  };
+}> {
   return {
     name: "Vasille",
     visitor: {
       Program(path, params) {
-        trProgram(path, params.opts.devMode !== false);
+        transformProgram(path, params.file.opts.filename, {
+          devMode: params.opts.devMode !== false,
+          strictFolders: params.opts.strictFolders !== false,
+        });
       },
     },
   };

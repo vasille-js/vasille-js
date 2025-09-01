@@ -1,44 +1,37 @@
-import { bind, compose, forward, store, watch } from "vasille-web";
+import { beforeMount, bind, compose, store, watch } from "vasille-web";
 
 const obj = { a: 1, b: 2 };
 
-export const S = store(() => {
-  let a = 2;
-  let b = bind(3);
-  const o = { a: 1, b: { c: 3 } };
-  const { b: b0, ...o0 } = o;
+const sStore = store(() => {
+  let $a = 2;
+  let $b = bind(3);
+  const o = { a: 1, $b: { c: 3 } };
 
-  console.log(b0, o0.a);
+  beforeMount(() => console.log(o.$b.c));
 
   return {
-    $a: a,
-    $b: forward(b),
-    $$o: o,
-    $b0: b0,
-    $$o0: o0,
+    $a: $a,
+    $b: $b,
+    o: o,
   };
 });
-
-const s = S();
-
+const s = sStore;
 const Component = compose(() => {
-  const a = s.$a;
-  const b = s.$b;
-  const o0 = s["$$o"];
-  const o1 = s.$$o;
-  const o2 = obj;
-
-  console.log(a, b, o0.b.c, o1.a, o2.a);
+  const $a = s.$a;
+  const $b = s.$b;
+  const $bc1 = s.o.$b.c;
+  const $bc2 = s.o.$b?.c;
 
   watch(() => {
-    console.log(a, b, o0.b.c, o1.a, o2.a);
+    console.log($a, $b, s.o.$b.c, s.o.$b?.c);
   });
 
+  beforeMount(() => console.log($a, $b, s.o.$b.c, s.o.$b?.c));
+
   <div>
-    {a}
-    {b}
-    {o0.b.c}
-    {o1.a}
-    {o2.a}
+    {$a}
+    {$b}
+    {s.o.$b.c}
+    {s.o.$b?.c}
   </div>;
 });

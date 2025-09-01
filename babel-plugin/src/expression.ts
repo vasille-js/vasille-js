@@ -1,8 +1,9 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { processBridgeCall } from "./bridge";
-import { calls, composeOnly } from "./call.js";
-import { Internal, StackedStates, VariableScope, VariableState } from "./internal.js";
+import { calls, hintFunctions } from "./call.js";
+import { Internal, StackedStates } from "./internal.js";
+import { checkNonReactiveName, err, Errors } from "./lib";
+import { ignoreParams, meshAllUnknown, meshExpression } from "./mesh";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
 
@@ -27,11 +28,17 @@ function insertName(name: string, search?: Search): types.Identifier {
 }
 
 function addIdentifier(path: NodePath<types.Identifier>, search: Search) {
-  if (!search.found.has(path.node.name)) {
-    search.found.set(path.node.name, path.node);
+  const name = unprefixedName(path.node.name);
+
+  if (!search.found.has(name)) {
+    search.found.set(name, path.node);
   }
 
-  path.replaceWith(insertName(path.node.name, search));
+  path.replaceWith(insertName(name, search));
+}
+
+function unprefixedName(name: string): string {
+  return name[0] === "$" ? name.slice(1) : name;
 }
 
 function extractMemberName(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, search: Search) {
@@ -39,28 +46,17 @@ function extractMemberName(path: NodePath<types.MemberExpression | types.Optiona
   let it: types.Expression = path.node;
 
   while (t.isMemberExpression(it)) {
-    const name = stringify(it.property);
-
-    if (name === "$" && it !== path.node) {
-      throw path.buildCodeFrameError("Vasille: The reactive/observable value is nested");
-    }
-
+    names.push(stringify(it.property));
     it = it.object;
-    names.push(name);
   }
 
   names.push(stringify(it));
 
-  if (
-    t.isIdentifier(it) &&
-    search.stack.get((it as types.Identifier).name, VariableScope.Local) === VariableState.Ignored
-  ) {
-    throw path.buildCodeFrameError(
-      "Vasille: This node cannot be processed, the root of expression is a local variable",
-    );
+  if (names.filter(name => name.startsWith("$")).length > 1) {
+    err(Errors.RulesOfVasille, path, "The reactive/observable value is nested", search.external, null);
   }
 
-  return names.reverse().join("_");
+  return names.reverse().map(unprefixedName).join("_");
 }
 
 function addMemberExpr(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, search: Search) {
@@ -73,73 +69,54 @@ function addMemberExpr(path: NodePath<types.MemberExpression | types.OptionalMem
   path.replaceWith(insertName(name, search));
 }
 
-function addExternalIValue(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, search: Search) {
-  const name = extractMemberName(path, search);
-
-  if (!search.found.has(name)) {
-    search.found.set(name, path.node.object);
-  }
-  path.replaceWith(insertName(name, search));
-}
-
-function meshIdentifier(path: NodePath<types.Identifier>, internal: Internal) {
-  if (idIsIValue(path, internal)) {
-    path.replaceWith(t.memberExpression(path.node, t.identifier("$")));
+function meshIdentifier(path: NodePath<types.Identifier>) {
+  if (idIsIValue(path)) {
+    path.replaceWith(t.memberExpression(path.node, t.identifier("V")));
   }
 }
 
-export function idIsIValue(path: NodePath<types.Identifier>, internal: Internal, scope?: VariableScope): boolean {
+export function idIsIValue(path: NodePath<types.Identifier>): boolean {
   const node = path.node;
 
+  return node.name.startsWith("$") && (!t.isMemberExpression(path.parent) || path.parent.object === node);
+}
+
+export function memberIsIValue(node: types.MemberExpression | types.OptionalMemberExpression) {
   return (
-    REACTIVE_STATES.includes(internal.stack.get(node.name, scope)) &&
-    (!t.isMemberExpression(path.parent) || path.parent.object === node)
+    (t.isIdentifier(node.property) && node.property.name.startsWith("$")) ||
+    (t.isStringLiteral(node.property) && node.property.value.startsWith("$"))
   );
 }
 
-export function idIsLocal(path: NodePath<types.Identifier>, internal: Internal) {
-  return internal.stack.get(path.node.name, VariableScope.Local) !== undefined;
-}
-
-export function memberIsIValue(
-  node: types.MemberExpression | types.OptionalMemberExpression,
-  internal: Internal,
-  scope?: VariableScope,
-) {
-  return (
-    (t.isIdentifier(node.object) &&
-      (internal.stack.get(node.object.name, scope) === VariableState.ReactiveObject ||
-        (t.isIdentifier(node.property) &&
-          node.property.name.startsWith("$") &&
-          !node.property.name.startsWith("$$") &&
-          node.property.name !== "$") ||
-        (t.isStringLiteral(node.property) &&
-          node.property.value.startsWith("$") &&
-          !node.property.value.startsWith("$$") &&
-          node.property.value !== "$"))) ||
-    (t.isMemberExpression(node.object) &&
-      ((t.isIdentifier(node.object.property) && node.object.property.name.startsWith("$$")) ||
-        (t.isStringLiteral(node.object.property) && node.object.property.value.startsWith("$$"))))
-  );
-}
-
-export function nodeIsReactiveObject(path: NodePath<types.Expression | null | undefined>, internal: Internal) {
-  const node = path.node;
-
-  if (t.isIdentifier(node)) {
-    return internal.stack.get(node.name) === VariableState.ReactiveObject;
+export function exprIsSure(path: NodePath<types.Expression | null | undefined>, internal: Internal) {
+  if (
+    path.isMemberExpression() &&
+    path.node.computed &&
+    (!t.isStringLiteral(path.node.property) || /^\d+$/.test(path.node.property.value))
+  ) {
+    return false;
   }
-  if (t.isOptionalMemberExpression(node) || t.isMemberExpression(node)) {
-    return (
-      (t.isIdentifier(node.property) && node.property.name.startsWith("$$")) ||
-      (t.isStringLiteral(node.property) && node.property.value.startsWith("$$"))
-    );
+  if (!path.isMemberExpression() || !stringify(path.node.property).startsWith("$")) {
+    return true;
   }
+
+  let it: types.Expression | null | undefined = path.node;
+  let names: string[] = [];
+
+  while (t.isMemberExpression(it) || t.isOptionalMemberExpression(it)) {
+    names.push(stringify(it.property));
+    it = it.object;
+  }
+
+  const reactivityData = t.isIdentifier(it) && internal.stack.get(it.name);
+  const propPath = names.reverse().join(".");
+
+  return (reactivityData && reactivityData[propPath]) || t.isMemberExpression(path.parent);
 }
 
-function meshMember(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, internal: Internal) {
-  if (memberIsIValue(path.node, internal)) {
-    path.replaceWith(t.memberExpression(path.node, t.identifier("$")));
+function meshMember(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>) {
+  if (memberIsIValue(path.node)) {
+    path.replaceWith(t.memberExpression(path.node, t.identifier("V"), false, true));
   }
 }
 
@@ -147,22 +124,26 @@ function meshLValue(
   path: NodePath<types.LVal | types.OptionalMemberExpression | null | undefined>,
   internal: Internal,
 ) {
-  const node = path.node;
-
   /* istanbul ignore else */
-  if (t.isIdentifier(node)) {
-    meshIdentifier(path as NodePath<types.Identifier>, internal);
-  } else if (t.isMemberExpression(node) || t.isOptionalMemberExpression(node)) {
-    meshMember(path as NodePath<types.MemberExpression | types.OptionalMemberExpression>, internal);
-  } else if (t.isArrayPattern(node)) {
-    for (const item of (path as NodePath<types.ArrayPattern>).get("elements")) {
+  if (path.isIdentifier()) {
+    meshIdentifier(path);
+  } else if (path.isMemberExpression() || path.isOptionalMemberExpression()) {
+    const object = path.get("object") as NodePath<unknown>;
+
+    meshMember(path);
+
+    if (object.isLVal()) {
+      meshLValue(object, internal);
+    }
+  } else if (path.isArrayPattern()) {
+    for (const item of path.get("elements")) {
       /* istanbul ignore else */
-      if (t.isOptionalMemberExpression(item.node) || t.isLVal(item.node)) {
-        meshLValue(item as NodePath<types.OptionalMemberExpression | types.LVal | null | undefined>, internal);
+      if (item.isOptionalMemberExpression() || item.isLVal()) {
+        meshLValue(item, internal);
       }
     }
-  } else if (t.isRestElement(node)) {
-    meshLValue((path as NodePath<types.RestElement>).get("argument"), internal);
+  } else if (path.isRestElement()) {
+    meshLValue(path.get("argument"), internal);
   }
 }
 
@@ -175,33 +156,33 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
     stack: internal.stack,
   };
 
-  if (t.isIdentifier(path.node)) {
-    if (idIsIValue(path as NodePath<types.Identifier>, internal)) {
+  if (path.isIdentifier()) {
+    if (idIsIValue(path)) {
       search.self = path.node;
     }
   }
-  if (t.isMemberExpression(path.node)) {
-    if (memberIsIValue(path.node, internal)) {
+  if (path.isMemberExpression()) {
+    if (memberIsIValue(path.node)) {
       search.self = path.node;
-    } else if (t.isIdentifier(path.node.property) && path.node.property.name === "$") {
-      search.self = path.node.object;
     }
+  }
+  if (path.isExpression() && calls(path, ["ref"], internal)) {
+    meshAllUnknown(path.get("arguments"), internal);
+    search.self = path.node;
   }
 
   if (search.self) {
     return search;
   }
 
-  internal.stack.fixLocalIndex();
   internal.stack.push();
 
   /* istanbul ignore else */
-  if (t.isExpression(path.node)) {
-    checkExpression(path as NodePath<types.Expression>, search);
+  if (path.isExpression()) {
+    checkExpression(path, search);
   }
 
   internal.stack.pop();
-  internal.stack.resetLocalIndex();
 
   return search;
 }
@@ -212,8 +193,8 @@ export function checkOrIgnoreAllExpressions<T extends types.Node>(
 ) {
   for (const path of nodePaths) {
     /* istanbul ignore else */
-    if (t.isExpression(path.node)) {
-      checkExpression(path as NodePath<types.Expression>, search);
+    if (path.isExpression()) {
+      checkExpression(path, search);
     }
   }
 }
@@ -230,10 +211,10 @@ export function checkAllUnknown(
 ) {
   for (const path of paths) {
     /* istanbul ignore else */
-    if (t.isSpreadElement(path.node)) {
-      checkExpression((path as NodePath<types.SpreadElement>).get("argument"), internal);
-    } else if (t.isExpression(path.node)) {
-      checkExpression(path as NodePath<types.Expression>, internal);
+    if (path.isSpreadElement()) {
+      checkExpression(path.get("argument"), internal);
+    } else if (path.isExpression()) {
+      checkExpression(path, internal);
     }
   }
 }
@@ -243,12 +224,10 @@ export function checkOrIgnoreExpression<T extends types.Node>(
   search: Search,
 ) {
   /* istanbul ignore else */
-  if (t.isExpression(path.node)) {
-    checkExpression(path as NodePath<types.Expression>, search);
+  if (path.isExpression()) {
+    checkExpression(path, search);
   }
 }
-
-const REACTIVE_STATES: (VariableState | undefined)[] = [VariableState.Reactive, VariableState.ReactivePointer];
 
 export function checkExpression(nodePath: NodePath<types.Expression | null | undefined>, search: Search) {
   const expr = nodePath.node;
@@ -269,12 +248,9 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     }
     case "Identifier": {
       /* istanbul ignore else */
-      if (expr && t.isIdentifier(expr)) {
-        if (
-          idIsIValue(nodePath as NodePath<types.Identifier>, search.external, VariableScope.Global) &&
-          !idIsLocal(nodePath as NodePath<types.Identifier>, search.external)
-        ) {
-          addIdentifier(nodePath as NodePath<types.Identifier>, search);
+      if (expr && nodePath.isIdentifier()) {
+        if (idIsIValue(nodePath)) {
+          addIdentifier(nodePath, search);
         }
       }
       break;
@@ -288,21 +264,15 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     case "CallExpression": {
       const path = nodePath as NodePath<types.CallExpression>;
 
-      const bridge = processBridgeCall(path, search.external, search);
-
-      if (bridge) {
-        if (bridge === "value") {
-          addMemberExpr(nodePath as NodePath<types.MemberExpression>, search);
-        }
-      } else if (calls(path, ["router"], search.external)) {
+      if (calls(path, ["router"], search.external)) {
         if (!search.external.stateOnly) {
           routerReplace(path);
         } else {
-          throw path.buildCodeFrameError("Vasille: The router is not available in stores");
+          err(Errors.IncompatibleContext, path, "The router is not available in stores", search.external, null);
         }
       } else {
-        if (calls(path, composeOnly, search.external)) {
-          throw path.buildCodeFrameError("Vasille: Usage of hints is restricted here");
+        if (calls(path, hintFunctions, search.external)) {
+          err(Errors.IncompatibleContext, path, "Usage of hints is restricted here", search.external, null);
         }
 
         checkOrIgnoreExpression<types.V8IntrinsicIdentifier>(path.get("callee"), search);
@@ -319,8 +289,23 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     }
     case "AssignmentExpression": {
       const path = nodePath as NodePath<types.AssignmentExpression>;
-      meshLValue(path.get("left"), search.external);
-      checkExpression(path.get("right"), search);
+      const left = path.get("left");
+      const right = path.get("right");
+
+      if (left.isMemberExpression() && !exprIsSure(left, search.external)) {
+        const property = left.node.property;
+
+        meshExpression(left.get("object"), search.external);
+        checkExpression(right, search);
+
+        /* istanbul ignore else */
+        if (!t.isPrivateName(property)) {
+          path.replaceWith(search.external.set(left.node.object, property, right.node));
+        }
+      } else {
+        meshLValue(left, search.external);
+        checkExpression(right, search);
+      }
       break;
     }
     case "MemberExpression":
@@ -328,10 +313,8 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       const path = nodePath as NodePath<types.MemberExpression | types.OptionalMemberExpression>;
       const node = path.node;
 
-      if (memberIsIValue(node, search.external, VariableScope.Global)) {
+      if (memberIsIValue(node)) {
         addMemberExpr(path, search);
-      } else if (t.isIdentifier(node.property) && node.property.name === "$") {
-        addExternalIValue(path, search);
       } else {
         checkExpression(path.get("object"), search);
         checkOrIgnoreExpression<types.PrivateName>(path.get("property"), search);
@@ -459,10 +442,12 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       break;
     }
     case "JSXFragment": {
-      throw nodePath.buildCodeFrameError("Vasille: JSX fragment is not allowed here");
+      err(Errors.IncompatibleContext, nodePath, "JSX fragment is not allowed here", search.external, null);
+      break;
     }
     case "JSXElement": {
-      throw nodePath.buildCodeFrameError("Vasille: JSX element is not allowed here");
+      err(Errors.IncompatibleContext, nodePath, "JSX element is not allowed here", search.external, null);
+      break;
     }
   }
 }
@@ -473,35 +458,15 @@ export function checkStatements(paths: NodePath<types.Statement>[], search: Sear
   }
 }
 
-function ignoreLocals(val: types.LVal | types.VariableDeclaration | types.VoidPattern, search: Search) {
-  /* istanbul ignore else */
-  if (t.isIdentifier(val)) {
-    search.stack.set(val.name, VariableState.Ignored);
-  } else if (t.isObjectPattern(val)) {
-    for (const prop of val.properties) {
-      /* istanbul ignore else */
-      if (t.isObjectProperty(prop) && t.isIdentifier(prop.value)) {
-        search.stack.set(prop.value.name, VariableState.Ignored);
-      } else if (t.isRestElement(prop) && t.isIdentifier(prop.argument)) {
-        search.stack.set(prop.argument.name, VariableState.Ignored);
-      } else if (t.isObjectProperty(prop) && t.isAssignmentPattern(prop.value)) {
-        ignoreLocals(prop.value.left, search);
-      }
+function ignoreLocals(path: NodePath<types.LVal | types.VariableDeclaration | types.VoidPattern>, search: Search) {
+  const val = path.node;
+
+  if (t.isVariableDeclaration(val)) {
+    for (const declarator of (path as NodePath<types.VariableDeclaration>).get("declarations")) {
+      ignoreParams(declarator.get("id"), search.external, ["id", "array"]);
     }
-  } else if (t.isArrayPattern(val)) {
-    for (const element of val.elements) {
-      /* istanbul ignore else */
-      if (element && !t.isVoidPattern(element)) {
-        ignoreLocals(element, search);
-      }
-    }
-  } else if (t.isVariableDeclaration(val)) {
-    for (const declarator of val.declarations) {
-      /* istanbul ignore else */
-      if (!t.isVoidPattern(declarator.id)) {
-        ignoreLocals(declarator.id, search);
-      }
-    }
+  } else {
+    ignoreParams(path as NodePath<types.LVal>, search.external, ["id", "array"]);
   }
 }
 
@@ -535,7 +500,7 @@ export function checkStatement(path: NodePath<types.Statement | null | undefined
     case "ForInStatement": {
       const _path = path as NodePath<types.ForInStatement>;
 
-      ignoreLocals(_path.node.left, search);
+      ignoreLocals(_path.get("left"), search);
       checkExpression(_path.get("right"), search);
 
       checkStatement(_path.get("body"), search);
@@ -631,7 +596,7 @@ export function checkStatement(path: NodePath<types.Statement | null | undefined
       const _path = path as NodePath<types.VariableDeclaration>;
 
       for (const declaration of _path.get("declarations")) {
-        ignoreLocals(declaration.node.id, search);
+        ignoreLocals(declaration.get("id"), search);
         checkExpression(declaration.get("init"), search);
       }
       break;
@@ -656,8 +621,22 @@ export function checkFunction(
 ) {
   const node = path.node;
 
-  for (const param of node.params) {
+  for (const param of path.get("params")) {
     ignoreLocals(param, search);
+  }
+
+  if (path.isFunctionDeclaration() && path.node.id) {
+    const idPath = path.get("id");
+
+    /* istanbul ignore else */
+    if (idPath.isIdentifier()) {
+      search.stack.set(idPath.node.name, {});
+      checkNonReactiveName(idPath, search.external);
+    }
+  }
+  if (t.isFunctionExpression(node) && node.id) {
+    search.stack.push();
+    search.stack.set(node.id.name, {});
   }
 
   if (t.isExpression(node.body)) {
@@ -666,5 +645,9 @@ export function checkFunction(
     const bodyPath = path.get("body") as NodePath<types.BlockStatement>;
 
     checkStatement(bodyPath, search);
+  }
+
+  if (t.isFunctionExpression(node) && node.id) {
+    search.stack.pop();
   }
 }

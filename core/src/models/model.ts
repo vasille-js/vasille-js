@@ -1,12 +1,7 @@
-import { IDestroyable } from "../core/destroyable.js";
+import { Destroyable } from "../core/destroyable.js";
 import { Listener } from "./listener.js";
 
-/**
- * @interface IModel
- */
-export interface IModel extends IDestroyable {}
-
-export interface ListenableModel<K, T> extends IModel {
+export interface ListenableModel<K, T> extends Destroyable {
     /**
      * The listener of model
      * @type Listener

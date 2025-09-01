@@ -16,7 +16,7 @@ class MyApp extends App<Node, Element, TagOptions> {
 
 it("App", function () {
     const window = page();
-    const app = new MyApp(window.document.body, new Runner(true, window.document), {});
+    const app = new MyApp(window.document.body, new Runner(true, window.document));
 
     app.compose();
     expect(app.div.childElementCount).toBe(1);

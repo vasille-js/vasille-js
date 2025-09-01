@@ -1,7 +1,7 @@
 import { compose } from "vasille-web";
 
-export const C = compose(() => {
-  let a = "auto";
+const C = compose(() => {
+  let $a = "auto";
   const b = "auto";
 
   <div
@@ -10,11 +10,11 @@ export const C = compose(() => {
       width: "100px",
       height: 50,
       padding: [1, 2, 3, 4],
-      "margin-left": a,
+      "margin-left": $a,
     }}
   />;
   <div style="margin: 20px;" />;
   <div style={"margin: 20px;"} />;
-  <div style={`margin: ${a}`} />;
+  <div style={`margin: ${$a}`} />;
   <div style={`margin: ${b}`} />;
 });

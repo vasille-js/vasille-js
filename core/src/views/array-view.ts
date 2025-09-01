@@ -15,19 +15,14 @@ export class ArrayView<Node, Element, TagOptions extends object, T> extends Base
     T,
     ArrayModel<T>
 > {
-    public createChild(
-        input: BaseViewOptions<Node, Element, TagOptions, T, T, ArrayModel<T>>,
-        id: T,
-        item: T,
-        before?: Fragment<Node, Element, TagOptions>,
-    ): any {
-        super.createChild(input, item, item, before || this.nodes.get(id));
+    public createChild(id: T, item: T, before?: Fragment<Node, Element, TagOptions>): any {
+        super.createChild(item, item, before || this.nodes.get(id));
     }
 
     public compose() {
         super.compose();
-        this.input.model.forEach(item => {
-            this.createChild(this.input, item, item);
+        this.model.forEach(item => {
+            this.createChild(item, item);
         });
     }
 }

@@ -53,8 +53,8 @@ try {
   compose(() => {});
 }
 
-let l = compose(() => {});
-const f = compose(() => {});
+let L = compose(() => {});
+const F = compose(() => {});
 
 while (a < 1) {
   compose(() => {});

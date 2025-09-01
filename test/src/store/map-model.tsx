@@ -1,6 +1,6 @@
-import { store, view, For } from "vasille-web";
+import { store, view, For, component } from "vasille-web";
 
-export const model = store(() => {
+const modelStore = store(() => {
   const map = new Map([[0, "a"]]);
 
   return {
@@ -9,13 +9,15 @@ export const model = store(() => {
       map.set(key, value);
     },
   };
-})();
+});
 
-export const Component = view(() => {
+const Component = component(() => {
   <For
-    of={model.map}
+    of={modelStore.map}
     slot={value => {
       <div>Hello {value}!</div>;
     }}
   />;
 });
+
+export const x = { model: modelStore, Component };

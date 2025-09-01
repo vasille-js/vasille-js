@@ -1,9 +1,9 @@
 {
   "name": "vasille",
-  "description": "The first Developer eXperience Orientated front-end framework (core library).",
+  "description": "The framework designed to build bulletproof frontends (core library).",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "3.2.1",
+  "version": "4.0.0",
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
@@ -21,10 +21,10 @@
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
     "prettier": "npx prettier src test --write",
+    "prebuild": "rm -rf types lib",
     "build": "tsc --build tsconfig.json",
-    "test": "jest",
-    "test-coverage": "jest --coverage",
-    "update-types": "tsc --build tsconfig-types.json"
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test-coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -41,6 +41,13 @@
   ],
   "author": "lixcode",
   "license": "MIT",
+  "browserslist": [
+    "safari 6",
+    "ie 10",
+    "chrome 23",
+    "firefox 21",
+    "opera 15"
+  ],
   "bugs": {
     "url": "https://github.com/vasille-js/vasille-js/issues"
   },
@@ -53,14 +60,16 @@
     "@types/events": "^3.0.3",
     "@types/jest": "^30.0.0",
     "@types/jsdom": "^21.1.7",
-    "@typescript-eslint/eslint-plugin": "^8.38.0",
-    "@typescript-eslint/parser": "^8.38.0",
-    "eslint": "^9.32.0",
+    "@types/node": "^24.2.1",
+    "cross-env": "^10.0.0",
+    "eslint": "^9.33.0",
+    "eslint-plugin-compat": "^6.0.2",
     "jest": "^30.0.5",
     "jsdom": "^26.1.0",
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.39.0"
   }
 }

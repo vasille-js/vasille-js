@@ -1,30 +1,30 @@
-import { Slot, compose } from "vasille-web";
-export const C1 = compose((Vasille, {
+import { Slot, compose, ref as VasilleRef } from "vasille-web";
+const C1 = compose((Vasille, {
   slot
 }) => {
-  const a = Vasille.ref(0, "a");
+  const $a = VasilleRef(0, "a");
   Vasille.tag("div", {}, Vasille => {
     Slot({
       model: slot,
-      a: a
+      "$a": $a
     }, Vasille);
   });
-}, "VasilleWeb:C1");
-export const C2 = compose(Vasille => {
-  const a = Vasille.ref(2, "a");
+}, "C1");
+const C2 = compose(Vasille => {
+  const $a = VasilleRef(2, "a");
   C1({
     slot: ({
-      a
+      $a = VasilleRef()
     }) => {
-      console.log(a);
+      console.log($a.V);
     }
   }, Vasille);
   C1({
     slot: ({
-      a
+      $a = VasilleRef()
     }, Vasille) => {
-      console.log(a.$);
-      Vasille.text(a);
+      console.log($a.V);
+      Vasille.text($a);
     }
   }, Vasille);
   C1({
@@ -32,5 +32,5 @@ export const C2 = compose(Vasille => {
       Vasille.tag("div", {});
     }
   }, Vasille);
-  console.log(a.$);
-}, "VasilleWeb:C2");
+  console.log($a.V);
+}, "C2");

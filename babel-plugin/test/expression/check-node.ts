@@ -1,11 +1,10 @@
-import { Reference } from "vasille";
-import { compose } from "vasille-web";
+import { compose, ref } from "vasille-web";
 
-let o = { a: new Reference(2) };
+const o = { $a: ref(2) };
 
-const c = compose(() => {
+const C = compose(() => {
   const o1 = { a: 1 };
-  const c1 = o.a.$;
+  const $c1 = o.$a;
   const c2 = o1.a;
-  const s = c1 + c2;
+  const $s = $c1 + c2;
 });

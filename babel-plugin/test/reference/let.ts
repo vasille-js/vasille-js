@@ -1,5 +1,5 @@
 import { compose } from "vasille-web";
 
-export const C = compose(() => {
-  let a = 3;
+const C = compose(() => {
+  let $a = 3;
 });

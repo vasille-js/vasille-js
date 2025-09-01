@@ -8,7 +8,6 @@ import {
     Listener,
     MapModel,
     MapView,
-    Pointer,
     Reactive,
     Reference,
     SetModel,
@@ -28,26 +27,23 @@ import { page } from "./page.js";
 it("import test", function () {
     const window = page();
     const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner, {});
+    const root = new App(window.document.body, runner);
     const ref = new Reference(1);
-    const point = new Pointer(ref);
     const array = new ArrayModel();
     const map = new MapModel();
     const set = new SetModel();
     const listener = new Listener();
-    const destroyable = new Destroyable();
     const baseView = new BaseView({ model: array }, runner);
     const arrayView = new ArrayView({ model: array }, runner);
     const mapView = new MapView({ model: map }, runner);
     const setView = new SetView({ model: set }, runner);
-    const fragment = new Fragment({}, runner);
-    const app = new App(window.document.body, runner, {});
+    const fragment = new Fragment(runner);
+    const app = new App(window.document.body, runner);
     const expr = new Expression(v => v, [ref]);
     const portal = new Portal({ node: window.document.body }, runner);
     const watch = new Watch({ model: ref }, runner);
 
     expect(ref instanceof IValue).toBe(true);
-    expect(point instanceof IValue).toBe(true);
     expect(array instanceof Array).toBe(true);
     expect(map instanceof Map).toBe(true);
     expect(set instanceof Set).toBe(true);

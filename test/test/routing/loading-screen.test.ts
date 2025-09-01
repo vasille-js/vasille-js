@@ -1,15 +1,6 @@
 import { routerApp } from "vasille-web";
 import { Router } from "vasille-router/web-router";
-import {
-  Component1,
-  Component2,
-  rvComponent1,
-  rvComponent2,
-  LoadingScreen,
-  LoadingOverlay,
-  Component3,
-  rvComponent3,
-} from "../../src/routing/router";
+import { rvComponent1, rvComponent2, rvComponent3, x } from "../../src/routing/router";
 import { page } from "../page";
 
 it("loading screen/overlay test", function (done) {
@@ -17,12 +8,12 @@ it("loading screen/overlay test", function (done) {
 
   const app = routerApp(
     {
-      loadingScreen: LoadingScreen,
-      loadingOverlay: LoadingOverlay,
+      loadingScreen: x.LoadingScreen,
+      loadingOverlay: x.LoadingOverlay,
       routes: {
-        "/": { screen: Component1 },
-        "/page2": { screen: Component2 },
-        "/page3": { screen: Component3 },
+        "/": { screen: x.C1Screen },
+        "/page2": { screen: x.C2Screen },
+        "/page3": { screen: x.C3Screen },
       },
     },
     body,
@@ -37,7 +28,7 @@ it("loading screen/overlay test", function (done) {
     setTimeout(function () {
       expect(body.children.length).toBe(1);
       expect(body.children[0].innerHTML).toBe("component 1");
-      router.navigate("/page2", {}, "loading-screen");
+      router.goTo("/page2");
 
       setTimeout(function () {
         expect(body.children.length).toBe(1);
@@ -47,7 +38,7 @@ it("loading screen/overlay test", function (done) {
         setTimeout(function () {
           expect(body.children.length).toBe(1);
           expect(body.children[0].innerHTML).toBe("component 2");
-          router.navigate("/page3", {}, "loading-overlay");
+          router.ajax("/page3");
 
           setTimeout(function () {
             expect(body.children.length).toBe(2);

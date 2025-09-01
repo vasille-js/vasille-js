@@ -1,24 +1,24 @@
-import { compose, $ as VasilleWeb } from "vasille-web";
-export const C = compose(Vasille => {
-  const a = Vasille.ref(3, "a");
-  const b = VasilleWeb.am(Vasille, [1, 2, a.$], "b");
-  const c = VasilleWeb.sm(Vasille, [1, 2, a.$], "c");
-  const d = VasilleWeb.mm(Vasille, [[1, a.$], [2, 3]], "d");
-  const e = VasilleWeb.ro(Vasille, {
+import { arrayModel, compose, mapModel, ref, setModel } from "vasille-web";
+const C = compose(Vasille => {
+  const $a = ref(3, "a");
+  const b = arrayModel(Vasille, [1, 2, $a.V], "b");
+  const c = setModel(Vasille, [1, 2, $a.V], "c");
+  const d = mapModel(Vasille, [[1, $a.V], [2, 3]], "d");
+  const e = {
     f: 1,
     e: 2,
-    g: a.$
-  }, "e");
-  const f = VasilleWeb.ro(Vasille, {
-    a: 1
-  }, "f");
-  const g = VasilleWeb.am(Vasille, [1], "g");
-  const h = VasilleWeb.sm(Vasille, [2], "h");
-  const i = VasilleWeb.mm(Vasille, [[1, [2]]], "i");
-  const k = Vasille.ref([1], "k");
-  const m = Vasille.ref(new Set([2]), "m");
-  const n = Vasille.ref(new Map([[1, [2]]]), "n");
-  const z = VasilleWeb.am(Vasille, void 0, "z");
-  console.log(a.$, b[0], c.has(a.$), d.get(1), e.g.$);
-  console.log(f.a.$, g[0], h.has(2), i.get(1), k.$[0], m.$.has(2), n.$.get(1));
-}, "VasilleWeb:C");
+    $g: $a
+  };
+  const f = {
+    $a: ref(1)
+  };
+  const g = arrayModel(Vasille, [1], "g");
+  const h = setModel(Vasille, [2], "h");
+  const i = mapModel(Vasille, [[1, [2]]], "i");
+  const $k = ref([1], "k");
+  const $m = ref(new Set([2]), "m");
+  const $n = ref(new Map([[1, [2]]]), "n");
+  const z = arrayModel(Vasille, void 0, "z");
+  console.log($a.V, b[0], c.has($a.V), d.get(1), e.$g.V);
+  console.log(f.$a.V, g[0], h.has(2), i.get(1), $k.V[0], $m.V.has(2), $n.V.get(1));
+}, "C");

@@ -1,5 +1,13 @@
 import { Fragment } from "vasille";
-import { Answer, Routing, RouteParameters, QueryParams, ScreenProps, Screen } from "./types.js";
+import { Answer, Routing, RouteParameters, QueryParams, ScreenProps } from "./types.js";
+
+export interface FallbackScreenProps {
+    cause: "not-found" | "no-access";
+}
+
+export interface ErrorScreenProps {
+    error: unknown;
+}
 
 export interface RouterInitialization<
     Node,
@@ -9,18 +17,12 @@ export interface RouterInitialization<
     Extras extends object,
 > {
     routes: { [K in Routes]: Answer<Node, Element, TagOptions, K, Extras> };
-    getAccessLevel?(): Promise<number>;
-    fallbackScreen?(arg: { cause: "not-found" | "no-access" }, ctx: Fragment<Node, Element, TagOptions>): void;
-    errorScreen?(data: { error: unknown }, ctx: Fragment<Node, Element, TagOptions>): void;
+    checkAccess?(path: string): Promise<boolean>;
+    fallbackScreen?(arg: FallbackScreenProps, ctx: Fragment<Node, Element, TagOptions>): void;
+    errorScreen?(data: ErrorScreenProps, ctx: Fragment<Node, Element, TagOptions>): void;
 }
 
 export type RouteRenderScope = "found" | "not-found" | "fallback" | "error";
-
-export function composeUrl<Route extends string>(route: Route, params: RouteParameters<Route>): string {
-    return Object.entries(params).reduce<string>((link, [key, value]) => {
-        return link.replace(new RegExp(`:${key}\\b`), value);
-    }, route);
-}
 
 export abstract class Router<
     Node,
@@ -43,8 +45,8 @@ export abstract class Router<
                 .split("/")
                 .filter(value => !!value)
                 .map(value => {
-                    if (value.startsWith(":")) {
-                        return { key: value.substring(1), static: false };
+                    if (value.startsWith("(") && value.endsWith(")")) {
+                        return { key: value.substring(1, value.length - 1), static: false };
                     } else {
                         return { key: value, static: true };
                     }
@@ -61,10 +63,6 @@ export abstract class Router<
             // typescript is going crazy here
             it.self = target as unknown as Answer<Node, Element, TagOptions, Routes, Extras>;
         }
-    }
-
-    public navigate<T extends Routes>(route: T, params: RouteParameters<T>, ...args: Args) {
-        this.doNavigate(composeUrl(route, params), true, ...args);
     }
 
     protected createRouting(): Routing<Node, Element, TagOptions, Routes, Extras> {
@@ -117,13 +115,11 @@ export abstract class Router<
 
     protected async prepareNavigation(url: string, canNavigate: boolean, async: boolean, ...args: Args) {
         const { target, ...props } = this.targetByUrl(url);
-        let error: unknown = undefined;
 
         try {
-            const accessLevel = (await this.init.getAccessLevel?.()) ?? 0;
-            const minLevel = target?.minAccessLevel ?? 0;
+            const hasAccess = (await this.init.checkAccess?.(props.path)) ?? true;
 
-            if (target && accessLevel >= minLevel) {
+            if (target && hasAccess) {
                 await this.loadTarget(target, props as ScreenProps<Routes>, ...args);
             } else if (this.init.fallbackScreen) {
                 await this.renderScreen(

@@ -1,6 +1,6 @@
-import { compose } from "vasille-web";
-export const C = compose(Vasille => {
-  const a = Vasille.ref("auto", "a");
+import { compose, ref as VasilleRef, expr as VasilleExpr } from "vasille-web";
+const C = compose(Vasille => {
+  const $a = VasilleRef("auto", "a");
   const b = "auto";
   Vasille.tag("div", {
     attr: {
@@ -10,7 +10,7 @@ export const C = compose(Vasille => {
       ...{
         margin: "1px"
       },
-      "margin-left": a
+      "margin-left": $a
     }
   });
   Vasille.tag("div", {
@@ -25,7 +25,7 @@ export const C = compose(Vasille => {
   });
   Vasille.tag("div", {
     attr: {
-      style: Vasille.expr(Vasille_a => `margin: ${Vasille_a}`, [a])
+      style: VasilleExpr(Vasille, Vasille_a => `margin: ${Vasille_a}`, [$a])
     }
   });
   Vasille.tag("div", {
@@ -33,4 +33,4 @@ export const C = compose(Vasille => {
       style: `margin: ${b}`
     }
   });
-}, "VasilleWeb:C");
+}, "C");

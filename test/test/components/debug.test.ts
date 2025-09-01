@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { Component, control } from "../../src/components/debug";
+import { DebugTest, control } from "../../src/components/DebugTest";
 import { page } from "../page";
 
 it("Debug component test", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, DebugTest, {});
 
   expect(body.childNodes.length).toBe(2);
   expect(body.childNodes[1]).toBeInstanceOf(page.window.Comment);

@@ -8,12 +8,12 @@ it("SetErrorHandler", function () {
         throw 23;
     });
 
-    ref.$ = 1;
+    ref.V = 1;
     setErrorHandler(e => {
         test = e === 23;
     });
     expect(test).toBe(false);
-    ref.$ = 2;
+    ref.V = 2;
     expect(test).toBe(true);
     reportError(22);
     expect(test).toBe(false);

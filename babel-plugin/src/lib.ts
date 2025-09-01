@@ -1,40 +1,79 @@
 import { NodePath, types } from "@babel/core";
+import { Identifier } from "@babel/types";
 import * as t from "@babel/types";
-import { checkNode, encodeName } from "./expression.js";
+import { checkNode, encodeName, exprIsSure } from "./expression.js";
 import { Internal, ctx } from "./internal.js";
 import { calls } from "./call.js";
+import { meshAllUnknown } from "./mesh";
+
+export enum Errors {
+  IncorrectArguments = 1,
+  IncompatibleContext = 2,
+  TokenNotSupported = 3,
+  Dilemma = 4,
+  ParserError = 5,
+  RulesOfVasille = 6,
+}
+
+export function err(e: Errors, node: NodePath<unknown>, content: string, internal: Internal, ret?: undefined): void;
+export function err<T>(e: Errors, node: NodePath<unknown>, content: string, internal: Internal, ret: T): T;
+export function err<T>(e: Errors, node: NodePath<unknown>, content: string, internal: Internal, ret: T): T {
+  const limit = Error.stackTraceLimit;
+
+  Error.stackTraceLimit = 0;
+
+  const error = node.buildCodeFrameError(`Vasille[${e}]{${Errors[e]}}: ${content}`, Error);
+
+  Error.stackTraceLimit = limit;
+
+  if (!internal.firstError) {
+    internal.firstError = error;
+  }
+  console.log(error);
+
+  return ret;
+}
+
+function unprefixedName(name: string): string {
+  return name[0] === "$" ? name.substring(1) : name;
+}
 
 export function named(
   call: types.CallExpression,
   name: undefined | string | string[],
   internal: Internal,
-  argPos?: number,
+  argPos: number,
 ) {
-  if (internal.devMode && !internal.stateOnly && name) {
+  if (internal.devMode && name) {
     while (argPos && call.arguments.length < argPos) {
       call.arguments.push(t.buildUndefinedNode());
     }
 
     call.arguments.push(
-      ...(typeof name === "string" ? [t.stringLiteral(name)] : name.map(item => t.stringLiteral(item))),
+      ...(typeof name === "string" ? [name] : name.map(item => item)).map(name =>
+        t.stringLiteral(unprefixedName(name)),
+      ),
     );
   }
 
   return call;
 }
 
-export function processCalculateCall(
-  path: NodePath<types.CallExpression>,
-  internal: Internal,
-): [types.FunctionExpression | types.ArrowFunctionExpression, types.ArrayExpression] {
+export function processCalculateCall(path: NodePath<types.CallExpression>, internal: Internal): boolean {
   const call = path.node.arguments[0];
 
   if (path.node.arguments.length !== 1) {
-    throw path.buildCodeFrameError("Vasille: Incorrect number of arguments");
+    return err(Errors.IncorrectArguments, path, "Incorrect number of arguments", internal, false);
   }
   if (t.isFunctionExpression(call) || t.isArrowFunctionExpression(call)) {
     if (call.params.length > 0) {
-      throw path.buildCodeFrameError("Vasille: Argument of calculate cannot have parameters");
+      return err(
+        Errors.IncorrectArguments,
+        path.get("arguments")[0],
+        "Argument of calculate cannot have parameters",
+        internal,
+        false,
+      );
     }
 
     const exprData = checkNode(
@@ -45,196 +84,140 @@ export function processCalculateCall(
     );
 
     call.params = [...exprData.found.keys()].map(name => encodeName(name));
+    path.node.arguments.unshift(internal.isComposing ? ctx : t.nullLiteral());
+    path.node.arguments.push(t.arrayExpression([...exprData.found.values()]));
 
-    return [call, t.arrayExpression([...exprData.found.values()])];
+    return true;
   }
 
-  throw path.buildCodeFrameError("Vasille: Argument of calculate must be a function");
+  return err(Errors.IncorrectArguments, path, "Argument of calculate must be a function", internal, false);
 }
 
-export function parseCalculateCall(
-  path: NodePath<types.Expression | null | undefined>,
-  internal: Internal,
-): [types.FunctionExpression | types.ArrowFunctionExpression, types.ArrayExpression] | null {
-  if (t.isCallExpression(path.node) && calls(path, ["calculate", "watch"], internal)) {
-    return processCalculateCall(path as NodePath<types.CallExpression>, internal);
+export function parseCalculateCall(path: NodePath<types.Expression | null | undefined>, internal: Internal): boolean {
+  if (path.isCallExpression() && calls(path, ["calculate", "watch"], internal)) {
+    return processCalculateCall(path, internal);
   }
-  return null;
+  return false;
+}
+
+export function bindCall(
+  path: NodePath<types.Expression | null | undefined>,
+  expr: types.Expression | null | undefined,
+  data: Map<string, types.Expression>,
+  internal: Internal,
+  name?: string,
+) {
+  const names = [...data.keys()].map(encodeName);
+  const dependencies = t.arrayExpression([...data.values()]);
+
+  if (names.length > 0 && expr) {
+    path.replaceWith(named(internal.expr(t.arrowFunctionExpression(names, expr), dependencies), name, internal, 3));
+
+    return true;
+  }
+
+  return false;
 }
 
 export function exprCall(
   path: NodePath<types.Expression | null | undefined>,
   expr: types.Expression | null | undefined,
   internal: Internal,
-  name?: string,
-): types.Expression | null {
-  const calculateCall = parseCalculateCall(path, internal);
+  opts: {
+    name?: string;
+    strong?: boolean;
+  },
+): boolean {
+  if (parseCalculateCall(path, internal)) {
+    named(path.node as types.CallExpression, opts.name, internal, 3);
 
-  if (calculateCall) {
-    return named(
-      t.callExpression(
-        internal.stateOnly
-          ? t.memberExpression(internal.id, t.identifier("ex"))
-          : t.memberExpression(ctx, t.identifier("expr")),
-        calculateCall,
-      ),
-      name,
-      internal,
-    );
+    return true;
   }
 
   if (
     t.isCallExpression(expr) &&
-    calls(path, ["forward"], internal) &&
+    calls(path, ["bind"], internal) &&
     expr.arguments.length === 1 &&
     t.isExpression(expr.arguments[0])
   ) {
-    const data = exprCall(
-      (path as NodePath<types.CallExpression>).get("arguments")[0] as NodePath<types.Expression>,
-      expr.arguments[0],
-      internal,
-    );
+    const argPath = (path as NodePath<types.CallExpression>).get("arguments")[0] as NodePath<types.Expression>;
+    const exprData = checkNode(argPath, internal);
 
-    /* istanbul ignore else */
-    if (data && !t.isCallExpression(data)) {
-      return t.callExpression(t.memberExpression(internal.id, t.identifier("fo")), [data]);
+    if (exprData.self) {
+      path.replaceWith(internal.forward(exprData.self));
+    } else if (exprData.found.size > 0) {
+      argPath.replaceWith(t.arrowFunctionExpression([...exprData.found.keys()].map(encodeName), argPath.node));
+      expr.arguments.unshift(internal.isComposing ? ctx : t.nullLiteral());
+      expr.arguments.push(t.arrayExpression([...exprData.found.values()]));
+      named(expr, opts.name, internal, 3);
+    } else {
+      path.replaceWith(named(internal.ref(argPath.node), opts.name, internal, 1));
     }
+
+    return true;
   }
 
   const exprData = checkNode(path, internal);
 
   if (exprData.self) {
-    return exprData.self;
+    if (!opts.strong || exprIsSure(path, internal)) {
+      path.replaceWith(exprData.self);
+    } else {
+      path.replaceWith(internal.ensure(exprData.self));
+    }
+
+    return true;
   }
 
-  const names = [...exprData.found.keys()].map(encodeName);
-  const dependencies = t.arrayExpression([...exprData.found.values()]);
-
-  if (expr !== path.node && names.length === 1 && t.isIdentifier(path.node) && path.node.name === names[0].name) {
-    return [...exprData.found.values()][0];
-  }
-  if (names.length > 0 && path.node) {
-    return named(
-      t.callExpression(
-        internal.stateOnly
-          ? t.memberExpression(internal.id, t.identifier("ex"))
-          : t.memberExpression(ctx, t.identifier("expr")),
-        [t.arrowFunctionExpression(names, path.node), dependencies],
-      ),
-      name,
-      internal,
-    );
-  }
-
-  return null;
-}
-
-export function forwardOnlyExpr(
-  path: NodePath<types.Expression | null | undefined>,
-  expr: types.Expression | null | undefined,
-  internal: Internal,
-) {
-  const calculateCall = parseCalculateCall(path, internal);
-
-  if (calculateCall) {
-    return t.callExpression(t.memberExpression(internal.id, t.identifier("ex")), calculateCall);
-  }
-
-  const exprData = checkNode(path, internal);
-
-  return exprData.self
-    ? t.callExpression(t.memberExpression(internal.id, t.identifier("fo")), [exprData.self])
-    : exprData.found.size > 0 && expr
-      ? t.callExpression(t.memberExpression(internal.id, t.identifier("ex")), [
-          t.arrowFunctionExpression(
-            [...exprData.found.keys()].map(name => encodeName(name)),
-            expr,
-          ),
-          t.arrayExpression([...exprData.found.values()]),
-        ])
-      : null;
-}
-
-export function own(expr: types.Expression, internal: Internal, name?: string) {
-  if (
-    internal.stateOnly &&
-    t.isCallExpression(expr) &&
-    t.isMemberExpression(expr.callee) &&
-    t.isIdentifier(expr.callee.property) &&
-    expr.callee.property.name === "fo" &&
-    t.isIdentifier(expr.callee.object) &&
-    expr.callee.object === internal.id
-  ) {
-    return expr;
-  }
-
-  return named(
-    t.callExpression(
-      internal.stateOnly
-        ? t.memberExpression(internal.id, t.identifier("fo"))
-        : t.memberExpression(ctx, t.identifier("own")),
-      [expr],
-    ),
-    name,
-    internal,
-  );
+  return bindCall(path, expr, exprData.found, internal, opts.name);
 }
 
 export function ref(expr: types.Expression | null | undefined, internal: Internal, name?: string) {
-  return named(
-    t.callExpression(
-      internal.stateOnly
-        ? t.memberExpression(internal.id, t.identifier("r"))
-        : t.memberExpression(ctx, t.identifier("ref")),
-      expr ? [expr] : [],
-    ),
-    name,
-    internal,
-    1,
-  );
+  return named(internal.ref(expr), name, internal, 1);
 }
 
-export function reactiveObject(init: types.Expression, internal: Internal, name?: string) {
-  return named(
-    t.callExpression(
-      t.memberExpression(internal.id, t.identifier(internal.stateOnly ? "sro" : "ro")),
-      internal.stateOnly ? [init] : [ctx, init],
-    ),
-    name,
-    internal,
-  );
-}
-
-export function arrayModel(init: types.Expression | null | undefined, internal: Internal, name?: string) {
-  return named(
-    t.callExpression(
-      t.memberExpression(internal.id, t.identifier(internal.stateOnly ? "sam" : "am")),
-      internal.stateOnly ? (init ? [init] : []) : [ctx, ...(init ? [init] : [])],
-    ),
-    name,
-    internal,
-    2,
-  );
+export function arrayModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
+  return named(internal.arrayModel(args[0]), name, internal, 2);
 }
 
 export function setModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
-  return named(
-    t.callExpression(
-      t.memberExpression(internal.id, t.identifier(internal.stateOnly ? "ssm" : "sm")),
-      internal.stateOnly ? args : [ctx, ...args],
-    ),
-    name,
-    internal,
-  );
+  return named(internal.setModel(args[0]), name, internal, 2);
 }
 
 export function mapModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
-  return named(
-    t.callExpression(
-      t.memberExpression(internal.id, t.identifier(internal.stateOnly ? "smm" : "mm")),
-      internal.stateOnly ? args : [ctx, ...args],
-    ),
-    name,
-    internal,
+  return named(internal.mapModel(args[0]), name, internal, 2);
+}
+
+export function processModelCall(
+  path: NodePath<types.CallExpression | types.NewExpression>,
+  type: "Map" | "Set" | "Array",
+  isConst: boolean,
+  internal: Internal,
+  name?: string,
+) {
+  const args = path.node.arguments;
+
+  if (!isConst) {
+    err(Errors.RulesOfVasille, path, `${type} models must be declared as constants`, internal);
+  }
+  meshAllUnknown(path.get("arguments"), internal);
+  path.replaceWith(
+    type === "Map"
+      ? mapModel(args, internal, name)
+      : type === "Set"
+        ? setModel(args, internal, name)
+        : arrayModel(args, internal, name),
   );
+}
+
+export function checkReactiveName(idPath: NodePath<unknown>, internal: Internal) {
+  if (!(idPath.isIdentifier() && idPath.node.name.startsWith("$"))) {
+    err(Errors.RulesOfVasille, idPath, "Reactive variable name must start with $", internal);
+  }
+}
+
+export function checkNonReactiveName(idPath: NodePath<Identifier>, internal: Internal) {
+  if (idPath.node.name.startsWith("$")) {
+    err(Errors.RulesOfVasille, idPath, "Non-reactive variable name must not start with $", internal);
+  }
 }

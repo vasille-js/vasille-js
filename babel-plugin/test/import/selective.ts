@@ -1,5 +1,5 @@
-import { compose } from "vasille-web";
+import { beforeMount, compose } from "vasille-web";
 
-export const C = compose(({ a = 0 }: { a: number }) => {
-  a = 3;
+const C = compose(({ $a = 0 }: { $a: number }) => {
+  beforeMount(() => ($a = 3));
 });

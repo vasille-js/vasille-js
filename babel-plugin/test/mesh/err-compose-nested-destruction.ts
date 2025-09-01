@@ -1,9 +1,9 @@
 import { compose } from "vasille-web";
 
 interface Props {
-  a: {
+  $a: {
     b: number;
   };
 }
 
-const C = compose(({ a: { b } }: Props) => {});
+const C = compose(({ $a: { b } }: Props) => {});

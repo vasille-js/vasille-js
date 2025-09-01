@@ -1,6 +1,6 @@
-import { store, view, watch } from "vasille-web";
+import { component, store, view, watch } from "vasille-web";
 
-export const model = store(() => {
+const modelStore = store(() => {
   let $name = "Vasille";
   let $external = "test";
 
@@ -15,8 +15,10 @@ export const model = store(() => {
       $external = value;
     },
   };
-})();
-
-export const Watch = view(() => {
-  <div>Hello {model.$name}!</div>;
 });
+
+const Watch = component(() => {
+  <div>Hello {modelStore.$name}!</div>;
+});
+
+export const x = { Watch, model: modelStore };

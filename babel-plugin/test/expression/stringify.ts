@@ -1,15 +1,14 @@
-import { Reference } from "vasille";
-import { compose, watch } from "vasille-web";
+import { compose, ref, watch } from "vasille-web";
 
 class Class {
   #obj = {
-    prop: new Reference(2),
+    $prop: ref(2),
   };
 
   compose() {
     return compose(() => {
       watch(() => {
-        let x = [this.#obj.prop.$, this.#obj["prop"].$];
+        let x = [this.#obj.$prop, this.#obj["$prop"]];
       });
     });
   }

@@ -1,13 +1,12 @@
-import { Reference } from "vasille";
-import { calculate, compose } from "vasille-web";
+import { calculate, compose, ref } from "vasille-web";
 
-export const C = compose(() => {
-  let a = 0;
-  const c = calculate(() => {
-    const obj = {
-      nested: new Reference(2),
+const C = compose(() => {
+  let $a = 0;
+  const $c = calculate(() => {
+    let $obj = {
+      $nested: ref(2),
     };
 
-    return a + obj.nested.$;
+    return $a + $obj.$nested;
   });
 });

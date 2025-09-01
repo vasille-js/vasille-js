@@ -1,7 +1,7 @@
 import { App, Fragment, Reference, reportError } from "vasille";
 import { Runner, TagOptions } from "vasille/web-runner";
-import { composeUrl, Router as AbstractRouter, RouteRenderScope, RouterInitialization } from "../router.js";
-import { QueryParams, Answer, ScreenProps, RouteParameters } from "../types.js";
+import { Router as AbstractRouter, RouteRenderScope, RouterInitialization } from "../router.js";
+import { QueryParams, Answer, ScreenProps } from "../types.js";
 
 export interface WebRouterInitialization<Routes extends string>
     extends RouterInitialization<Node, Element, TagOptions, Routes, {}> {
@@ -11,12 +11,8 @@ export interface WebRouterInitialization<Routes extends string>
 
 export type NavigationMode = "silent" | "loading-screen" | "loading-overlay";
 
-function build(
-    node: Fragment<Node, Element, TagOptions>,
-    run?: (node: Fragment<Node, Element, TagOptions>) => void,
-    name?: string,
-) {
-    const child = new Fragment<Node, Element, TagOptions>({}, node.runner, name);
+function build(node: Fragment<Node, Element, TagOptions>, run?: (node: Fragment<Node, Element, TagOptions>) => void) {
+    const child = new Fragment<Node, Element, TagOptions>(node.runner);
 
     node.create(child, run);
 }
@@ -52,35 +48,52 @@ export class Router<Routes extends string> extends AbstractRouter<
         this.window = window;
         this.location = location;
         this.node = node;
-        this.currentUrl.$ = location.pathname;
+        this.currentUrl.V = location.pathname;
 
-        build(node, node => (this.loadingNode = node), ":router:loading-screen");
-        build(node, node => (this.contentNode = node), ":router:content-screen");
-        build(node, node => (this.overlayNode = node), ":router:loading-overlay");
+        build(node, node => (this.loadingNode = node));
+        build(node, node => (this.contentNode = node));
+        build(node, node => (this.overlayNode = node));
 
-        window.addEventListener("popstate", () => {
-            this.doNavigate(location.href, false, "loading-screen");
-        });
+        if (process.env.VASILLE_TARGET === "es5" && window.onpopstate !== null) {
+            window.addEventListener("hashchange", () => {
+                const path = location.hash.substring(1);
 
-        this.doNavigate(location.href, true, "loading-screen");
-    }
-
-    public navigate<T extends Routes>(route: T, params: RouteParameters<T>, mode: NavigationMode) {
-        super.navigate(route, params, mode);
+                if (path !== this.currentUrl.V) {
+                    this.doNavigate(path, false, "loading-screen");
+                }
+            });
+            this.doNavigate(location.hash.substring(1) || location.href, true, "loading-screen");
+        } else {
+            window.addEventListener("popstate", () => {
+                this.doNavigate(location.href, false, "loading-screen");
+            });
+            this.doNavigate(location.href, true, "loading-screen");
+        }
     }
 
     /**
-     * Do a silent navigation without any modification in DOM until successful
-     * @param route target route
-     * @param params target route params
-     * @throws {Error} a lot of errors
+     * Navigate to new page, showing the loading screen
      */
-    public silentNavigate<T extends Routes>(route: T, params: RouteParameters<T>) {
-        return this.prepareNavigation(composeUrl(route, params), true, true, "silent");
+    public goTo(url: string) {
+        this.doNavigate(url, true, "loading-screen");
+    }
+
+    /**
+     * Navigate to new page in an AJAX way, showing a loading overlay
+     */
+    public ajax(url: string) {
+        this.doNavigate(url, true, "loading-overlay");
+    }
+
+    /**
+     * Load the new page in background, will throw on errors
+     */
+    public load(url: string): Promise<void> {
+        return this.prepareNavigation(url, true, true, "silent");
     }
 
     public reload(): void {
-        this.doNavigate(this.currentUrl.$, true, "loading-screen");
+        this.doNavigate(this.currentUrl.V, true, "loading-screen");
     }
 
     protected doNavigate(url: string, canNavigate: boolean, mode: NavigationMode) {
@@ -91,23 +104,37 @@ export class Router<Routes extends string> extends AbstractRouter<
     }
 
     protected parseUrl(url: string): [string, QueryParams, string] {
-        const parsed = new URL(url, this.location.origin);
+        if (process.env.VASILLE_TARGET === "es5" && !("URL" in this.window)) {
+            if (!/^https?:\/\//.test(url) && url.charAt(0) !== "/") {
+                throw new TypeError("Invalid URL");
+            }
 
-        return [
-            parsed.pathname,
-            [...parsed.searchParams.keys()].reduce(
-                (prev, key) => {
-                    const value = parsed.searchParams.getAll(key);
+            const a = this.window.document.createElement("a");
+            const query: QueryParams = {};
+            const pairs = (url.split("?")[1] || "").split("&");
+            pairs.forEach(pair => {
+                const [key, value] = pair.split("=").map(decodeURIComponent);
 
-                    return {
-                        ...prev,
-                        [key]: value.length === 1 ? value[0] : value,
-                    };
-                },
-                {} as { [k: string]: string | string[] },
-            ),
-            parsed.hash,
-        ];
+                if (value) {
+                    if (key in query) {
+                        query[key].push(value);
+                    } else {
+                        query[key] = [value];
+                    }
+                }
+            });
+
+            a.href = url;
+
+            return [a.pathname, query, a.hash];
+        } else {
+            const parsed = new URL(url, this.location.origin);
+            const query = [...parsed.searchParams.keys()].reduce((prev, key) => {
+                return { ...prev, [key]: parsed.searchParams.getAll(key) };
+            }, {} as QueryParams);
+
+            return [parsed.pathname, query, parsed.hash];
+        }
     }
 
     protected async loadTarget<Route extends string>(
@@ -115,25 +142,29 @@ export class Router<Routes extends string> extends AbstractRouter<
         props: ScreenProps<Route>,
         mode: NavigationMode,
     ): Promise<void> {
-        this.loadingUrl.$ = props.path;
+        this.loadingUrl.V = props.path;
 
         try {
             const { loadingScreen, loadingOverlay } = this.webInit;
 
             if (mode === "loading-screen" && loadingScreen) {
                 this.clearNode(this.contentNode);
-                build(this.loadingNode, node => loadingScreen({}, node), "::");
+                build(this.loadingNode, node => loadingScreen({}, node));
             }
             if (mode === "loading-overlay" && loadingOverlay) {
-                build(this.overlayNode, node => loadingOverlay({}, node), "::");
+                build(this.overlayNode, node => loadingOverlay({}, node));
             }
 
             await this.renderScreen(target.screen, props, "found");
 
-            if (this.location.href !== props.url) {
-                this.window.history.pushState({}, "", props.url);
+            this.currentUrl.V = props.url;
+            if (this.location.href !== props.url && this.location.hash !== "#" + props.url) {
+                if (process.env.VASILLE_TARGET === "es5" && !this.window.history) {
+                    this.location.hash = "#" + props.url;
+                } else {
+                    this.window.history.pushState({}, "", props.url);
+                }
             }
-            this.currentUrl.$ = props.url;
         } catch (error) {
             if (mode !== "silent") {
                 this.clearNode(this.contentNode);
@@ -141,7 +172,7 @@ export class Router<Routes extends string> extends AbstractRouter<
             throw error;
         } finally {
             this.clearLoadings();
-            this.loadingUrl.$ = null;
+            this.loadingUrl.V = null;
         }
     }
 
@@ -154,7 +185,7 @@ export class Router<Routes extends string> extends AbstractRouter<
         const oldChildren = [...children];
         let ctx: Fragment<Node, Element, TagOptions> | null = null;
 
-        build(this.contentNode, node => (ctx = node), "::");
+        build(this.contentNode, node => (ctx = node));
 
         /* istanbul ignore else */
         if (ctx) {
@@ -167,7 +198,11 @@ export class Router<Routes extends string> extends AbstractRouter<
         });
 
         if (scope === "not-found") {
-            this.window.history.replaceState({}, "", "/");
+            if (process.env.VASILLE_TARGET === "es5" && !this.window.history) {
+                this.window.location.hash = "#/";
+            } else {
+                this.window.history.replaceState({}, "", "/");
+            }
         }
     }
 
@@ -192,9 +227,9 @@ export function routeApp<Routes extends string>(
     debugUi?: boolean,
 ) {
     const runner = new Runner(debugUi ?? false, window.document);
-    const app = new App(node, runner, {});
+    const app = new App(node, runner);
 
-    app.create(new Fragment({}, runner, ":router:root"), node => {
+    app.create(new Fragment(runner), node => {
         const router = new Router(window, location, node, init);
 
         Object.defineProperty(runner, "router", {

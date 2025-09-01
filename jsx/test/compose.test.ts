@@ -1,6 +1,6 @@
 import { Fragment, IValue, Reference, setErrorHandler } from "vasille";
-import { mvvmView, mvcView, hybridView, mount } from "../src/index.js";
-import { readValue } from "../src/components.js";
+import { model } from "../src/compose.js";
+import { view, mount, ref, expr } from "../src/index.js";
 import { createNode } from "./page.js";
 
 interface Props {
@@ -9,29 +9,25 @@ interface Props {
     slot?(node: Fragment<Node, Element, object>): void;
 }
 
-const mvvm = mvvmView(function (f, $: Props) {
+const mvc = view(function (f, $: Pick<Props, "className" | "slot">) {
+    return { class: $.className };
+});
+
+const mvvm = view(function (f, $: Props) {
     let div!: Element;
 
     f.tag("div", {
-        slot: readValue($.slot),
-        class: [readValue($.className) ?? "class"],
+        slot: $.slot,
+        class: [$.className ?? "class"],
         callback: node => (div = node),
     });
 
     return { div, className: $.className };
-}, "test");
+});
 
-const mvc = mvcView(function (f, $: Pick<Props, "className" | "slot">) {
-    return { class: $.className };
-}, "test");
-
-const hybrid = hybridView(
-    function (f, $: Pick<Props, "number" | "className" | "slot">) {
-        return [$.className, $.number];
-    },
-    ["className"],
-    "test",
-);
+const hybrid = view(function (f, $: Pick<Props, "number" | "className" | "slot">) {
+    return [$.className, $.number];
+});
 
 it("MVVM test", function () {
     const [node, window] = createNode();
@@ -104,8 +100,7 @@ it("Hybrid test", function () {
     mount(body, hybrid, node.runner, {
         callback: data => {
             expect(data?.[0]).toBe("string");
-            expect(data?.[1]).toBeInstanceOf(IValue);
-            expect((data?.[1] as unknown as IValue<number>).$).toBe(3);
+            expect(data?.[1]).toBe(3);
             count++;
         },
         className: "string",
@@ -115,7 +110,7 @@ it("Hybrid test", function () {
     mount(body, hybrid, node.runner, {
         callback: data => {
             expect(data?.[0]).toBeUndefined();
-            expect(data?.[1]).toBeInstanceOf(IValue);
+            expect(data?.[1]).toBeUndefined();
             count++;
         },
     });
@@ -126,9 +121,9 @@ it("Hybrid test", function () {
 it("throw test", function () {
     const [node, window] = createNode();
     const e = new Error("test");
-    const throwC = mvvmView(function ($) {
+    const throwC = view(function ($) {
         throw e;
-    }, "test");
+    });
     let handled: Error | undefined;
 
     setErrorHandler(e => (handled = e as Error));
@@ -143,37 +138,17 @@ interface IValueProps {
     slot?(node: Fragment<Node, Element, object>): void;
 }
 
-const mvvmIValue = mvvmView(function (_, $: IValueProps) {
+const mvvmIValue = view(function (_, $: IValueProps) {
     return { test: $.string };
-}, "test");
+});
 
-const mvcIValue = mvcView(function (f, $: IValueProps) {
-    return { test: $.string };
-}, "test");
+const hybridIValue1 = view(function (f, $: IValueProps) {
+    return { test: $.string, number: $.number };
+});
 
-const hybridIValue1 = hybridView(
-    function (f, $: IValueProps) {
-        return { test: $.string, number: $.number };
-    },
-    [],
-    "test",
-);
-
-const hybridIValue2 = hybridView(
-    function (f, $: IValueProps) {
-        return { test: $.string, number: $.number };
-    },
-    ["number"],
-    "test",
-);
-
-const hybridIValue3 = hybridView(
-    function (f, $: IValueProps) {
-        return { test: $.string, number: $.number };
-    },
-    ["number", "string"],
-    "test",
-);
+const hybridIValue2 = view(function (f, $: IValueProps) {
+    return { test: $.string, number: $.number };
+});
 
 it("IValue keep test", function () {
     const [node, window] = createNode();
@@ -184,7 +159,7 @@ it("IValue keep test", function () {
     mount(body, mvvmIValue, node.runner, {
         callback(data) {
             expect(data?.test).toBe(string);
-            count++;
+            count += 1;
         },
         string: string,
     });
@@ -192,8 +167,8 @@ it("IValue keep test", function () {
     mount(body, hybridIValue1, node.runner, {
         callback(data) {
             expect(data?.test).toBe(string);
-            expect(data?.number).toBeInstanceOf(IValue);
-            count++;
+            expect(data?.number).toBe(1);
+            count += 10;
         },
         string: string,
         number: 1,
@@ -203,30 +178,38 @@ it("IValue keep test", function () {
         callback(data) {
             expect(data?.test).toBe(string);
             expect(data?.number).toBe(2);
-            count++;
+            count += 100;
         },
         string: string,
         number: 2,
     });
 
-    mount(body, hybridIValue3, node.runner, {
-        callback() {
-            // must not be executed
-            // iValue field will throw error
-            count = -1;
-        },
-        string: string,
-        number: 2,
-    });
+    expect(count).toBe(111);
+});
 
-    expect(() => {
-        mount(body, mvcIValue, node.runner, {
-            callback() {
-                count = -2;
-            },
-            string: string,
-        });
-    }).toThrow("Vasille: Field string has a reactive value");
+const Model = model((ctx, { x }: { x: number }) => {
+    const a = ref(2);
+    const b = expr(ctx, a => a + x, [a]);
 
-    expect(count).toBe(3);
+    return { a, b, c: 10 };
+});
+
+it("model", function () {
+    const { b, a, c, destroy } = Model({ x: 1 });
+
+    expect(a).toBeInstanceOf(IValue);
+    expect(b).toBeInstanceOf(IValue);
+
+    expect(a.V).toBe(2);
+    expect(b.V).toBe(3);
+    expect(c).toBe(10);
+
+    a.V = 4;
+    expect(a.V).toBe(4);
+    expect(b.V).toBe(5);
+
+    destroy();
+    a.V = 7;
+    expect(a.V).toBe(7);
+    expect(b.V).toBe(5);
 });

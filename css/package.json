@@ -1,7 +1,7 @@
 {
   "name": "vasille-css",
-  "version": "3.2.1",
-  "description": "The first Developer eXperience Orientated front-end framework (style library)",
+  "version": "4.0.0",
+  "description": "The framework designed to build bulletproof frontends (CSS style library)",
   "main": "./lib/index.js",
   "types": "./types/index.d.ts",
   "exports": {
@@ -14,8 +14,8 @@
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
     "prettier": "prettier src test --write",
+    "prebuild": "rm -rf lib types",
     "build": "tsc --build tsconfig.json",
-    "build-types": "tsc --build tsconfig-types.json",
     "test": "jest",
     "test-coverage": "jest --coverage"
   },
@@ -35,13 +35,23 @@
     "type": "git",
     "url": "git+https://github.com/vasille-js/vasille-js.git"
   },
+  "browserslist": [
+    "safari 6",
+    "ie 10",
+    "chrome 23",
+    "firefox 21",
+    "opera 15"
+  ],
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/jsdom": "^21.1.7",
+    "eslint": "^9.33.0",
+    "eslint-plugin-compat": "^6.0.2",
     "jest": "^30.0.5",
     "jsdom": "^26.1.0",
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.39.0"
   }
 }

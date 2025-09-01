@@ -1,6 +1,6 @@
 import * as DX from "vasille-web";
-export const C = DX.compose((Vasille, {
-  a
+const C = DX.compose((Vasille, {
+  $a = DX.ref()
 }) => {
-  a.$ = 3;
-}, "VasilleWeb:C");
+  $a.V = 3;
+}, "C");

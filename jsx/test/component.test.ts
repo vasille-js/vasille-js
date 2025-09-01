@@ -1,6 +1,5 @@
 import { Expression, Fragment, IValue, Reference } from "vasille";
-import { Debug, Delay, Else, ElseIf, For, If, Slot, Watch } from "../src/index.js";
-import { ContextArray, ContextMap, ContextSet } from "../src/models.js";
+import { arrayModel, Debug, Delay, For, mapModel, setModel, Slot, Switch, Watch } from "../src/index.js";
 import { createNode } from "./page.js";
 
 it("Slot", function () {
@@ -39,7 +38,7 @@ it("Slot", function () {
             model(o: object) {
                 mustBeValue = "a" in o && o.a;
             },
-            a: new Reference(2),
+            a: 2,
         } as any,
         node,
     );
@@ -48,7 +47,7 @@ it("Slot", function () {
             model(o: object, node: unknown) {
                 mustBeRef = "a" in o && o.a;
             },
-            a: 2,
+            a: new Reference(2),
         } as any,
         node,
     );
@@ -58,66 +57,6 @@ it("Slot", function () {
     expect(modelTest2).toBe(true);
     expect(mustBeValue).toBe(2);
     expect(mustBeRef instanceof IValue).toBe(true);
-});
-
-it("If - ElseIf - Else", function () {
-    const [node] = createNode();
-    const cond = new Reference(1);
-    const ifCont = new Expression((v: number) => v === 1, [cond]);
-    const elseCond = new Expression((v: number) => v === 2, [cond]);
-    let executed = "none";
-
-    If(
-        {
-            condition: ifCont,
-        },
-        node,
-        () => {
-            executed = "if";
-        },
-    );
-    ElseIf(
-        {
-            condition: elseCond,
-        },
-        node,
-        () => {
-            executed = "else-if";
-        },
-    );
-    Else({}, node, () => {
-        executed = "else";
-    });
-
-    expect(executed).toBe("if");
-    cond.$ = 2;
-    expect(executed).toBe("else-if");
-    cond.$ = 3;
-    expect(executed).toBe("else");
-
-    // must not trigger errors
-    If({ condition: undefined }, node);
-    ElseIf({ condition: undefined }, node);
-    If({ condition: true }, node);
-    If({ condition: undefined }, node);
-    ElseIf({ condition: true }, node);
-
-    let executed2 = "none";
-
-    If(
-        {
-            condition: false,
-        },
-        node,
-        () => {
-            executed2 = "if";
-        },
-    );
-    Else({}, node, () => {
-        executed2 = "else-if";
-    });
-
-    expect(executed2).toBe("else-if");
 });
 
 it("For", function () {
@@ -131,13 +70,13 @@ it("For", function () {
     expect(() => For({ of: 3 as any, slot }, this)).toThrow("wrong-model");
     For({ of: 3 as any }, node);
     expect(counter).toBe(0);
-    For({ of: new ContextArray([1, 2, 3]), slot }, node);
+    For({ of: arrayModel(undefined, [1, 2, 3]), slot }, node);
     expect(counter).toBe(3);
-    For({ of: new ContextSet([1, 1]), slot }, node);
+    For({ of: setModel(undefined, [1, 1]), slot }, node);
     expect(counter).toBe(4);
     For(
         {
-            of: new ContextMap([
+            of: mapModel(undefined, [
                 [1, 1],
                 [2, 2],
             ]),
@@ -152,13 +91,6 @@ it("For", function () {
     expect(counter).toBe(11);
     For({ of: new Map([[1, 1]]), slot }, node);
     expect(counter).toBe(12);
-
-    const ref = new Reference(new ContextArray([1, 2]));
-
-    For({ of: ref, slot }, node);
-    expect(counter).toBe(14);
-    ref.$ = new ContextArray<number>([4]);
-    expect(counter).toBe(15);
 });
 
 it("Watch", function () {
@@ -170,10 +102,10 @@ it("Watch", function () {
         counter++;
     }
 
-    Watch({ model: ref }, node, slot);
+    Watch({ $model: ref }, node, slot);
 
     expect(counter).toBe(1);
-    ref.$ = 2;
+    ref.V = 2;
     expect(counter).toBe(2);
 });
 
@@ -185,15 +117,13 @@ it("Debug", function () {
     node.tag("div", {
         callback: n => (element = n),
         slot(node) {
-            Debug({ model: ref }, node);
-            Debug({ model: "x" }, node);
+            Debug({ $model: ref }, node);
         },
     });
 
-    expect(element.childNodes.length).toBe(2);
+    expect(element.childNodes.length).toBe(1);
     expect((element.childNodes[0] as Comment).textContent).toBe("0");
-    expect((element.childNodes[1] as Comment).textContent).toBe("x");
-    ref.$ = 1;
+    ref.V = 1;
     expect((element.childNodes[0] as Comment).textContent).toBe("1");
 });
 
@@ -219,4 +149,37 @@ it("Delay", function (done) {
             done();
         }, 20);
     }, 10);
+});
+
+it("Switch", function () {
+    const [node] = createNode();
+    const ref = new Reference(true);
+    let element!: Element;
+
+    node.tag("div", {
+        callback: n => (element = n),
+        slot(node) {
+            Switch(
+                {
+                    cases: [
+                        {
+                            $case: ref,
+                            slot(node) {
+                                node.text("true");
+                            },
+                        },
+                    ],
+                    default(node) {
+                        node.text("false");
+                    },
+                },
+                node,
+            );
+        },
+    });
+
+    expect(element.childNodes.length).toBe(1);
+    expect((element.childNodes[0] as Text).textContent).toBe("true");
+    ref.V = false;
+    expect((element.childNodes[0] as Text).textContent).toBe("false");
 });

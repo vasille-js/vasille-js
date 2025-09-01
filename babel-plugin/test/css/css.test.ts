@@ -21,7 +21,7 @@ it("theme name is not string literal", function () {
 });
 
 it("dark conflict with themes", function () {
-  throwTest(__dirname, "dark-vs-theme", "The theme seem the be defined twice");
+  throwTest(__dirname, "dark-vs-theme", "The theme seems the be defined twice");
 });
 
 it("spread element in array", function () {

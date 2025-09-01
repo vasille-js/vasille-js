@@ -11,7 +11,6 @@ export interface BaseViewOptions<Node, Element, TagOptions extends object, K, T,
  * Base class of default views
  * @class BaseView
  * @extends RepeatNode
- * @implements IModel
  */
 export class BaseView<
     Node,
@@ -21,7 +20,7 @@ export class BaseView<
     T,
     Model extends ListenableModel<K, T>,
 > extends RepeatNode<Node, Element, TagOptions, K, T, BaseViewOptions<Node, Element, TagOptions, K, T, Model>> {
-    public readonly input!: BaseViewOptions<Node, Element, TagOptions, K, T, Model>;
+    model: Model;
 
     /**
      * Handler to catch values addition
@@ -38,26 +37,26 @@ export class BaseView<
     public constructor(
         input: BaseViewOptions<Node, Element, TagOptions, K, T, Model>,
         runner: Runner<Node, Element, TagOptions>,
-        name?: string,
     ) {
-        super(input, runner, name);
+        super(input, runner);
+        this.model = input.model;
     }
 
     public compose() {
         this.addHandler = (id, item) => {
-            this.createChild(this.input, id, item);
+            this.createChild(id, item);
         };
         this.removeHandler = (id, item) => {
             this.destroyChild(id, item);
         };
 
-        this.input.model.listener.onAdd(this.addHandler);
-        this.input.model.listener.onRemove(this.removeHandler);
+        this.model.listener.onAdd(this.addHandler);
+        this.model.listener.onRemove(this.removeHandler);
     }
 
     public destroy(): void {
-        this.input.model.listener.offAdd(this.addHandler);
-        this.input.model.listener.offRemove(this.removeHandler);
+        this.model.listener.offAdd(this.addHandler);
+        this.model.listener.offRemove(this.removeHandler);
         super.destroy();
     }
 }

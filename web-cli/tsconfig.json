@@ -1,0 +1,16 @@
+{
+  "include": ["src/**/*"],
+
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": false,
+    "outDir": "bin",
+    "target": "ES2020",
+    "module": "Node16",
+    "moduleResolution": "node16",
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "types": ["node"]
+  }
+}

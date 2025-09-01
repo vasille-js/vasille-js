@@ -4,6 +4,9 @@ import type { HtmlTagMap } from "../spec/html.d.ts";
 type prefixedObject<T, P extends string> = {
     [K in keyof T as K extends string ? `${P}${K}` : never]?: T[K];
 };
+type EventHandlers<T> = {
+    [K in keyof T]: T[K] | [T[K], boolean | AddEventListenerOptions];
+};
 
 type HtmlInput<K extends keyof HTMLElementTagNameMap & keyof HtmlTagMap> = {
     callback?: (node: HTMLElementTagNameMap[K]) => unknown;
@@ -11,7 +14,7 @@ type HtmlInput<K extends keyof HTMLElementTagNameMap & keyof HtmlTagMap> = {
     style?: RawStyleProps | string;
     slot?: unknown;
 } & Partial<HtmlTagMap[K]["attrs"]> &
-    prefixedObject<HtmlTagMap[K]["events"], "on"> &
+    prefixedObject<EventHandlers<HtmlTagMap[K]["events"]>, "on"> &
     Partial<prefixedObject<HtmlTagMap[K]["props"], "bind:">>;
 
 export declare namespace JSX {

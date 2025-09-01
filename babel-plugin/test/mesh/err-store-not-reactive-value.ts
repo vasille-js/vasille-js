@@ -1,6 +1,6 @@
 import { store } from "vasille-web";
 
-const S = store(() => {
+const sStore = store(() => {
   let $a = 3;
 
   return {

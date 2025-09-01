@@ -1,7 +1,7 @@
-import { router, store } from "vasille-web";
+import { beforeMount, router, store } from "vasille-web";
 
-export const S = store(() => {
-  router();
+const sStore = store(() => {
+  beforeMount(() => router());
 
   return {};
 });

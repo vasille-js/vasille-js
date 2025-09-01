@@ -1,13 +1,13 @@
 import { compose } from "vasille-web";
 
-export const C = compose(() => {
-  let a = "text";
+const C = compose(() => {
+  let $a = "text";
 
   <>
     text text2
     <></>
     <>{"text"}</>
-    <>{a}</>
+    <>{$a}</>
     <div />
     text3
   </>;

@@ -1,11 +1,10 @@
-import { Reference } from "vasille";
-import { compose } from "vasille-web";
+import { compose, ref } from "vasille-web";
 
-const obj = new Reference({
-  nested: new Reference(2),
+const $obj = ref({
+  $nested: ref(2),
 });
 
-export const C = compose(() => {
-  let a = 0;
-  const c = a + obj.$.nested.$;
+const C = compose(() => {
+  let $a = 0;
+  const $c = $a + $obj.$nested;
 });

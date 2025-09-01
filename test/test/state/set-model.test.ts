@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { control, Component } from "../../src/state/set-model";
+import { control, SetModelStateTest } from "../../src/state/SetModelStateTest";
 import { page } from "../page";
 
 it("set model in component", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, SetModelStateTest, {});
 
   expect(body.children.length).toBe(1);
   expect(body.children[0].innerHTML).toBe("Hello m!");

@@ -1,7 +1,7 @@
-import { runOnDestroy, view } from "vasille-web";
+import { beforeDestroy, compose } from "vasille-web";
 
-export const C = view(() => {
-  runOnDestroy(() => {
+const C = compose(() => {
+  beforeDestroy(() => {
     console.log("destroy called");
   });
 });

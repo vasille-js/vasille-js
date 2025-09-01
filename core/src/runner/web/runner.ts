@@ -7,7 +7,8 @@ import {
 } from "../../index.js";
 import { internalError } from "../../core/errors.js";
 import { AttributeBinding } from "./binding/attribute.js";
-import { DynamicalClassBinding, StaticClassBinding } from "./binding/class.js";
+import { addClass, DynamicalClassBinding, removeClass, StaticClassBinding } from "./binding/class.js";
+import { PropertyBinding } from "./binding/property.js";
 import { stringifyStyleValue, StyleBinding } from "./binding/style.js";
 
 export type AttrType<T> = IValue<T | string | null> | T | string | null | undefined;
@@ -17,20 +18,20 @@ export interface TagOptions {
     attr?: Record<string, AttrType<number | boolean>>;
     class?: (string | IValue<string> | Record<string, boolean | IValue<boolean>>)[];
     style?: Record<string, StyleType<string>>;
-    events?: Record<string, (...args: unknown[]) => unknown>;
+    events?: Record<string, ((...args: unknown[]) => unknown) | [(...args: unknown[]) => unknown, object | boolean]>;
     bind?: Record<string, any>;
     slot?: (ctx: Tag) => void;
     callback?: (node: Element) => void;
 }
 
 export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
-    public readonly runner: Runner;
+    declare public readonly runner: Runner;
     protected node: Text;
 
     public compose(): void {
-        const text = this.input.text;
+        const text = this.data;
 
-        this.node = this.runner.document.createTextNode((text instanceof IValue ? text.$ : text)?.toString() ?? "");
+        this.node = this.runner.document.createTextNode((text instanceof IValue ? text.V : text)?.toString() ?? "");
 
         if (text instanceof IValue) {
             this.handler = (v: unknown) => {
@@ -52,13 +53,13 @@ export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
 }
 
 export class DebugNode extends AbstractDebugNode<Node, Element, TagOptions> {
-    public readonly runner: Runner;
+    declare public readonly runner: Runner;
     protected node: Comment;
 
     public compose(): void {
-        const text = this.input.text;
+        const text = this.data;
 
-        this.node = this.runner.document.createComment(text.$?.toString() ?? "");
+        this.node = this.runner.document.createComment(text.V?.toString() ?? "");
         this.handler = (v: unknown) => {
             this.node.replaceData(0, -1, v?.toString() ?? "");
         };
@@ -77,7 +78,7 @@ export class DebugNode extends AbstractDebugNode<Node, Element, TagOptions> {
 }
 
 export class Tag extends AbstractTag<Node, Element, TagOptions> {
-    public readonly runner: Runner;
+    declare public readonly runner: Runner;
 
     public compose(): void {
         if (!this.name) {
@@ -87,10 +88,10 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
         const node = this.runner.document.createElement(this.name);
 
         this.node = node;
-        this.applyOptions(this.input);
+        this.applyOptions(this.options);
         this.parent.appendNode(node);
-        this.input.callback?.(this.node);
-        this.input.slot?.(this);
+        this.options.callback?.(this.node);
+        this.options.slot?.(this);
     }
 
     public destroy() {
@@ -104,7 +105,7 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
                 const value = options.attr[name];
 
                 if (value instanceof IValue) {
-                    this.register(new AttributeBinding(this, name, value));
+                    this.bind(new AttributeBinding(this, name, value));
                 } else {
                     /* istanbul ignore else */
                     if (typeof value === "boolean") {
@@ -120,25 +121,25 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
         }
 
         if (options.class) {
-            for (const item of options.class) {
+            options.class.forEach(item => {
                 if (item instanceof IValue) {
-                    this.register(new DynamicalClassBinding(this, item));
+                    this.bind(new DynamicalClassBinding(this, item));
                 } else if (typeof item == "string") {
-                    this.node.classList.add(item);
+                    addClass(this, item);
                 } else {
                     for (const name in item) {
                         const value = item[name];
 
                         if (value instanceof IValue) {
-                            this.register(new StaticClassBinding(this, name, value));
+                            this.bind(new StaticClassBinding(this, name, value));
                         } else if (value) {
-                            this.node.classList.add(name);
+                            addClass(this, name);
                         } else {
-                            this.node.classList.remove(name);
+                            removeClass(this, name);
                         }
                     }
                 }
-            }
+            });
         }
 
         if (options.style && this.node instanceof HTMLElement) {
@@ -146,7 +147,7 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
                 const value = options.style[name];
 
                 if (value instanceof IValue) {
-                    this.register(new StyleBinding(this, name, value));
+                    this.bind(new StyleBinding(this, name, value));
                 } else {
                     this.node.style.setProperty(name, stringifyStyleValue(value));
                 }
@@ -155,7 +156,13 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
 
         if (options.events) {
             for (const name in options.events) {
-                this.node.addEventListener(name, options.events[name]);
+                const event = options.events[name];
+
+                if (event instanceof Array) {
+                    this.node.addEventListener(name, event[0], event[1]);
+                } else {
+                    this.node.addEventListener(name, event);
+                }
             }
         }
 
@@ -168,13 +175,8 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
                 if (!(value instanceof IValue)) {
                     node[k] = value;
                 } else {
-                    node[k] = value.$;
-                    this.watch(
-                        (v: string) => {
-                            node[k] = v;
-                        },
-                        [value],
-                    );
+                    node[k] = value.V;
+                    this.bind(new PropertyBinding(this, k, value));
                 }
             }
         }

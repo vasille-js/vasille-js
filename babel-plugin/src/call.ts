@@ -1,27 +1,31 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { Internal, ctx } from "./internal.js";
+import { Internal } from "./internal.js";
 
 export type FnNames =
   | "compose"
   | "view"
-  | "mvvmView"
-  | "mvcView"
-  | "hybridView"
+  | "component"
   | "store"
+  | "model"
   | "screen"
+  | "page"
+  | "modal"
+  | "prompt"
   | "awaited"
   | "calculate"
   | "forward"
+  | "backward"
   | "watch"
   | "ref"
   | "bind"
-  | "value"
+  | "raw"
   | "arrayModel"
   | "setModel"
   | "mapModel"
-  | "reactiveObject"
-  | "runOnDestroy"
+  | "beforeMount"
+  | "afterMount"
+  | "beforeDestroy"
   | "router"
   | "theme"
   | "dark"
@@ -32,22 +36,28 @@ export type FnNames =
   | "prefersLight"
   | "styleSheet";
 
-export const composeOnly: FnNames[] = [
-  "forward",
-  "watch",
-  "calculate",
-  "ref",
-  "bind",
-  "value",
-  "awaited",
-  "arrayModel",
-  "mapModel",
-  "setModel",
-  "reactiveObject",
-  "router",
-  "runOnDestroy",
-];
-export const styleOnly: FnNames[] = [
+export const composeFunctions = [
+  "compose",
+  "store",
+  "model",
+  "view",
+  "component",
+  "page",
+  "modal",
+  "prompt",
+  "screen",
+] as const satisfies FnNames[];
+
+export const reactivityFunctions = ["ref", "awaited"] as const satisfies FnNames[];
+
+export const bindFunctions = ["watch", "calculate", "bind"] as const satisfies FnNames[];
+
+export const modelFunctions = ["arrayModel", "mapModel", "setModel"] as const satisfies FnNames[];
+
+export const boundaryFunctions = ["forward", "backward"] as const satisfies FnNames[];
+
+export const composeOnly = ["router", "beforeMount", "afterMount", "beforeDestroy"] as const satisfies FnNames[];
+export const styleOnly = [
   "theme",
   "dark",
   "mobile",
@@ -56,38 +66,39 @@ export const styleOnly: FnNames[] = [
   "prefersDark",
   "prefersLight",
   "styleSheet",
+] as const satisfies FnNames[];
+
+export const hintFunctions: FnNames[] = [
+  ...reactivityFunctions,
+  ...composeFunctions,
+  ...bindFunctions,
+  ...modelFunctions,
+  ...composeOnly,
+  ...styleOnly,
+  ...boundaryFunctions,
 ];
-export const requiresContext: FnNames[] = ["awaited"];
-const requiresContextSet: Set<string> = new Set(requiresContext);
 
-function checkCall<T extends string>(
-  path: NodePath<types.Expression | null | undefined>,
-  name: T,
-  internal: Internal,
-): T {
-  const node = path.node;
-
-  if (requiresContextSet.has(name) && t.isCallExpression(node)) {
-    if (internal.stateOnly) {
-      throw path.buildCodeFrameError(`Vasille: ${name} function can be used only in components`);
-    }
-    node.arguments.unshift(ctx);
-  }
-  if (name === "store") {
+function checkCall<T extends string>(name: T, internal: Internal): T {
+  if (name === "store" || name === "model") {
     internal.stateOnly = true;
-  }
-  if (["compose", "view", "mvcView", "mvvmView", "hybridView", "screen"].includes(name)) {
+  } else if ((composeFunctions as string[]).includes(name)) {
     internal.stateOnly = false;
   }
 
   return name;
 }
 
-export function calls<T extends FnNames>(
+export function calls(path: NodePath<types.CallExpression>, names: FnNames[], internal: Internal): boolean;
+export function calls(
   path: NodePath<types.Expression | null | undefined>,
-  names: T[],
+  names: FnNames[],
   internal: Internal,
-): T | false {
+): path is NodePath<types.CallExpression>;
+export function calls(
+  path: NodePath<types.Expression | null | undefined>,
+  names: FnNames[],
+  internal: Internal,
+): path is NodePath<types.CallExpression> {
   const node = path.node;
   const set = new Set<string>(names);
   const callee = t.isCallExpression(node) ? node.callee : null;
@@ -97,7 +108,7 @@ export function calls<T extends FnNames>(
       const mapped = internal.mapping.get(callee.name);
 
       if (mapped && set.has(mapped) && internal.stack.get(callee.name) === undefined) {
-        return checkCall(path, mapped, internal) as T;
+        return !!checkCall(mapped, internal);
       }
       return false;
     }
@@ -121,7 +132,7 @@ export function calls<T extends FnNames>(
       callee.object.name === internal.global &&
       internal.stack.get(internal.global) === undefined
     ) {
-      return checkCall(path, propName, internal) as T;
+      return !!checkCall(propName, internal);
     }
   }
 

@@ -11,3 +11,7 @@ it("incorrect number of properties error", function () {
 it("first argument id not a function error", function () {
   throwTest(__dirname, "arg-not-func", "Argument of calculate must be a function");
 });
+
+it("malformed component error", function () {
+  throwTest(__dirname, "malformed-component", "Malformed component detected");
+});

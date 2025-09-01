@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { Watch, control } from "../../src/mvc/watch";
+import { WatchTest, control } from "../../src/mvc/WatchTest";
 import { page } from "../page";
 
 it("MVC watch call", function () {
   const body = page.window.document.body;
 
-  mount(body, Watch, {});
+  mount(body, WatchTest, {});
 
   expect(body.children.length).toBe(1);
   expect(body.children[0].innerHTML).toBe("Hello +test!");

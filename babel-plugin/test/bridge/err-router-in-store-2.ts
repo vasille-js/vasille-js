@@ -1,8 +1,8 @@
 import { router, store } from "vasille-web";
 
-export const S = store(() => {
+const sStore = store(() => {
   function goNext() {
-    router()?.navigate("/:test", { test: "x" }, "loading-overlay");
+    router()?.goTo("/x");
   }
 
   return {};

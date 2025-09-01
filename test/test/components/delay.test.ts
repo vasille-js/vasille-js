@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { Component, control } from "../../src/components/delay";
+import { DelayTest, control } from "../../src/components/DelayTest";
 import { page } from "../page";
 
 it("Delay component test", function (done) {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, DelayTest, {});
 
   expect(body.children.length).toBe(0);
   setTimeout(() => {

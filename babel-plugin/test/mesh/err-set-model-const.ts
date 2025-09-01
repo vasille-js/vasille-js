@@ -1,5 +1,5 @@
 import { compose, setModel } from "vasille-web";
 
-export const C = compose(() => {
+const C = compose(() => {
   let a = setModel([]);
 });

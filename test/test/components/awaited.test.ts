@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { Component, reloads, c2states, c1states } from "../../src/components/awaited";
+import { AwaitedTest, reloads, c2states, c1states } from "../../src/components/AwaitedTest";
 import { page } from "../page";
 
 it("awaited function test", function (done) {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, AwaitedTest, {});
 
   expect(body.children.length).toBe(0);
   expect(c1states).toStrictEqual([[undefined, undefined]]);

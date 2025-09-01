@@ -1,9 +1,9 @@
-import { compose } from "vasille-web";
+import { beforeMount, compose } from "vasille-web";
 
-export const C = compose(() => {
-  let a = 2;
-  let b = 3;
-  const sum = a + b;
+const C = compose(() => {
+  let $a = 2;
+  let $b = 3;
+  const $sum = $a + $b;
 
-  console.log(sum);
+  beforeMount(() => console.log($sum));
 });

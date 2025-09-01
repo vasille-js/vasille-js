@@ -1,8 +1,8 @@
-import { store, bridge, view } from "vasille-web";
+import { component, raw, store, view } from "vasille-web";
 
-export const model = store(() => {
+const modelStore = store(() => {
   let $r = "test";
-  let text = bridge.stored($r);
+  let text = raw($r);
 
   return {
     $r,
@@ -11,8 +11,10 @@ export const model = store(() => {
       $r = value;
     },
   };
-})();
-
-export const Component = view(() => {
-  <div>Hello {model.text}!</div>;
 });
+
+const Component = component(() => {
+  <div>Hello {modelStore.text}!</div>;
+});
+
+export const x = { model: modelStore, Component };

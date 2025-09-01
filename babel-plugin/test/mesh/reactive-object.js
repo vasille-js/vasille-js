@@ -1,46 +1,38 @@
-import { compose, store, $ as VasilleWeb } from "vasille-web";
+import { bind, compose, store, watch, ref as VasilleRef, ensure as VasilleEnsure } from "vasille-web";
 const obj = {
   a: 1,
   b: 2
 };
-export const S = store(() => {
-  const a = VasilleWeb.r(2);
-  const b = VasilleWeb.fo(VasilleWeb.r(3));
-  const o = VasilleWeb.sro({
+const sStore = store(Vasille => {
+  const $a = VasilleRef(2, "a");
+  const $b = VasilleRef(3, "b");
+  const o = {
     a: 1,
-    b: {
+    $b: VasilleRef({
       c: 3
-    }
-  });
-  const {
-    b: b0,
-    ...o0
-  } = o;
-  console.log(b0.$, o0.a.$);
-  return {
-    $a: a,
-    $b: VasilleWeb.fo(b),
-    $$o: o,
-    $b0: b0,
-    $$o0: o0
+    })
   };
-}, "VasilleWeb:S");
-const s = S();
+  console.log(o.$b.V.c);
+  return {
+    $a: $a,
+    $b: $b,
+    o: o
+  };
+}, "sStore");
+const s = sStore;
 const Component = compose(Vasille => {
-  const a = s.$a;
-  const b = s.$b;
-  const o0 = s["$$o"];
-  const o1 = s.$$o;
-  const o2 = obj;
-  console.log(a.$, b.$, o0.b.$.c, o1.a.$, o2.a);
-  Vasille.watch((Vasille_a, Vasille_b, Vasille_o0_b, Vasille_o1_a) => {
-    console.log(Vasille_a, Vasille_b, Vasille_o0_b.c, Vasille_o1_a, o2.a);
-  }, [a, b, o0.b, o1.a]);
+  const $a = VasilleEnsure(s.$a);
+  const $b = VasilleEnsure(s.$b);
+  const $bc1 = watch(Vasille, Vasille_s_o_b => Vasille_s_o_b.c, [s.o.$b], "bc1");
+  const $bc2 = watch(Vasille, Vasille_s_o_b => Vasille_s_o_b?.c, [s.o.$b], "bc2");
+  watch(Vasille, (Vasille_a, Vasille_b, Vasille_s_o_b) => {
+    console.log(Vasille_a, Vasille_b, Vasille_s_o_b.c, Vasille_s_o_b?.c);
+  }, [$a, $b, s.o.$b]);
+  console.log($a.V, $b.V, s.o.$b.V.c, s.o.$b?.V?.c);
   Vasille.tag("div", {}, Vasille => {
-    Vasille.text(a);
-    Vasille.text(b);
-    Vasille.text(Vasille.expr(Vasille_o0_b => Vasille_o0_b.c, [o0.b]));
-    Vasille.text(o1.a);
-    Vasille.text(o2.a);
+    Vasille.text($a);
+    Vasille.text($b);
+    Vasille.text(watch(Vasille, Vasille_s_o_b => Vasille_s_o_b.c, [s.o.$b]));
+    Vasille.text(watch(Vasille, Vasille_s_o_b => Vasille_s_o_b?.c, [s.o.$b]));
   });
-}, "VasilleWeb:Component");
+}, "Component");

@@ -1,13 +1,13 @@
 import { For, compose, Debug } from "vasille-web";
 
-export const C = compose(() => {
+const C = compose(() => {
   const a = [1, 2, 3];
   const map = new Map([["x", 1]]);
 
   <For
     of={a}
     slot={value => {
-      <Debug model={value} />;
+      <Debug $model={value} />;
     }}
   />;
   <For

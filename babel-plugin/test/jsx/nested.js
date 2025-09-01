@@ -1,22 +1,23 @@
-import { compose, If } from "vasille-web";
-export const C1 = compose((Vasille, props) => {
+import { compose, ref as VasilleRef, expr as VasilleExpr, Switch as VasilleSwitch } from "vasille-web";
+const C1 = compose((Vasille, props) => {
   Vasille.tag("div", {});
-}, "VasilleWeb:C1");
-export const C2 = compose(Vasille => {
-  const a = Vasille.ref(1, "a");
+}, "C1");
+const C2 = compose(Vasille => {
+  const $a = VasilleRef(1, "a");
   Vasille.tag("div", {}, Vasille => {
     C1({
-      bool: true,
-      a: 1,
-      b: 2,
-      c: "text"
+      "$bool": VasilleRef(true),
+      "$a": VasilleRef(1),
+      "$b": VasilleRef(2),
+      "$c": VasilleRef("text"),
+      str: "str"
     }, Vasille, (_VasilleWeb, Vasille) => {
       C1({
         ...{
-          a: 1
+          $a: VasilleRef(1)
         },
-        b: Vasille.expr(Vasille_a => Vasille_a + 1, [a]),
-        bool: true
+        "$b": VasilleExpr(Vasille, Vasille_a => Vasille_a + 1, [$a]),
+        "$bool": VasilleRef(true)
       }, Vasille, (_VasilleWeb, Vasille) => {
         Vasille.tag("div", {});
         Vasille.tag("span", {}, Vasille => {
@@ -30,9 +31,12 @@ export const C2 = compose(Vasille => {
       C1({}, Vasille);
     }
   }, Vasille);
-  If({
-    condition: Vasille.expr(Vasille_a => Vasille_a > 1, [a])
-  }, Vasille, Vasille => {
-    C1({}, Vasille);
-  });
-}, "VasilleWeb:C2");
+  VasilleSwitch({
+    cases: [{
+      $case: VasilleExpr(Vasille, Vasille_a => Vasille_a > 1, [$a]),
+      slot: Vasille => {
+        C1({}, Vasille);
+      }
+    }]
+  }, Vasille);
+}, "C2");

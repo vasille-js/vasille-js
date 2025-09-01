@@ -1,11 +1,11 @@
 import { mount } from "vasille-web";
-import { Component, control, xes } from "../../src/components/slot";
+import { SlotTest, control, xes } from "../../src/components/SlotTest";
 import { page } from "../page";
 
 it("Slot component test", function () {
   const body = page.window.document.body;
 
-  mount(body, Component, {});
+  mount(body, SlotTest, {});
 
   xes.forEach((item, index) => {
     expect(item).toBe(index === 0 ? 0 : 3);

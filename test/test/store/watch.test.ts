@@ -1,14 +1,14 @@
 import { mount } from "vasille-web";
-import { Watch, model } from "../../src/store/watch";
+import { x } from "../../src/store/watch";
 import { page } from "../page";
 
 it("Store watch call", function () {
   const body = page.window.document.body;
 
-  mount(body, Watch, {});
+  mount(body, x.Watch, {});
 
   expect(body.children.length).toBe(1);
   expect(body.children[0].innerHTML).toBe("Hello +test!");
-  model?.setValue("world");
+  x.model?.setValue("world");
   expect(body.children[0].innerHTML).toBe("Hello +world!");
 });

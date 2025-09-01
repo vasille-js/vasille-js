@@ -1,20 +1,4 @@
-import { runJsxTest, runTest, throwTest } from "../run-test";
-
-it("bridge test", function () {
-  runTest(__dirname, "bridge");
-});
-
-it("bridge jsx test", function () {
-  runJsxTest(__dirname, "jsx");
-});
-
-it("bridge jsx bridge value prop", function () {
-  runJsxTest(__dirname, "jsx-bridge-value-prop");
-});
-
-it("bridge value in setValue", function () {
-  runTest(__dirname, "bridge-value-in-setValue");
-});
+import { runTest, throwTest } from "../run-test";
 
 it("router test", function () {
   runTest(__dirname, "router");
@@ -24,8 +8,24 @@ it("bridge/router global import", function () {
   runTest(__dirname, "global-import");
 });
 
+it("bind test", function () {
+  runTest(__dirname, "bind");
+});
+
+it("module level reactivity test", function () {
+  runTest(__dirname, "module-level-reactivity");
+});
+
+it("object property key-value match test", function () {
+  runTest(__dirname, "object-property-match");
+});
+
+it("array item set test", function () {
+  runTest(__dirname, "array-item-set");
+});
+
 it("router outside of compose error", function () {
-  throwTest(__dirname, "router", 'Usage of hint "router" is restricted here');
+  throwTest(__dirname, "router", "Usage of hints is restricted here");
 });
 
 it("router in store error 1", function () {
@@ -40,14 +40,30 @@ it("router in store error 3", function () {
   throwTest(__dirname, "router-in-store-3", "The router is not available in stores");
 });
 
-it("bridge not 1 arg error", function () {
-  throwTest(__dirname, "bridge-not-1-arg", "Expected 1 argument");
+it("bind in object error", function () {
+  throwTest(__dirname, "bind-in-object", "Objects can not contains bind expressions");
 });
 
-it("bridge not 2 args error", function () {
-  throwTest(__dirname, "bridge-not-2-args", "Expected 2 arguments");
+it("field renaming error", function () {
+  throwTest(__dirname, "field-renaming", 'Property "$a" can not be renamed to "a": rename it to "$a"');
 });
 
-it("bridge method not found error", function () {
-  throwTest(__dirname, "bridge-not-found", 'Unknown bridge method "value2"');
+it("field renaming error 2", function () {
+  throwTest(__dirname, "field-renaming-2", 'Property "a" can not be renamed to "$a": rename it to "a"');
+});
+
+it("property is not reactive error", function () {
+  throwTest(__dirname, "prop-not-reactive", "This property is not a reactive");
+});
+
+it("raw without args error", function () {
+  throwTest(__dirname, "raw-no-args", "Failed to parse raw value");
+});
+
+it("beforeMount arg error", function () {
+  throwTest(__dirname, "before-mount-arg", "Incorrect hint argument");
+});
+
+it("non reactive module var name check error", function () {
+  throwTest(__dirname, "non-reactive-module-var", "Non-reactive variable name must not start with $");
 });

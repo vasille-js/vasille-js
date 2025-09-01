@@ -5,11 +5,11 @@ import { page } from "../page.js";
 it("array view", function () {
     const window = page();
     const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner, {});
+    const root = new App(window.document.body, runner);
     const array = new ArrayModel<number>([1]);
     let element!: Element;
 
-    root.register(array, "#");
+    root.bind(array);
     root.tag("div", { callback: node => (element = node) }, function (tag) {
         tag.create(
             new ArrayView(
@@ -80,7 +80,7 @@ it("array view", function () {
 it("map view", function () {
     const window = page();
     const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner, {});
+    const root = new App(window.document.body, runner);
     const model = new MapModel<number, number>([
         [1, 2],
         [2, 3],
@@ -88,7 +88,7 @@ it("map view", function () {
     ]);
     let element!: HTMLElement;
 
-    root.register(model);
+    root.bind(model);
     root.tag("div", { callback: node => (element = node as HTMLElement) }, function (tag) {
         tag.create(
             new MapView(
@@ -120,11 +120,11 @@ it("map view", function () {
 it("set view", function () {
     const window = page();
     const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner, {});
+    const root = new App(window.document.body, runner);
     const model = new SetModel([1, 2, 3]);
     let element!: HTMLElement;
 
-    root.register(model);
+    root.bind(model);
     root.tag("div", { callback: node => (element = node as HTMLElement) }, function (f) {
         f.create(
             new SetView(
@@ -153,11 +153,11 @@ it("set view", function () {
 it("view timeout test", function (done) {
     const window = page();
     const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner, {});
+    const root = new App(window.document.body, runner);
     const model = new SetModel([1, 2, 3]);
     let element!: HTMLElement;
 
-    root.register(model);
+    root.bind(model);
     root.tag("div", { callback: node => (element = node as HTMLElement) }, function (f) {
         f.create(
             new SetView(
@@ -188,49 +188,4 @@ it("view timeout test", function (done) {
             done();
         }, 0);
     }, 0);
-});
-
-it("view item id test", function () {
-    const window = page();
-    const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner, {});
-    const model = new SetModel<unknown>();
-    let id: unknown;
-    let run = false;
-
-    root.register(model);
-    root.tag("div", {}, function (f) {
-        f.create(
-            new SetView(
-                {
-                    model,
-                    slot: function (f, item) {
-                        expect(f.name).toBe(id);
-                        run = true;
-                    },
-                },
-                runner,
-            ),
-        );
-    });
-
-    id = "field";
-    run = false;
-    model.add({ id: "field" });
-    expect(run).toBe(true);
-
-    id = "[object Object]";
-    run = false;
-    model.add({ v: 2 });
-    expect(run).toBe(true);
-
-    id = "2";
-    run = false;
-    model.add(2);
-    expect(run).toBe(true);
-
-    id = "[object Object]";
-    run = false;
-    model.add({ v: 2 });
-    expect(run).toBe(true);
 });

@@ -1,15 +1,14 @@
-import { compose, $ as VasilleWeb } from "vasille-web";
-export const C = compose(Vasille => {
-  const a = Vasille.ref(3);
-  const b = VasilleWeb.am(Vasille, [1, 2, a.$]);
-  const c = VasilleWeb.sm(Vasille, [1, 2, a.$]);
-  const d = VasilleWeb.mm(Vasille, [[1, a.$], [2, 3]]);
-  const e = VasilleWeb.ro(Vasille, {
+import { compose, ref as VasilleRef, arrayModel as VasilleArrayModel, setModel as VasilleSetModel, mapModel as VasilleMapModel } from "vasille-web";
+const C = compose(Vasille => {
+  const $a = VasilleRef(3);
+  const b = VasilleArrayModel(Vasille, [1, 2, $a.V]);
+  const c = VasilleSetModel(Vasille, [1, 2, $a.V]);
+  const d = VasilleMapModel(Vasille, [[1, $a.V], [2, 3]]);
+  const e = {
     f: 1,
     e: 2,
-    g: a.$
-  });
-  const f = Vasille.ref(4);
-  const g = Vasille.own(VasilleWeb.ex((Vasille_a, Vasille_f) => Vasille_a + Vasille_f, [a, f]));
-  ;
+    $g: $a
+  };
+  const $f = VasilleRef(4);
+  const $g = VasilleRef($a.V + $f.V);
 });

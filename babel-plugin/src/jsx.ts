@@ -1,16 +1,22 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { Internal, VariableState, ctx } from "./internal.js";
-import { exprCall } from "./lib.js";
-import { compose, meshExpression } from "./mesh.js";
+import { calls } from "./call";
+import { ctx, Internal } from "./internal.js";
 import { bodyHasJsx } from "./jsx-detect.js";
+import { err, Errors, exprCall } from "./lib.js";
+import { compose, meshExpression } from "./mesh.js";
+
+export interface ConditionCollection {
+  cases: { condition: types.Expression; slot: types.FunctionExpression | types.ArrowFunctionExpression }[] | null;
+}
 
 export function transformJsx(
   path: NodePath<types.JSXElement | types.JSXFragment>,
+  conditions: ConditionCollection,
   internal: Internal,
 ): types.Statement[] {
-  if (t.isJSXElement(path.node)) {
-    return [transformJsxElement(path as NodePath<types.JSXElement>, internal)];
+  if (path.isJSXElement()) {
+    return transformJsxElement(path, conditions, internal);
   }
 
   return transformJsxArray(path.get("children"), internal);
@@ -23,11 +29,16 @@ export function transformJsxArray(
   internal: Internal,
 ): types.Statement[] {
   const result: types.Statement[] = [];
+  const conditions: ConditionCollection = { cases: null };
 
-  for (const path of paths) {
-    if (t.isJSXElement(path.node) || t.isJSXFragment(path.node)) {
-      result.push(...transformJsx(path as NodePath<types.JSXElement | types.JSXFragment>, internal));
-    } else if (t.isJSXText(path.node)) {
+  paths.forEach(path => {
+    if (!path.isJSXElement() && !(path.isJSXText() && /^\s+$/.test(path.node.value))) {
+      result.push(...processConditions(conditions, internal));
+    }
+
+    if (path.isJSXElement() || path.isJSXFragment()) {
+      result.push(...transformJsx(path, conditions, internal));
+    } else if (path.isJSXText()) {
       if (!/^\s+$/.test(path.node.value)) {
         const fixed = path.node.value
           .replace(/\n\s+$/m, "")
@@ -55,21 +66,18 @@ export function transformJsxArray(
 
         result.push(t.expressionStatement(call));
       }
-    } else if (t.isJSXExpressionContainer(path.node)) {
-      const value = transformJsxExpressionContainer(
-        path as NodePath<types.JSXExpressionContainer>,
-        internal,
-        false,
-        false,
-      );
+    } else if (path.isJSXExpressionContainer()) {
+      const value = transformJsxExpressionContainer(path, internal, false, false, true, true);
       const call = t.callExpression(t.memberExpression(ctx, t.identifier("text")), [value]);
 
       call.loc = value.loc;
       result.push(t.expressionStatement(call));
     } else {
-      throw path.buildCodeFrameError("Vasille: Spread child is not supported");
+      err(Errors.TokenNotSupported, path, "Spread child is not supported", internal);
     }
-  }
+  });
+
+  result.push(...processConditions(conditions, internal));
 
   return result;
 }
@@ -79,50 +87,96 @@ function transformJsxExpressionContainer(
   internal: Internal,
   acceptSlots: boolean,
   isInternalSlot: boolean,
+  acceptsReactive: boolean,
+  acceptsRaw: boolean,
 ): types.Expression {
-  const expression = path.node.expression as types.Expression;
-  const loc = expression.loc;
+  const expression = path.get("expression");
+  const loc = expression.node.loc;
 
   if (
     acceptSlots &&
-    (t.isFunctionExpression(expression) || t.isArrowFunctionExpression(expression)) &&
-    bodyHasJsx(expression.body)
+    (expression.isFunctionExpression() || expression.isArrowFunctionExpression()) &&
+    bodyHasJsx(expression.node.body)
   ) {
-    compose(
-      path.get("expression") as NodePath<types.FunctionExpression | types.ArrowFunctionExpression>,
-      internal,
-      isInternalSlot,
-      "slot",
-    );
+    compose(expression, internal, isInternalSlot, true);
 
     if (!isInternalSlot) {
-      if (expression.params.length < 1) {
-        expression.params.push(t.identifier(`_${internal.prefix}`));
+      if (expression.node.params.length < 1) {
+        expression.node.params.push(t.identifier(`_${internal.prefix}`));
       }
-      expression.params.push(ctx);
+      expression.node.params.push(ctx);
     } else {
-      expression.params.unshift(ctx);
+      expression.node.params.unshift(ctx);
     }
 
-    expression.loc = loc;
+    expression.node.loc = loc;
 
-    return expression;
-  } else if (isInternalSlot && (t.isFunctionExpression(expression) || t.isArrowFunctionExpression(expression))) {
-    expression.params.unshift(ctx);
+    return expression.node;
+  } else if (isInternalSlot && (expression.isFunctionExpression() || expression.isArrowFunctionExpression())) {
+    expression.node.params.unshift(ctx);
   }
 
-  const exprPath = path.get("expression") as NodePath<types.Expression>;
-  let call = exprCall(exprPath, expression, internal);
+  /* istanbul ignore else */
+  if (expression.isExpression()) {
+    if (acceptsReactive) {
+      // cals backward
+      if (calls(expression, ["backward"], internal)) {
+        const argPath = (expression as NodePath<types.CallExpression>).get("arguments")[0];
 
-  if (!call && t.isIdentifier(expression) && internal.stack.get(expression.name) === VariableState.ReactiveObject) {
-    call = t.callExpression(t.memberExpression(internal.id, t.identifier("rop")), [expression]);
+        if (argPath && argPath.isExpression()) {
+          const argValue = argPath.node;
+
+          if (exprCall(argPath, argPath.node, internal, { strong: true })) {
+            if (!argPath.isMemberExpression() && !argPath.isIdentifier()) {
+              argPath.node = argValue;
+              err(
+                Errors.RulesOfVasille,
+                argPath,
+                "A reactive variable or object field expected, reactive expression are forward only",
+                internal,
+              );
+            }
+          } else {
+            argPath.node = argValue;
+            err(Errors.RulesOfVasille, argPath, "The backward argument is not reactive", internal);
+          }
+        } else {
+          err(Errors.IncorrectArguments, expression, "The argument is missing", internal);
+        }
+      }
+      // calls forward
+      else if (calls(expression, ["forward"], internal)) {
+        const argPath = (expression as NodePath<types.CallExpression>).get("arguments")[0];
+
+        if (argPath && argPath.isExpression()) {
+          const argValue = argPath.node;
+
+          if (!exprCall(argPath, argPath.node, internal, { strong: true })) {
+            argPath.node = argValue;
+            err(Errors.RulesOfVasille, argPath, "A reactive expression expected, argument value is constant", internal);
+          } else {
+            expression.node.arguments.unshift(ctx);
+          }
+        } else {
+          err(Errors.IncorrectArguments, expression, "The argument is missing", internal);
+        }
+      }
+      // two-side binding
+      else {
+        const isReactive = exprCall(expression, expression.node, internal, { strong: !acceptsRaw });
+
+        if (!isReactive && !acceptsRaw) {
+          expression.replaceWith(internal.ref(expression.node));
+        }
+      }
+    } else {
+      meshExpression(expression, internal);
+    }
   }
 
-  const result = call ?? exprPath.node;
+  expression.node.loc = loc;
 
-  result.loc = loc;
-
-  return result;
+  return expression.node as types.Expression;
 }
 
 function idToProp(
@@ -148,9 +202,47 @@ function idToProp(
   return t.objectProperty(expr, value);
 }
 
-function transformJsxElement(path: NodePath<types.JSXElement>, internal: Internal): types.Statement {
-  const name = path.node.openingElement.name;
+export function processConditions(
+  conditions: ConditionCollection,
+  internal: Internal,
+  _default?: types.FunctionExpression | types.ArrowFunctionExpression,
+): types.Statement[] {
+  if (!conditions.cases) {
+    return [];
+  }
 
+  const ret = [
+    t.expressionStatement(
+      internal.Switch(
+        t.objectExpression([
+          t.objectProperty(
+            t.identifier("cases"),
+            t.arrayExpression(
+              conditions.cases.map(item =>
+                t.objectExpression([
+                  t.objectProperty(t.identifier("$case"), item.condition),
+                  t.objectProperty(t.identifier("slot"), item.slot),
+                ]),
+              ),
+            ),
+          ),
+          ...(_default ? [t.objectProperty(t.identifier("default"), _default)] : []),
+        ]),
+      ),
+    ),
+  ];
+
+  conditions.cases = null;
+
+  return ret;
+}
+
+function transformJsxElement(
+  path: NodePath<types.JSXElement>,
+  conditions: ConditionCollection,
+  internal: Internal,
+): types.Statement[] {
+  const name = path.node.openingElement.name;
   if (t.isJSXIdentifier(name) && name.name[0].toLowerCase() === name.name[0]) {
     const opening = path.get("openingElement");
     const attrs: types.ObjectProperty[] = [];
@@ -167,87 +259,77 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
 
       if (t.isJSXAttribute(attr)) {
         const name = attr.name;
+        const valuePath = attrPath.get("value");
+        const expressionPath = valuePath.isJSXExpressionContainer() && valuePath.get("expression");
 
         /* istanbul ignore else */
         if (t.isJSXIdentifier(name)) {
           if (name.name.startsWith("on")) {
-            if (t.isJSXExpressionContainer(attr.value) && t.isExpression(attr.value.expression)) {
-              const path = (attrPath as NodePath<types.JSXAttribute>).get(
-                "value",
-              ) as NodePath<types.JSXExpressionContainer>;
-
+            if (expressionPath) {
               /* istanbul ignore else */
-              if (t.isExpression(path.node.expression)) {
-                meshExpression(path.get("expression") as NodePath<types.Expression>, internal);
+              if (expressionPath.isExpression()) {
+                meshExpression(expressionPath, internal);
+                events.push(idToProp(name, expressionPath.node, 2));
               }
-
-              events.push(idToProp(name, path.node.expression as types.Expression, 2));
             } else {
-              throw (attrPath as NodePath<types.JSXAttribute>)
-                .get("value")
-                .buildCodeFrameError("Vasille: Expected event handler.");
+              err(Errors.TokenNotSupported, valuePath, "Expected event handler", internal);
             }
           } else if (name.name === "class") {
             // class={[..]}
             /* istanbul ignore else */
-            if (t.isJSXExpressionContainer(attr.value) && t.isArrayExpression(attr.value.expression)) {
-              const valuePath = (attrPath as NodePath<types.JSXAttribute>).get(
-                "value",
-              ) as NodePath<types.JSXExpressionContainer>;
+            if (valuePath.isJSXExpressionContainer() && t.isArrayExpression(valuePath.node.expression)) {
               const arrayExprPath = valuePath.get("expression") as NodePath<types.ArrayExpression>;
 
               for (const elementPath of arrayExprPath.get("elements")) {
-                const item = elementPath.node;
-
-                if (t.isExpression(item)) {
+                if (elementPath.isExpression()) {
                   // class={[cond && "string"]}
-                  if (t.isLogicalExpression(item) && item.operator === "&&" && t.isStringLiteral(item.right)) {
-                    const call = exprCall(
-                      (elementPath as NodePath<types.LogicalExpression>).get("left"),
-                      item.left,
-                      internal,
-                    );
+                  if (
+                    elementPath.isLogicalExpression() &&
+                    elementPath.node.operator === "&&" &&
+                    t.isStringLiteral(elementPath.node.right)
+                  ) {
+                    exprCall(elementPath.get("left"), elementPath.node.left, internal, {});
 
-                    classObject.push(idToProp(item.right, call ?? item.left));
+                    classObject.push(idToProp(elementPath.node.right, elementPath.node.left));
                   }
                   // class={[{..}]}
-                  else if (t.isObjectExpression(item)) {
-                    for (const propPath of (elementPath as NodePath<types.ObjectExpression>).get("properties")) {
+                  else if (elementPath.isObjectExpression()) {
+                    for (const propPath of elementPath.get("properties")) {
                       // class={[{a: b}]}
-                      if (t.isObjectProperty(propPath.node)) {
-                        const prop = propPath as NodePath<types.ObjectProperty>;
-                        const value =
-                          exprCall(
-                            prop.get("value") as NodePath<types.Expression>,
-                            prop.node.value as types.Expression,
-                            internal,
-                          ) ?? (prop.node.value as types.Expression);
+                      if (propPath.isObjectProperty()) {
+                        const keyPath = propPath.get("key");
+                        const valuePath = propPath.get("value");
 
-                        if (t.isExpression(prop.node.key) && !t.isIdentifier(prop.node.key)) {
-                          meshExpression(prop.get("key") as NodePath<types.Expression>, internal);
+                        /* istanbul ignore else */
+                        if (valuePath.isExpression()) {
+                          exprCall(valuePath, valuePath.node, internal, {});
                         }
 
-                        classObject.push(t.objectProperty(prop.node.key, value));
+                        if (keyPath.isExpression() && !keyPath.isIdentifier()) {
+                          meshExpression(keyPath, internal);
+                        }
+
+                        classObject.push(t.objectProperty(keyPath.node, valuePath.node));
                       }
                       // class={[{...a}]}
-                      else if (t.isSpreadElement(propPath.node)) {
+                      else if (propPath.isSpreadElement()) {
                         classObject.push(propPath.node);
                       }
                       // class={[{a(){}}]}
                       else {
-                        throw propPath.buildCodeFrameError("Vasille: Methods are not allowed here");
+                        err(Errors.TokenNotSupported, propPath, "Methods are not allowed here", internal);
                       }
                     }
                   }
                   // class={[".."]}
-                  else if (t.isStringLiteral(elementPath.node)) {
+                  else if (elementPath.isStringLiteral()) {
                     classStatic.push(elementPath.node);
                   }
                   // class={[..]}
                   else {
-                    const call = exprCall(elementPath as NodePath<types.Expression>, item, internal);
+                    exprCall(elementPath, elementPath.node, internal, { strong: true });
 
-                    classElements.push(call ?? item);
+                    classElements.push(elementPath.node);
                   }
                 }
                 // class={[...array]}
@@ -257,81 +339,66 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
               }
             }
             // class={"a b"}
-            else if (t.isJSXExpressionContainer(attr.value) && t.isStringLiteral(attr.value.expression)) {
-              attrs.push(t.objectProperty(t.identifier("class"), attr.value.expression));
+            else if (expressionPath && expressionPath.isStringLiteral()) {
+              attrs.push(t.objectProperty(t.identifier("class"), expressionPath.node));
             }
             // class={`a ${b}`}
-            else if (t.isJSXExpressionContainer(attr.value) && t.isTemplateLiteral(attr.value.expression)) {
-              const jsxAttrPath = attrPath as NodePath<types.JSXAttribute>;
-              const jsxContainerPath = jsxAttrPath.get("value") as NodePath<types.JSXExpressionContainer>;
-              const value = exprCall(
-                jsxContainerPath.get("expression") as NodePath<types.TemplateLiteral>,
-                attr.value.expression,
-                internal,
-              );
-
-              attrs.push(t.objectProperty(t.identifier("class"), value ?? attr.value.expression));
-              if (value) {
+            else if (expressionPath && expressionPath.isExpression()) {
+              if (exprCall(expressionPath, expressionPath.node, internal, { strong: true })) {
                 console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
               }
+
+              attrs.push(t.objectProperty(t.identifier("class"), expressionPath.node));
             }
             // class={name}
-            else if (t.isJSXExpressionContainer(attr.value) && t.isExpression(attr.value.expression)) {
-              const expr =
-                exprCall(
-                  (attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.Expression>,
-                  attr.value.expression,
-                  internal,
-                ) ?? attr.value.expression;
-
-              attrs.push(t.objectProperty(t.identifier("class"), expr));
+            else if (expressionPath && expressionPath.isExpression()) {
+              exprCall(expressionPath, expressionPath.node, internal, {});
+              attrs.push(t.objectProperty(t.identifier("class"), expressionPath.node));
             }
             // class="a b"
-            else if (t.isStringLiteral(attr.value)) {
-              classStatic.push(attr.value);
+            else if (valuePath.isStringLiteral()) {
+              classStatic.push(valuePath.node);
             }
           } else if (name.name === "style") {
             // style={{..}}
             /* istanbul ignore else */
-            if (t.isJSXExpressionContainer(attr.value) && t.isObjectExpression(attr.value.expression)) {
-              const valuePath = (attrPath as NodePath<types.JSXAttribute>).get(
-                "value",
-              ) as NodePath<types.JSXExpressionContainer>;
-              const objectPath = valuePath.get("expression") as NodePath<types.ObjectExpression>;
-
-              for (const propPath of objectPath.get("properties")) {
+            if (expressionPath && expressionPath.isObjectExpression()) {
+              for (const propPath of expressionPath.get("properties")) {
                 // style={{a: b}}
-                if (t.isObjectProperty(propPath.node)) {
-                  const prop = propPath as NodePath<types.ObjectProperty>;
-                  const value =
-                    exprCall(
-                      prop.get("value") as NodePath<types.Expression>,
-                      prop.node.value as types.Expression,
-                      internal,
-                    ) ?? (prop.node.value as types.Expression);
+                if (propPath.isObjectProperty()) {
+                  const prop = propPath;
+                  const valuePath = prop.get("value");
 
-                  if (t.isExpression(prop.node.key) && !t.isIdentifier(prop.node.key)) {
-                    meshExpression(prop.get("key") as NodePath<types.Expression>, internal);
+                  /* istanbul ignore else */
+                  if (valuePath.isExpression()) {
+                    exprCall(valuePath, valuePath.node, internal, { strong: true });
+                  }
+
+                  const value = valuePath.node;
+                  const keyPath = propPath.get("key");
+
+                  if (keyPath.isExpression() && !keyPath.isIdentifier()) {
+                    meshExpression(keyPath, internal);
                   }
 
                   // style={{a: "b"}} -> static in compile time
-                  if (t.isIdentifier(prop.node.key) && t.isStringLiteral(prop.node.value)) {
-                    styleStatic.push([prop.node.key, prop.node.value]);
+                  if (keyPath.isIdentifier() && valuePath.isStringLiteral()) {
+                    styleStatic.push([keyPath.node, valuePath.node]);
                   }
                   // style={{a: 23}} -> static in compile time
-                  else if (t.isIdentifier(prop.node.key) && t.isNumericLiteral(prop.node.value)) {
-                    styleStatic.push([prop.node.key, t.stringLiteral(`${prop.node.value.value}px`)]);
+                  else if (keyPath.isIdentifier() && valuePath.isNumericLiteral()) {
+                    styleStatic.push([keyPath.node, t.stringLiteral(`${valuePath.node.value}px`)]);
                   }
                   // style={{a: [1, 2, 3]}} -> static in compile time
                   else if (
-                    t.isIdentifier(prop.node.key) &&
-                    t.isArrayExpression(prop.node.value) &&
-                    prop.node.value.elements.every(item => t.isNumericLiteral(item))
+                    keyPath.isIdentifier() &&
+                    valuePath.isArrayExpression() &&
+                    valuePath.node.elements.every(item => t.isNumericLiteral(item))
                   ) {
                     styleStatic.push([
-                      prop.node.key,
+                      keyPath.node,
                       t.stringLiteral(
-                        prop.node.value.elements
+                        valuePath.node.elements
                           .map(item => {
                             return `${(item as types.NumericLiteral).value}px`;
                           })
@@ -350,80 +417,62 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
                 }
                 // style={{a(){}}}
                 else {
-                  throw propPath.buildCodeFrameError("Vasille: Methods are not allowed here");
+                  err(Errors.TokenNotSupported, propPath, "Methods are not allowed here", internal);
                 }
               }
             }
             // style=".."
-            else if (t.isStringLiteral(attr.value)) {
-              attrs.push(t.objectProperty(t.identifier("style"), attr.value));
+            else if (valuePath.isStringLiteral()) {
+              attrs.push(t.objectProperty(t.identifier("style"), valuePath.node));
             }
             // style={".."}
-            else if (t.isJSXExpressionContainer(attr.value) && t.isStringLiteral(attr.value.expression)) {
-              attrs.push(t.objectProperty(t.identifier("style"), attr.value.expression));
+            else if (expressionPath && expressionPath.isStringLiteral()) {
+              attrs.push(t.objectProperty(t.identifier("style"), expressionPath.node));
             }
             // style={`a: ${b}px`}
-            else if (t.isJSXExpressionContainer(attr.value) && t.isTemplateLiteral(attr.value.expression)) {
-              const jsxAttrPath = attrPath as NodePath<types.JSXAttribute>;
-              const jsxContainerPath = jsxAttrPath.get("value") as NodePath<types.JSXExpressionContainer>;
-              const literalPath = jsxContainerPath.get("expression") as NodePath<types.TemplateLiteral>;
-
-              const value = exprCall(literalPath, attr.value.expression, internal);
-
-              attrs.push(t.objectProperty(t.identifier("style"), value ?? attr.value.expression));
-              if (value) {
+            else if (expressionPath && expressionPath.isExpression()) {
+              if (exprCall(expressionPath, expressionPath.node, internal, { strong: true })) {
                 console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
               }
-            } else if (t.isJSXExpressionContainer(attr.value) && t.isExpression(attr.value.expression)) {
-              const expr =
-                exprCall(
-                  (attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.Expression>,
-                  attr.value.expression,
-                  internal,
-                ) ?? attr.value.expression;
 
-              attrs.push(t.objectProperty(t.identifier("style"), expr));
+              attrs.push(t.objectProperty(t.identifier("style"), expressionPath.node));
             }
           } else {
             /* istanbul ignore else */
-            if (!attr.value || t.isJSXExpressionContainer(attr.value)) {
-              attrs.push(
-                idToProp(name, t.isExpression(attr.value?.expression) ? attr.value.expression : t.booleanLiteral(true)),
-              );
+            if (expressionPath && expressionPath.isExpression()) {
+              attrs.push(idToProp(name, expressionPath.node));
             } else if (t.isStringLiteral(attr.value)) {
               attrs.push(idToProp(name, attr.value));
+            } else {
+              attrs.push(idToProp(name, t.booleanLiteral(true)));
             }
           }
         }
         if (t.isJSXNamespacedName(name)) {
           if (name.namespace.name === "bind") {
-            /* istanbul ignore else */
-            if (t.isJSXExpressionContainer(attr.value) || !attr.value) {
-              const value = t.isExpression(attr.value?.expression)
-                ? exprCall(
-                    (
-                      (attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.JSXExpressionContainer>
-                    ).get("expression") as NodePath<types.Expression>,
-                    attr.value.expression,
-                    internal,
-                  )
-                : undefined;
+            let pushed = false;
 
-              bind.push(
-                idToProp(
-                  name.name,
-                  value ?? (t.isExpression(attr.value?.expression) ? attr.value.expression : t.booleanLiteral(true)),
-                ),
-              );
+            /* istanbul ignore else */
+            if (expressionPath) {
+              /* istanbul ignore else */
+              if (expressionPath.isExpression()) {
+                exprCall(expressionPath, expressionPath.node, internal, { strong: true });
+                bind.push(idToProp(name.name, expressionPath.node));
+                pushed = true;
+              }
             } else if (t.isStringLiteral(attr.value)) {
               bind.push(idToProp(name.name, attr.value));
+              pushed = true;
+            }
+            if (!pushed) {
+              bind.push(idToProp(name.name, t.booleanLiteral(true)));
             }
           } else {
-            throw attrPath.buildCodeFrameError("Vasille: only bind namespace is supported");
+            err(Errors.ParserError, attrPath, "Only bind namespace is supported", internal);
           }
         }
       } else {
-        throw attrPath.buildCodeFrameError("Vasille: Spread attribute is not allowed on HTML tags.");
+        err(Errors.ParserError, attrPath, "Spread attribute is not allowed on HTML tags", internal);
       }
     }
 
@@ -470,7 +519,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
 
     call.loc = path.node.loc;
 
-    return t.expressionStatement(call);
+    return [...processConditions(conditions, internal), t.expressionStatement(call)];
   }
   if (t.isJSXIdentifier(name)) {
     const element = path.node;
@@ -480,7 +529,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
     const mapped = internal.mapping.get(name.name);
 
     if (mapped === "Debug" && internal.stack.get(name.name) === undefined && !internal.devMode) {
-      return t.emptyStatement();
+      return processConditions(conditions, internal);
     }
 
     for (const attrPath of opening.get("attributes")) {
@@ -488,33 +537,48 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
 
       // <A prop=../>
       if (t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name)) {
+        const valuePath = attrPath.isJSXAttribute() && attrPath.get("value");
+        const needReactive = attr.name.name.startsWith("$");
         // <A prop=".."/>
         /* istanbul ignore else */
         if (t.isStringLiteral(attr.value)) {
-          props.push(idToProp(attr.name, attr.value));
+          props.push(idToProp(attr.name, needReactive ? internal.ref(attr.value) : attr.value));
         }
         // <A prop={..}/>
-        else if (t.isJSXExpressionContainer(attr.value)) {
+        else if (valuePath && valuePath.isJSXExpressionContainer()) {
           const isSystem = internal.mapping.has(name.name);
+          const requiresReactive = attr.name.name.startsWith("$");
           const value = transformJsxExpressionContainer(
-            (attrPath as NodePath<types.JSXAttribute>).get("value") as NodePath<types.JSXExpressionContainer>,
+            valuePath,
             internal,
             !isSystem || attr.name.name === "slot",
             isSystem && attr.name.name === "slot",
+            requiresReactive,
+            !requiresReactive,
           );
 
           props.push(idToProp(attr.name, value));
         } else if (!attr.value) {
-          props.push(idToProp(attr.name, t.booleanLiteral(true)));
+          props.push(idToProp(attr.name, needReactive ? internal.ref(t.booleanLiteral(true)) : t.booleanLiteral(true)));
         }
       }
       // <A {...arg}/>
-      else if (t.isJSXSpreadAttribute(attr)) {
-        props.push(t.spreadElement(attr.argument));
+      else if (attrPath.isJSXSpreadAttribute()) {
+        meshExpression(attrPath.get("argument"), internal);
+        props.push(t.spreadElement(attrPath.node.argument));
+
+        if (mapped === "If" || mapped === "ElseIf" || mapped === "Else") {
+          err(
+            Errors.RulesOfVasille,
+            attrPath,
+            "If, Else and ElseIf are syntax sugar, use Switch if you need more runtime elasticity",
+            internal,
+          );
+        }
       }
       // <A space:name=../>
       else {
-        throw attrPath.buildCodeFrameError("Vasille: Namespaced attributes names are not supported");
+        err(Errors.ParserError, attrPath, "Namespaced attributes names are not supported", internal);
       }
     }
 
@@ -527,6 +591,7 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
     });
     const isInternal = internal.mapping.has(name.name);
 
+    // The child is a slot value
     if (
       filteredChildren.length === 1 &&
       t.isJSXExpressionContainer(filteredChildren[0]) &&
@@ -538,6 +603,8 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
         internal,
         true,
         isInternal,
+        false,
+        true,
       );
       run = filteredChildren[0].expression;
     } else {
@@ -554,14 +621,61 @@ function transformJsxElement(path: NodePath<types.JSXElement>, internal: Interna
       }
     }
 
+    const ret: types.Statement[] = [];
+    const filter = (v: types.Node | null | undefined): v is types.ObjectProperty => {
+      return t.isObjectProperty(v);
+    };
+
+    if (mapped === "If" || mapped === "ElseIf" || mapped === "Else") {
+      const condition = props.filter(filter).find(prop => {
+        return t.isStringLiteral(prop.key) && prop.key.value === "$condition";
+      })?.value;
+      const slot =
+        run ??
+        props.filter(filter).find(prop => {
+          return t.isIdentifier(prop.key) && prop.key.name === "slot";
+        })?.value;
+
+      if (mapped === "If") {
+        ret.push(...processConditions(conditions, internal));
+      }
+      if ((mapped === "ElseIf" || mapped === "Else") && !conditions.cases) {
+        err(Errors.RulesOfVasille, path, "Malformed JSX If tag is missing", internal);
+      }
+      if (mapped === "If" || mapped === "ElseIf") {
+        if (t.isExpression(condition) && (t.isFunctionExpression(slot) || t.isArrowFunctionExpression(slot))) {
+          if (!conditions.cases) {
+            conditions.cases = [{ condition, slot }];
+          } else {
+            conditions.cases.push({ condition, slot });
+          }
+        }
+      }
+      if (mapped === "Else") {
+        ret.push(
+          ...processConditions(
+            conditions,
+            internal,
+            t.isFunctionExpression(slot) || t.isArrowFunctionExpression(slot) ? slot : undefined,
+          ),
+        );
+      }
+
+      return ret;
+    }
+
     const call = t.callExpression(t.identifier(name.name), [t.objectExpression(props), ctx, ...(run ? [run] : [])]);
 
     call.loc = path.node.loc;
 
-    return t.expressionStatement(call);
+    return [...ret, t.expressionStatement(call)];
   }
 
-  throw path.buildCodeFrameError(
-    "Vasille: Unsupported tag detected, html lowercase tag names and components are accepted",
+  return err(
+    Errors.ParserError,
+    path,
+    "Unsupported tag detected, html lowercase tag names and components are accepted",
+    internal,
+    [],
   );
 }

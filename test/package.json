@@ -9,6 +9,7 @@
   "scripts": {
     "typecheck": "tsc",
     "prettier": "prettier src test/**/*.ts* --write",
+    "dev": "vasille-web dev",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "dependencies": {
@@ -19,17 +20,20 @@
     "@types/jsdom": "^21.1.7",
     "@types/node": "^24.2.0",
     "babel-jest": "^30.0.5",
-    "babel-plugin-vasille": "^3.2.1",
+    "babel-plugin-vasille": "file:../babel-plugin",
     "cross-env": "^10.0.0",
     "jest": "^30.0.5",
     "jsdom": "^26.1.0",
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.1",
     "typescript": "^5.9.2",
-    "vasille": "^3.2.1",
-    "vasille-css": "^3.2.1",
-    "vasille-jsx": "^3.2.1",
-    "vasille-router": "^3.2.1",
-    "vasille-web": "^3.2.1"
+    "vasille": "^4.0.0",
+    "vasille-css": "^4.0.0",
+    "vasille-jsx": "^4.0.1",
+    "vasille-router": "^4.0.0",
+    "vasille-web": "^4.0.0"
+  },
+  "devDependencies": {
+    "vasille-web-cli": "^4.0.0"
   }
 }

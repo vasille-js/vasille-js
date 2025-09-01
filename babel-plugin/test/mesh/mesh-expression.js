@@ -29,7 +29,7 @@ async function fn() {
 const VMap = Map;
 // @ts-ignore
 const v10 = new VMap([[2, a]]);
-const composed = compose(Vasille => {});
+const Composed = compose(Vasille => {});
 compose(Vasille => {});
 compose(Vasille => {});
 compose(Vasille => {});

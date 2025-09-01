@@ -1,6 +1,6 @@
 import { compose } from "vasille-web";
 
-type Composed<In extends object, Out> = ReturnType<typeof compose<In, Out>>;
+type Composed<In extends object> = ReturnType<typeof compose<In>>;
 
 !compose(() => {}) === false;
 let a = 1;
@@ -37,11 +37,11 @@ async function fn() {
 const VMap = Map<string, number>;
 // @ts-ignore
 const v10 = new VMap([[2, a]]);
-const composed: Composed<object, void> = compose(() => {});
+const Composed: Composed<object> = compose(() => {});
 
-compose(() => {}) as Composed<object, void>;
-<Composed<object, void>>compose(() => {});
-compose(() => {}) satisfies Composed<object, void>;
+compose(() => {}) as Composed<object>;
+<Composed<object>>compose(() => {});
+compose(() => {}) satisfies Composed<object>;
 
 () => {
   compose(() => {});
