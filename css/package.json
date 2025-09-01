@@ -1,7 +1,7 @@
 {
   "name": "vasille-css",
-  "version": "3.2.1",
-  "description": "The first Developer eXperience Orientated front-end framework (style library)",
+  "version": "4.0.0",
+  "description": "The framework designed to build bulletproof frontends (CSS style library)",
   "main": "./lib/index.js",
   "types": "./types/index.d.ts",
   "exports": {

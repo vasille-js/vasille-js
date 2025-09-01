@@ -8,3 +8,4 @@
 /tsconfig*
 *.tsbuildinfo
 *.tgz
+qodana.yaml

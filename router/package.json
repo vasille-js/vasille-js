@@ -1,9 +1,9 @@
 {
   "name": "vasille-router",
-  "description": "The first Developer eXperience Orientated front-end framework (router library).",
+  "description": "The framework designed to build bulletproof frontends (router library).",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "3.2.1",
+  "version": "4.0.0",
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
@@ -75,6 +75,6 @@
     "typescript-eslint": "^8.39.0"
   },
   "dependencies": {
-    "vasille": "file:../core"
+    "vasille": "^4.0.0"
   }
 }

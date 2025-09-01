@@ -20,3 +20,4 @@
 *.tgz
 /.*
 /translations
+*.tsbuildinfo

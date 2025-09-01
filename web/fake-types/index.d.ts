@@ -133,7 +133,7 @@ export type DeepReadonly<T> =
                   ? WeakSet<DeepReadonly<U>>
                   : T extends Promise<infer U>
                     ? Promise<DeepReadonly<U>>
-                    : T extends (...args: unkbown[]) => unknown
+                    : T extends (...args: unknown[]) => unknown
                       ? T
                       : T extends {}
                         ? { readonly [K in keyof T]: DeepReadonly<T[K]> }

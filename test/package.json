@@ -27,13 +27,13 @@
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.1",
     "typescript": "^5.9.2",
-    "vasille": "file:../core",
-    "vasille-css": "file:../css",
-    "vasille-jsx": "file:../jsx",
-    "vasille-router": "file:../router",
-    "vasille-web": "file:../web"
+    "vasille": "^4.0.0",
+    "vasille-css": "^4.0.0",
+    "vasille-jsx": "^4.0.1",
+    "vasille-router": "^4.0.0",
+    "vasille-web": "^4.0.0"
   },
   "devDependencies": {
-    "vasille-web-cli": "file:../web-cli"
+    "vasille-web-cli": "^4.0.0"
   }
 }

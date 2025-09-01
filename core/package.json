@@ -1,9 +1,9 @@
 {
   "name": "vasille",
-  "description": "The first Developer eXperience Orientated front-end framework (core library).",
+  "description": "The framework designed to build bulletproof frontends (core library).",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "3.2.1",
+  "version": "4.0.0",
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
