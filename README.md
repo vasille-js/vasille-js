@@ -32,16 +32,6 @@ Create an app from a template
 $ npm create vasille
 ```
 
-Alternative method to create a TypeScript app.
-```bash
-$ npx degit vasille-js/example-typescript my-project
-```
-
-Alternative method to create a JavaScript app.
-```bash
-$ npx degit vasille-js/example-javascript my-project
-```
-
 ### Full documentation:
 * [Learn `Vasille` in 5 minutes](https://github.com/vasille-js/vasille-js/blob/v4/doc/V4-API.md)
 * [Vasille Router Documentation](https://github.com/vasille-js/vasille-js/blob/v4/doc/Router-API.md)
@@ -107,6 +97,7 @@ All of these are supported:
 * [x] `100%` Test Coverage fot babel plugin.
 * [x] Add CSS support (define styles in components).
 * [x] Add router.
+* [ ] Add SSG (static site generation).
 * [ ] Add SSR (server side rendering).
 * [ ] Develop tools extension for debugging.
 

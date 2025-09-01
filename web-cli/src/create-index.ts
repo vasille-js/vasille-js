@@ -51,18 +51,11 @@ export async function createIndex(routerDir: string, pagesDir: string): Promise<
 
                 const filePath = path.join(item.parentPath, item.name).replace(/\.[tj]sx?$/, "");
                 const screenPath = path.join(item.parentPath, name).slice(pagesDir.length) || "/";
-                const fileContent = await fs.readFile(path.join(item.parentPath, item.name), { encoding: "utf-8" });
-                const match = /\bexport const minAccessLevel ?= ?(\d+);/.exec(fileContent);
 
                 console.log("Route path:", screenPath);
 
                 indexJs.push(`    "${screenPath}": {`);
                 indexJs.push(`      async screen(a, b){ (await import("${filePath}")).default(a, b) },`);
-
-                if (match) {
-                    indexJs.push(`      minAccessLevel: ${match[1]}`);
-                }
-
                 indexJs.push("    },");
             }
         }
