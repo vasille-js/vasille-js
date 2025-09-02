@@ -1,0 +1,7 @@
+/.idea
+*.tgz
+/src
+/tsconfig*.json
+*.tsbuildinfo
+/.*
+qodana.yaml
