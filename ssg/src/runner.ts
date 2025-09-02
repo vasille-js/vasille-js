@@ -29,9 +29,9 @@ export abstract class Node {
         this.children.push(node);
     }
 
-    public abstract toHTML(level?: number): string;
+    public abstract toHTML(level: number): string;
 
-    protected level(level?: number) {
+    protected level(level: number) {
         return "\t".repeat(level ?? 0);
     }
 }
@@ -44,7 +44,7 @@ export class Text extends Node {
         this.text = text;
     }
 
-    public toHTML(level?: number): string {
+    public toHTML(level: number): string {
         const text = (this.text instanceof IValue ? this.text.V : this.text) ?? "";
 
         return escapeHTML(`${this.level(level)}${text}\n`);
@@ -52,10 +52,10 @@ export class Text extends Node {
 }
 
 export class Comment extends Text {
-    public toHTML(level?: number): string {
+    public toHTML(level: number): string {
         const text = `${(this.text instanceof IValue ? this.text.V : this.text) ?? ""}`
-          .replace("-->", "- ->")
-          .replace("<!--", "<!- -");
+            .replace("-->", "- ->")
+            .replace("<!--", "<!- -");
 
         return `${this.level(level)}<!-- ${text} -->\n`;
     }
@@ -71,10 +71,8 @@ export class Element extends Node {
         this.options = options;
     }
 
-    public toHTML(level?: number): string {
-        level = level ?? 0;
-
-        const attrs: Record<string, string|number> = {};
+    public toHTML(level: number): string {
+        const attrs: Record<string, string | number> = {};
 
         if (this.options.attr) {
             for (const [name, value] of Object.entries(this.options.attr)) {
@@ -82,8 +80,7 @@ export class Element extends Node {
 
                 if (typeof extracted === "string" || typeof extracted === "number") {
                     attrs[name] = extracted;
-                }
-                else if (extracted) {
+                } else if (extracted) {
                     attrs[name] = "";
                 }
             }
@@ -94,11 +91,9 @@ export class Element extends Node {
             for (const item of this.options.class) {
                 if (item instanceof IValue) {
                     classes.push(item.V);
-                }
-                else if (typeof item === "string") {
+                } else if (typeof item === "string") {
                     classes.push(item);
-                }
-                else {
+                } else {
                     for (const [name, value] of Object.entries(item)) {
                         const enabled = value instanceof IValue ? value.V : value;
 
@@ -119,11 +114,9 @@ export class Element extends Node {
 
                 if (extracted instanceof Array) {
                     styles.push(`${name}: ${extracted.map(n => `${n}px`).join(" ")}`);
-                }
-                else if (typeof extracted === "number") {
+                } else if (typeof extracted === "number") {
                     styles.push(`${name}: ${extracted}px`);
-                }
-                else {
+                } else {
                     styles.push(`${name}: ${extracted}`);
                 }
             }
@@ -131,17 +124,19 @@ export class Element extends Node {
             attrs.style = styles.join("; ");
         }
 
-        const attrStr = Object.entries(attrs).map(([name, attr]) => {
-            return attr === "" ? name : `${name}="${escapeHTML(`${attr}`)}"`
-        }).join(" ");
+        const attrStr = Object.entries(attrs)
+            .map(([name, attr]) => {
+                return attr === "" ? name : `${name}="${escapeHTML(`${attr}`)}"`;
+            })
+            .join(" ");
 
         return this.children.length === 0
-          ? `${this.level(level)}<${this.name} ${attrStr}/>`
-          : [
-          `${this.level(level)}<${this.name} ${attrStr}>`,
-            ...this.children.map(item => item.toHTML(level + 1)),
-            `${this.level(level)}</${this.name}>`,
-        ].join("\n");
+            ? `${this.level(level)}<${this.name} ${attrStr}/>`
+            : [
+                  `${this.level(level)}<${this.name} ${attrStr}>`,
+                  ...this.children.map(item => item.toHTML(level + 1)),
+                  `${this.level(level)}</${this.name}>`,
+              ].join("\n");
     }
 }
 

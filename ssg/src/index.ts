@@ -1,6 +1,6 @@
 import { Fragment, Portal, reportError } from "vasille";
 import { mount as coreMount } from "vasille-jsx";
-import { Runner, Node, Element, type TagOptions } from "./runnner/runner.js";
+import { Runner, Node, Element, type TagOptions } from "./runner.js";
 
 export {
     forward,
@@ -17,7 +17,6 @@ export {
     For,
     Slot,
     Watch,
-    awaited,
     store,
     model,
     setModel,
@@ -27,7 +26,8 @@ export {
     setErrorHandler,
 } from "vasille-jsx";
 
-export { styleSheet } from "vasille-css";
+// export { styleSheet } from "vasille-css";
+// export type { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "vasille-css";
 
 export {
     type QueryParams,
@@ -39,7 +39,8 @@ export {
     type ErrorScreenProps,
 } from "vasille-router";
 
-export type { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "vasille-css";
+export { awaited } from "./awaited.js";
+export { routeApp } from "./router.js";
 
 interface CompositionProps {
     slot?: (...args: any[]) => void;
