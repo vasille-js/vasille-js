@@ -11,6 +11,7 @@ import { App, Fragment } from "vasille";
 import { waitForAsyncData } from "./awaited.js";
 import path from "node:path";
 import * as fs from "node:fs/promises";
+import { mountStyles } from "./css.js";
 
 export class Router extends AbstractRouter<Node, Element, TagOptions, string, {}, []> {
     protected readonly runner: Runner;
@@ -41,7 +42,7 @@ export class Router extends AbstractRouter<Node, Element, TagOptions, string, {}
             const filePath = forceFile ? dirPath : path.join(dirPath, "index.html");
 
             if (!forceFile) {
-                await fs.mkdir(dirPath, {recursive: true});
+                await fs.mkdir(dirPath, { recursive: true });
             }
             await fs.writeFile(filePath, await this.doNavigate(prefix));
         }
@@ -88,6 +89,7 @@ export class Router extends AbstractRouter<Node, Element, TagOptions, string, {}
     ): Promise<void> {
         await screen(props, this.node);
         await waitForAsyncData();
+        mountStyles(this.runner.head);
     }
 }
 

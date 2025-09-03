@@ -45,7 +45,7 @@ export {
 
 export { Router, type WebRouterInitialization, type NavigationMode, routeApp } from "vasille-router/web-router";
 
-export type { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "vasille-css";
+export { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "vasille-css";
 
 export const styleSheet = coreStyleSheet as <
     T extends {

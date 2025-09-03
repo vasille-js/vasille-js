@@ -26,8 +26,8 @@ export {
     setErrorHandler,
 } from "vasille-jsx";
 
-// export { styleSheet } from "vasille-css";
-// export type { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "vasille-css";
+export { styleSheet } from "./css.js";
+export { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "./css.js";
 
 export {
     type QueryParams,

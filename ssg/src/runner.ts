@@ -36,6 +36,21 @@ export abstract class Node {
     }
 }
 
+export class RawContentNode extends Node {
+    public readonly lines: string[];
+
+    public constructor(lines: string[]) {
+        super();
+        this.lines = lines;
+    }
+
+    public toHTML(level: number): string {
+        const prefix = this.level(level);
+
+        return this.lines.map(line => prefix + line).join("\n");
+    }
+}
+
 export class Text extends Node {
     public readonly text: unknown | IValue<unknown>;
 
