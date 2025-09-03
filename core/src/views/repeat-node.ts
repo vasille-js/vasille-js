@@ -71,7 +71,7 @@ export class RepeatNode<
         }
     }
 
-    public destroy(): void {
+    public override destroy(): void {
         this.nodes.clear();
     }
 }

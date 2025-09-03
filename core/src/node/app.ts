@@ -43,7 +43,7 @@ export class Portal<Node, Element, TagOptions extends object> extends Fragment<N
         this.node = input.node;
     }
 
-    public appendNode(node: Node) {
+    public override appendNode(node: Node) {
         this.runner.appendChild(this.node, node);
     }
 }

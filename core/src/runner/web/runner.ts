@@ -26,7 +26,7 @@ export interface TagOptions {
 
 export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
     declare public readonly runner: Runner;
-    protected node: Text;
+    protected node!: Text;
 
     public compose(): void {
         const text = this.data;
@@ -42,7 +42,7 @@ export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
         this.parent.appendNode(this.node);
     }
 
-    public destroy() {
+    public override destroy() {
         this.node.remove();
         super.destroy();
     }
@@ -54,7 +54,7 @@ export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
 
 export class DebugNode extends AbstractDebugNode<Node, Element, TagOptions> {
     declare public readonly runner: Runner;
-    protected node: Comment;
+    protected node!: Comment;
 
     public compose(): void {
         const text = this.data;
@@ -67,12 +67,12 @@ export class DebugNode extends AbstractDebugNode<Node, Element, TagOptions> {
         this.parent.appendNode(this.node);
     }
 
-    public destroy() {
+    public override destroy() {
         this.node.remove();
         super.destroy();
     }
 
-    protected findFirstChild(): Node | Element | undefined {
+    protected override findFirstChild(): Node | Element | undefined {
         return this.node;
     }
 }
@@ -94,7 +94,7 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
         this.options.slot?.(this);
     }
 
-    public destroy() {
+    public override destroy() {
         this.node.remove();
         super.destroy();
     }
@@ -173,9 +173,9 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
                 const value = options.bind[k];
 
                 if (!(value instanceof IValue)) {
-                    node[k] = value;
+                    (node as unknown as Record<string, unknown>)[k] = value;
                 } else {
-                    node[k] = value.V;
+                    (node as unknown as Record<string, unknown>)[k] = value.V;
                     this.bind(new PropertyBinding(this, k, value));
                 }
             }

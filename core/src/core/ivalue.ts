@@ -27,11 +27,11 @@ export abstract class IValue<T> {
      */
     public abstract off(handler: (value: T) => void): void;
 
-    public toJSON() {
+    public toJSON(): T {
         return this.V;
     }
 
-    public toString() {
+    public toString(): string {
         return this.V?.toString() ?? "iValue<void>";
     }
 }

@@ -22,7 +22,7 @@ export class Watch<Node, Element, TagOptions extends object, T> extends Fragment
         this.slot = input.slot;
     }
 
-    public compose() {
+    public override compose() {
         const slot = this.slot;
 
         if (slot) {
@@ -39,7 +39,7 @@ export class Watch<Node, Element, TagOptions extends object, T> extends Fragment
         }
     }
 
-    public destroy() {
+    public override destroy() {
         if (this.handler) {
             this.model.off(this.handler);
         }

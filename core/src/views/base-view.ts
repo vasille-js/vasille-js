@@ -26,13 +26,13 @@ export class BaseView<
      * Handler to catch values addition
      * @type {Function}
      */
-    protected addHandler: (index: K, value: T) => void;
+    protected addHandler!: (index: K, value: T) => void;
 
     /**
      * Handler to catch values removes
      * @type {Function}
      */
-    protected removeHandler: (index: K, value: T) => void;
+    protected removeHandler!: (index: K, value: T) => void;
 
     public constructor(
         input: BaseViewOptions<Node, Element, TagOptions, K, T, Model>,
@@ -42,7 +42,7 @@ export class BaseView<
         this.model = input.model;
     }
 
-    public compose() {
+    public override compose() {
         this.addHandler = (id, item) => {
             this.createChild(id, item);
         };
@@ -54,7 +54,7 @@ export class BaseView<
         this.model.listener.onRemove(this.removeHandler);
     }
 
-    public destroy(): void {
+    public override destroy(): void {
         this.model.listener.offAdd(this.addHandler);
         this.model.listener.offRemove(this.removeHandler);
         super.destroy();
