@@ -54,8 +54,6 @@ export class Router extends AbstractRouter<Node, Element, TagOptions, string, {}
 
         await this.prepareNavigation(url, true, true);
 
-        console.dir(this.runner.body);
-
         return (
             ["<!doctype html>", "<html>", this.runner.head.toHTML(1), this.runner.body.toHTML(1), "</html>"].join(
                 "\n",

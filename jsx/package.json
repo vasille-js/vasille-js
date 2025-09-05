@@ -44,7 +44,7 @@
     "opera 15"
   ],
   "dependencies": {
-    "vasille": "^4.0.0"
+    "vasille": "file:../core"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
