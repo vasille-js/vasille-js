@@ -46,6 +46,8 @@ export interface Internal {
   filename: string;
   devMode: boolean;
   strictFolders: boolean;
+  stylesConnected: boolean;
+  replaceWeb?: string;
   ref(arg?: types.Expression | null): types.CallExpression;
   expr(func: types.Expression, values: types.ArrayExpression): types.CallExpression;
   forward(arg: types.Expression): types.CallExpression;

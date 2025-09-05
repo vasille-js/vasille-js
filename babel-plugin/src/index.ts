@@ -6,6 +6,7 @@ export default function (): Babel.PluginObj<{
   opts: {
     devMode: unknown;
     strictFolders: unknown;
+    replaceWeb: unknown;
   };
 }> {
   return {
@@ -15,6 +16,7 @@ export default function (): Babel.PluginObj<{
         transformProgram(path, params.file.opts.filename, {
           devMode: params.opts.devMode !== false,
           strictFolders: params.opts.strictFolders !== false,
+          replaceWeb: typeof params.opts.replaceWeb === "string" ? params.opts.replaceWeb : undefined,
         });
       },
     },

@@ -1,4 +1,4 @@
-import { Fragment, Portal, reportError } from "vasille";
+import { Fragment, Portal } from "vasille";
 import { mount as coreMount } from "vasille-jsx";
 import { Runner, Node, Element, type TagOptions } from "./runner.js";
 
@@ -24,6 +24,7 @@ export {
     arrayModel,
     Switch,
     setErrorHandler,
+    match,
 } from "vasille-jsx";
 
 export { styleSheet } from "./css.js";
@@ -40,7 +41,7 @@ export {
 } from "vasille-router";
 
 export { awaited } from "./awaited.js";
-export { routeApp } from "./router.js";
+export { routerApp } from "./router.js";
 
 interface CompositionProps {
     slot?: (...args: any[]) => void;

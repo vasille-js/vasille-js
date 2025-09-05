@@ -1,98 +1,55 @@
 #!/usr/bin/env node
-import { argv, cwd, exit } from "node:process";
-import select from "@inquirer/select";
+import {cwd, exit} from "node:process";
 import path from "node:path";
-import { createServer, build as viteBuild } from "vite";
-import { default as babel } from "vite-plugin-babel";
-import pluginJsxSyntax from "@babel/plugin-syntax-jsx";
-import pluginVasille from "babel-plugin-vasille";
-import pluginTypescript from "@babel/plugin-transform-typescript";
-import pluginInlineEnv from "babel-plugin-transform-inline-environment-variables";
-import { indexPlugin, watchForIndexUpdates } from "./create-index.js";
+import {build as viteBuild, createServer} from "vite";
 import inspect from "vite-plugin-inspect";
-import { compress } from "./lib.js";
-
-function checkArg(name: string) {
-    return argv.indexOf(name) >= 2;
-}
-
-let dev = checkArg("dev");
-let build = checkArg("build");
-
-function getVitePlugins(devMode: boolean) {
-    return [
-        // @ts-expect-error
-        babel({
-            loader: "js",
-            filter: /\.[tj]sx?$/,
-            include: ["src/**/*"],
-            babelConfig: {
-                presets: [],
-                plugins: [pluginJsxSyntax, [pluginVasille, { devMode }], [pluginTypescript, { isTSX: true }]],
-                sourceMaps: "inline",
-                configFile: false,
-                babelrc: false,
-            },
-        }),
-        // @ts-expect-error
-        babel({
-            loader: "js",
-            filter: /(router|class)\.js$/,
-            babelConfig: {
-                presets: [],
-                plugins: [pluginInlineEnv],
-                configFile: false,
-                babelrc: false,
-            },
-        }),
-    ];
-}
+import {compress} from "./vite-plugins/compress.js";
+import {getVitePlugins} from "./vite-plugins/jsx.js";
+import {processArgs} from "./lib/process-args.js";
+import {register} from "node:module";
+import {indexPlugin, watchForIndexUpdates} from "./vite-plugins/index.vasille.js";
+import {workingDirs} from "./lib/working-dirs.js";
 
 async function run() {
-    const srcDir = path.join(cwd(), "src");
-    const routerDir = path.join(srcDir, "router");
-    const pagesDir = path.join(srcDir, "pages");
-
-    if (!dev && !build) {
-        const mode = await select<"dev" | "build">({
-            message: "What do you want?",
-            choices: [
-                {
-                    value: "dev",
-                    name: "Start a development server",
-                    description: "Select this option to open your application in web browser",
-                },
-                {
-                    value: "build",
-                    name: "Build your application",
-                    description: "Select this option to compile your code for production",
-                },
-            ],
-        });
-
-        dev = mode === "dev";
-        build = mode === "build";
-    }
+    const {routerDir, pagesDir} = workingDirs();
+    const { build, dev, spa, ssg, help } = await processArgs();
 
     if (build) {
-        console.log("\nCommand shortcut is vasille-web build\n\n");
+        if (spa) {
+            if (help) {
+                console.log("\nCommand shortcut is vasille-web build spa\n");
+            }
 
-        await viteBuild({
-            configFile: false,
-            root: cwd(),
-            esbuild: false,
-            appType: "spa",
-            build: {
-                outDir: "dist/spa",
-                emptyOutDir: true,
-            },
-            plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins(true), compress()],
-        });
+            await viteBuild({
+                configFile: false,
+                root: cwd(),
+                esbuild: false,
+                appType: "spa",
+                build: {
+                    outDir: "dist/spa",
+                    emptyOutDir: true,
+                },
+                plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins(true), compress()],
+            });
+        }
+        if (ssg) {
+            if (help) {
+                console.log("\nCommand shortcut is vasille-web build static\n");
+            }
+
+            register("file:"+path.join(import.meta.dirname, "./node-hooks/index.vasille.js"));
+            register("file:"+path.join(import.meta.dirname, "./node-hooks/jsx.vasille.js"));
+
+            // @ts-expect-error
+            await (await import("index.vasille.js")).router.render(path.join(cwd(), "out/static"));
+        }
 
         exit(0);
     }
     if (dev) {
-        console.log("\nCommand shortcut is vasille-web dev\n\n");
+        if (help) {
+            console.log("\nCommand shortcut is vasille-web dev\n");
+        }
 
         const server = await createServer({
             configFile: false,
@@ -119,5 +76,5 @@ async function run() {
 
 run().catch(e => {
     console.log(e);
-    exit(0);
+    exit(1);
 });

@@ -31,6 +31,7 @@ export {
     arrayModel,
     Switch,
     setErrorHandler,
+    match,
 } from "vasille-jsx";
 
 export {

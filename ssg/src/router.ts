@@ -9,8 +9,6 @@ import {
 import { Element, Node, Runner, TagOptions } from "./runner.js";
 import { App, Fragment } from "vasille";
 import { waitForAsyncData } from "./awaited.js";
-import path from "node:path";
-import * as fs from "node:fs/promises";
 import { mountStyles } from "./css.js";
 
 export class Router extends AbstractRouter<Node, Element, TagOptions, string, {}, []> {
@@ -27,29 +25,28 @@ export class Router extends AbstractRouter<Node, Element, TagOptions, string, {}
         this.node = node;
     }
 
-    public async render(outPath: string): Promise<void> {
-        await this.renderStatic(outPath, this.root, "/");
+    public async render() {
+        return await this.renderStatic(this.root, "/", {});
     }
 
     public async renderStatic(
-        outPath: string,
         routing: Routing<Node, Element, TagOptions, string, {}>,
         prefix: string,
+        routes: Record<string, string>,
     ) {
         if (routing.self) {
             const forceFile = prefix.endsWith(".html");
-            const dirPath = path.join(outPath, prefix.slice(1));
-            const filePath = forceFile ? dirPath : path.join(dirPath, "index.html");
+            const dirPath = prefix.slice(1);
+            const filePath = forceFile ? dirPath : dirPath + "/index.html";
 
-            if (!forceFile) {
-                await fs.mkdir(dirPath, { recursive: true });
-            }
-            await fs.writeFile(filePath, await this.doNavigate(prefix));
+            routes[filePath] = await this.doNavigate(prefix);
         }
 
         for (const key in routing.static) {
-            await this.renderStatic(outPath, routing.static[key], `${prefix}${key}/`);
+            await this.renderStatic(routing.static[key], `${prefix}${key}`, routes);
         }
+
+        return routes;
     }
 
     protected async doNavigate(url: string) {
@@ -57,18 +54,17 @@ export class Router extends AbstractRouter<Node, Element, TagOptions, string, {}
 
         await this.prepareNavigation(url, true, true);
 
-        return ["<!doctype html>", "<html>", this.runner.head.toHTML(1), this.runner.body.toHTML(1), "</html>"].join(
-            "\n",
+        console.dir(this.runner.body);
+
+        return (
+            ["<!doctype html>", "<html>", this.runner.head.toHTML(1), this.runner.body.toHTML(1), "</html>"].join(
+                "\n",
+            ) + "\n"
         );
     }
 
     protected parseUrl(url: string): [string, QueryParams, string] {
-        const parsed = new URL(url, "http://127.0.0.1`");
-        const query = [...parsed.searchParams.keys()].reduce((prev, key) => {
-            return { ...prev, [key]: parsed.searchParams.getAll(key) };
-        }, {} as QueryParams);
-
-        return [parsed.pathname, query, parsed.hash];
+        return [url, {}, ""];
     }
 
     protected async loadTarget<Route extends string>(
@@ -93,7 +89,7 @@ export class Router extends AbstractRouter<Node, Element, TagOptions, string, {}
     }
 }
 
-export function routeApp(init: RouterInitialization<Node, Element, TagOptions, string, {}>) {
+export function routerApp(init: RouterInitialization<Node, Element, TagOptions, string, {}>) {
     const head = new Element("head", {});
     const body = new Element("body", {});
     const runner = new Runner(head, body);
@@ -101,12 +97,5 @@ export function routeApp(init: RouterInitialization<Node, Element, TagOptions, s
     const fragment = new Fragment(runner);
 
     app.create(fragment);
-    new Router(runner, fragment, init)
-        .render(process.argv[2])
-        .catch(e => {
-            console.error(e);
-        })
-        .finally(() => {
-            process.exit(0);
-        });
+    return new Router(runner, fragment, init);
 }

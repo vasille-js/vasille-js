@@ -4,10 +4,11 @@
   "description": "The framework designed to build bulletproof frontends (CLI tool for Web)",
   "main": "bin/run.js",
   "bin": {
-    "vli": "bin/run.js"
+    "web": "bin/run.js"
   },
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
+    "prebuild": "rm -r bin",
     "build": "tsc",
     "prettier": "prettier src --write",
     "test": "echo \"Error: no test specified\" && exit 1"

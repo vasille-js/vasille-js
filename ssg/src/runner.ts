@@ -62,7 +62,7 @@ export class Text extends Node {
     public toHTML(level: number): string {
         const text = (this.text instanceof IValue ? this.text.V : this.text) ?? "";
 
-        return escapeHTML(`${this.level(level)}${text}\n`);
+        return escapeHTML(`${this.level(level)}${text}`);
     }
 }
 
@@ -72,7 +72,7 @@ export class Comment extends Text {
             .replace("-->", "- ->")
             .replace("<!--", "<!- -");
 
-        return `${this.level(level)}<!-- ${text} -->\n`;
+        return `${this.level(level)}<!-- ${text} -->`;
     }
 }
 
@@ -146,9 +146,9 @@ export class Element extends Node {
             .join(" ");
 
         return this.children.length === 0
-            ? `${this.level(level)}<${this.name} ${attrStr}/>`
+            ? `${this.level(level)}<${this.name}${attrStr ? " " + attrStr : ""}/>`
             : [
-                  `${this.level(level)}<${this.name} ${attrStr}>`,
+                  `${this.level(level)}<${this.name}${attrStr ? " " + attrStr : ""}>`,
                   ...this.children.map(item => item.toHTML(level + 1)),
                   `${this.level(level)}</${this.name}>`,
               ].join("\n");
@@ -160,6 +160,7 @@ export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
 
     public compose() {
         this.node = new Text(this.data);
+        this.parent.appendNode(this.node);
     }
 
     protected findFirstChild(): Node {
@@ -172,6 +173,7 @@ export class DebugNode extends AbstractDebugNode<Node, Element, TagOptions> {
 
     public compose() {
         this.node = new Comment(this.data);
+        this.parent.appendNode(this.node);
     }
 
     protected findFirstChild(): Node | Element | undefined {
@@ -185,6 +187,7 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
     public compose() {
         this.node = new Element(this.name, this.options);
         this.parent.appendNode(this.node);
+        this.options.slot?.(this);
     }
 
     protected applyOptions(options: TagOptions) {}
