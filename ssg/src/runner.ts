@@ -19,6 +19,7 @@ export abstract class Node {
     public insertBefore(node: Node, before: Node) {
         const index = this.children.indexOf(before);
 
+        /* istanbul ignore else */
         if (index >= 0) {
             this.children.splice(index, 0, node);
         }
@@ -71,15 +72,15 @@ export class Text extends Node {
 }
 
 export class Comment extends Node {
-    public readonly model: unknown | IValue<unknown>;
+    public readonly model: IValue<unknown>;
 
-    public constructor(model: unknown | IValue<unknown>) {
+    public constructor(model: IValue<unknown>) {
         super();
         this.model = model;
     }
 
     public toHTML(level: number): string {
-        const text = `${(this.model instanceof IValue ? this.model.V : this.model) ?? ""}`
+        const text = `${(this.model.V) ?? ""}`
             .replace("-->", "- ->")
             .replace("<!--", "<!- -");
 

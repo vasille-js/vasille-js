@@ -43,7 +43,7 @@ export class Router extends AbstractRouter<Node, Element, TagOptions, string, {}
         }
 
         for (const key in routing.static) {
-            await this.renderStatic(routing.static[key], `${prefix}${key}`, routes);
+            await this.renderStatic(routing.static[key], `${prefix !== "/" ? prefix + "/" : "/"}${key}`, routes);
         }
 
         return routes;

@@ -68,7 +68,7 @@ export function view<In extends CompositionProps>(
 export const component = view;
 export const compose = view;
 
-export function modal<T extends object>(
+export function modal<T extends CompositionProps>(
     modal: (node: Fragment<Node, Element, TagOptions>, input: T) => void,
 ): (input: T, node: Fragment<Node, Element, TagOptions>) => void {
     return function (props, node) {
@@ -84,15 +84,13 @@ export function modal<T extends object>(
 }
 
 // no prompts support in SSG
-export function prompt(): () => Promise<unknown> {
+export function prompt(): () => void {
     return function () {
         throw new Error("User input is not supported in SSG");
     };
 }
 
-export function mount<T>(component: ($: T) => void, input: T) {
-    const head = new Element("head", {});
-    const body = new Element("body", {});
-
-    return coreMount<Node, Element, TagOptions, T>(body, component, new Runner(head, body), input);
+// SSG works only with file-based router
+export function mount() {
+    throw new Error("SSG app can not be mounted");
 }
