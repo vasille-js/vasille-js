@@ -61,7 +61,7 @@ export class Text extends Node {
     }
 
     public isEmpty() {
-        return !this.text || this.text instanceof IValue && !this.text.V;
+        return !this.text || (this.text instanceof IValue && !this.text.V);
     }
 
     public toHTML(level: number): string {
@@ -80,9 +80,7 @@ export class Comment extends Node {
     }
 
     public toHTML(level: number): string {
-        const text = `${(this.model.V) ?? ""}`
-            .replace("-->", "- ->")
-            .replace("<!--", "<!- -");
+        const text = `${this.model.V ?? ""}`.replace("-->", "- ->").replace("<!--", "<!- -");
 
         return `${this.level(level)}<!-- ${text} -->`;
     }
@@ -114,6 +112,11 @@ export class Element extends Node {
         }
         if (this.options.class) {
             const classes: string[] = [];
+            const attrValue = this.options.attr?.class;
+
+            if (typeof attrValue === "string") {
+                classes.push(attrValue);
+            }
 
             for (const item of this.options.class) {
                 if (item instanceof IValue) {
@@ -135,6 +138,12 @@ export class Element extends Node {
         }
         if (this.options.style) {
             const styles: string[] = [];
+            const attrValue = this.options.attr?.style;
+
+            /* istanbul ignore else */
+            if (typeof attrValue === "string") {
+                styles.push(attrValue);
+            }
 
             for (const [name, value] of Object.entries(this.options.style)) {
                 const extracted = value instanceof IValue ? value.V : value;
@@ -167,12 +176,11 @@ export class Element extends Node {
         this.children.forEach(item => {
             const currentIsText = item instanceof Text;
             const content = currentIsText
-              ? item.toHTML(!prevWasText ? level + 1 : 0)
-              : (prevWasText && !currentIsText ? "\n" : "") + item.toHTML(level + 1) + "\n";
-
+                ? item.toHTML(!prevWasText ? level + 1 : 0)
+                : (prevWasText && !currentIsText ? "\n" : "") + item.toHTML(level + 1) + "\n";
 
             if (!(item instanceof Text && item.isEmpty())) {
-                prevWasText = currentIsText
+                prevWasText = currentIsText;
                 result.push(content);
             }
         });
@@ -225,6 +233,27 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
     }
 }
 
+class HeadTag extends Tag {
+    public readonly runner: Runner;
+
+    public compose(): void {
+        this.node = this.runner.head;
+        this.applyOptions(this.options);
+    }
+}
+
+class BodyTag extends Tag {
+    public readonly runner: Runner;
+
+    public compose(): void {
+        this.node = this.runner.body;
+        for (const key in this.options) {
+            this.node.options[key] = this.options[key]
+        }
+        this.applyOptions(this.options);
+    }
+}
+
 export class Runner implements IRunner<Node, Element, TagOptions> {
     debugUi: boolean = false;
 
@@ -266,6 +295,10 @@ export class Runner implements IRunner<Node, Element, TagOptions> {
             input.slot = cb;
         }
 
-        return new Tag(input, this, tagName);
+        return tagName === "head"
+            ? new HeadTag(input, this, tagName)
+            : tagName === "body"
+              ? new BodyTag(input, this, tagName)
+              : new Tag(input, this, tagName);
     }
 }

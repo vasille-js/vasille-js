@@ -1,5 +1,5 @@
-import {page} from "vasille-web";
+import { page } from "vasille-web";
 
 export default page(async () => {
-  <>File.html</>
-})
+    <>File.html</>;
+});
