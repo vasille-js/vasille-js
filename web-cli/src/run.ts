@@ -1,17 +1,18 @@
 #!/usr/bin/env node
-import {cwd, exit} from "node:process";
+import { cwd, exit } from "node:process";
 import path from "node:path";
-import {build as viteBuild, createServer} from "vite";
+import { build as viteBuild, createServer } from "vite";
 import inspect from "vite-plugin-inspect";
-import {compress} from "./vite-plugins/compress.js";
-import {getVitePlugins} from "./vite-plugins/jsx.js";
-import {processArgs} from "./lib/process-args.js";
-import {register} from "node:module";
-import {indexPlugin, watchForIndexUpdates} from "./vite-plugins/index.vasille.js";
-import {workingDirs} from "./lib/working-dirs.js";
+import { compress } from "./vite-plugins/compress.js";
+import { getVitePlugins } from "./vite-plugins/jsx.js";
+import { processArgs } from "./lib/process-args.js";
+import { register } from "node:module";
+import { indexPlugin, watchForIndexUpdates } from "./vite-plugins/index.vasille.js";
+import { workingDirs } from "./lib/working-dirs.js";
+import fs from "fs/promises";
 
 async function run() {
-    const {routerDir, pagesDir} = workingDirs();
+    const { routerDir, pagesDir } = workingDirs();
     const { build, dev, spa, ssg, help } = await processArgs();
 
     if (build) {
@@ -37,11 +38,19 @@ async function run() {
                 console.log("\nCommand shortcut is vasille-web build static\n");
             }
 
-            register("file:"+path.join(import.meta.dirname, "./node-hooks/index.vasille.js"));
-            register("file:"+path.join(import.meta.dirname, "./node-hooks/jsx.vasille.js"));
+            register("file:" + path.join(import.meta.dirname, "./node-hooks/index.vasille.js"));
+            register("file:" + path.join(import.meta.dirname, "./node-hooks/jsx.vasille.js"));
 
             // @ts-expect-error
-            await (await import("index.vasille.js")).router.render(path.join(cwd(), "out/static"));
+            const routes: Record<string, string> = await (await import("index.vasille.js")).router.render();
+            const outPath = path.join(cwd(), "out/static");
+
+            for (const key in routes) {
+                const filePath = path.join(outPath, key);
+
+                await fs.mkdir(path.dirname(filePath), { recursive: true });
+                await fs.writeFile(filePath, routes[key], "utf8");
+            }
         }
 
         exit(0);

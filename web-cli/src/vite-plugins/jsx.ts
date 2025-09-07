@@ -4,30 +4,30 @@ import pluginTypescript from "@babel/plugin-transform-typescript";
 import pluginInlineEnv from "babel-plugin-transform-inline-environment-variables";
 
 export function getVitePlugins(devMode: boolean) {
-  return [
-    // @ts-expect-error
-    babel({
-      loader: "js",
-      filter: /\.[tj]sx?$/,
-      include: ["src/**/*"],
-      babelConfig: {
-        presets: [],
-        plugins: [pluginJsxSyntax, [pluginVasille, {devMode}], [pluginTypescript, {isTSX: true}]],
-        sourceMaps: "inline",
-        configFile: false,
-        babelrc: false,
-      },
-    }),
-    // @ts-expect-error
-    babel({
-      loader: "js",
-      filter: /(router|class)\.js$/,
-      babelConfig: {
-        presets: [],
-        plugins: [pluginInlineEnv],
-        configFile: false,
-        babelrc: false,
-      },
-    }),
-  ];
+    return [
+        // @ts-expect-error
+        babel({
+            loader: "js",
+            filter: /\.[tj]sx?$/,
+            include: ["src/**/*"],
+            babelConfig: {
+                presets: [],
+                plugins: [pluginJsxSyntax, [pluginVasille, { devMode }], [pluginTypescript, { isTSX: true }]],
+                sourceMaps: "inline",
+                configFile: false,
+                babelrc: false,
+            },
+        }),
+        // @ts-expect-error
+        babel({
+            loader: "js",
+            filter: /(router|class)\.js$/,
+            babelConfig: {
+                presets: [],
+                plugins: [pluginInlineEnv],
+                configFile: false,
+                babelrc: false,
+            },
+        }),
+    ];
 }

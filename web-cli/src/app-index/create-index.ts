@@ -1,8 +1,8 @@
-import {findRoutes} from "./find-routes.js";
+import { findRoutes } from "./find-routes.js";
 
 export async function createIndex(routerDir: string, pagesDir: string): Promise<string> {
     const indexJs: string[] = [];
-    const {present, paths} = await findRoutes(routerDir, pagesDir);
+    const { present, paths } = await findRoutes(routerDir, pagesDir);
 
     for (const item of present) {
         indexJs.push(`import ${item.component} from "${item.file}";`);
@@ -16,7 +16,7 @@ export async function createIndex(routerDir: string, pagesDir: string): Promise<
     }
     indexJs.push("  routes: {");
 
-    for (const {urlPath, filePath} of paths) {
+    for (const { urlPath, filePath } of paths) {
         indexJs.push(`    "${urlPath}": {`);
         indexJs.push(`      async screen(a, b){ (await import("${filePath}")).default(a, b) },`);
         indexJs.push("    },");
