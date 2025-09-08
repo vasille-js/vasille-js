@@ -248,7 +248,7 @@ class BodyTag extends Tag {
     public compose(): void {
         this.node = this.runner.body;
         for (const key in this.options) {
-            this.node.options[key] = this.options[key]
+            this.node.options[key] = this.options[key];
         }
         this.applyOptions(this.options);
     }

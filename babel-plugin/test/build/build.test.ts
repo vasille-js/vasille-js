@@ -1,5 +1,17 @@
-import { runTest } from "../run-test";
+import { runJsxTest, runTest } from "../run-test";
 
-it("SSG test", function() {
-  runTest(__dirname, "ssg", true, false, {replaceWeb: "vasille-ssg"});
+it("SSG test", function () {
+  runJsxTest(__dirname, "ssg", true, {
+    replaceWeb: "vasille-ssg",
+    headTag: true,
+    bodyTag: true,
+  });
+});
+
+it("SSG no extra tags test", function () {
+  runJsxTest(__dirname, "ssg-no-extra-tags", true, {
+    replaceWeb: "vasille-ssg",
+    headTag: false,
+    bodyTag: false,
+  });
 });

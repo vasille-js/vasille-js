@@ -131,6 +131,8 @@ export interface TransformerOptions {
   devMode: boolean;
   strictFolders: boolean;
   replaceWeb?: string;
+  headTag?: boolean;
+  bodyTag?: boolean;
 }
 
 // Main transformer function
@@ -173,6 +175,8 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     devMode: opts.devMode,
     strictFolders: opts.strictFolders,
     replaceWeb: opts.replaceWeb,
+    headTag: opts.headTag,
+    bodyTag: opts.bodyTag,
     ref: arg => call("ref", arg ? [arg] : []),
     expr: (func, values) => call("expr", [getCtx(), func, values]),
     forward: arg => call("forward", [getCtx(), arg]),

@@ -57,6 +57,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @return {*} removed value
      */
     public override pop(): T | undefined {
+        /* istanbul ignore else */
         if (this.length > 0) {
             const v = super.pop() as T;
 
@@ -84,6 +85,7 @@ export class ArrayModel<T> extends Array<T> implements ListenableModel<T, T> {
      * @return {*} the shifted value
      */
     public override shift(): T | undefined {
+        /* istanbul ignore else */
         if (this.length > 0) {
             const v = super.shift() as T;
 

@@ -1,14 +1,14 @@
 {
   "name": "vasille-web-cli",
-  "version": "4.0.1",
-  "description": "The framework designed to build bulletproof frontends (CLI tool for Web)",
+  "version": "4.1.0",
+  "description": "The same framework which is designed to build bulletproof frontends (CLI tool for Web)",
   "main": "bin/run.js",
   "bin": {
     "web": "bin/run.js"
   },
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
-    "prebuild": "rm -r bin",
+    "prebuild": "rm -rf bin",
     "build": "tsc",
     "prettier": "prettier src --write",
     "test": "echo \"Error: no test specified\" && exit 1"

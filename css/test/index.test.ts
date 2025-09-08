@@ -35,7 +35,7 @@ it("calculated style test", function () {
         ],
     });
 
-    expect(classes.test).toBe("v-1");
+    expect(classes.test).toBe("vasille-1");
 
     function style(index: number) {
         return window.document.head.children[index] as unknown as { media: string };

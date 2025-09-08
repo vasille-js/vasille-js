@@ -21,3 +21,5 @@
 /.*
 /translations
 *.tsbuildinfo
+deno.json
+eslint.config.js

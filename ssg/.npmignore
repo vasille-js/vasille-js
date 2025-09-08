@@ -5,3 +5,6 @@
 *.tsbuildinfo
 /.*
 qodana.yaml
+/coverage
+/test
+jest.config.cjs

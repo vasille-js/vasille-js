@@ -30,11 +30,11 @@ export function throwTest(dir: string, name: string, err: string, isTsx?: boolea
   }).toThrow(new RegExp(`Vasille\\\[\\d+]\{\\w+}: ${RegExp.escape(err)}`));
 }
 
-export function runJsxTest(dir: string, name: string, devMode = true) {
+export function runJsxTest(dir: string, name: string, devMode = true, extra: object = {}) {
   const input = fs.readFileSync(path.join(dir, `${name}.tsx`), { encoding: "utf8" });
   const result = babel.transformSync(input, {
     plugins: [
-      [vasillePlugin, { devMode, strictFolders: false }],
+      [vasillePlugin, { devMode, strictFolders: false, ...extra }],
       ["@babel/plugin-transform-typescript", { isTSX: true }],
     ],
     filename: path.join(dir, `${name}.tsx`),
