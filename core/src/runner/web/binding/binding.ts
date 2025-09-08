@@ -7,7 +7,7 @@ import type { IValue } from "../../../core/ivalue.js";
  */
 export class Binding<T> implements Destroyable {
     private binding: IValue<T>;
-    private func: (value: T) => void;
+    private func!: (value: T) => void;
 
     /**
      * Constructs a common binding logic

@@ -8,3 +8,4 @@
 /tsconfig*
 *.tgz
 *.tsbuildinfo
+eslint.config.js

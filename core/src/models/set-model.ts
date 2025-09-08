@@ -29,7 +29,7 @@ export class SetModel<T> extends Set<T> implements ListenableModel<T, T> {
      * @param value {*} value
      * @return {this} a pointer to this
      */
-    public add(value: T): this {
+    public override add(value: T): this {
         /* istanbul ignore else */
         if (!super.has(value)) {
             this.listener.emitAdded(value, value);
@@ -41,7 +41,7 @@ export class SetModel<T> extends Set<T> implements ListenableModel<T, T> {
     /**
      * Calls `Set.clear` and notify abut changes
      */
-    public clear() {
+    public override clear() {
         this.forEach(item => {
             this.listener.emitRemoved(item, item);
         });
@@ -53,7 +53,7 @@ export class SetModel<T> extends Set<T> implements ListenableModel<T, T> {
      * @param value {*}
      * @return {boolean} true if a value was deleted, otherwise false
      */
-    public delete(value: T): boolean {
+    public override delete(value: T): boolean {
         if (super.has(value)) {
             this.listener.emitRemoved(value, value);
         }

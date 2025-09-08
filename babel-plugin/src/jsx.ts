@@ -244,6 +244,10 @@ function transformJsxElement(
 ): types.Statement[] {
   const name = path.node.openingElement.name;
   if (t.isJSXIdentifier(name) && name.name[0].toLowerCase() === name.name[0]) {
+    if ((name.name === "head" && !internal.headTag) || (name.name === "body" && !internal.bodyTag)) {
+      return [];
+    }
+
     const opening = path.get("openingElement");
     const attrs: types.ObjectProperty[] = [];
     const events: types.ObjectProperty[] = [];

@@ -98,7 +98,7 @@ export abstract class Root<Node, Element, TagOptions extends object> extends Rea
         callback?.(node);
     }
 
-    public destroy() {
+    public override destroy() {
         this.children.forEach(child => child.destroy());
 
         this.children.clear();
@@ -130,7 +130,7 @@ export class Fragment<Node, Element, TagOptions extends object> extends Root<Nod
      * @param node {Fragment} A node to push
      * @protected
      */
-    protected pushNode(node: Fragment<Node, Element, TagOptions>): void {
+    protected override pushNode(node: Fragment<Node, Element, TagOptions>): void {
         if (this.lastChild) {
             this.lastChild.next = node;
         }
@@ -199,7 +199,7 @@ export class Fragment<Node, Element, TagOptions extends object> extends Root<Nod
         this.parent.children.delete(this);
     }
 
-    public destroy() {
+    public override destroy() {
         if (this.parent.lastChild === this) {
             this.parent.lastChild = this.prev;
         }
@@ -217,7 +217,7 @@ export interface TextProps {
  * @extends Fragment
  */
 export abstract class TextNode<Node, Element, TagOptions extends object> extends Fragment<Node, Element, TagOptions> {
-    protected handler: ((v: unknown) => void) | null;
+    protected handler: ((v: unknown) => void) | null = null;
     protected readonly data: unknown;
 
     public constructor(input: TextProps, runner: Runner<Node, Element, TagOptions>) {
@@ -225,11 +225,11 @@ export abstract class TextNode<Node, Element, TagOptions extends object> extends
         this.data = input.text;
     }
 
-    public abstract compose(): void;
+    public abstract override compose(): void;
 
-    protected abstract findFirstChild(): Node;
+    protected abstract override findFirstChild(): Node;
 
-    public destroy(): void {
+    public override destroy(): void {
         const text = this.data;
 
         if (text instanceof IValue && this.handler) {
@@ -250,13 +250,13 @@ export abstract class INode<Node, Element, TagOptions extends object> extends Fr
      * The element of vasille node
      * @type Element
      */
-    protected node: Element;
+    protected node!: Element;
 
     public get element(): Element {
         return this.node;
     }
 
-    public insertAdjacent(node: Node): void {
+    public override insertAdjacent(node: Node): void {
         this.runner.insertBefore(node, this.node);
     }
 
@@ -278,13 +278,13 @@ export abstract class Tag<Node, Element, TagOptions extends object> extends INod
         this.name = tagName;
     }
 
-    public abstract compose(): void;
+    public abstract override compose(): void;
 
-    protected findFirstChild(): Node | Element | undefined {
+    protected override findFirstChild(): Node | Element | undefined {
         return this.node;
     }
 
-    public appendNode(node: Node): void {
+    public override appendNode(node: Node): void {
         this.runner.appendChild(this.node, node);
     }
 }
@@ -304,7 +304,7 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
      * Index of current true condition
      * @type number
      */
-    private index: number;
+    private index: number = -1;
 
     /**
      * Array of possible cases
@@ -365,11 +365,11 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
         });
     }
 
-    public compose() {
+    public override compose() {
         this.sync();
     }
 
-    public destroy() {
+    public override destroy() {
         this.cases.forEach(c => {
             c.$case.off(this.sync);
         });
@@ -389,7 +389,7 @@ export interface DebugProps {
  * @extends Fragment
  */
 export abstract class DebugNode<Node, Element, TagOptions extends object> extends Fragment<Node, Element, TagOptions> {
-    protected handler: ((v: unknown) => void) | null;
+    protected handler: ((v: unknown) => void) | null = null;
     protected readonly data: IValue<unknown>;
 
     public constructor(input: DebugProps, runner: Runner<Node, Element, TagOptions>) {
@@ -397,9 +397,9 @@ export abstract class DebugNode<Node, Element, TagOptions extends object> extend
         this.data = input.text;
     }
 
-    public abstract compose(): void;
+    public abstract override compose(): void;
 
-    public destroy(): void {
+    public override destroy(): void {
         /* istanbul ignore else */
         if (this.handler) {
             this.data.off(this.handler);

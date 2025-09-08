@@ -1,0 +1,12 @@
+{
+  "name": "@vasille/core",
+  "version": "4.0.0",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts",
+    "./web-runner": "./src/runner/web/runner.ts"
+  },
+  "publish": {
+    "include": ["src/**/*.ts", "README.md"]
+  }
+}

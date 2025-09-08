@@ -14,18 +14,18 @@ import {
 
 interface SlotOptions<Node, Element, TagOptions extends object, T extends object> {
     model?: (input: T, ctx: Fragment<Node, Element, TagOptions>) => void;
-    slot?: (ctx: Fragment<Node, Element, TagOptions>) => void;
+    slot?: (input: object, ctx: Fragment<Node, Element, TagOptions>) => void;
 }
 
 export function Slot<Node, Element, TagOptions extends object, T extends object = {}>(
     { model, slot, ...options }: SlotOptions<Node, Element, TagOptions, T> & T,
     ctx: Fragment<Node, Element, TagOptions>,
-    defaultSlot?: (ctx: Fragment<Node, Element, TagOptions>) => void,
+    defaultSlot?: (input: object, ctx: Fragment<Node, Element, TagOptions>) => void,
 ) {
     if (model) {
         model(options as T, ctx);
     } else {
-        (slot ?? defaultSlot)?.(ctx);
+        (slot ?? defaultSlot)?.({}, ctx);
     }
 }
 

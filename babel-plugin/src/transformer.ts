@@ -34,13 +34,16 @@ function handleImportDeclaration(
   statementPath: NodePath<types.ImportDeclaration>,
   internal: Internal,
   ids: Record<string, string>,
-  used: Set<string>,
-  stylesConnected: { value: boolean },
 ) {
   const statement = statementPath.node;
   const name = imports.get(statement.source.value);
 
   if (!name) return;
+
+  // replace the web import if is required
+  if (name === "VasilleWeb" && internal.replaceWeb) {
+    statement.source.value = internal.replaceWeb;
+  }
 
   internal.prefix = name;
 
@@ -48,7 +51,7 @@ function handleImportDeclaration(
     /* istanbul ignore else */
     if (t.isImportNamespaceSpecifier(specifier)) {
       internal.global = specifier.local.name;
-      stylesConnected.value = true;
+      internal.stylesConnected = true;
     } else if (t.isImportSpecifier(specifier)) {
       const imported = extractText(specifier.imported);
       const local = specifier.local.name;
@@ -62,7 +65,7 @@ function handleImportDeclaration(
 
       internal.mapping.set(local, imported);
       if (imported === "styleSheet") {
-        stylesConnected.value = true;
+        internal.stylesConnected = true;
       }
 
       internal.importStatement = statementPath;
@@ -78,8 +81,8 @@ function handleImportDeclaration(
 }
 
 // Handles mesh and style transformation
-function handleStatement(statementPath: NodePath<types.Statement>, internal: Internal, stylesConnected: boolean) {
-  if (!stylesConnected || !findStyleInNode(statementPath, internal)) {
+function handleStatement(statementPath: NodePath<types.Statement>, internal: Internal) {
+  if (!internal.stylesConnected || !findStyleInNode(statementPath, internal)) {
     meshStatement(statementPath, internal);
   }
 }
@@ -95,7 +98,7 @@ function updateImports(
     path.get("body")[0].insertBefore(
       t.importDeclaration(
         [...used].map(name => t.importSpecifier(t.identifier(ids[name]), t.identifier(name))),
-        t.stringLiteral("vasille-web"),
+        t.stringLiteral(internal.replaceWeb ?? "vasille-web"),
       ),
     );
   }
@@ -127,11 +130,13 @@ function updateImports(
 export interface TransformerOptions {
   devMode: boolean;
   strictFolders: boolean;
+  replaceWeb?: string;
+  headTag?: boolean;
+  bodyTag?: boolean;
 }
 
 // Main transformer function
 export function transformProgram(path: NodePath<types.Program>, filename: string, opts: TransformerOptions) {
-  const stylesConnected = { value: false };
   const used = new Set<string>();
   const ids = {
     ref: "VasilleRef",
@@ -166,8 +171,12 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     importStatement: null,
     stateOnly: false,
     filename,
+    stylesConnected: false,
     devMode: opts.devMode,
     strictFolders: opts.strictFolders,
+    replaceWeb: opts.replaceWeb,
+    headTag: opts.headTag,
+    bodyTag: opts.bodyTag,
     ref: arg => call("ref", arg ? [arg] : []),
     expr: (func, values) => call("expr", [getCtx(), func, values]),
     forward: arg => call("forward", [getCtx(), arg]),
@@ -188,9 +197,9 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
   for (const statementPath of path.get("body")) {
     const statement = statementPath.node;
     if (t.isImportDeclaration(statement)) {
-      handleImportDeclaration(statementPath as NodePath<types.ImportDeclaration>, internal, ids, used, stylesConnected);
+      handleImportDeclaration(statementPath as NodePath<types.ImportDeclaration>, internal, ids);
     } else {
-      handleStatement(statementPath, internal, stylesConnected.value);
+      handleStatement(statementPath, internal);
     }
   }
 

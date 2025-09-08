@@ -1,7 +1,7 @@
 {
   "name": "vasille-css",
-  "version": "4.0.0",
-  "description": "The framework designed to build bulletproof frontends (CSS style library)",
+  "version": "4.1.0",
+  "description": "The same framework which is designed to build bulletproof frontends (CSS style library)",
   "main": "./lib/index.js",
   "types": "./types/index.d.ts",
   "exports": {

@@ -14,7 +14,7 @@ export class MapView<Node, Element, TagOptions extends object, K, T> extends Bas
     T,
     MapModel<K, T>
 > {
-    public compose() {
+    public override compose() {
         super.compose();
         this.model.forEach((value, key) => {
             this.createChild(key, value);

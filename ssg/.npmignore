@@ -1,0 +1,10 @@
+/.idea
+*.tgz
+/src
+/tsconfig*.json
+*.tsbuildinfo
+/.*
+qodana.yaml
+/coverage
+/test
+jest.config.cjs

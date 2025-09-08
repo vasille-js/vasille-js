@@ -31,9 +31,10 @@
     "vasille-css": "^4.0.0",
     "vasille-jsx": "^4.0.1",
     "vasille-router": "^4.0.0",
+    "vasille-ssg": "file:../ssg",
     "vasille-web": "^4.0.0"
   },
   "devDependencies": {
-    "vasille-web-cli": "^4.0.0"
+    "vasille-web-cli": "file:../web-cli"
   }
 }

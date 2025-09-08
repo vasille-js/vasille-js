@@ -22,11 +22,10 @@ export class SetView<Node, Element, TagOptions extends object, T> extends BaseVi
         super(input, runner);
     }
 
-    public compose() {
+    public override compose() {
         super.compose();
         this.model.forEach(item => {
             this.createChild(item, item);
         });
-        return {};
     }
 }

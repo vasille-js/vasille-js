@@ -29,7 +29,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
     /**
      * Calls `Map.clear` and notify about changes
      */
-    public clear() {
+    public override clear() {
         this.forEach((value, key) => {
             this.listener.emitRemoved(key, value);
         });
@@ -41,7 +41,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
      * @param key {*} key
      * @return {boolean} true if removed something, otherwise false
      */
-    public delete(key: K): boolean {
+    public override delete(key: K): boolean {
         const tmp = super.get(key);
         /* istanbul ignore else */
         if (tmp) {
@@ -56,7 +56,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
      * @param value {*} value
      * @return {MapModel} a pointer to this
      */
-    public set(key: K, value: T): this {
+    public override set(key: K, value: T): this {
         const tmp = super.get(key);
         if (tmp) {
             this.listener.emitRemoved(key, tmp);

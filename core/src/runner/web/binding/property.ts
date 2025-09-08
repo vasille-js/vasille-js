@@ -18,7 +18,7 @@ export class PropertyBinding<T> extends Binding<T> {
         super(value);
 
         this.init(value => {
-            node.element[name] = value;
+            (node.element as unknown as Record<string, unknown>)[name] = value;
         });
     }
 }

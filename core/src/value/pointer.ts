@@ -62,11 +62,11 @@ export class Backward<T> extends Reference<T> {
         this.target = value;
     }
 
-    public get V(): T {
+    public override get V(): T {
         return super.V;
     }
 
-    public set V(value: T) {
+    public override set V(value: T) {
         super.V = value;
         this.target.V = value;
     }

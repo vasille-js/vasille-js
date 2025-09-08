@@ -97,7 +97,7 @@ export function styleSheet<T extends { [k: string]: (string | [number, string])[
     for (const key in styles) {
         Object.defineProperty(result, key, {
             get() {
-                const className = `v-${++index}`;
+                const className = `vasille-${++index}`;
 
                 for (const item of styles[key]) {
                     if (item instanceof Array) {

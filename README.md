@@ -97,9 +97,19 @@ All of these are supported:
 * [x] `100%` Test Coverage fot babel plugin.
 * [x] Add CSS support (define styles in components).
 * [x] Add router.
-* [ ] Add SSG (static site generation).
+* [x] Add SSG (static site generation).
 * [ ] Add SSR (server side rendering).
 * [ ] Develop tools extension for debugging.
+
+## Change log
+
+### 4.1.0
+
+Added SSG (static site generation) as build option `vasille-web build static`.
+
+### 4.0.0
+
+Initial version of the framework with file based routing and building scripts (`vasille-web dev` and `vasille-web build spa`).
 
 ## Questions
 

@@ -15,11 +15,11 @@ export class ArrayView<Node, Element, TagOptions extends object, T> extends Base
     T,
     ArrayModel<T>
 > {
-    public createChild(id: T, item: T, before?: Fragment<Node, Element, TagOptions>): any {
+    public override createChild(id: T, item: T, before?: Fragment<Node, Element, TagOptions>): any {
         super.createChild(item, item, before || this.nodes.get(id));
     }
 
-    public compose() {
+    public override compose() {
         super.compose();
         this.model.forEach(item => {
             this.createChild(item, item);

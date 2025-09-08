@@ -3,10 +3,10 @@ import path from "path";
 import * as babel from "@babel/core";
 import vasillePlugin from "../src/index.js";
 
-export function runTest(dir: string, name: string, devMode = true, strictFolders = false) {
+export function runTest(dir: string, name: string, devMode = true, strictFolders = false, extra: object = {}) {
   const input = fs.readFileSync(path.join(dir, `${name}.ts`), { encoding: "utf8" });
   const result = babel.transformSync(input, {
-    plugins: [[vasillePlugin, { devMode, strictFolders }], "@babel/plugin-transform-typescript"],
+    plugins: [[vasillePlugin, { devMode, strictFolders, ...extra }], "@babel/plugin-transform-typescript"],
     filename: path.join(dir, `${name}.ts`),
     sourceFileName: `${name}.js`,
   });
@@ -30,11 +30,11 @@ export function throwTest(dir: string, name: string, err: string, isTsx?: boolea
   }).toThrow(new RegExp(`Vasille\\\[\\d+]\{\\w+}: ${RegExp.escape(err)}`));
 }
 
-export function runJsxTest(dir: string, name: string, devMode = true) {
+export function runJsxTest(dir: string, name: string, devMode = true, extra: object = {}) {
   const input = fs.readFileSync(path.join(dir, `${name}.tsx`), { encoding: "utf8" });
   const result = babel.transformSync(input, {
     plugins: [
-      [vasillePlugin, { devMode, strictFolders: false }],
+      [vasillePlugin, { devMode, strictFolders: false, ...extra }],
       ["@babel/plugin-transform-typescript", { isTSX: true }],
     ],
     filename: path.join(dir, `${name}.tsx`),
