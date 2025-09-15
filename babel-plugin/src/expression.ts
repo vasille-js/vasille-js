@@ -300,7 +300,13 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
 
         /* istanbul ignore else */
         if (!t.isPrivateName(property)) {
-          path.replaceWith(search.external.set(left.node.object, property, right.node));
+          path.replaceWith(
+            search.external.set(
+              left.node.object,
+              !left.node.computed && t.isIdentifier(property) ? t.stringLiteral(property.name) : property,
+              right.node,
+            ),
+          );
         }
       } else {
         meshLValue(left, search.external);
