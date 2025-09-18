@@ -2,6 +2,7 @@ import pluginJsxSyntax from "@babel/plugin-syntax-jsx";
 import pluginVasille from "babel-plugin-vasille";
 import pluginTypescript from "@babel/plugin-transform-typescript";
 import pluginInlineEnv from "babel-plugin-transform-inline-environment-variables";
+import babel from "vite-plugin-babel";
 
 export function getVitePlugins(devMode: boolean) {
     return [

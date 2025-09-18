@@ -10,10 +10,11 @@ import { register } from "node:module";
 import { indexPlugin, watchForIndexUpdates } from "./vite-plugins/index.vasille.js";
 import { workingDirs } from "./lib/working-dirs.js";
 import fs from "fs/promises";
+import { checkFile } from "./lib/fs.js";
 
 async function run() {
-    const { routerDir, pagesDir } = workingDirs();
-    const { build, dev, spa, ssg, help } = await processArgs();
+    const { routerDir, pagesDir, srcDir } = workingDirs();
+    const { build, dev, spa, ssg, help, lib } = await processArgs();
 
     if (build) {
         if (spa) {
@@ -30,7 +31,51 @@ async function run() {
                     outDir: "dist/spa",
                     emptyOutDir: true,
                 },
-                plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins(true), compress()],
+                plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins(false), compress()],
+            });
+        }
+        if (lib) {
+            if (help) {
+                console.log("\nCommand shortcut is vasille-web build lib\n");
+            }
+
+            let file: string | undefined = undefined;
+
+            for (const name of ["index.ts", "index.js"]) {
+                if (await checkFile(path.join(srcDir, name))) {
+                    file = name;
+                }
+            }
+
+            if (!file) {
+                throw new Error(
+                    [
+                        "Library index.ts or index.js file not found",
+                        `index.ts expected path is "${path.join(srcDir, "index.ts")}"`,
+                        `index.js expected path is "${path.join(srcDir, "index.js")}"`,
+                    ].join("\n"),
+                );
+            }
+
+            await viteBuild({
+                configFile: false,
+                root: cwd(),
+                esbuild: false,
+                build: {
+                    lib: {
+                        entry: `./src/${file}`,
+                        formats: ["es"],
+                    },
+                    outDir: "dist/lib",
+                    rollupOptions: {
+                        treeshake: false,
+                        external: (source: string) => {
+                            return source[0] !== "." && !/\.[tj]sx?$/.test(source);
+                        },
+                    },
+                    sourcemap: "inline",
+                },
+                plugins: getVitePlugins(process.env.NODE_ENV !== "production"),
             });
         }
         if (ssg) {

@@ -7,3 +7,11 @@ export async function checkDir(dir: string) {
         return false;
     }
 }
+
+export async function checkFile(path: string) {
+    try {
+        return (await fs.stat(path)).isFile();
+    } catch (err) {
+        return false;
+    }
+}

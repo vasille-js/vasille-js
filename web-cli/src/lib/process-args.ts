@@ -10,6 +10,7 @@ export async function processArgs() {
     let build = checkArg("build");
     let spa = checkArg("spa");
     let ssg = checkArg("static");
+    let lib = checkArg("lib");
     let help = false;
 
     if (!dev && !build) {
@@ -33,8 +34,8 @@ export async function processArgs() {
         build = mode === "build";
         help = true;
     }
-    if (build && !(spa || ssg)) {
-        const target = await select<"spa" | "ssg">({
+    if (build && !(spa || ssg || lib)) {
+        const target = await select<"spa" | "ssg" | "lib">({
             message: "Select build type",
             choices: [
                 {
@@ -47,6 +48,11 @@ export async function processArgs() {
                     name: "Build a static site",
                     description: "Select this option to build static pages of application as HTML files.",
                 },
+                {
+                    value: "lib",
+                    name: "Build a component library",
+                    description: "Select this option to build a library, which can be used in SPA or SSG.",
+                },
             ],
         });
 
@@ -55,5 +61,5 @@ export async function processArgs() {
         help = true;
     }
 
-    return { dev, build, spa, ssg, help };
+    return { dev, build, spa, ssg, help, lib };
 }
