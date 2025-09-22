@@ -8,9 +8,11 @@ type EventHandlers<T> = {
     [K in keyof T]: T[K] | [T[K], boolean | AddEventListenerOptions];
 };
 
+export type ClassItem = string | Record<string, boolean> | false;
+
 type HtmlInput<K extends keyof HTMLElementTagNameMap & keyof HtmlTagMap> = {
     callback?: (node: HTMLElementTagNameMap[K]) => unknown;
-    class?: (string | Record<string, boolean> | false)[] | string;
+    class?: ClassItem[] | string;
     style?: RawStyleProps | string;
     slot?: unknown;
 } & Partial<HtmlTagMap[K]["attrs"]> &

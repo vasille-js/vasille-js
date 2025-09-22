@@ -5,6 +5,7 @@ import type { ScreenProps } from "vasille-router";
 import type { Router } from "vasille-router/web-router";
 
 export type { RawStyleProps as StyleProps } from "../spec/css.d.ts";
+export type ClassItem = string | Record<string, boolean> | false;
 export type { FallbackScreenProps, ErrorScreenProps } from "vasille-router";
 
 /** Set a handler for component errors */
