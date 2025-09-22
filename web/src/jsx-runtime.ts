@@ -21,7 +21,7 @@ type HtmlInput<K extends keyof HTMLElementTagNameMap & keyof HtmlTagMap> = {
 
 export declare namespace JSX {
     // Valid JSX tags: all the valid lowercase tags and function components
-    type ElementType = keyof IntrinsicElements | ((props?: object) => void);
+    type ElementType = keyof IntrinsicElements | ((props: object) => void);
     type Element = never;
     type ElementClass = never;
 
