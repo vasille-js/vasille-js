@@ -1,6 +1,6 @@
 {
   "name": "vasille-web",
-  "version": "4.1.5",
+  "version": "4.1.6",
   "description": "The same framework which is designed to build bulletproof frontends.",
   "main": "index.js",
   "types": "./index.d.ts",
