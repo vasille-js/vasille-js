@@ -1,6 +1,6 @@
 {
   "name": "vasille-web-cli",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "description": "The same framework which is designed to build bulletproof frontends (CLI tool for Web)",
   "main": "bin/run.js",
   "bin": {

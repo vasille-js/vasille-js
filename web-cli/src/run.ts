@@ -15,6 +15,11 @@ import { checkFile } from "./lib/fs.js";
 async function run() {
     const { routerDir, pagesDir, srcDir } = workingDirs();
     const { build, dev, spa, ssg, help, lib } = await processArgs();
+    const resolve = {
+        alias: {
+            "@": srcDir,
+        },
+    };
 
     if (build) {
         if (spa) {
@@ -32,6 +37,7 @@ async function run() {
                     emptyOutDir: true,
                 },
                 plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins(false), compress()],
+                resolve,
             });
         }
         if (lib) {
@@ -76,6 +82,7 @@ async function run() {
                     sourcemap: "inline",
                 },
                 plugins: getVitePlugins(process.env.NODE_ENV !== "production"),
+                resolve,
             });
         }
         if (ssg) {
@@ -112,6 +119,7 @@ async function run() {
             appType: "spa",
             command: "serve",
             plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins(true), inspect()],
+            resolve,
         });
 
         await server.listen();
