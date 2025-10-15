@@ -1163,8 +1163,12 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             }
           } else if (kind === "let") {
             meshExpression(declaration.get("init"), internal);
-            declaration.get("init").replaceWith(ref(declaration.node.init, internal, idName()));
-            checkReactiveName(idPath, internal);
+
+            if (idPath.isIdentifier() && idPath.node.name.startsWith("$")) {
+              declaration.get("init").replaceWith(ref(declaration.node.init, internal, idName()));
+            } else {
+              switchToConst = false;
+            }
             meshInit = false;
           } else {
             const isReactive = exprCall(declaration.get("init"), declaration.node.init, internal, {
