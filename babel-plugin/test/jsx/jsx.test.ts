@@ -12,6 +12,10 @@ it("class", function () {
   runJsxTest(__dirname, "class");
 });
 
+it("callback", function () {
+  runJsxTest(__dirname, "callback");
+});
+
 it("events", function () {
   runJsxTest(__dirname, "events");
 });

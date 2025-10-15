@@ -13,13 +13,13 @@ import fs from "fs/promises";
 import { checkFile } from "./lib/fs.js";
 
 async function run() {
-    const { routerDir, pagesDir, srcDir } = workingDirs();
+    const { routerDir, pagesDir, srcDir, cacheDir } = workingDirs();
     const { build, dev, spa, ssg, help, lib } = await processArgs();
     const resolve = {
         alias: {
             "@": srcDir,
         },
-    };
+    } as const;
 
     if (build) {
         if (spa) {
@@ -67,11 +67,13 @@ async function run() {
                 configFile: false,
                 root: cwd(),
                 esbuild: false,
+                cacheDir: cacheDir,
                 build: {
                     lib: {
                         entry: `./src/${file}`,
                         formats: ["es"],
                     },
+                    emptyOutDir: true,
                     outDir: "dist/lib",
                     rollupOptions: {
                         treeshake: false,
@@ -84,6 +86,7 @@ async function run() {
                 plugins: getVitePlugins(process.env.NODE_ENV !== "production"),
                 resolve,
             });
+            await fs.rm(cacheDir, { recursive: true });
         }
         if (ssg) {
             if (help) {
