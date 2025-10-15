@@ -81,7 +81,7 @@ async function run() {
                             return source[0] !== "." && !/\.[tj]sx?$/.test(source);
                         },
                     },
-                    sourcemap: "inline",
+                    sourcemap: true,
                 },
                 plugins: getVitePlugins(process.env.NODE_ENV !== "production"),
                 resolve,
@@ -123,6 +123,9 @@ async function run() {
             command: "serve",
             plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins(true), inspect()],
             resolve,
+            optimizeDeps: {
+                include: [],
+            }
         });
 
         await server.listen();
