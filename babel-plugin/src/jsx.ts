@@ -67,11 +67,20 @@ export function transformJsxArray(
         result.push(t.expressionStatement(call));
       }
     } else if (path.isJSXExpressionContainer()) {
-      const value = transformJsxExpressionContainer(path, internal, false, false, true, true);
-      const call = t.callExpression(t.memberExpression(ctx, t.identifier("text")), [value]);
+      const conditionalJsx = tryForConditionalJsx(path, internal);
 
-      call.loc = value.loc;
-      result.push(t.expressionStatement(call));
+      if (conditionalJsx.length) {
+        result.push(...conditionalJsx);
+      } else {
+        const value = transformJsxExpressionContainer(path, internal, false, false, true, true);
+        /* istanbul ignore else */
+        if (!t.isJSXEmptyExpression(value)) {
+          const call = t.callExpression(t.memberExpression(ctx, t.identifier("text")), [value]);
+
+          call.loc = value.loc;
+          result.push(t.expressionStatement(call));
+        }
+      }
     } else {
       err(Errors.TokenNotSupported, path, "Spread child is not supported", internal);
     }
@@ -80,6 +89,103 @@ export function transformJsxArray(
   result.push(...processConditions(conditions, internal));
 
   return result;
+}
+
+function statementsToFunction(arr: types.Statement[]) {
+  if (arr.length == 1 && t.isExpressionStatement(arr[0])) {
+    return t.arrowFunctionExpression([], arr[0].expression);
+  } else {
+    return t.arrowFunctionExpression([], t.blockStatement(arr));
+  }
+}
+
+function checkIfExpressionIsConditionalJsx(expr: types.Expression): boolean {
+  return (
+    (t.isLogicalExpression(expr) &&
+      expr.operator === "&&" &&
+      !t.isJSX(expr.left) &&
+      (t.isJSX(expr.right) || checkIfExpressionIsConditionalJsx(expr.right))) ||
+    (t.isConditionalExpression(expr) &&
+      !t.isJSX(expr.test) &&
+      (t.isJSX(expr.consequent) || checkIfExpressionIsConditionalJsx(expr.consequent)) &&
+      (t.isJSX(expr.alternate) || checkIfExpressionIsConditionalJsx(expr.alternate)))
+  );
+}
+
+function processReactiveCondition(path: NodePath<types.Expression>, internal: Internal) {
+  exprCall(path, path.node, internal, {});
+
+  return path.node;
+}
+
+function addConditionToCollection(
+  condition: NodePath<types.Expression>,
+  exprPath: NodePath<types.Expression>,
+  internal: Internal,
+  conditions: ConditionCollection["cases"] & NonNullable<{}>,
+) {
+  if (exprPath.isJSXElement() || exprPath.isJSXFragment()) {
+    const local: ConditionCollection = { cases: null };
+
+    conditions.push({
+      condition: processReactiveCondition(condition, internal),
+      slot: statementsToFunction([...transformJsx(exprPath, local, internal), ...processConditions(local, internal)]),
+    });
+  } else {
+    const local: ConditionCollection["cases"] & NonNullable<{}> = [];
+    const _default = processConditionalJsxExpression(exprPath, internal, local);
+
+    /* istanbul ignore else */
+    if (local.length) {
+      conditions.push({
+        condition: processReactiveCondition(condition, internal),
+        slot: statementsToFunction(processConditions({ cases: local }, internal, _default)),
+      });
+    }
+  }
+}
+
+function processConditionalJsxExpression(
+  expr: NodePath<types.Expression>,
+  internal: Internal,
+  conditions: ConditionCollection["cases"] & NonNullable<{}>,
+) {
+  if (expr.isLogicalExpression()) {
+    addConditionToCollection(expr.get("left"), expr.get("right"), internal, conditions);
+
+    return undefined;
+  }
+  /* istanbul ignore else */
+  if (expr.isConditionalExpression()) {
+    const consent = expr.get("consequent");
+    const alternate = expr.get("alternate");
+
+    addConditionToCollection(expr.get("test"), consent, internal, conditions);
+
+    if (alternate.isJSXFragment() || alternate.isJSXElement()) {
+      const local: ConditionCollection = { cases: null };
+
+      return statementsToFunction([...transformJsx(alternate, local, internal), ...processConditions(local, internal)]);
+    }
+
+    return processConditionalJsxExpression(alternate, internal, conditions);
+  }
+}
+
+function tryForConditionalJsx(path: NodePath<types.JSXExpressionContainer>, internal: Internal): types.Statement[] {
+  const expr = path.get("expression");
+
+  if (expr.isExpression() && checkIfExpressionIsConditionalJsx(expr.node)) {
+    const conditions: ConditionCollection["cases"] & NonNullable<{}> = [];
+    const _default = processConditionalJsxExpression(expr, internal, conditions);
+
+    /* istanbul ignore else */
+    if (_default || conditions.length) {
+      return processConditions({ cases: conditions }, internal, _default);
+    }
+  }
+
+  return [];
 }
 
 function transformJsxExpressionContainer(

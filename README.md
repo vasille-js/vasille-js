@@ -104,6 +104,10 @@ All of these are supported:
 
 ## Change log
 
+### 4.2.0
+
+Add support for inlined conditions in JSX, binary `&&` and ternary `?:` operator.
+
 ### 4.1.0
 
 Added SSG (static site generation) as build option `vasille-web build static`.

@@ -125,7 +125,7 @@ async function run() {
             resolve,
             optimizeDeps: {
                 include: [],
-            }
+            },
         });
 
         await server.listen();
