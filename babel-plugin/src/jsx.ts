@@ -257,6 +257,7 @@ function transformJsxElement(
     const classStatic: types.StringLiteral[] = [];
     const styleObject: (types.ObjectProperty | types.SpreadElement)[] = [];
     const styleStatic: [types.Identifier, types.StringLiteral][] = [];
+    let callback: types.Expression | null = null;
 
     for (const attrPath of opening.get("attributes")) {
       const attr = attrPath.node;
@@ -441,6 +442,8 @@ function transformJsxElement(
 
               attrs.push(t.objectProperty(t.identifier("style"), expressionPath.node));
             }
+          } else if (name.name === "callback" && expressionPath && expressionPath.isExpression()) {
+            callback = expressionPath.node;
           } else {
             /* istanbul ignore else */
             if (expressionPath && expressionPath.isExpression()) {
@@ -517,6 +520,7 @@ function transformJsxElement(
             ]
           : []),
         ...(styleObject.length > 0 ? [t.objectProperty(t.identifier("style"), t.objectExpression(styleObject))] : []),
+        ...(callback ? [t.objectProperty(t.identifier("callback"), callback)] : []),
       ]),
       ...(statements.length > 0 ? [t.arrowFunctionExpression([ctx], t.blockStatement(statements))] : []),
     ]);

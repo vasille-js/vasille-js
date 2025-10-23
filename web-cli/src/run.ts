@@ -13,8 +13,13 @@ import fs from "fs/promises";
 import { checkFile } from "./lib/fs.js";
 
 async function run() {
-    const { routerDir, pagesDir, srcDir } = workingDirs();
+    const { routerDir, pagesDir, srcDir, cacheDir } = workingDirs();
     const { build, dev, spa, ssg, help, lib } = await processArgs();
+    const resolve = {
+        alias: {
+            "@": srcDir,
+        },
+    } as const;
 
     if (build) {
         if (spa) {
@@ -32,6 +37,7 @@ async function run() {
                     emptyOutDir: true,
                 },
                 plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins(false), compress()],
+                resolve,
             });
         }
         if (lib) {
@@ -61,11 +67,13 @@ async function run() {
                 configFile: false,
                 root: cwd(),
                 esbuild: false,
+                cacheDir: cacheDir,
                 build: {
                     lib: {
                         entry: `./src/${file}`,
                         formats: ["es"],
                     },
+                    emptyOutDir: true,
                     outDir: "dist/lib",
                     rollupOptions: {
                         treeshake: false,
@@ -73,10 +81,12 @@ async function run() {
                             return source[0] !== "." && !/\.[tj]sx?$/.test(source);
                         },
                     },
-                    sourcemap: "inline",
+                    sourcemap: true,
                 },
                 plugins: getVitePlugins(process.env.NODE_ENV !== "production"),
+                resolve,
             });
+            await fs.rm(cacheDir, { recursive: true });
         }
         if (ssg) {
             if (help) {
@@ -112,6 +122,10 @@ async function run() {
             appType: "spa",
             command: "serve",
             plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins(true), inspect()],
+            resolve,
+            optimizeDeps: {
+                include: [],
+            }
         });
 
         await server.listen();

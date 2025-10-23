@@ -536,7 +536,18 @@ function meshClassBody(path: NodePath<types.ClassBody>, internal: Internal) {
     if (item.isClassMethod() || item.isClassPrivateMethod()) {
       meshFunction(item, internal);
     } else if (item.isClassProperty()) {
-      meshExpression(item.get("value"), internal);
+      const key = item.get("key");
+      const value = item.get("value");
+
+      if (value.isCallExpression() && calls(value, ["ref"], internal)) {
+        checkReactiveName(key, internal);
+        meshAllUnknown(value.get("arguments"), internal);
+      } else {
+        if (key.isIdentifier()) {
+          checkNonReactiveName(key, internal);
+        }
+        meshExpression(item.get("value"), internal);
+      }
     } else if (item.isClassAccessorProperty()) {
       meshExpression(item.get("value"), internal);
     } else if (item.isClassPrivateProperty()) {
@@ -1163,8 +1174,12 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             }
           } else if (kind === "let") {
             meshExpression(declaration.get("init"), internal);
-            declaration.get("init").replaceWith(ref(declaration.node.init, internal, idName()));
-            checkReactiveName(idPath, internal);
+
+            if (idPath.isIdentifier() && idPath.node.name.startsWith("$")) {
+              declaration.get("init").replaceWith(ref(declaration.node.init, internal, idName()));
+            } else {
+              switchToConst = false;
+            }
             meshInit = false;
           } else {
             const isReactive = exprCall(declaration.get("init"), declaration.node.init, internal, {

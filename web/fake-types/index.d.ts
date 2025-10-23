@@ -4,6 +4,8 @@ import type { StyleProps } from "../spec/css.d.ts";
 import type { ScreenProps } from "vasille-router";
 import type { Router } from "vasille-router/web-router";
 
+export type { RawStyleProps as StyleProps } from "../spec/css.d.ts";
+export type ClassItem = string | Record<string, boolean> | false;
 export type { FallbackScreenProps, ErrorScreenProps } from "vasille-router";
 
 /** Set a handler for component errors */
@@ -96,18 +98,9 @@ export declare function ElseIf(props: { $condition: unknown; slot?: unknown }): 
 export declare function Else(props: { slot?: unknown }): void;
 
 /** Renders content several times using a model (array, map or set) */
-export declare function For<T>(props: {
-    of: readonly DeepReadonly<T>[];
-    slot?: (value: DeepReadonly<T>) => void;
-}): void;
-export declare function For<T>(props: {
-    of: ReadonlySet<DeepReadonly<T>>;
-    slot?: (value: DeepReadonly<T>) => void;
-}): void;
-export declare function For<K, T>(props: {
-    of: ReadonlyMap<DeepReadonly<K>, DeepReadonly<T>>;
-    slot?: (value: DeepReadonly<T>, index: DeepReadonly<K>) => void;
-}): void;
+export declare function For<T>(props: { of: readonly T[]; slot?: (value: T) => void }): void;
+export declare function For<T>(props: { of: ReadonlySet<T>; slot?: (value: T) => void }): void;
+export declare function For<K, T>(props: { of: ReadonlyMap<K, T>; slot?: (value: T, index: K) => void }): void;
 
 /** Refresh the content each time then the reactive model is updated */
 export declare function Watch<T>(props: { $model: T; slot?: (value: T) => void }): void;
@@ -118,35 +111,14 @@ export declare function Debug(props: { $model: unknown }): void;
 /** Render content after a while */
 export declare function Delay(props: { time?: number; slot?: unknown }): void;
 
-export type DeepReadonly<T> =
-    T extends Map<infer K, infer V>
-        ? ReadonlyMap<DeepReadonly<K>, DeepReadonly<V>>
-        : T extends ReadonlyMap<infer K, infer V>
-          ? ReadonlyMap<DeepReadonly<K>, DeepReadonly<V>>
-          : T extends WeakMap<infer K, infer V>
-            ? WeakMap<DeepReadonly<K>, DeepReadonly<V>>
-            : T extends Set<infer U>
-              ? ReadonlySet<DeepReadonly<U>>
-              : T extends ReadonlySet<infer U>
-                ? ReadonlySet<DeepReadonly<U>>
-                : T extends WeakSet<infer U>
-                  ? WeakSet<DeepReadonly<U>>
-                  : T extends Promise<infer U>
-                    ? Promise<DeepReadonly<U>>
-                    : T extends (...args: unknown[]) => unknown
-                      ? T
-                      : T extends {}
-                        ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
-                        : T;
-
 /** Stores a singleton state to memory */
-export declare function store<Return extends object>(fn: () => Return): DeepReadonly<Return>;
+export declare function store<Return extends object>(fn: () => Return): Return;
 
 /** Creates a model (state) constructor */
-export declare function model<Return extends object>(fn: () => Return): () => DeepReadonly<Return>;
+export declare function model<Return extends object>(fn: () => Return): () => Return;
 export declare function model<Input extends object, Return extends object>(
     fn: (input: Input) => Return,
-): (input: Input) => DeepReadonly<Return>;
+): (input: Input) => Return;
 
 export { QueryParams, ScreenProps, RouteParameters } from "vasille-router";
 export { Router, NavigationMode } from "vasille-router/web-router";

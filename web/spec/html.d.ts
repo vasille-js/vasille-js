@@ -292,6 +292,11 @@ interface ButtonAttrs extends TagAttrs {
     value: string;
 }
 
+interface CanvasAttrs extends TagAttrs {
+    width: number;
+    height: number;
+}
+
 interface SelectAttrs extends TagAttrs {
     autocomplete: boolean;
     disabled: boolean;
@@ -376,7 +381,7 @@ export interface HtmlTagMap {
     body: Tag<TagAttrs, BodyEvents, TagProps<HTMLBodyElement>>;
     br: Tag<TagAttrs, TagEvents, TagProps<HTMLBRElement>>;
     button: Tag<ButtonAttrs, TagEvents, ButtonProps>;
-    canvas: Tag<TagAttrs, TagEvents, CanvasProps>;
+    canvas: Tag<CanvasAttrs, TagEvents, CanvasProps>;
     caption: Tag<TagAttrs, TagEvents, TagProps<HTMLElement>>;
     cite: Tag<TagAttrs, TagEvents, TagProps<HTMLElement>>;
     code: Tag<TagAttrs, TagEvents, TagProps<HTMLElement>>;

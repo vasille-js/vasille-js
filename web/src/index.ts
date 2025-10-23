@@ -5,6 +5,9 @@ import { mount as coreMount } from "vasille-jsx";
 import { styleSheet as coreStyleSheet } from "vasille-css";
 import { routeApp as coreRouteApp, WebRouterInitialization } from "vasille-router/web-router";
 
+export type { RawStyleProps as StyleProps } from "../spec/css.js";
+export type { ClassItem } from "./jsx-runtime.js";
+
 export {
     view,
     view as component,

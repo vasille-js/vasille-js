@@ -19,7 +19,6 @@ No special knowledge required, just HTML, CSS, JavaScript.
 13. [Watching](#watching)
 14. [Debug](#debug)
 15. [Styling](#styling)
-16. [Store](#store)
 
 ## Components
 
@@ -406,52 +405,5 @@ export const MyComponent = component(() => {
       Red/Black text.
     </div>
   </div>
-});
-```
-
-## Store
-
-To create a store constructor use `store` function,
-the return object can contain reactive data, static data and dispatch function.
-
-In stores, you can use same reactive states, expressions and watches.
-
-```typescript jsx
-const userStore = store(() => {
-    let $name = name;
-    let $nickname = nickname;
-    
-    return {
-        $name,
-        $nickname,
-        changeName(name: string) {
-            $name = name;
-        }
-    }
-});
-
-const MyComponent = component(() => {
-  <div>{userStore.$name}</div>;
-});
-```
-
-You can load/save the store data to local storage.
-The parameter can be omitted and the result can be immediately called.
-
-```typescript
-const auth = store(() => {
-    const storageKey = "token";
-    let $token = localStorage.getItem(storageKey);
-    
-    watch(() => {
-        localStorage.setItem(storageKey, $token);
-    });
-    
-    return {
-        $token,
-        updateToken(token: string) {
-            $token = token;
-        }
-    }
 });
 ```
