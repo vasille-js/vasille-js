@@ -35,6 +35,7 @@ $ npm create vasille
 ### Full documentation:
 * [Learn `Vasille` in 5 minutes](https://github.com/vasille-js/vasille-js/blob/v4/doc/V4-API.md)
 * [Vasille Router Documentation](https://github.com/vasille-js/vasille-js/blob/v4/doc/Router-API.md)
+* [Vasille Compostion function](https://github.com/vasille-js/vasille-js/blob/v4/doc/Compositions.md)
 
 ### Examples
 * [TypeScript Example](https://github.com/vasille-js/example-typescript)
