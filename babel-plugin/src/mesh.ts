@@ -536,7 +536,18 @@ function meshClassBody(path: NodePath<types.ClassBody>, internal: Internal) {
     if (item.isClassMethod() || item.isClassPrivateMethod()) {
       meshFunction(item, internal);
     } else if (item.isClassProperty()) {
-      meshExpression(item.get("value"), internal);
+      const key = item.get("key");
+      const value = item.get("value");
+
+      if (value.isCallExpression() && calls(value, ["ref"], internal)) {
+        checkReactiveName(key, internal);
+        meshAllUnknown(value.get("arguments"), internal);
+      } else {
+        if (key.isIdentifier()) {
+          checkNonReactiveName(key, internal);
+        }
+        meshExpression(item.get("value"), internal);
+      }
     } else if (item.isClassAccessorProperty()) {
       meshExpression(item.get("value"), internal);
     } else if (item.isClassPrivateProperty()) {
