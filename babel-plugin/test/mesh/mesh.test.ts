@@ -32,6 +32,10 @@ it("reactive field set", function () {
   runTest(__dirname, "reactive-field-set", false);
 });
 
+it("reactive field copy", function () {
+  runTest(__dirname, "reactive-field-copy", false);
+});
+
 it("store function", function () {
   runJsxTest(__dirname, "store");
 });

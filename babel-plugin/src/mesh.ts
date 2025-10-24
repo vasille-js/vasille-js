@@ -586,17 +586,23 @@ function procedureProcessObjectExpression(
         } else {
           if (valuePath.isObjectExpression()) {
             procedureProcessObjectExpression(valuePath, internal, state, `${prefix}${name}.`);
-          } else {
-            meshExpression(valuePath, internal);
           }
 
           if (name.startsWith("$")) {
             if (internal.isComposing && !internal.isFunctionParsing) {
+              meshExpression(valuePath, internal);
               valuePath.replaceWith(internal.ref(valuePath.node));
               state[name] = 1;
-            } else {
+            } else if (
+              !(
+                (valuePath.isIdentifier() && idIsIValue(valuePath)) ||
+                (valuePath.isMemberExpression() && memberIsIValue(valuePath.node))
+              )
+            ) {
               err(Errors.RulesOfVasille, prop.get("key"), "This property is not a reactive", internal);
             }
+          } else {
+            meshExpression(valuePath, internal);
           }
         }
       }
