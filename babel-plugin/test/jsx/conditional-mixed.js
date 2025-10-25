@@ -4,33 +4,33 @@ const C = compose(Vasille => {
   VasilleSwitch({
     cases: [{
       $case: VasilleExpr(Vasille, Vasille_a => Vasille_a < 1, [$a]),
-      slot: () => Vasille.text("smaller then 1")
+      slot: Vasille => Vasille.text("smaller then 1")
     }, {
       $case: VasilleExpr(Vasille, Vasille_a => Vasille_a > 2, [$a]),
-      slot: () => Vasille.text("bigger then 2")
+      slot: Vasille => Vasille.text("bigger then 2")
     }]
   }, Vasille);
   VasilleSwitch({
     cases: [{
       $case: VasilleExpr(Vasille, Vasille_a => Vasille_a < 1, [$a]),
-      slot: () => VasilleSwitch({
+      slot: Vasille => VasilleSwitch({
         cases: [{
           $case: VasilleExpr(Vasille, Vasille_a => Vasille_a < -1, [$a]),
-          slot: () => Vasille.text("smaler then -1 & 1")
+          slot: Vasille => Vasille.text("smaler then -1 & 1")
         }]
       }, Vasille)
     }],
-    default: () => Vasille.text("bigger then 2")
+    default: Vasille => Vasille.text("bigger then 2")
   }, Vasille);
   VasilleSwitch({
     cases: [{
       $case: VasilleExpr(Vasille, Vasille_a => Vasille_a < 1, [$a]),
-      slot: () => VasilleSwitch({
+      slot: Vasille => VasilleSwitch({
         cases: [{
           $case: VasilleExpr(Vasille, Vasille_a => Vasille_a < -10, [$a]),
-          slot: () => Vasille.text("smaller then -10 & 1")
+          slot: Vasille => Vasille.text("smaller then -10 & 1")
         }],
-        default: () => {
+        default: Vasille => {
           Vasille.text("bigger then -10");
           Vasille.text("smaller then 1");
         }

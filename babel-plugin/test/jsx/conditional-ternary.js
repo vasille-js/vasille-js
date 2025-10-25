@@ -4,15 +4,15 @@ const C = compose(Vasille => {
   VasilleSwitch({
     cases: [{
       $case: VasilleExpr(Vasille, Vasille_a => Vasille_a < 1, [$a]),
-      slot: () => Vasille.text("smaller then 1")
+      slot: Vasille => Vasille.text("smaller then 1")
     }],
-    default: () => Vasille.text("bigger then 1")
+    default: Vasille => Vasille.text("bigger then 1")
   }, Vasille);
   VasilleSwitch({
     cases: [{
       $case: VasilleExpr(Vasille, Vasille_a => Vasille_a < 1 && Vasille_a < 2, [$a]),
-      slot: () => Vasille.text("smaller then 2")
+      slot: Vasille => Vasille.text("smaller then 2")
     }],
-    default: () => Vasille.text("bigger then 2")
+    default: Vasille => Vasille.text("bigger then 2")
   }, Vasille);
 }, "C");

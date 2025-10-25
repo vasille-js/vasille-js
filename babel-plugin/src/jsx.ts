@@ -93,9 +93,9 @@ export function transformJsxArray(
 
 function statementsToFunction(arr: types.Statement[]) {
   if (arr.length == 1 && t.isExpressionStatement(arr[0])) {
-    return t.arrowFunctionExpression([], arr[0].expression);
+    return t.arrowFunctionExpression([ctx], arr[0].expression);
   } else {
-    return t.arrowFunctionExpression([], t.blockStatement(arr));
+    return t.arrowFunctionExpression([ctx], t.blockStatement(arr));
   }
 }
 
