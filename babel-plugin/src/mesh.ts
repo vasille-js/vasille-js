@@ -205,19 +205,25 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       if (left.isMemberExpression() && !exprIsSure(left, internal)) {
         const property = left.node.property;
         let iterator: NodePath<unknown> = path;
-        let inConstructor = false, inFunction = false;
+        let inConstructor = false,
+          inFunction = false;
 
         while (iterator && !inConstructor && !inFunction) {
-          inConstructor = iterator.isClassMethod() && t.isIdentifier(iterator.node.key) && iterator.node.key.name === "constructor";
+          inConstructor =
+            iterator.isClassMethod() && t.isIdentifier(iterator.node.key) && iterator.node.key.name === "constructor";
           inFunction = iterator.isFunction();
           iterator = iterator.parentPath;
         }
 
         if (
-          !(inConstructor &&
-          t.isIdentifier(property) && property.name[0] === "$" && t.isThisExpression(left.node.object) &&
-          (right.isIdentifier() && idIsIValue(right) ||
-          right.isMemberExpression() && memberIsIValue(right.node)))) {
+          !(
+            inConstructor &&
+            t.isIdentifier(property) &&
+            property.name[0] === "$" &&
+            t.isThisExpression(left.node.object) &&
+            ((right.isIdentifier() && idIsIValue(right)) || (right.isMemberExpression() && memberIsIValue(right.node)))
+          )
+        ) {
           meshExpression(left.get("object"), internal);
           meshExpression(right, internal);
 
