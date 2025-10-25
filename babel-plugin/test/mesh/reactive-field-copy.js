@@ -6,3 +6,9 @@ function copy(props) {
     $copy: props.$copy
   };
 }
+class C {
+  constructor(props) {
+    this.$copy = props.$copy;
+    this.$a = $a;
+  }
+}

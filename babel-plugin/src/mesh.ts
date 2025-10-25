@@ -204,19 +204,33 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
 
       if (left.isMemberExpression() && !exprIsSure(left, internal)) {
         const property = left.node.property;
+        let iterator: NodePath<unknown> = path;
+        let inConstructor = false, inFunction = false;
 
-        meshExpression(left.get("object"), internal);
-        meshExpression(right, internal);
+        while (iterator && !inConstructor && !inFunction) {
+          inConstructor = iterator.isClassMethod() && t.isIdentifier(iterator.node.key) && iterator.node.key.name === "constructor";
+          inFunction = iterator.isFunction();
+          iterator = iterator.parentPath;
+        }
 
-        /* istanbul ignore else */
-        if (!t.isPrivateName(property)) {
-          path.replaceWith(
-            internal.set(
-              left.node.object,
-              !left.node.computed && t.isIdentifier(property) ? t.stringLiteral(property.name) : property,
-              right.node,
-            ),
-          );
+        if (
+          !(inConstructor &&
+          t.isIdentifier(property) && property.name[0] === "$" && t.isThisExpression(left.node.object) &&
+          (right.isIdentifier() && idIsIValue(right) ||
+          right.isMemberExpression() && memberIsIValue(right.node)))) {
+          meshExpression(left.get("object"), internal);
+          meshExpression(right, internal);
+
+          /* istanbul ignore else */
+          if (!t.isPrivateName(property)) {
+            path.replaceWith(
+              internal.set(
+                left.node.object,
+                !left.node.computed && t.isIdentifier(property) ? t.stringLiteral(property.name) : property,
+                right.node,
+              ),
+            );
+          }
         }
       } else {
         meshLValue(left, internal);
@@ -543,7 +557,7 @@ function meshClassBody(path: NodePath<types.ClassBody>, internal: Internal) {
         checkReactiveName(key, internal);
         meshAllUnknown(value.get("arguments"), internal);
       } else {
-        if (key.isIdentifier()) {
+        if (key.isIdentifier() && value.node !== null) {
           checkNonReactiveName(key, internal);
         }
         meshExpression(item.get("value"), internal);

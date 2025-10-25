@@ -12,3 +12,13 @@ function copy(props: Props) {
     $copy: props.$copy,
   };
 }
+
+class C {
+  $copy: number;
+  $a: number;
+
+  public constructor(props: Props) {
+    this.$copy = props.$copy;
+    this.$a = $a;
+  }
+}
