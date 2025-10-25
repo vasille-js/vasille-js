@@ -549,6 +549,7 @@ function transformJsxElement(
               attrs.push(t.objectProperty(t.identifier("style"), expressionPath.node));
             }
           } else if (name.name === "callback" && expressionPath && expressionPath.isExpression()) {
+            meshExpression(expressionPath, internal);
             callback = expressionPath.node;
           } else {
             /* istanbul ignore else */

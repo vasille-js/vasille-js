@@ -1,8 +1,9 @@
-import { compose } from "vasille-web";
+import { compose, ref as VasilleRef } from "vasille-web";
 const C = compose(Vasille => {
+  const $class = VasilleRef("name", "class");
   Vasille.tag("div", {
     callback: div => {
-      console.log(div);
+      div.className = $class.V;
     }
   });
 }, "C");
