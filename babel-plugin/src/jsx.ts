@@ -554,6 +554,7 @@ function transformJsxElement(
           } else {
             /* istanbul ignore else */
             if (expressionPath && expressionPath.isExpression()) {
+              exprCall(expressionPath, expressionPath.node, internal, {});
               attrs.push(idToProp(name, expressionPath.node));
             } else if (t.isStringLiteral(attr.value)) {
               attrs.push(idToProp(name, attr.value));
