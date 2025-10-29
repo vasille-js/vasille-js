@@ -13,7 +13,7 @@ import fs from "fs/promises";
 import { checkFile } from "./lib/fs.js";
 
 async function run() {
-    const { routerDir, pagesDir, srcDir, cacheDir } = workingDirs();
+    const { routerDir, pagesDir, srcDir } = workingDirs();
     const { build, dev, spa, ssg, help, lib } = await processArgs();
     const resolve = {
         alias: {
@@ -67,7 +67,6 @@ async function run() {
                 configFile: false,
                 root: cwd(),
                 esbuild: false,
-                cacheDir: cacheDir,
                 build: {
                     lib: {
                         entry: `./src/${file}`,
@@ -86,7 +85,6 @@ async function run() {
                 plugins: getVitePlugins(process.env.NODE_ENV !== "production"),
                 resolve,
             });
-            await fs.rm(cacheDir, { recursive: true });
         }
         if (ssg) {
             if (help) {
