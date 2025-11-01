@@ -1,4 +1,4 @@
-import { App } from "vasille";
+import { App, Destroyable } from "vasille";
 import type { TagOptions } from "vasille/web-runner";
 import type { StyleProps } from "../spec/css.d.ts";
 import type { ScreenProps } from "vasille-router";
@@ -115,10 +115,10 @@ export declare function Delay(props: { time?: number; slot?: unknown }): void;
 export declare function store<Return extends object>(fn: () => Return): Return;
 
 /** Creates a model (state) constructor */
-export declare function model<Return extends object>(fn: () => Return): () => Return;
+export declare function model<Return extends object>(fn: () => Return): () => Return & Destroyable;
 export declare function model<Input extends object, Return extends object>(
-    fn: (input: Input) => Return,
-): (input: Input) => Return;
+    fn: (input: Input) => Return & Destroyable,
+): (input: Input) => Return & Destroyable;
 
 export { QueryParams, ScreenProps, RouteParameters } from "vasille-router";
 export { Router, NavigationMode } from "vasille-router/web-router";

@@ -1,9 +1,11 @@
 import { compose } from "vasille-web";
 
 const C = compose(() => {
+  let $class = "name";
+
   <div
     callback={div => {
-      console.log(div);
+      div.className = $class;
     }}
   />;
 });

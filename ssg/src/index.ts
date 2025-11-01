@@ -1,5 +1,4 @@
 import { Fragment, Portal } from "vasille";
-import { mount as coreMount } from "vasille-jsx";
 import { Runner, Node, Element, type TagOptions } from "./runner.js";
 
 export {

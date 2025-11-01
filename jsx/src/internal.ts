@@ -72,8 +72,8 @@ export function ensure(data: unknown) {
  * 1. `{[a]: a1} = {x: 2}` to `{[a]: a1 = match("a1")} = {x: 2}`
  * 1. `{[a]: a1 = 3} = {x: 2}` to `{[a]: a1 = match("a1", 3)} = {x: 2}`
  */
-export function match(name: string, data?: unknown) {
-    const iValueRequired = name.startsWith("$");
+export function match(name: string | number | symbol, data?: unknown) {
+    const iValueRequired = typeof name === "string" && name.startsWith("$");
     const isIValue = data instanceof IValue;
 
     if (iValueRequired && !isIValue) {

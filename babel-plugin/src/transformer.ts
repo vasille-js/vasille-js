@@ -106,7 +106,8 @@ function updateImports(
   if (used.size > 0 && !internal.global && internal.importStatement) {
     const statementPath = internal.importStatement;
     const statement = statementPath.node;
-    const specifiers = statement.specifiers.filter(item => {
+    const specifiers = statement.specifiers;
+    const usedSpecifiers = statement.specifiers.filter(item => {
       /* istanbul ignore else */
       if (t.isImportSpecifier(item) && t.isIdentifier(item.local)) {
         return statementPath.scope.bindings[item.local.name].referenced;
@@ -115,7 +116,7 @@ function updateImports(
 
     for (const name of used) {
       if (
-        !specifiers.find(
+        !usedSpecifiers.find(
           specifier => t.isImportSpecifier(specifier) && [name, ids[name]].includes(extractText(specifier.imported)),
         )
       ) {

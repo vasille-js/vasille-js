@@ -60,6 +60,18 @@ it("conditions test", function () {
   runJsxTest(__dirname, "conditions");
 });
 
+it("conditional binary", function () {
+  runJsxTest(__dirname, "conditional-binary");
+});
+
+it("conditional ternary", function () {
+  runJsxTest(__dirname, "conditional-ternary");
+});
+
+it("conditional mixed", function () {
+  runJsxTest(__dirname, "conditional-mixed");
+});
+
 it("spread child error", function () {
   throwTest(__dirname, "spread-child", "Spread child is not supported", true);
 });

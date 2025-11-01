@@ -1,6 +1,6 @@
 {
   "name": "vasille-web-cli",
-  "version": "4.1.3",
+  "version": "4.2.1",
   "description": "The same framework which is designed to build bulletproof frontends (CLI tool for Web)",
   "main": "bin/run.js",
   "bin": {
@@ -36,9 +36,9 @@
     "@babel/plugin-transform-typescript": "^7.28.0",
     "@inquirer/select": "^4.3.2",
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
-    "babel-plugin-vasille": "^4.1.2",
+    "babel-plugin-vasille": "^4.2.5",
     "prompt": "^1.3.0",
-    "vite": "^7.1.5",
+    "vite": "^7.1.12",
     "vite-plugin-babel": "^1.3.2",
     "vite-plugin-inspect": "^11.3.3"
   },
