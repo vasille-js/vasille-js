@@ -10,16 +10,16 @@ All frameworks are scored in the next way:
 - 1 point for each button if the counter value is updated after click.
 - 1 point bonus for excellence if all buttons are working.
 
-| Name    | Version | Button | Counter | Updatable | Bonus | Total | Build size |
-|---------|---------|--------|---------|-----------|-------|-------|------------|
-| Angular | 20.3.9  | 3      | 0       | 0         | 0     | 3     | 134.40 kB  |
-| Lit     | 3.3.1   | 0      | 0       | 0         | 0     | 0     | 17.63 kB   |
-| Qwik    | 1.17.1  | 0      | 0       | 0         | 0     | 0     | 54.20 kB   |
-| React   | 19.2.0  | 0      | 0       | 0         | 0     | 0     | 195.19 kB  |
-| Solid   | 1.9.10  | 0      | 0       | 0         | 0     | 0     | 8.50 kB    |
-| Svelte  | 5.43.2  | 0      | 0       | 0         | 0     | 0     | 26.28 kB   |
-| Vasille | 4.3.1   | 3      | 3       | 3         | 1     | 10    | 13.26 kB   |
-| Vue     | 3.5.22  | 2      | 2       | 2         | 0     | 6     | 60.39 kB   |
+| Name    | Version | Button | Counter | Updatable | Bonus | Total | Bandle size |
+|---------|---------|--------|---------|-----------|-------|-------|-------------|
+| Angular | 20.3.9  | 3      | 0       | 0         | 0     | 3     | 131.2 kB    |
+| Lit     | 3.3.1   | 0      | 0       | 0         | 0     | 0     | 17.2 kB     |
+| Qwik    | 1.17.1  | 0      | 0       | 0         | 0     | 0     | 52.9 kB     |
+| React   | 19.2.0  | 0      | 0       | 0         | 0     | 0     | 190.2 kB    |
+| Solid   | 1.9.10  | 0      | 0       | 0         | 0     | 0     | 8.3 kB      |
+| Svelte  | 5.43.2  | 0      | 0       | 0         | 0     | 0     | 25.7 kB     |
+| Vasille | 4.3.1   | 3      | 3       | 3         | 1     | 10    | 8.4 kB      |
+| Vue     | 3.5.22  | 2      | 2       | 2         | 0     | 6     | 59.0 kB     |
 
 
 ## Angular
@@ -311,7 +311,7 @@ Uncaught Error: now
 ### Code
 
 `lib/Counter.svelte`
-```svelte
+```html
 <script lang="ts">
   let { children }: { children: Snippet | undefined } = $props();
   let count: number = $state(0)
@@ -326,7 +326,7 @@ Uncaught Error: now
 ```
 
 `App.svelte`
-```svelte
+```html
 <script lang="ts">
   import Counter from './lib/Counter.svelte'
 
