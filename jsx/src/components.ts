@@ -22,13 +22,15 @@ interface SlotOptions<Node, Element, TagOptions extends object, T extends object
 export function Slot<Node, Element, TagOptions extends object, T extends object = {}>(
     { model, slot, ...options }: SlotOptions<Node, Element, TagOptions, T> & T,
     ctx: Fragment<Node, Element, TagOptions>,
-    defaultSlot?: (input: object, ctx: Fragment<Node, Element, TagOptions>) => void,
+    defaultSlot?: (ctx: Fragment<Node, Element, TagOptions>) => void,
 ) {
     try {
         if (model) {
             model(options as T, ctx);
-        } else {
-            (slot ?? defaultSlot)?.({}, ctx);
+        } else if (slot) {
+            slot({}, ctx);
+        } else if (defaultSlot) {
+            defaultSlot(ctx);
         }
     } catch (e) {
         reportError(e);

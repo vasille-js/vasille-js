@@ -8,10 +8,13 @@ const UserScreen = screen<"/user/(id)">(async ({ params }) => {
   <div>user:{params.id}</div>;
 });
 
+function throwNow (): number {
+  throw new Error("Fail")
+}
+
 const FailScreen = screen<"/fail">(async () => {
-  beforeMount(() => {
-    throw new Error("Fail");
-  });
+  // @ts-ignore
+  const a = throwNow();
 });
 
 const FallbackView = view(() => {

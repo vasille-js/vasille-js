@@ -4,12 +4,12 @@ interface Props {
   title: string;
 }
 
-const Modal = modal(({title} : Props) => {
+const Modal = modal(({ title }: Props) => {
   <div class="modal">{title}</div>;
 });
 
 export const TestModalApp = component(() => {
   <div class="root">
-    <Modal title={"test"}/>
+    <Modal title={"test"} />
   </div>;
-})
+});
