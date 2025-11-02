@@ -4,13 +4,15 @@ import path from "node:path";
 import { build as viteBuild, createServer } from "vite";
 import inspect from "vite-plugin-inspect";
 import { compress } from "./vite-plugins/compress.js";
-import { getVitePlugins } from "./vite-plugins/jsx.js";
+import { getVitePlugins, processEnvPlugin } from "./vite-plugins/jsx.js";
 import { processArgs } from "./lib/process-args.js";
 import { register } from "node:module";
 import { indexPlugin, watchForIndexUpdates } from "./vite-plugins/index.vasille.js";
 import { workingDirs } from "./lib/working-dirs.js";
 import fs from "fs/promises";
 import { checkFile } from "./lib/fs.js";
+import { readdir } from "node:fs/promises";
+import { vasilleWebPlugin } from "./vite-plugins/vasille-web.js";
 
 async function run() {
     const { routerDir, pagesDir, srcDir } = workingDirs();
@@ -23,6 +25,8 @@ async function run() {
 
     if (build) {
         if (spa) {
+            const assetsDir = path.join(cwd(), "/dist/spa/assets");
+
             if (help) {
                 console.log("\nCommand shortcut is vasille-web build spa\n");
             }
@@ -35,9 +39,52 @@ async function run() {
                 build: {
                     outDir: "dist/spa",
                     emptyOutDir: true,
+                    rollupOptions: {
+                        external: ["vasille-web"],
+                    },
                 },
                 plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins(false), compress()],
                 resolve,
+            });
+
+            const files = (await readdir(path.join(cwd(), "dist/spa/assets"))).filter(item => item.endsWith(".js"));
+            const imported = new Set<string>();
+            const hash = Math.random().toFixed(10).slice(2);
+
+            for (const file of files) {
+                const content = await fs.readFile(path.join(assetsDir, file), "utf-8");
+                const match = /import\{(.*?)}from"vasille-web"/.exec(content);
+
+                if (match) {
+                    const items = match[1].split(",");
+
+                    for (const item of items) {
+                        imported.add(item.split(" as ")[0]);
+                    }
+                    await fs.writeFile(
+                        path.join(assetsDir, file),
+                        content.replace(`"vasille-web"`, `"./vasille-web.js?${hash}"`),
+                    );
+                }
+            }
+            await viteBuild({
+                configFile: false,
+                root: cwd(),
+                esbuild: false,
+                build: {
+                    lib: {
+                        entry: `/web.vasille.js`,
+                        formats: ["es"],
+                        fileName: "vasille-web",
+                    },
+                    outDir: "dist/spa/assets",
+                    emptyOutDir: false,
+                    rollupOptions: {
+                        treeshake: true,
+                    },
+                    sourcemap: false,
+                },
+                plugins: [compress(), processEnvPlugin, vasilleWebPlugin(imported)],
             });
         }
         if (lib) {
