@@ -7,6 +7,7 @@ import type { Router } from "vasille-router/web-router";
 export type { RawStyleProps as StyleProps } from "../spec/css.d.ts";
 export type ClassItem = string | Record<string, boolean> | false;
 export type { FallbackScreenProps, ErrorScreenProps } from "vasille-router";
+export { safe } from "vasille";
 
 /** Set a handler for component errors */
 export declare function setErrorHandler(handler: (e: unknown) => void): void;

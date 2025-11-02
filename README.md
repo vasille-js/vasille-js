@@ -104,6 +104,10 @@ All of these are supported:
 
 ## Change log
 
+### 4.3.0
+
+Add new function `safe` which make functions safe, errors are reported automatically.
+
 ### 4.2.0
 
 Add support for inlined conditions in JSX, binary `&&` and ternary `?:` operator.
