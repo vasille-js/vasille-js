@@ -1,4 +1,4 @@
-import { compose, ref, bind, calculate } from "vasille-web";
+import { compose, ref, bind, calculate, safe as VasilleSafe } from "vasille-web";
 const C = compose(Vasille => {
   const $a = ref(2, "a");
   let b = $a.V;
@@ -12,5 +12,5 @@ const C = compose(Vasille => {
   const $g = ref(void 0, "g");
   const $h = ref(3, "h");
   const $j = ref(4, "j");
-  console.log($a.V, b, $c.V, $d.V, $e.V, f, $g.V, $h.V, $j.V);
+  VasilleSafe(() => console.log($a.V, b, $c.V, $d.V, $e.V, f, $g.V, $h.V, $j.V))();
 }, "C");

@@ -29,7 +29,7 @@ export function view<Node, Element, TagOptions extends object, In extends Compos
         try {
             const result = renderer(frag, props);
 
-            if (result !== undefined && callback) {
+            if (result !== undefined && result !== null && callback) {
                 callback(result);
             }
         } catch (e) {

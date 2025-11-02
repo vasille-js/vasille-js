@@ -7,6 +7,7 @@ import { routeApp as coreRouteApp, WebRouterInitialization } from "vasille-route
 
 export type { RawStyleProps as StyleProps } from "../spec/css.js";
 export type { ClassItem } from "./jsx-runtime.js";
+export { safe } from "vasille";
 
 export {
     view,

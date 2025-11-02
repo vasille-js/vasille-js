@@ -3,5 +3,5 @@ const C = DX.compose(Vasille => {
   const [$err, $result, retry] = DX.awaited(() => new Promise(rv => {
     rv(0);
   }), Vasille, "err", "result");
-  console.log($err.V, $result.V, retry);
+  DX.safe(() => console.log($err.V, $result.V, retry))();
 }, "C");

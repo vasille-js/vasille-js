@@ -1,4 +1,4 @@
-import { component, Slot, ref as VasilleRef } from "vasille-web";
+import { component, Slot, ref as VasilleRef, safe as VasilleSafe } from "vasille-web";
 export let control = undefined;
 export const xes = [];
 const SubComponent = component((Vasille, {
@@ -7,7 +7,7 @@ const SubComponent = component((Vasille, {
   slot2
 }) => {
   const $x = VasilleRef(0, "x");
-  (() => {
+  VasilleSafe(() => {
     if (slot1) {
       control = {
         setX(_x) {
@@ -48,7 +48,7 @@ export const SlotTest = component(Vasille => {
       slot1: ({
         x
       }, Vasille) => {
-        xes.push(x);
+        VasilleSafe(() => xes.push(x))();
         Vasille.tag("div", {}, Vasille => {
           Vasille.text("child");
           Vasille.text(x);
@@ -61,7 +61,7 @@ export const SlotTest = component(Vasille => {
       slot2: ({
         x
       }, Vasille) => {
-        xes.push(x);
+        VasilleSafe(() => xes.push(x))();
         Vasille.tag("div", {}, Vasille => {
           Vasille.text("child");
           Vasille.text(x);

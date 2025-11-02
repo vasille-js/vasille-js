@@ -4,6 +4,18 @@ import pluginTypescript from "@babel/plugin-transform-typescript";
 import pluginInlineEnv from "babel-plugin-transform-inline-environment-variables";
 import babel from "vite-plugin-babel";
 
+// @ts-expect-error
+export const processEnvPlugin = babel({
+    loader: "js",
+    filter: /(router|class)\.js$/,
+    babelConfig: {
+        presets: [],
+        plugins: [pluginInlineEnv],
+        configFile: false,
+        babelrc: false,
+    },
+});
+
 export function getVitePlugins(devMode: boolean) {
     return [
         // @ts-expect-error
@@ -19,16 +31,6 @@ export function getVitePlugins(devMode: boolean) {
                 babelrc: false,
             },
         }),
-        // @ts-expect-error
-        babel({
-            loader: "js",
-            filter: /(router|class)\.js$/,
-            babelConfig: {
-                presets: [],
-                plugins: [pluginInlineEnv],
-                configFile: false,
-                babelrc: false,
-            },
-        }),
+        processEnvPlugin,
     ];
 }

@@ -1,4 +1,4 @@
-import { arrayModel, compose, mapModel, ref, setModel } from "vasille-web";
+import { arrayModel, compose, mapModel, ref, setModel, safe as VasilleSafe } from "vasille-web";
 const C = compose(Vasille => {
   const $a = ref(3, "a");
   const b = arrayModel(Vasille, [1, 2, $a.V], "b");
@@ -19,6 +19,6 @@ const C = compose(Vasille => {
   const $m = ref(new Set([2]), "m");
   const $n = ref(new Map([[1, [2]]]), "n");
   const z = arrayModel(Vasille, void 0, "z");
-  console.log($a.V, b[0], c.has($a.V), d.get(1), e.$g.V);
-  console.log(f.$a.V, g[0], h.has(2), i.get(1), $k.V[0], $m.V.has(2), $n.V.get(1));
+  VasilleSafe(() => console.log($a.V, b[0], c.has($a.V), d.get(1), e.$g.V))();
+  VasilleSafe(() => console.log(f.$a.V, g[0], h.has(2), i.get(1), $k.V[0], $m.V.has(2), $n.V.get(1)))();
 }, "C");

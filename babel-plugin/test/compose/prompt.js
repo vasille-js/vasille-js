@@ -1,4 +1,4 @@
-import { compose, prompt } from "vasille-web";
+import { compose, prompt, safe as VasilleSafe } from "vasille-web";
 const promptName = prompt((Vasille, props) => {
   function save() {
     props.resolve("x");
@@ -11,7 +11,7 @@ const promptWithRules = prompt((Vasille, props) => {
   }
 }, "promptWithRules");
 const App = compose(Vasille => {
-  (() => {
+  VasilleSafe(() => {
     promptName(Vasille, {});
     promptWithRules(Vasille, {
       rules: ["x"]

@@ -988,6 +988,7 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
   switch (expr && expr.type) {
     case "CallExpression":
     case "OptionalCallExpression": {
+      /* istanbul ignore else */
       if (calls(path, ["watch"], internal)) {
         parseCalculateCall(path, internal);
 
@@ -1003,16 +1004,8 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
         const arg = path.get("arguments")[0];
 
         if (arg && (arg.isFunctionExpression() || arg.isArrowFunctionExpression())) {
-          const body = arg.isFunctionExpression() ? arg.get("body") : arg.get("body");
-
-          /* istanbul ignore else */
-          if (body.isBlockStatement()) {
-            composeStatements(body.get("body"), internal);
-            path.replaceWith(t.callExpression(arg.node, []));
-          } else if (body.isExpression()) {
-            composeExpression(body, internal);
-            path.replaceWith(body);
-          }
+          meshFunction(arg, internal);
+          path.replaceWith(t.callExpression(internal.safe(arg.node), []));
         } else {
           err(Errors.IncorrectArguments, path, "Incorrect hint argument", internal);
         }
@@ -1022,8 +1015,6 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
         }
 
         path.get("callee").replaceWith(t.memberExpression(ctx, t.identifier("runOnDestroy")));
-      } else {
-        meshExpression(path, internal);
       }
       break;
     }

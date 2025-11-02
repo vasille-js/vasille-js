@@ -1,5 +1,5 @@
-import { awaited, compose } from "vasille-web";
+import { awaited, compose, safe as VasilleSafe } from "vasille-web";
 const C = compose(Vasille => {
   const [$err, $data] = awaited(new Promise(rv => rv(2)), Vasille, "err", "data");
-  console.log($err.V, $data.V);
+  VasilleSafe(() => console.log($err.V, $data.V))();
 }, "C");

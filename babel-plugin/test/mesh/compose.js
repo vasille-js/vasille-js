@@ -1,4 +1,4 @@
-import { compose, For, ref as VasilleRef, match as VasilleMatch, arrayModel as VasilleArrayModel, expr as VasilleExpr } from "vasille-web";
+import { compose, For, ref as VasilleRef, match as VasilleMatch, arrayModel as VasilleArrayModel, safe as VasilleSafe, expr as VasilleExpr } from "vasille-web";
 const C = compose(function C(Vasille, {
   $name = VasilleRef("name"),
   ["$data"]: $d = VasilleMatch("$d"),
@@ -13,7 +13,7 @@ const C = compose(function C(Vasille, {
     }),
     $more: VasilleRef("more")
   }], "model");
-  console.log($d.V.id, $d.V.width, $d.V.height, $name.V, rest.$more?.V);
+  VasilleSafe(() => console.log($d.V.id, $d.V.width, $d.V.height, $name.V, rest.$more?.V))();
   Vasille.tag("div", {}, Vasille => {
     Vasille.text(VasilleExpr(Vasille, Vasille_d => Vasille_d.id, [$d]));
     Vasille.text(":");
@@ -41,7 +41,7 @@ const C = compose(function C(Vasille, {
         Vasille.text("...");
         Vasille.text(rest2.$more);
       });
-      console.log($data.V.id, $data.V.width, $data.V.height, $name.V, rest2.$more?.V);
+      VasilleSafe(() => console.log($data.V.id, $data.V.width, $data.V.height, $name.V, rest2.$more?.V))();
     }
   }, Vasille);
 }, "C");

@@ -1,4 +1,4 @@
-import { calculate, compose, ref as VasilleRef } from "vasille-web";
+import { calculate, compose, ref as VasilleRef, safe as VasilleSafe } from "vasille-web";
 const C = compose(Vasille => {
   const $a = VasilleRef(2, "a");
   const $b = calculate(Vasille, Vasille_a => {
@@ -8,6 +8,6 @@ const C = compose(Vasille => {
   function goNext() {
     Vasille.runner.router?.goTo("/x");
   }
-  Vasille.runner.router?.goTo("/");
-  Vasille.runner.router;
+  VasilleSafe(() => Vasille.runner.router?.goTo("/"))();
+  VasilleSafe(() => Vasille.runner.router)();
 }, "C");
