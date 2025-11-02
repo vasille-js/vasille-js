@@ -1,5 +1,6 @@
 import { Reactive } from "../core/core.js";
 import { IValue } from "../core/ivalue.js";
+import { safe } from "../functional/safety.js";
 import { SetModel } from "../models/set-model.js";
 import { Reference } from "../value/reference.js";
 import { Runner } from "./runner.js";
@@ -354,7 +355,7 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
                 this.children.add(node);
 
                 this.index = i;
-                this.cases[i].slot(node);
+                safe(this.cases[i].slot)(node);
             } else {
                 this.index = -1;
             }

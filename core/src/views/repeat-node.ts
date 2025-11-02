@@ -1,3 +1,4 @@
+import { safe } from "../functional/safety.js";
 import { Fragment } from "../node/node.js";
 import { Runner } from "../node/runner.js";
 
@@ -30,11 +31,11 @@ export class RepeatNode<
      * @type {Map}
      */
     protected nodes: Map<IdT, Fragment<Node, Element, TagOptions>> = new Map();
-    protected slot?: ((ctx: Fragment<Node, Element, TagOptions>, value: T, index: IdT) => void) | undefined;
+    protected slot: ((ctx: Fragment<Node, Element, TagOptions>, value: T, index: IdT) => void) | undefined;
 
     public constructor(input: Opts, runner: Runner<Node, Element, TagOptions>) {
         super(runner);
-        this.slot = input.slot;
+        this.slot = input.slot && safe(input.slot);
     }
 
     public createChild(id: IdT, item: T, before?: Fragment<Node, Element, TagOptions>): any {
