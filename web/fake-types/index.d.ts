@@ -118,7 +118,7 @@ export declare function store<Return extends object>(fn: () => Return): Return;
 /** Creates a model (state) constructor */
 export declare function model<Return extends object>(fn: () => Return): () => Return & Destroyable;
 export declare function model<Input extends object, Return extends object>(
-    fn: (input: Input) => Return & Destroyable,
+    fn: (input: Input) => Return,
 ): (input: Input) => Return & Destroyable;
 
 export { QueryParams, ScreenProps, RouteParameters } from "vasille-router";
@@ -186,9 +186,11 @@ export declare function routerApp<Routes extends string>(
 
 /** Run a function before component mount */
 export declare function beforeMount(fn: () => void): void;
+export declare function beforeMount(fn: () => Promise<void>): void;
 
 /** Run a function after component mount */
 export declare function afterMount(fn: () => void): void;
+export declare function afterMount(fn: () => Promise<void>): void;
 
 /** Run a function before component destroy */
 export declare function beforeDestroy(fn: () => void): void;
