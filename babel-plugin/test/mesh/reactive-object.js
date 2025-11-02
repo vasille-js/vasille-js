@@ -1,4 +1,4 @@
-import { bind, compose, store, watch, ref as VasilleRef, ensure as VasilleEnsure } from "vasille-web";
+import { bind, compose, store, watch, ref as VasilleRef, safe as VasilleSafe, ensure as VasilleEnsure } from "vasille-web";
 const obj = {
   a: 1,
   b: 2
@@ -12,7 +12,7 @@ const sStore = store(Vasille => {
       c: 3
     })
   };
-  console.log(o.$b.V.c);
+  VasilleSafe(() => console.log(o.$b.V.c))();
   return {
     $a: $a,
     $b: $b,
@@ -28,7 +28,7 @@ const Component = compose(Vasille => {
   watch(Vasille, (Vasille_a, Vasille_b, Vasille_s_o_b) => {
     console.log(Vasille_a, Vasille_b, Vasille_s_o_b.c, Vasille_s_o_b?.c);
   }, [$a, $b, s.o.$b]);
-  console.log($a.V, $b.V, s.o.$b.V.c, s.o.$b?.V?.c);
+  VasilleSafe(() => console.log($a.V, $b.V, s.o.$b.V.c, s.o.$b?.V?.c))();
   Vasille.tag("div", {}, Vasille => {
     Vasille.text($a);
     Vasille.text($b);

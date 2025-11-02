@@ -1,4 +1,4 @@
-import { arrayModel, bind, calculate, compose, mapModel, ref, setModel, store, watch } from "vasille-web";
+import { arrayModel, bind, calculate, compose, mapModel, ref, setModel, store, watch, safe as VasilleSafe } from "vasille-web";
 const cStore = store(Vasille => {
   const $a = ref(2, "a");
   const $b = ref(2, "b");
@@ -51,7 +51,7 @@ const Component = compose(Vasille => {
     console.log(Vasille_c_$h.a, Vasille_c_i, c.j);
     console.log(Vasille_c_k, Vasille_c_o.a.b);
   }, [c.$a, c.$b, c.$c, c.$d, c.$$h, c.$i, c.$k, c.$o]);
-  console.log(c["$a"]?.V, c.$b?.V, c.$c?.V, c.$d?.V, c.e, c.f, c.g, c["$$h"].V.a, c.$i?.V, c.j, c.$k?.V, c.$o.V.a.b);
+  VasilleSafe(() => console.log(c["$a"]?.V, c.$b?.V, c.$c?.V, c.$d?.V, c.e, c.f, c.g, c["$$h"].V.a, c.$i?.V, c.j, c.$k?.V, c.$o.V.a.b))();
   Vasille.tag("div", {}, Vasille => {
     Vasille.text(c.$a);
     Vasille.text(c.$b);
