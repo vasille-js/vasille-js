@@ -1,7 +1,7 @@
 export type { Destroyable } from "./core/destroyable.js";
 export { Reactive } from "./core/core.js";
 export { IValue } from "./core/ivalue.js";
-export { reportError, setErrorHandler } from "./functional/safety.js";
+export { reportError, setErrorHandler, safe } from "./functional/safety.js";
 export { ArrayModel } from "./models/array-model.js";
 export { Listener } from "./models/listener.js";
 export { MapModel } from "./models/map-model.js";

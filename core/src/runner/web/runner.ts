@@ -4,6 +4,7 @@ import {
     Tag as AbstractTag,
     Runner as IRunner,
     IValue,
+    safe,
 } from "../../index.js";
 import { internalError } from "../../core/errors.js";
 import { AttributeBinding } from "./binding/attribute.js";
@@ -159,9 +160,9 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
                 const event = options.events[name];
 
                 if (event instanceof Array) {
-                    this.node.addEventListener(name, event[0], event[1]);
+                    this.node.addEventListener(name, safe(event[0]), event[1]);
                 } else {
-                    this.node.addEventListener(name, event);
+                    this.node.addEventListener(name, safe(event));
                 }
             }
         }

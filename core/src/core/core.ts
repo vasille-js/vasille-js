@@ -1,3 +1,4 @@
+import { safe } from "../functional/safety.js";
 import { Destroyable } from "./destroyable.js";
 
 /**
@@ -17,11 +18,16 @@ export class Reactive implements Destroyable {
     }
 
     public runOnDestroy(func: () => void) {
-        if (this.onDestroy) {
-            console.warn(new Error("You rewrite onDestroy existing handler"));
-            console.log(this.onDestroy);
+        const existing = this.onDestroy;
+
+        if (existing) {
+            this.onDestroy = () => {
+                existing();
+                safe(func)();
+            };
+        } else {
+            this.onDestroy = safe(func);
         }
-        this.onDestroy = func;
     }
 
     public destroy() {

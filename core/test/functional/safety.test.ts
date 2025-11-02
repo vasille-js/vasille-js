@@ -1,4 +1,4 @@
-import { Reference, setErrorHandler, reportError } from "../../src/index.js";
+import { Reference, setErrorHandler, reportError, safe } from "../../src/index.js";
 
 it("SetErrorHandler", function () {
     let test = false;
@@ -19,4 +19,32 @@ it("SetErrorHandler", function () {
     expect(test).toBe(false);
     reportError(23);
     expect(test).toBe(true);
+});
+
+it("safe test", function (done) {
+    let promise = false;
+    let error = new Error();
+
+    setErrorHandler(e => {
+        promise = true;
+        expect(e).toBe(error);
+    });
+    safe(() => {
+        return Promise.reject(error);
+    })();
+    setTimeout(() => {
+        let direct = false;
+
+        expect(promise).toBe(true);
+
+        setErrorHandler(e => {
+            direct = true;
+            expect(e).toBe(error);
+        });
+        safe(() => {
+            throw error;
+        })();
+        expect(direct).toBe(true);
+        done();
+    });
 });
