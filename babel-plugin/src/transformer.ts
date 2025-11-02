@@ -190,7 +190,7 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     match: (name, arg) => call("match", arg ? [name, arg] : [name]),
     set: (obj, field, value) => call("set", [obj, field, value]),
     Switch: arg => call("Switch", [arg, ctx]),
-    safe: (arg:FunctionExpression | ArrowFunctionExpression)=> call("safe", [arg]),
+    safe: (arg: FunctionExpression | ArrowFunctionExpression) => call("safe", [arg]),
   };
 
   function getCtx() {
