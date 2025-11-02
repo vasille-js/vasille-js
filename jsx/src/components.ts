@@ -5,6 +5,8 @@ import {
     IValue,
     MapModel,
     MapView,
+    reportError,
+    safe,
     SetModel,
     SetView,
     SwitchedNode,
@@ -22,10 +24,14 @@ export function Slot<Node, Element, TagOptions extends object, T extends object 
     ctx: Fragment<Node, Element, TagOptions>,
     defaultSlot?: (input: object, ctx: Fragment<Node, Element, TagOptions>) => void,
 ) {
-    if (model) {
-        model(options as T, ctx);
-    } else {
-        (slot ?? defaultSlot)?.({}, ctx);
+    try {
+        if (model) {
+            model(options as T, ctx);
+        } else {
+            (slot ?? defaultSlot)?.({}, ctx);
+        }
+    } catch (e) {
+        reportError(e);
     }
 }
 
@@ -101,19 +107,21 @@ export function For<
     }
     // fallback if is used external Array/Map/Set
     else {
+        const safeSlot = safe(slot);
+
         console.warn("Vasille <For of/> fallback detected. Please provide reactive data.");
 
         if (model instanceof Array) {
             model.forEach((value: V) => {
-                slot(ctx, value as unknown as T, value as unknown as K);
+                safeSlot(ctx, value as unknown as T, value as unknown as K);
             });
         } else if (model instanceof Map) {
             model.forEach((value: V, key: K) => {
-                slot(ctx, value as unknown as T, key);
+                safeSlot(ctx, value as unknown as T, key);
             });
         } else if (model instanceof Set) {
             model.forEach(value => {
-                slot(ctx, value as unknown as T, value as unknown as K);
+                safeSlot(ctx, value as unknown as T, value as unknown as K);
             });
         } else {
             throw userError("wrong use of `<For of/>` component", "wrong-model");
@@ -135,7 +143,7 @@ export function Watch<Node, Element, TagOptions extends object, T>(
 
     /* istanbul ignore else */
     if (slot) {
-        ctx.create(new CoreWatch({ model: $model, slot }, ctx.runner));
+        ctx.create(new CoreWatch({ model: $model, slot: safe(slot) }, ctx.runner));
     }
 }
 
@@ -168,7 +176,7 @@ export function Delay<Node, Element, TagOptions extends object>(
         /* istanbul ignore else */
         if (slot) {
             timer = setTimeout(() => {
-                slot(node);
+                safe(slot)(node);
                 timer = undefined;
             }, time) as unknown as number;
         }

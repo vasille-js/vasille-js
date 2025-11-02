@@ -1,4 +1,4 @@
-import { Expression, Fragment, IValue, Reference } from "vasille";
+import { Expression, Fragment, IValue, Reference, setErrorHandler } from "vasille";
 import { arrayModel, Debug, Delay, For, mapModel, setModel, Slot, Switch, Watch } from "../src/index.js";
 import { createNode } from "./page.js";
 
@@ -57,6 +57,23 @@ it("Slot", function () {
     expect(modelTest2).toBe(true);
     expect(mustBeValue).toBe(2);
     expect(mustBeRef instanceof IValue).toBe(true);
+
+    let handled = false;
+    const error = new Error();
+
+    setErrorHandler(e => {
+        handled = true;
+        expect(e).toBe(error);
+    });
+    Slot(
+        {
+            model() {
+                throw error;
+            },
+        },
+        node,
+    );
+    expect(handled).toBe(true);
 });
 
 it("For", function () {

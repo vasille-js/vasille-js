@@ -1,6 +1,6 @@
 {
   "name": "vasille-jsx",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "The same framework which is designed to build bulletproof frontends (JSX components)",
   "main": "lib/index.js",
   "exports": {
@@ -44,7 +44,7 @@
     "opera 15"
   ],
   "dependencies": {
-    "vasille": "^4.1.0"
+    "vasille": "^4.3.0"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
