@@ -19,7 +19,7 @@ All frameworks are scored in the next way:
 | Solid   | 1.9.10  | 0      | 0       | 0         | 0     | 0     | 8.50 kB    |
 | Svelte  | 5.43.2  | 0      | 0       | 0         | 0     | 0     | 26.28 kB   |
 | Vasille | 4.3.1   | 3      | 3       | 3         | 1     | 10    | 13.26 kB   |
-| Vue     | 3.5.22  | 1      | 1       | 1         | 0     | 3     | 60.39 kB   |
+| Vue     | 3.5.22  | 2      | 2       | 2         | 0     | 6     | 60.39 kB   |
 
 
 ## Angular
@@ -66,8 +66,9 @@ export class App {
 
 bootstrapApplication(App)
     .catch((err) => console.error(err));
-
 ```
+
+### [Demo](https://vasille-js.gitlab.io/bullet-proof/angular/)
 
 ### Console Output
 
@@ -143,6 +144,8 @@ export class MyElement extends LitElement {
 }
 ```
 
+### [Demo](https://vasille-js.gitlab.io/bullet-proof/lit/)
+
 ### Output
 
 ```
@@ -187,6 +190,8 @@ export const App = component$(() => {
   )
 })
 ```
+
+### [Demo](https://vasille-js.gitlab.io/bullet-proof/qwik/)
 
 ### Output
 
@@ -234,6 +239,8 @@ function App() {
 export default App
 ```
 
+### [Demo](https://vasille-js.gitlab.io/bullet-proof/react/)
+
 ### Output
 
 ```
@@ -280,6 +287,8 @@ function App() {
 
 export default App
 ```
+
+### [Demo](https://vasille-js.gitlab.io/bullet-proof/solid/)
 
 ### Output
 
@@ -332,6 +341,8 @@ Uncaught Error: now
     <Counter>After</Counter>
 </main>
 ```
+
+### [Demo](https://vasille-js.gitlab.io/bullet-proof/svelte/)
 
 ### Output
 
@@ -391,6 +402,8 @@ export default page(async () => {
 });
 ```
 
+### [Demo](https://vasille-js.gitlab.io/bullet-proof/vasille/)
+
 ### Output
 
 ```
@@ -442,6 +455,8 @@ function throwNow(): string {
   <Counter>After</Counter>
 </template>
 ```
+
+### [Demo](https://vasille-js.gitlab.io/bullet-proof/vue/)
 
 ### Output
 
