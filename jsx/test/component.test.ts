@@ -7,6 +7,7 @@ it("Slot", function () {
     let slotTest = false;
     let modelTest = false;
     let modelTest2 = false;
+    let modelTest2_1 = false;
     let mustBeValue: unknown = null;
     let mustBeRef: unknown = null;
 
@@ -35,6 +36,14 @@ it("Slot", function () {
     );
     Slot(
         {
+            slot() {
+                modelTest2_1 = true;
+            },
+        },
+        node,
+    );
+    Slot(
+        {
             model(o: object) {
                 mustBeValue = "a" in o && o.a;
             },
@@ -44,7 +53,7 @@ it("Slot", function () {
     );
     Slot(
         {
-            model(o: object, node: unknown) {
+            model(o: object) {
                 mustBeRef = "a" in o && o.a;
             },
             a: new Reference(2),
@@ -55,6 +64,7 @@ it("Slot", function () {
     expect(slotTest).toBe(true);
     expect(modelTest).toBe(true);
     expect(modelTest2).toBe(true);
+    expect(modelTest2_1).toBe(true);
     expect(mustBeValue).toBe(2);
     expect(mustBeRef instanceof IValue).toBe(true);
 
