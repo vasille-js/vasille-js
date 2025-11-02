@@ -19,7 +19,7 @@ All frameworks are scored in the next way:
 | Solid   | 1.9.10  | 0      | 0       | 0         | 0     | 0     | 8.50 kB    |
 | Svelte  | 5.43.2  | 0      | 0       | 0         | 0     | 0     | 26.28 kB   |
 | Vasille | 4.3.1   | 3      | 3       | 3         | 1     | 10    | 13.26 kB   |
-| Vue     | 3.5.22  | 1      | 1       | 1         | 0     | 3     | 60.39 kB   |
+| Vue     | 3.5.22  | 2      | 2       | 2         | 0     | 6     | 60.39 kB   |
 
 
 ## Angular
