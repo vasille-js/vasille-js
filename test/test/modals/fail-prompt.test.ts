@@ -2,7 +2,7 @@ import { page } from "../page";
 import { mount } from "vasille-web";
 import { PromptTestApp, rejectPrompt, control } from "../../src/modals/PromptTestApp";
 
-it("Prompt test", async function() {
+it("Prompt test", async function () {
   const body = page.window.document.body;
 
   mount(body, PromptTestApp, {});

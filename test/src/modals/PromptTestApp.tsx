@@ -11,18 +11,18 @@ export function rejectPrompt(error: string) {
   _reject?.(error);
 }
 
-const promptName = prompt<string>(({reject, resolve}) => {
+const promptName = prompt<string>(({ reject, resolve }) => {
   beforeMount(() => {
     _resolve = resolve;
     _reject = reject;
   });
 
-  <div class="prompt"></div>
+  <div class="prompt"></div>;
 });
 
 export let control: {
   prompt(): Promise<string>;
-}|null = null;
+} | null = null;
 
 export const PromptTestApp = component(() => {
   beforeMount(() => {
@@ -33,5 +33,5 @@ export const PromptTestApp = component(() => {
     };
   });
 
-  <div class="app"></div>
-})
+  <div class="app"></div>;
+});
