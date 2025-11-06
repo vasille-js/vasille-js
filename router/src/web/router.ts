@@ -224,9 +224,8 @@ export function routeApp<Routes extends string>(
     window: Window,
     location: Location,
     init: WebRouterInitialization<Routes>,
-    debugUi?: boolean,
 ) {
-    const runner = new Runner(debugUi ?? false, window.document);
+    const runner = new Runner(window.document);
     const app = new App(node, runner);
 
     app.create(new Fragment(runner), node => {

@@ -185,11 +185,9 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
 }
 
 export class Runner implements IRunner<Node, Element, TagOptions> {
-    public readonly debugUi: boolean;
     public readonly document: Document;
 
-    public constructor(debugUi: boolean, document: Document) {
-        this.debugUi = debugUi;
+    public constructor(document: Document) {
         this.document = document;
     }
 

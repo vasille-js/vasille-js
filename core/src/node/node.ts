@@ -1,7 +1,6 @@
 import { Reactive } from "../core/core.js";
 import { IValue } from "../core/ivalue.js";
 import { safe } from "../functional/safety.js";
-import { SetModel } from "../models/set-model.js";
 import { Reference } from "../value/reference.js";
 import { Runner } from "./runner.js";
 
@@ -22,7 +21,7 @@ export abstract class Root<Node, Element, TagOptions extends object> extends Rea
     protected constructor(runner: Runner<Node, Element, TagOptions>) {
         super();
         this.runner = runner;
-        this.children = runner.debugUi ? new SetModel() : new Set();
+        this.children = new Set();
     }
 
     /**

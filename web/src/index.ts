@@ -133,11 +133,11 @@ export function prompt<T extends PromptProps>(
     };
 }
 
-export function mount<T>(element: Element, component: ($: T) => void, input: T, debugUi?: boolean) {
+export function mount<T>(element: Element, component: ($: T) => void, input: T) {
     return coreMount<Node, Element, TagOptions, T>(
         element,
         component,
-        new Runner(debugUi ?? false, window.document),
+        new Runner(window.document),
         input,
     );
 }
@@ -145,7 +145,6 @@ export function mount<T>(element: Element, component: ($: T) => void, input: T, 
 export function routerApp<Routes extends string>(
     init: WebRouterInitialization<Routes>,
     element?: Element,
-    debugUi?: boolean,
 ) {
-    return coreRouteApp(element ?? document.body, window, window.location, init, debugUi);
+    return coreRouteApp(element ?? document.body, window, window.location, init);
 }

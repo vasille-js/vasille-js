@@ -33,7 +33,7 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> implements 
     /**
      * The buffer to keep the last calculated value
      */
-    private sync: Reference<T>;
+    protected sync: Reference<T>;
 
     /**
      * Creates a function bounded to N values
