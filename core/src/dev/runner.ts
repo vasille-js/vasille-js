@@ -27,7 +27,7 @@ class DevTextNode extends TextNode {
         inspector.createNode({
             id: this.id,
             text: toDevIdOrValue(input.text),
-        })
+        });
     }
 
     public destroy(): void {
@@ -37,7 +37,7 @@ class DevTextNode extends TextNode {
 
     public compose(): void {
         super.compose();
-        Object.defineProperty(this.node, "vasille", {value: this.usage, configurable: false, enumerable: false});
+        Object.defineProperty(this.node, "vasille", { value: this.usage, configurable: false, enumerable: false });
     }
 }
 
@@ -48,7 +48,13 @@ class DevTag extends Tag {
 
     declare public runner: DevRunner;
 
-    public constructor (options: DevTagOptions, runner: DevRunner, tagName: string, usage: Position, inspector: Inspector) {
+    public constructor(
+        options: DevTagOptions,
+        runner: DevRunner,
+        tagName: string,
+        usage: Position,
+        inspector: Inspector,
+    ) {
         super(options, runner, tagName);
 
         this.id = provideId();
@@ -61,38 +67,62 @@ class DevTag extends Tag {
             position: usage,
             callback: options.callback && toDevIdOrValue(options.callback),
             attr: options.attr && toDevObject(options.attr),
-            class: options.class && options.class.map(item => {
-                if (typeof item === "string") {
-                    return item;
-                }
-                if (item instanceof DevReference || item instanceof DevExpression) {
-                    return item.id;
-                }
-                if (item instanceof IValue) {
-                    return JSON.stringify(item.V);
-                }
+            class:
+                options.class &&
+                options.class.map(item => {
+                    if (typeof item === "string") {
+                        return item;
+                    }
+                    if (item instanceof DevReference || item instanceof DevExpression) {
+                        return item.id;
+                    }
+                    if (item instanceof IValue) {
+                        return JSON.stringify(item.V);
+                    }
 
-                const obj: {[k:string]: number|DevValue} = {};
+                    const obj: { [k: string]: number | DevValue } = {};
 
-                for (const key in item) {
-                    obj[key] = toDevIdOrValue(item[key]);
-                }
+                    for (const key in item) {
+                        obj[key] = toDevIdOrValue(item[key]);
+                    }
 
-                return obj;
-            }),
-            style: options.style && Object.entries(options.style).reduce((obj, [key, value]) => {
-                return {
-                    ...obj,
-                    [key]: typeof value === "number" ? `${value}px` : value instanceof Array ? value.map(v => `${v}px`).join(" ") : typeof value === "string" ? value : toDevId(value) ?? ''
-                }
-            }, {} as {[k:string]:number|string}),
-            events: options.events && Object.entries(options.events).reduce((obj, [key, value]) => {
-                return {...obj, [key]: toDevIdOrValue(value)}
-            }, {} as {[k:string]: number|DevValue}),
-            bind: options.bind && Object.entries(options.bind).reduce((obj, [key, value]) => {
-                return {...obj, [key]: toDevIdOrValue(value)}
-            }, {} as {[k:string]: number|DevValue}),
-        })
+                    return obj;
+                }),
+            style:
+                options.style &&
+                Object.entries(options.style).reduce(
+                    (obj, [key, value]) => {
+                        return {
+                            ...obj,
+                            [key]:
+                                typeof value === "number"
+                                    ? `${value}px`
+                                    : value instanceof Array
+                                      ? value.map(v => `${v}px`).join(" ")
+                                      : typeof value === "string"
+                                        ? value
+                                        : (toDevId(value) ?? ""),
+                        };
+                    },
+                    {} as { [k: string]: number | string },
+                ),
+            events:
+                options.events &&
+                Object.entries(options.events).reduce(
+                    (obj, [key, value]) => {
+                        return { ...obj, [key]: toDevIdOrValue(value) };
+                    },
+                    {} as { [k: string]: number | DevValue },
+                ),
+            bind:
+                options.bind &&
+                Object.entries(options.bind).reduce(
+                    (obj, [key, value]) => {
+                        return { ...obj, [key]: toDevIdOrValue(value) };
+                    },
+                    {} as { [k: string]: number | DevValue },
+                ),
+        });
     }
 
     public destroy(): void {
@@ -101,7 +131,7 @@ class DevTag extends Tag {
 
     public compose(): void {
         super.compose();
-        Object.defineProperty(this.element, "vasille", {value: this.usage, configurable: false, enumerable: false});
+        Object.defineProperty(this.element, "vasille", { value: this.usage, configurable: false, enumerable: false });
     }
 }
 
@@ -118,7 +148,7 @@ export class DevRunner extends Runner {
             throw new Error("Dev build is broken");
         }
 
-        return new DevTextNode({text: text.text}, this, text.position, this.inspector);
+        return new DevTextNode({ text: text.text }, this, text.position, this.inspector);
     }
 
     public tag(tagName: string, input: DevTagOptions, cb?: ((ctx: DevTag) => void) | undefined): DevTag {

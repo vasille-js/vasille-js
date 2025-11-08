@@ -16,23 +16,23 @@ export class DevArrayView<Node, Element, TagOptions extends object, T> extends A
         input: BaseViewOptions<Node, Element, TagOptions, T, T, DevArrayModel<T>>,
         runner: IRunner<Node, Element, TagOptions>,
         inspector: Inspector,
-        usage: Position
+        usage: Position,
     ) {
         super(input, runner);
         this.id = provideId();
         this.inspector = inspector;
-        
+
         inspector.createComponent({
             id: this.id,
             name: "ArrayView",
             props: toDevObject(input),
             usage: usage,
-        })
+        });
     }
 
     protected newChild(id: T, item: T): Fragment<Node, Element, TagOptions> {
-        const frag =new DevFragment(this.runner, null, null, "ArrayViewItem", {item}, this.inspector);
-        this.inspector.setElementParent({parent: this.id, child: frag.id});
+        const frag = new DevFragment(this.runner, null, null, "ArrayViewItem", { item }, this.inspector);
+        this.inspector.setElementParent({ parent: this.id, child: frag.id });
         return frag;
     }
 }
@@ -45,52 +45,58 @@ export class DevSetView<Node, Element, TagOptions extends object, T> extends Set
         input: BaseViewOptions<Node, Element, TagOptions, T, T, DevSetModel<T>>,
         runner: IRunner<Node, Element, TagOptions>,
         inspector: Inspector,
-        usage: Position
+        usage: Position,
     ) {
         super(input, runner);
         this.id = provideId();
         this.inspector = inspector;
-        
+
         inspector.createComponent({
             id: this.id,
             name: "SetView",
             props: toDevObject(input),
             usage: usage,
-        })
+        });
     }
 
     protected newChild(_id: T, item: T): Fragment<Node, Element, TagOptions> {
-        const frag =new DevFragment(this.runner, null, null, "SetViewItem", {item}, this.inspector);
-        this.inspector.setElementParent({parent: this.id, child: frag.id});
+        const frag = new DevFragment(this.runner, null, null, "SetViewItem", { item }, this.inspector);
+        this.inspector.setElementParent({ parent: this.id, child: frag.id });
         return frag;
     }
 }
 
-export class DevMapView<Node, Element, TagOptions extends object, K, T> extends MapView<Node, Element, TagOptions, K, T> {
+export class DevMapView<Node, Element, TagOptions extends object, K, T> extends MapView<
+    Node,
+    Element,
+    TagOptions,
+    K,
+    T
+> {
     public readonly id: number;
     public readonly inspector: Inspector;
 
-public constructor(
+    public constructor(
         input: BaseViewOptions<Node, Element, TagOptions, K, T, DevMapModel<K, T>>,
         runner: IRunner<Node, Element, TagOptions>,
         inspector: Inspector,
-        usage: Position
+        usage: Position,
     ) {
         super(input, runner);
         this.id = provideId();
         this.inspector = inspector;
-        
+
         inspector.createComponent({
             id: this.id,
             name: "MapView",
             props: toDevObject(input),
             usage: usage,
-        })
+        });
     }
 
     protected newChild(key: K, value: T): Fragment<Node, Element, TagOptions> {
-        const frag =new DevFragment(this.runner, null, null, "MapViewItem", {key, value}, this.inspector);
-        this.inspector.setElementParent({parent: this.id, child: frag.id});
+        const frag = new DevFragment(this.runner, null, null, "MapViewItem", { key, value }, this.inspector);
+        this.inspector.setElementParent({ parent: this.id, child: frag.id });
         return frag;
     }
 }

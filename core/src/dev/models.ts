@@ -10,7 +10,7 @@ export class DevArrayModel<T> extends ArrayModel<T> {
 
     public constructor(inspector: Inspector, data?: Array<T> | number, ctx?: Reactive) {
         super(data, ctx);
-        
+
         this.id = provideId();
         this.inspector = inspector;
 
@@ -18,7 +18,7 @@ export class DevArrayModel<T> extends ArrayModel<T> {
             id: this.id,
             type: "array",
             values: this.map((item, index) => [index, toDevValue(item)]),
-        })
+        });
     }
 
     public destroy(): void {
@@ -82,8 +82,8 @@ export class DevSetModel<T> extends SetModel<T> {
         inspector.createModel({
             id: this.id,
             type: "set",
-            values: [...this].map(item => [0, toDevIdOrValue(item)])
-        })
+            values: [...this].map(item => [0, toDevIdOrValue(item)]),
+        });
     }
 
     public destroy(): void {
@@ -112,7 +112,7 @@ export class DevSetModel<T> extends SetModel<T> {
             id: this.id,
             method: method,
             args: args.map(toDevIdOrValue),
-            return: toDevIdOrValue(result)
+            return: toDevIdOrValue(result),
         });
     }
 }
@@ -121,7 +121,7 @@ export class DevMapModel<K, T> extends MapModel<K, T> {
     public readonly id: number;
     public readonly inspector: Inspector;
 
-    public constructor (inspector: Inspector, map?: [K, T][], ctx?: Reactive) {
+    public constructor(inspector: Inspector, map?: [K, T][], ctx?: Reactive) {
         super(map, ctx);
         this.id = provideId();
         this.inspector = inspector;
@@ -129,8 +129,8 @@ export class DevMapModel<K, T> extends MapModel<K, T> {
         inspector.createModel({
             id: this.id,
             type: "map",
-            values: [...this.entries()].map(([key, value]) => [toDevIdOrValue(key), toDevIdOrValue(value)])
-        })
+            values: [...this.entries()].map(([key, value]) => [toDevIdOrValue(key), toDevIdOrValue(value)]),
+        });
     }
 
     public destroy(): void {
@@ -158,7 +158,7 @@ export class DevMapModel<K, T> extends MapModel<K, T> {
             id: this.id,
             method: method,
             args: args.map(toDevIdOrValue),
-            return: toDevIdOrValue(result)
+            return: toDevIdOrValue(result),
         });
     }
 }

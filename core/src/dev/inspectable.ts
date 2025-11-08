@@ -77,9 +77,9 @@ export interface ProtocolDependency {
 export interface ProtocolComponent {
     id: number;
     name: string;
-    props: { [k: string]: number|DevValue };
-    declaration?: Position|null;
-    usage?: Position|null;
+    props: { [k: string]: number | DevValue };
+    declaration?: Position | null;
+    usage?: Position | null;
 }
 
 export interface ProtocolState {
@@ -98,11 +98,11 @@ export interface ProtocolTag {
     position: Position;
     tagName: string;
     attr?: { [k: string]: number | DevValue };
-    class?: (number | string | { [k: string]: number|DevValue })[];
+    class?: (number | string | { [k: string]: number | DevValue })[];
     style?: { [k: string]: number | string };
-    events?: { [k: string]: number|DevValue };
+    events?: { [k: string]: number | DevValue };
     bind?: { [k: string]: number | DevValue };
-    callback?: number|DevValue;
+    callback?: number | DevValue;
 }
 
 export interface ProtocolNode {
@@ -112,15 +112,15 @@ export interface ProtocolNode {
 
 export interface ProtocolModel {
     id: number;
-    type: "array"|"set"|"map";
-    values: [number|DevValue, number|DevValue][];
+    type: "array" | "set" | "map";
+    values: [number | DevValue, number | DevValue][];
 }
 
 export interface ProtocolModelUpdate {
     id: number;
     method: string;
-    args: (number|DevValue)[];
-    return: number|DevValue;
+    args: (number | DevValue)[];
+    return: number | DevValue;
 }
 
 export interface Inspector {
@@ -184,7 +184,7 @@ export function registerDevValue(value: object, declaration: Position, inspector
             value: { id, declaration } satisfies DevValueInternal,
             writable: false,
         });
-        inspector.reportReferenceError
+        inspector.reportReferenceError;
         devValues.set(id, value);
     }
 }
@@ -203,7 +203,7 @@ export function toDevValue(value: unknown) {
     } satisfies DevValue;
 }
 
-export function toDevId(value: unknown): number|undefined {
+export function toDevId(value: unknown): number | undefined {
     if (value instanceof DevReference || value instanceof DevExpression) {
         return value.id;
     }
@@ -220,15 +220,18 @@ export function toDevId(value: unknown): number|undefined {
     return undefined;
 }
 
-export function toDevIdOrValue(value: unknown): number|DevValue {
+export function toDevIdOrValue(value: unknown): number | DevValue {
     return toDevId(value) ?? toDevValue(value);
 }
 
-export function toDevObject (value: object): {[k: string]: number|DevValue} {
-    return Object.entries(value).reduce((obj, [prop, value]) => {
-                return {
-                    ...obj,
-                    [prop]: toDevIdOrValue(value)
-                }
-            }, {} as {[k: string]: number|DevValue})
+export function toDevObject(value: object): { [k: string]: number | DevValue } {
+    return Object.entries(value).reduce(
+        (obj, [prop, value]) => {
+            return {
+                ...obj,
+                [prop]: toDevIdOrValue(value),
+            };
+        },
+        {} as { [k: string]: number | DevValue },
+    );
 }

@@ -21,7 +21,6 @@ export abstract class DevIValue<T> extends IValue<T> {
 }
 
 export class BaseDevReference<T> extends DevIValue<T> {
-
     protected state: T;
     protected readonly onChange: Set<(value: T, position: Position) => void>;
 
@@ -96,14 +95,13 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
         this.shareDestroy();
     }
 
-    protected shareCreated() {
-    }
+    protected shareCreated() {}
 
     protected shareUpdate(position: Position) {
         this.inspector.updateReference({
             id: this.id,
             position: position,
-            value: this.state
+            value: this.state,
         });
     }
 
@@ -142,7 +140,10 @@ export class ExpressionDevReference<T> extends BaseDevReference<T> implements In
     }
 }
 
-export class DevExpression<T, Args extends unknown[]> extends IValue<T> implements Destroyable, InspectableReference<T> {
+export class DevExpression<T, Args extends unknown[]>
+    extends IValue<T>
+    implements Destroyable, InspectableReference<T>
+{
     public readonly id: number;
     public readonly declaration: Position;
     public readonly inspector: Inspector;
@@ -185,7 +186,7 @@ export class DevExpression<T, Args extends unknown[]> extends IValue<T> implemen
                     error: e,
                     handler: toDevValue(func),
                     position: position,
-                    deps: this.valuesCache.map(toDevValue), 
+                    deps: this.valuesCache.map(toDevValue),
                 });
                 reportError(e);
             }
@@ -224,8 +225,8 @@ export class DevExpression<T, Args extends unknown[]> extends IValue<T> implemen
                 }
 
                 return depsCode[index];
-            })
-        })
+            }),
+        });
     }
 
     public update(value: T, position: Position): void {
