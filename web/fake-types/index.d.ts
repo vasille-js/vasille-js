@@ -160,7 +160,6 @@ export declare function mount<T>(
     element: Element,
     component: ($: T) => void,
     $: T,
-    debugUi?: boolean,
 ): App<Node, Element, TagOptions>;
 
 interface RouterInitialization<Routes extends string> {
@@ -181,7 +180,6 @@ interface RouterInitialization<Routes extends string> {
 export declare function routerApp<Routes extends string>(
     init: RouterInitialization<Routes>,
     element?: Element,
-    debugUi?: boolean,
 ): App<Node, Element, TagOptions>;
 
 /** Run a function before component mount */

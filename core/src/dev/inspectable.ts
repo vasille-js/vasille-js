@@ -1,10 +1,16 @@
-import { type } from "node:os";
+import { DevExpression, BaseDevReference } from "./state.js";
 
 export interface Position {
-    name: string;
-    path: string;
-    line: number;
-    char: number;
+    pathLineAndChar: string;
+    error?: Error;
+}
+
+export function declarationPosition(pathLineAndChar: string) {
+    return { pathLineAndChar };
+}
+
+export function usagePosition(pathLineAndChar: string, error: Error): Position {
+    return { error, pathLineAndChar };
 }
 
 export interface Inspectable {
@@ -28,19 +34,103 @@ export interface Dependency extends Inspectable {
     value: DevValue;
 }
 
+export interface ProtocolReference {
+    id: number;
+    value: unknown;
+    declaration: Position;
+}
+
+export interface ProtocolReferenceUpdate {
+    id: number;
+    value: unknown;
+    position: Position;
+}
+
+export interface ProtocolReferenceError {
+    id: number;
+    error: unknown;
+    handler: DevValue;
+    position: Position;
+}
+
+export interface ProtocolExpression extends ProtocolReference {
+    deps: (Dependency | string)[];
+    isWatch: boolean;
+}
+
+export interface ProtocolExpressionUpdate extends ProtocolReferenceUpdate {
+    deps: DevValue[];
+}
+
+export interface ProtocolExpressionError extends ProtocolReferenceError {
+    deps: DevValue[];
+}
+
+export interface ProtocolDependency {
+    dependant: number;
+    dependency: number;
+}
+
+export interface ProtocolComponent {
+    id: number;
+    declaration: Position;
+    name: string;
+    usage: Position;
+    props: { [k: string]: number|DevValue };
+}
+
+export interface ProtocolState {
+    id: number;
+    name: string;
+    stateId: number;
+}
+
+export interface ProtocolParent {
+    child: number;
+    parent: number;
+}
+
+export interface ProtocolTag {
+    id: number;
+    position: Position;
+    tagName: string;
+    attr: { [k: string]: number | DevValue };
+    class: (number | string | { [k: string]: number })[];
+    style: { [k: string]: number | string };
+    events: { [k: string]: number };
+    bind: { [k: string]: number | DevValue };
+    callback?: number;
+}
+
+export interface ProtocolNode {
+    id: number;
+    text: number | DevValue;
+    type: "comment" | "text";
+}
+
 export interface Inspector {
-    newReference(id: number, value: unknown, declaration: Position): void;
-    updateReference(id: number, value: unknown, position: Position): void;
-    raportReferenceError(id: number, error: unknown, handler: DevValue, position: Position): void;
-    deleteReference(id: number): void;
-    newExpression(id: number, value: unknown, deps: (Dependency | string)[], declaration: Position): void;
-    updateExpression(id: number, value: unknown, deps: DevValue[], position: Position): void;
-    manualUpdateExpression(id: number, value: unknown, position: Position): void;
-    raportExpressionSyncError(id: number, error: unknown, handler: DevValue, position: Position): void;
-    raportExpressionCalculationError(id: number, deps: DevValue[], error: unknown, handler: DevValue, position: Position): void;
-    deleteExpression(id: number): void;
-    linkDependency(dependant: number, dependency: number): void;
-    unlinkDependency(dependant: number, dependency: number): void;
+    // Reference
+    newReference(ref: ProtocolReference): void;
+    updateReference(update: ProtocolReferenceUpdate): void;
+    reportReferenceError(error: ProtocolReferenceError): void;
+
+    // Expression
+    newExpression(expr: ProtocolExpression): void;
+    updateExpression(update: ProtocolExpressionUpdate): void;
+    linkDependency(dep: ProtocolDependency): void;
+    unlinkDependency(dep: ProtocolDependency): void;
+    reportExpressionSyncError(error: ProtocolReferenceError): void;
+    reportExpressionCalculationError(error: ProtocolExpressionError): void;
+
+    // Components
+    createComponent(comp: ProtocolComponent): void;
+    createTag(tag: ProtocolTag): void;
+    createNode(node: ProtocolNode): void;
+    addContextState(state: ProtocolState): void;
+    setElementParent(parent: ProtocolParent): void;
+
+    // any
+    destroy(id: number): void;
 }
 
 let id = 0;

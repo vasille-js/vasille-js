@@ -1,7 +1,16 @@
 import { Reactive } from "../core/core.js";
 import { Destroyable } from "../core/destroyable.js";
 import { IValue } from "../core/ivalue.js";
-import { Dependency, Inspectable, InspectableReference, Inspector, Position, provideId, toDevValue } from "./inspectable.js";
+import { Reference } from "../value/reference.js";
+import {
+    Dependency,
+    Inspectable,
+    InspectableReference,
+    Inspector,
+    Position,
+    provideId,
+    toDevValue,
+} from "./inspectable.js";
 
 export type KindOfDevIValue<T extends unknown[]> = {
     [K in keyof T]: IValue<T[K]> | DevIValue<T[K]> | undefined;
@@ -11,24 +20,15 @@ export abstract class DevIValue<T> extends IValue<T> {
     public abstract update(value: T, position: Position): void;
 }
 
-export class DevReference<T> extends IValue<T> implements InspectableReference<T>, Destroyable {
-    public readonly id: number;
-    public readonly declaration: Position;
-    public readonly inspector: Inspector;
+export class BaseDevReference<T> extends DevIValue<T> {
 
     protected state: T;
     protected readonly onChange: Set<(value: T, position: Position) => void>;
 
-    public constructor(value: T, declaration: Position, inspector: Inspector) {
+    public constructor(value: T) {
         super();
         this.state = value;
         this.onChange = new Set();
-
-        this.id = provideId();
-        this.declaration = declaration;
-        this.inspector = inspector;
-
-        this.shareCreated();
     }
 
     public get V(): T {
@@ -64,83 +64,93 @@ export class DevReference<T> extends IValue<T> implements InspectableReference<T
         this.onChange.delete(handler);
     }
 
+    protected shareUpdate(position: Position) {
+        void position;
+    }
+
+    protected shareError(error: unknown, handler: unknown, position: Position) {
+        void error;
+        void handler;
+        void position;
+    }
+}
+
+export class DevReference<T> extends BaseDevReference<T> implements InspectableReference<T>, Destroyable {
+    public readonly id: number;
+    public readonly inspector: Inspector;
+
+    public constructor(value: T, declaration: Position, inspector: Inspector) {
+        super(value);
+
+        this.id = provideId();
+        this.inspector = inspector;
+
+        inspector.newReference({
+            id: this.id,
+            declaration: declaration,
+            value: this.state,
+        });
+    }
+
     public destroy(): void {
         this.shareDestroy();
     }
 
     protected shareCreated() {
-        this.inspector.newReference(this.id, this.state, this.declaration);
     }
 
     protected shareUpdate(position: Position) {
-        this.inspector.updateReference(this.id, this.state, position);
+        this.inspector.updateReference({
+            id: this.id,
+            position: position,
+            value: this.state
+        });
     }
 
     protected shareError(error: unknown, handler: unknown, position: Position) {
-        this.inspector.raportReferenceError(this.id, error, toDevValue(handler), position);
+        this.inspector.reportReferenceError({
+            handler: toDevValue(handler),
+            id: this.id,
+            error: error,
+            position: position,
+        });
     }
 
     protected shareDestroy() {
-        this.inspector.deleteReference(this.id);
+        this.inspector.destroy(this.id);
     }
 }
 
-class DevExpressionReference<T> extends DevReference<T> {
-    private cache: unknown[];
-    private deps?: (IValue<unknown>|DevIValue<unknown>|undefined)[];
-    private depsCode?: string[];
-
-    public constructor(value: T, declaration: Position, inspector: Inspector, deps: (IValue<unknown>|DevIValue<unknown>|undefined)[], depsCode: string[], cache: unknown[]) {
-        super(value, declaration, inspector)
-        this.deps = deps;
-        this.depsCode = depsCode;
-        this.cache = cache;
-        this.shareCreated();
-    }
-
-    protected shareCreated(): void {
-        const {deps,depsCode} = this;
-
-        if (deps && depsCode) {
-            this.inspector.newExpression(this.id, this.state, deps.map((dep, index) => {
-                if (dep instanceof DevReference || dep instanceof DevExpression) {
-                    return {
-                        code: depsCode[index],
-                        id: dep.id,
-                        value: toDevValue(dep.V),
-                    } satisfies Dependency;
-                }
-
-                return depsCode[index];
-            }), this.declaration);
-        }
-        this.deps = undefined;
-        this.depsCode = undefined;
-    }
-
-    protected shareUpdate(position: Position): void {
-        this.inspector.updateExpression(this.id, this.state, this.cache.map(toDevValue), position);
-    }
-
-    protected shareError(error: unknown, handler: unknown, position: Position): void {
-        this.inspector.raportExpressionSyncError(this.id, error, toDevValue(handler), position);
-    }
-
-    protected shareDestroy(): void {
-        this.inspector.deleteExpression(this.id);
-    }
-}
-
-export class DevExpression<T, Args extends unknown[]>
-    extends IValue<T>
-    implements Destroyable, Inspectable
-{
+export class ExpressionDevReference<T> extends BaseDevReference<T> implements InspectableReference<T> {
     public readonly id: number;
+    public readonly inspector: Inspector;
+
+    public constructor(id: number, value: T, inspector: Inspector) {
+        super(value);
+
+        this.id = id;
+        this.inspector = inspector;
+    }
+
+    protected shareError(error: unknown, handler: unknown, position: Position) {
+        this.inspector.reportReferenceError({
+            handler: toDevValue(handler),
+            id: this.id,
+            error: error,
+            position: position,
+        });
+    }
+}
+
+export class DevExpression<T, Args extends unknown[]> extends IValue<T> implements Destroyable, InspectableReference<T> {
+    public readonly id: number;
+    public readonly declaration: Position;
+    public readonly inspector: Inspector;
 
     private values: KindOfDevIValue<Args>;
     private readonly valuesCache: Args;
     private linkedFunc: Array<() => void> = [];
-    private sync: DevReference<T>;
+    private sync: ExpressionDevReference<T>;
 
     public constructor(
         func: (...args: Args) => T,
@@ -149,23 +159,44 @@ export class DevExpression<T, Args extends unknown[]>
         depsCode: string[],
         declaration: Position,
         inspector: Inspector,
+        isWatch: boolean,
     ) {
         super();
 
+        const id = provideId();
         const handler = (i: number, value: unknown, position: Position) => {
-                try {
-                    this.valuesCache[i] = value;
-                this.sync.update(func.apply(this, this.valuesCache), position);
+            try {
+                this.valuesCache[i] = value;
+
+                const newValue = func.apply(this, this.valuesCache);
+
+                if (this.sync.V !== newValue || isWatch) {
+                    this.sync.update(newValue, position);
+                    inspector.updateExpression({
+                        id: id,
+                        position: position,
+                        value: newValue,
+                        deps: this.valuesCache.map(toDevValue),
+                    });
                 }
-                catch (e) {
-                    this.sync.inspector.raportExpressionCalculationError(this.sync.id, this.valuesCache.map(toDevValue), e, toDevValue(func), position);
-                    reportError(e);
-                }
+            } catch (e) {
+                inspector.reportExpressionCalculationError({
+                    id: id,
+                    error: e,
+                    handler: toDevValue(func),
+                    position: position,
+                    deps: this.valuesCache.map(toDevValue), 
+                });
+                reportError(e);
+            }
         };
 
         this.valuesCache = values.map(item => item?.V) as Args;
 
-        this.sync = new DevExpressionReference(func.apply(this, this.valuesCache), declaration, inspector, values, depsCode, this.valuesCache);
+        this.sync = new ExpressionDevReference(id, func.apply(this, this.valuesCache), inspector);
+        this.id = id;
+        this.declaration = declaration;
+        this.inspector = inspector;
 
         let i = 0;
         values.forEach(value => {
@@ -177,9 +208,27 @@ export class DevExpression<T, Args extends unknown[]>
 
         this.values = values;
         ctx?.bind(this);
+
+        inspector.newExpression({
+            id: this.id,
+            declaration: this.declaration,
+            isWatch: isWatch,
+            value: this.sync.V,
+            deps: values.map((dep, index) => {
+                if (dep instanceof DevReference || dep instanceof DevExpression) {
+                    return {
+                        code: depsCode[index],
+                        id: dep.id,
+                        value: toDevValue(dep.V),
+                    } satisfies Dependency;
+                }
+
+                return depsCode[index];
+            })
+        })
     }
 
-    update(value: T, position: Position): void {
+    public update(value: T, position: Position): void {
         this.sync.update(value, position);
     }
 
@@ -201,41 +250,12 @@ export class DevExpression<T, Args extends unknown[]>
     }
 
     public destroy(): void {
-        this.sync.destroy();
+        this.inspector.destroy(this.id);
         for (let i = 0; i < this.values.length; i++) {
             this.values[i]?.off(this.linkedFunc[i]);
         }
         this.values.splice(0);
         this.valuesCache.splice(0);
         this.linkedFunc.splice(0);
-    }
-}
-
-export class DevBackward<T> extends DevReference<T> {
-    protected target: DevIValue<T> & Inspectable;
-
-    public constructor(value: DevIValue<T> & Inspectable, declaration: Position, inspector: Inspector) {
-        super(value.V, declaration, inspector);
-        this.target = value;
-        this.inspector.unlinkDependency(this.target.id, this.id);
-    }
-
-    public override get V(): T {
-        return super.V;
-    }
-
-    public override set V(value: T) {
-        void value;
-        throw new Error("Production API usage detected");
-    }
-
-    public update(value: T, position: Position): void {
-        this.update(value, position);
-        this.target.update(value, position);
-    }
-
-    public destroy(): void {
-        this.inspector.unlinkDependency(this.target.id, this.id);
-        super.destroy();
     }
 }

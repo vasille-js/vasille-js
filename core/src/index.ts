@@ -9,7 +9,6 @@ export { SetModel } from "./models/set-model.js";
 export { App, Portal } from "./node/app.js";
 export { Fragment, Tag, TextNode, DebugNode, SwitchedNode } from "./node/node.js";
 export { Expression, type KindOfIValue } from "./value/expression.js";
-export { Forward, Backward } from "./value/pointer.js";
 export { Reference } from "./value/reference.js";
 export { ArrayView } from "./views/array-view.js";
 export { BaseView } from "./views/base-view.js";

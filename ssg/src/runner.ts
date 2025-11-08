@@ -255,8 +255,6 @@ class BodyTag extends Tag {
 }
 
 export class Runner implements IRunner<Node, Element, TagOptions> {
-    debugUi: boolean = false;
-
     head: Element;
     body: Element;
 
