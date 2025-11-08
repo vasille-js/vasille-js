@@ -34,10 +34,13 @@ export interface Dependency extends Inspectable {
     value: DevValue;
 }
 
-export interface ProtocolReference {
+export interface ProtocolPosition {
     id: number;
-    value: unknown;
     declaration: Position;
+}
+
+export interface ProtocolReference extends ProtocolPosition {
+    value: unknown;
 }
 
 export interface ProtocolReferenceUpdate {
@@ -94,18 +97,17 @@ export interface ProtocolTag {
     id: number;
     position: Position;
     tagName: string;
-    attr: { [k: string]: number | DevValue };
-    class: (number | string | { [k: string]: number })[];
-    style: { [k: string]: number | string };
-    events: { [k: string]: number };
-    bind: { [k: string]: number | DevValue };
-    callback?: number;
+    attr?: { [k: string]: number | DevValue };
+    class?: (number | string | { [k: string]: number|DevValue })[];
+    style?: { [k: string]: number | string };
+    events?: { [k: string]: number|DevValue };
+    bind?: { [k: string]: number | DevValue };
+    callback?: number|DevValue;
 }
 
 export interface ProtocolNode {
     id: number;
     text: number | DevValue;
-    type: "comment" | "text";
 }
 
 export interface ProtocolModel {
@@ -122,6 +124,8 @@ export interface ProtocolModelUpdate {
 }
 
 export interface Inspector {
+    idToPosition(pos: ProtocolPosition): void;
+
     // Reference
     newReference(ref: ProtocolReference): void;
     updateReference(update: ProtocolReferenceUpdate): void;
@@ -172,7 +176,7 @@ const primitiveTypes: string[] = ["number", "string", "boolean"] as const;
 
 export const devValues = new Map<number, object>();
 
-export function registerDevValue(value: object, declaration: Position) {
+export function registerDevValue(value: object, declaration: Position, inspector: Inspector) {
     if (!(DevValueInternalKey in value)) {
         const id = provideId();
 
@@ -180,6 +184,7 @@ export function registerDevValue(value: object, declaration: Position) {
             value: { id, declaration } satisfies DevValueInternal,
             writable: false,
         });
+        inspector.reportReferenceError
         devValues.set(id, value);
     }
 }
@@ -198,7 +203,7 @@ export function toDevValue(value: unknown) {
     } satisfies DevValue;
 }
 
-export function toDevIdOrValue(value: unknown): number|DevValue {
+export function toDevId(value: unknown): number|undefined {
     if (value instanceof DevReference || value instanceof DevExpression) {
         return value.id;
     }
@@ -212,7 +217,11 @@ export function toDevIdOrValue(value: unknown): number|DevValue {
         return data.id;
     }
 
-    return toDevValue(value);
+    return undefined;
+}
+
+export function toDevIdOrValue(value: unknown): number|DevValue {
+    return toDevId(value) ?? toDevValue(value);
 }
 
 export function toDevObject (value: object): {[k: string]: number|DevValue} {

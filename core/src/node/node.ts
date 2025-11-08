@@ -2,7 +2,7 @@ import { Reactive } from "../core/core.js";
 import { IValue } from "../core/ivalue.js";
 import { safe } from "../functional/safety.js";
 import { Reference } from "../value/reference.js";
-import { Runner } from "./runner.js";
+import { IRunner } from "./runner.js";
 
 /**
  * This class is symbolic
@@ -14,11 +14,11 @@ export abstract class Root<Node, Element, TagOptions extends object> extends Rea
      * @type Array
      */
     public readonly children: Set<Fragment<Node, Element, TagOptions>>;
-    public readonly runner: Runner<Node, Element, TagOptions>;
+    public readonly runner: IRunner<Node, Element, TagOptions>;
 
     public lastChild: Fragment<Node, Element, TagOptions> | undefined = undefined;
 
-    protected constructor(runner: Runner<Node, Element, TagOptions>) {
+    protected constructor(runner: IRunner<Node, Element, TagOptions>) {
         super();
         this.runner = runner;
         this.children = new Set();
@@ -67,13 +67,6 @@ export abstract class Root<Node, Element, TagOptions extends object> extends Rea
         node.compose();
     }
 
-    public debug(text: IValue<unknown>) {
-        const node = this.runner.debugNode(text);
-
-        this.pushNode(node);
-        node.compose();
-    }
-
     /**
      * Defines a tag element
      * @param tagName {String} the tag name
@@ -110,7 +103,7 @@ export abstract class Root<Node, Element, TagOptions extends object> extends Rea
 export class Fragment<Node, Element, TagOptions extends object> extends Root<Node, Element, TagOptions> {
     public parent!: Root<Node, Element, TagOptions>;
 
-    public constructor(runner: Runner<Node, Element, TagOptions>) {
+    public constructor(runner: IRunner<Node, Element, TagOptions>) {
         super(runner);
     }
     /**
@@ -220,7 +213,7 @@ export abstract class TextNode<Node, Element, TagOptions extends object> extends
     protected handler: ((v: unknown) => void) | null = null;
     protected readonly data: unknown;
 
-    public constructor(input: TextProps, runner: Runner<Node, Element, TagOptions>) {
+    public constructor(input: TextProps, runner: IRunner<Node, Element, TagOptions>) {
         super(runner);
         this.data = input.text;
     }
@@ -272,7 +265,7 @@ export abstract class Tag<Node, Element, TagOptions extends object> extends INod
     public readonly name: string;
     public readonly options: TagOptions;
 
-    public constructor(options: TagOptions, runner: Runner<Node, Element, TagOptions>, tagName: string) {
+    public constructor(options: TagOptions, runner: IRunner<Node, Element, TagOptions>, tagName: string) {
         super(runner);
         this.options = options;
         this.name = tagName;
@@ -322,7 +315,7 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
      * Constructs a switch node and define a sync function
      */
     public constructor(
-        runner: Runner<Node, Element, TagOptions>,
+        runner: IRunner<Node, Element, TagOptions>,
         cases: SwitchedNodeCase<Node, Element, TagOptions>[],
         _default?: (node: Fragment<Node, Element, TagOptions>) => void,
     ) {
@@ -380,35 +373,5 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
 
     protected newChild(index: number): Fragment<Node, Element, TagOptions> {
         return new Fragment(this.runner);
-    }
-}
-
-export interface DebugProps {
-    text: IValue<unknown>;
-}
-
-/**
- * Represents a debug node
- * @class DebugNode
- * @extends Fragment
- */
-export abstract class DebugNode<Node, Element, TagOptions extends object> extends Fragment<Node, Element, TagOptions> {
-    protected handler: ((v: unknown) => void) | null = null;
-    protected readonly data: IValue<unknown>;
-
-    public constructor(input: DebugProps, runner: Runner<Node, Element, TagOptions>) {
-        super(runner);
-        this.data = input.text;
-    }
-
-    public abstract override compose(): void;
-
-    public override destroy(): void {
-        /* istanbul ignore else */
-        if (this.handler) {
-            this.data.off(this.handler);
-        }
-
-        super.destroy();
     }
 }

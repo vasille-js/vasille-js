@@ -1,5 +1,5 @@
 import { Fragment } from "../node/node.js";
-import { Runner } from "../node/runner.js";
+import { IRunner } from "../node/runner.js";
 import { ArrayView } from "../views/array-view.js";
 import { BaseViewOptions } from "../views/base-view.js";
 import { MapView } from "../views/map-view.js";
@@ -14,7 +14,7 @@ export class DevArrayView<Node, Element, TagOptions extends object, T> extends A
 
     public constructor(
         input: BaseViewOptions<Node, Element, TagOptions, T, T, DevArrayModel<T>>,
-        runner: Runner<Node, Element, TagOptions>,
+        runner: IRunner<Node, Element, TagOptions>,
         inspector: Inspector,
         usage: Position
     ) {
@@ -43,7 +43,7 @@ export class DevSetView<Node, Element, TagOptions extends object, T> extends Set
 
     public constructor(
         input: BaseViewOptions<Node, Element, TagOptions, T, T, DevSetModel<T>>,
-        runner: Runner<Node, Element, TagOptions>,
+        runner: IRunner<Node, Element, TagOptions>,
         inspector: Inspector,
         usage: Position
     ) {
@@ -72,7 +72,7 @@ export class DevMapView<Node, Element, TagOptions extends object, K, T> extends 
 
 public constructor(
         input: BaseViewOptions<Node, Element, TagOptions, K, T, DevMapModel<K, T>>,
-        runner: Runner<Node, Element, TagOptions>,
+        runner: IRunner<Node, Element, TagOptions>,
         inspector: Inspector,
         usage: Position
     ) {

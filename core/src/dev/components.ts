@@ -1,12 +1,12 @@
 import { App, Portal, PortalOptions } from "../node/app.js";
 import { Fragment, SwitchedNode, SwitchedNodeCase } from "../node/node.js";
-import { Runner } from "../node/runner.js";
+import { IRunner } from "../node/runner.js";
 import { Watch, WatchOptions } from "../node/watch.js";
 import { DevValue, Inspector, Position, provideId, toDevIdOrValue, toDevObject, toDevValue } from "./inspectable.js";
 import { DevFragment } from "./node.js";
 
 export class DevWatch<Node, Element, TagOptions extends object, T> extends Watch<Node, Element, TagOptions, T> {
-    public constructor(input: WatchOptions<Node, Element, TagOptions, T>, runner: Runner<Node, Element, TagOptions>, usage: Position, inspector: Inspector) {
+    public constructor(input: WatchOptions<Node, Element, TagOptions, T>, runner: IRunner<Node, Element, TagOptions>, usage: Position, inspector: Inspector) {
         super(input, runner);
 
         const id = provideId();
@@ -30,7 +30,7 @@ export class DevApp<Node, Element, TagOptions extends object, T extends object> 
     TagOptions,
     T
 > {
-    public constructor(node: Element, runner: Runner<Node, Element, TagOptions>, inspector: Inspector) {
+    public constructor(node: Element, runner: IRunner<Node, Element, TagOptions>, inspector: Inspector) {
         super(node, runner);
 
         const id = provideId();
@@ -48,7 +48,7 @@ export class DevApp<Node, Element, TagOptions extends object, T extends object> 
 }
 
 export class DevPortal<Node, Element, TagOptions extends object> extends Portal<Node, Element, TagOptions> {
-    constructor(input: PortalOptions<Node, Element, TagOptions>, runner: Runner<Node, Element, TagOptions>, inspector: Inspector) {
+    constructor(input: PortalOptions<Node, Element, TagOptions>, runner: IRunner<Node, Element, TagOptions>, inspector: Inspector) {
         super(input, runner);
 
         const id = provideId();
@@ -71,7 +71,7 @@ export class DevSwitchedNode<Node, Element, TagOptions extends object> extends S
 
     public constructor(
         inspector: Inspector,
-        runner: Runner<Node, Element, TagOptions>,
+        runner: IRunner<Node, Element, TagOptions>,
         cases: SwitchedNodeCase<Node, Element, TagOptions>[],
         _default?: (node: Fragment<Node, Element, TagOptions>) => void,
         

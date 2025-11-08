@@ -1,4 +1,4 @@
-import { Runner } from "../node/runner.js";
+import { IRunner } from "../node/runner.js";
 import { RepeatNode, RepeatNodeOptions } from "./repeat-node.js";
 import { ListenableModel } from "../models/model.js";
 
@@ -36,7 +36,7 @@ export class BaseView<
 
     public constructor(
         input: BaseViewOptions<Node, Element, TagOptions, K, T, Model>,
-        runner: Runner<Node, Element, TagOptions>,
+        runner: IRunner<Node, Element, TagOptions>,
     ) {
         super(input, runner);
         this.model = input.model;

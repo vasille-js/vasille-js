@@ -1,4 +1,4 @@
-import { Runner } from "../node/runner.js";
+import { IRunner } from "../node/runner.js";
 import { BaseView, BaseViewOptions } from "./base-view.js";
 import { SetModel } from "../models/set-model.js";
 
@@ -17,7 +17,7 @@ export class SetView<Node, Element, TagOptions extends object, T> extends BaseVi
 > {
     public constructor(
         input: BaseViewOptions<Node, Element, TagOptions, T, T, SetModel<T>>,
-        runner: Runner<Node, Element, TagOptions>,
+        runner: IRunner<Node, Element, TagOptions>,
     ) {
         super(input, runner);
     }

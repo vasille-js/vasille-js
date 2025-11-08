@@ -1,5 +1,5 @@
 import { Fragment, Root } from "./node.js";
-import { Runner } from "./runner.js";
+import { IRunner } from "./runner.js";
 
 /**
  * Represents a Vasille.js application
@@ -16,9 +16,9 @@ export class App<Node, Element, TagOptions extends object, T extends object = ob
     /**
      * Constructs an app node
      * @param node {Element} The root of application
-     * @param runner {Runner} A adapter which execute DOM manipulation
+     * @param runner {IRunner} A adapter which execute DOM manipulation
      */
-    constructor(node: Element, runner: Runner<Node, Element, TagOptions>) {
+    constructor(node: Element, runner: IRunner<Node, Element, TagOptions>) {
         super(runner);
 
         this.node = node;
@@ -37,7 +37,7 @@ export interface PortalOptions<Node, Element, TagOptions extends object> {
 export class Portal<Node, Element, TagOptions extends object> extends Fragment<Node, Element, TagOptions> {
     private readonly node: Element;
 
-    constructor(input: PortalOptions<Node, Element, TagOptions>, runner: Runner<Node, Element, TagOptions>) {
+    constructor(input: PortalOptions<Node, Element, TagOptions>, runner: IRunner<Node, Element, TagOptions>) {
         super(runner);
 
         this.node = input.node;

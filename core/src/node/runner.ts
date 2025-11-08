@@ -1,15 +1,13 @@
-import { IValue } from "../core/ivalue.js";
-import { DebugNode, Tag, TextNode } from "./node.js";
+import { Tag, TextNode } from "./node.js";
 
 /**
  * A runner executes DOM manipulations
  */
-export interface Runner<Node, Element, TagOptions extends object> {
+export interface IRunner<Node, Element, TagOptions extends object> {
     insertBefore(node: Node, before: Node | Element): void;
     appendChild(node: Element, child: Node | Element): void;
 
     textNode(text: unknown): TextNode<Node, Element, TagOptions>;
-    debugNode(text: IValue<unknown>): DebugNode<Node, Element, TagOptions>;
     tag(
         tagName: string,
         input: TagOptions,

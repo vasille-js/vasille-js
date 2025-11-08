@@ -1,6 +1,6 @@
 import { safe } from "../functional/safety.js";
 import { Fragment } from "../node/node.js";
-import { Runner } from "../node/runner.js";
+import { IRunner } from "../node/runner.js";
 
 // RNO = RepeatNodeOptions
 export interface RepeatNodeOptions<Node, Element, TagOptions extends object, T, IdT> {
@@ -33,7 +33,7 @@ export class RepeatNode<
     protected nodes: Map<IdT, Fragment<Node, Element, TagOptions>> = new Map();
     protected slot: ((ctx: Fragment<Node, Element, TagOptions>, value: T, index: IdT) => void) | undefined;
 
-    public constructor(input: Opts, runner: Runner<Node, Element, TagOptions>) {
+    public constructor(input: Opts, runner: IRunner<Node, Element, TagOptions>) {
         super(runner);
         this.slot = input.slot && safe(input.slot);
     }

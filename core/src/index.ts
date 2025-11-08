@@ -17,4 +17,4 @@ export { SetView } from "./views/set-view.js";
 export { userError } from "./core/errors.js";
 export { type ListenableModel } from "./models/model.js";
 export { Watch } from "./node/watch.js";
-export { type Runner } from "./node/runner.js";
+export { type IRunner as Runner } from "./node/runner.js";

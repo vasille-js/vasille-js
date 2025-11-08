@@ -53,31 +53,6 @@ export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
     }
 }
 
-export class DebugNode extends AbstractDebugNode<Node, Element, TagOptions> {
-    declare public readonly runner: Runner;
-    protected node!: Comment;
-
-    public compose(): void {
-        const text = this.data;
-
-        this.node = this.runner.document.createComment(text.V?.toString() ?? "");
-        this.handler = (v: unknown) => {
-            this.node.replaceData(0, -1, v?.toString() ?? "");
-        };
-        text.on(this.handler);
-        this.parent.appendNode(this.node);
-    }
-
-    public override destroy() {
-        this.node.remove();
-        super.destroy();
-    }
-
-    protected override findFirstChild(): Node | Element | undefined {
-        return this.node;
-    }
-}
-
 export class Tag extends AbstractTag<Node, Element, TagOptions> {
     declare public readonly runner: Runner;
 
@@ -204,9 +179,6 @@ export class Runner implements IRunner<Node, Element, TagOptions> {
     }
     textNode(text: unknown): AbstractTextNode<Node, Element, TagOptions> {
         return new TextNode({ text }, this);
-    }
-    debugNode(text: IValue<unknown>): AbstractDebugNode<Node, Element, TagOptions> {
-        return new DebugNode({ text }, this);
     }
     tag(
         tagName: string,
