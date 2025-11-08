@@ -289,7 +289,7 @@ export abstract class Tag<Node, Element, TagOptions extends object> extends INod
     }
 }
 
-interface SwitchedNodeCase<Node, Element, TagOptions extends object> {
+export interface SwitchedNodeCase<Node, Element, TagOptions extends object> {
     $case: IValue<unknown>;
     slot: (node: Fragment<Node, Element, TagOptions>) => void;
 }
@@ -347,7 +347,7 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
             }
 
             if (i !== -1) {
-                const node = new Fragment(this.runner);
+                const node = this.newChild(i);
 
                 node.parent = this;
                 this.lastChild = node;
@@ -376,6 +376,10 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
         this.cases.splice(0);
 
         super.destroy();
+    }
+
+    protected newChild(index: number): Fragment<Node, Element, TagOptions> {
+        return new Fragment(this.runner);
     }
 }
 

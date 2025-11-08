@@ -29,7 +29,7 @@ export class App<Node, Element, TagOptions extends object, T extends object = ob
     }
 }
 
-interface PortalOptions<Node, Element, TagOptions extends object> {
+export interface PortalOptions<Node, Element, TagOptions extends object> {
     node: Element;
     slot?: (ctx: Fragment<Node, Element, TagOptions>) => void;
 }

@@ -1,6 +1,6 @@
 import { Fragment, Tag } from "../node/node.js";
 import { Runner } from "../node/runner.js";
-import { DevValue, Inspectable, Inspector, Position, ProtocolTag, provideId, toDevValue } from "./inspectable.js";
+import { DevValue, Inspectable, Inspector, Position, ProtocolTag, provideId, toDevIdOrValue, toDevObject, toDevValue } from "./inspectable.js";
 import { DevExpression, DevReference } from "./state.js";
 
 export class DevFragment<Node, Element, TagOptions extends object>
@@ -8,10 +8,10 @@ export class DevFragment<Node, Element, TagOptions extends object>
     implements Inspectable
 {
     id: number;
-    declaration: Position;
+    declaration: Position|null;
     inspector: Inspector;
 
-    public constructor(runner: Runner<Node, Element, TagOptions>, declaration: Position, usage: Position, name: string, props: object, inspector: Inspector) {
+    public constructor(runner: Runner<Node, Element, TagOptions>, declaration: Position|null, usage: Position|null, name: string, props: object, inspector: Inspector) {
         super(runner);
         this.id = provideId();
         this.declaration = declaration;
@@ -22,12 +22,7 @@ export class DevFragment<Node, Element, TagOptions extends object>
             declaration: declaration,
             usage: usage,
             name: name,
-            props: Object.entries(props).reduce((obj, [prop, value]) => {
-                return {
-                    ...obj,
-                    [prop]: value instanceof DevReference || value instanceof DevExpression ? value.id : toDevValue(value)
-                }
-            }, {} as {[k: string]: number|DevValue}),
+            props: toDevObject(props),
         });
     }
 

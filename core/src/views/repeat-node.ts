@@ -39,7 +39,7 @@ export class RepeatNode<
     }
 
     public createChild(id: IdT, item: T, before?: Fragment<Node, Element, TagOptions>): any {
-        const node = new Fragment(this.runner);
+        const node = this.newChild(id, item);
 
         node.parent = this;
         this.destroyChild(id, item);
@@ -74,5 +74,9 @@ export class RepeatNode<
 
     public override destroy(): void {
         this.nodes.clear();
+    }
+
+    protected newChild(_id: IdT, _item: T): Fragment<Node, Element, TagOptions> {
+        return new Fragment(this.runner);
     }
 }

@@ -1,4 +1,4 @@
-import { DevExpression, BaseDevReference } from "./state.js";
+import { DevExpression, BaseDevReference, DevReference } from "./state.js";
 
 export interface Position {
     pathLineAndChar: string;
@@ -73,10 +73,10 @@ export interface ProtocolDependency {
 
 export interface ProtocolComponent {
     id: number;
-    declaration: Position;
     name: string;
-    usage: Position;
     props: { [k: string]: number|DevValue };
+    declaration?: Position|null;
+    usage?: Position|null;
 }
 
 export interface ProtocolState {
@@ -108,6 +108,19 @@ export interface ProtocolNode {
     type: "comment" | "text";
 }
 
+export interface ProtocolModel {
+    id: number;
+    type: "array"|"set"|"map";
+    values: [number|DevValue, number|DevValue][];
+}
+
+export interface ProtocolModelUpdate {
+    id: number;
+    method: string;
+    args: (number|DevValue)[];
+    return: number|DevValue;
+}
+
 export interface Inspector {
     // Reference
     newReference(ref: ProtocolReference): void;
@@ -129,6 +142,10 @@ export interface Inspector {
     addContextState(state: ProtocolState): void;
     setElementParent(parent: ProtocolParent): void;
 
+    // Models
+    createModel(model: ProtocolModel): void;
+    updateModel(update: ProtocolModelUpdate): void;
+
     // any
     destroy(id: number): void;
 }
@@ -142,7 +159,7 @@ export function provideId() {
 export interface DevValue {
     type: string;
     value?: string | undefined;
-    position?: Position;
+    internal?: DevValueInternal;
 }
 
 interface DevValueInternal {
@@ -172,11 +189,37 @@ export function toDevValue(value: unknown) {
     const data =
         value && (typeof value === "object" || typeof value === "function") && DevValueInternalKey in value
             ? (value[DevValueInternalKey] as DevValueInternal)
-            : null;
+            : undefined;
 
     return {
         type: type,
         value: primitiveTypes.includes(type) || value === null ? JSON.stringify(value) : undefined,
-        position: data?.declaration,
+        internal: data,
     } satisfies DevValue;
+}
+
+export function toDevIdOrValue(value: unknown): number|DevValue {
+    if (value instanceof DevReference || value instanceof DevExpression) {
+        return value.id;
+    }
+
+    const data =
+        value && (typeof value === "object" || typeof value === "function") && DevValueInternalKey in value
+            ? (value[DevValueInternalKey] as DevValueInternal)
+            : null;
+
+    if (data) {
+        return data.id;
+    }
+
+    return toDevValue(value);
+}
+
+export function toDevObject (value: object): {[k: string]: number|DevValue} {
+    return Object.entries(value).reduce((obj, [prop, value]) => {
+                return {
+                    ...obj,
+                    [prop]: toDevIdOrValue(value)
+                }
+            }, {} as {[k: string]: number|DevValue})
 }
