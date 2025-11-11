@@ -1,5 +1,5 @@
-import { Expression, Fragment, IValue, Reference, setErrorHandler } from "vasille";
-import { arrayModel, Debug, Delay, For, mapModel, setModel, Slot, Switch, Watch } from "../src/index.js";
+import { Fragment, IValue, Reference, setErrorHandler } from "vasille";
+import { arrayModel, Delay, For, mapModel, setModel, Slot, Switch, Watch } from "../src/index.js";
 import { createNode } from "./page.js";
 
 it("Slot", function () {
@@ -136,29 +136,11 @@ it("Watch", function () {
     expect(counter).toBe(2);
 });
 
-it("Debug", function () {
-    const [node] = createNode();
-    const ref = new Reference(0);
-    let element!: Element;
-
-    node.tag("div", {
-        callback: n => (element = n),
-        slot(node) {
-            Debug({ $model: ref }, node);
-        },
-    });
-
-    expect(element.childNodes.length).toBe(1);
-    expect((element.childNodes[0] as Comment).textContent).toBe("0");
-    ref.V = 1;
-    expect((element.childNodes[0] as Comment).textContent).toBe("1");
-});
-
 it("Delay", function (done) {
     const [node] = createNode();
     let element!: HTMLElement;
 
-    node.tag("div", { callback: n => (element = n as HTMLElement) }, function (f) {
+    node.tag("div", { k: n => (element = n as HTMLElement) }, function (f) {
         Delay({ time: 10 }, f, (f: Fragment<Node, Element, object>) => {
             f.tag("div", {});
         });
@@ -184,8 +166,8 @@ it("Switch", function () {
     let element!: Element;
 
     node.tag("div", {
-        callback: n => (element = n),
-        slot(node) {
+        k: n => (element = n),
+        l(node) {
             Switch(
                 {
                     cases: [
