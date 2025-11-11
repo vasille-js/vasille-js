@@ -1,20 +1,11 @@
-import {
-    IValue,
-    Reactive,
-    KindOfIValue,
-    Expression,
-    Reference,
-    SetModel,
-    MapModel,
-    ArrayModel,
-} from "vasille";
+import { IValue, Reactive, KindOfIValue, Expression, Reference, SetModel, MapModel, ArrayModel } from "vasille";
 
 export function expr<T, Args extends unknown[]>(
     ctx: Reactive | undefined,
     func: (...args: Args) => T,
     values: KindOfIValue<Args>,
 ): Expression<T, Args> {
-    return new Expression(func, values, ctx);
+    return new Expression<T, Args>(func, values, ctx);
 }
 
 /**
@@ -62,12 +53,12 @@ export function ensure(data: unknown) {
  * 1. `{[a]: a1} = {x: 2}` to `{[a]: a1 = match("a1")} = {x: 2}`
  * 1. `{[a]: a1 = 3} = {x: 2}` to `{[a]: a1 = match("a1", 3)} = {x: 2}`
  */
-export function match(name: string | number | symbol, data?: unknown) {
+export function match(name: string | number | symbol, data?: unknown, createRef = ref) {
     const iValueRequired = typeof name === "string" && name.startsWith("$");
     const isIValue = data instanceof IValue;
 
     if (iValueRequired && !isIValue) {
-        return new Reference(data);
+        return createRef(data);
     }
     if (!iValueRequired && isIValue) {
         return data.V;
@@ -81,13 +72,13 @@ export function match(name: string | number | symbol, data?: unknown) {
  * 1. `obj.$key = 23` to `set(obj, "$key", 23)`
  * 2. `arr[0] = 23` to `set(arr, 0, 23)`
  */
-export function set(o: object, key: string | symbol | number, value: unknown) {
+export function set(o: object, key: string | symbol | number, value: unknown, createRef = ref) {
     if (o[key] instanceof IValue) {
         o[key].V = value;
     } else if (o instanceof ArrayModel && typeof key === "number") {
         o.replace(key, value);
     } else if (typeof key === "string" && key.charAt(0) === "$") {
-        o[key] = new Reference(value);
+        o[key] = createRef(value);
     } else {
         o[key] = value;
     }

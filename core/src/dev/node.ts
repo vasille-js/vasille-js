@@ -1,26 +1,12 @@
 import { Fragment, Tag } from "../node/node.js";
 import { IRunner } from "../node/runner.js";
-import {
-    DevValue,
-    Inspectable,
-    Inspector,
-    Position,
-    ProtocolTag,
-    provideId,
-    toDevIdOrValue,
-    toDevObject,
-    toDevValue,
-} from "./inspectable.js";
+import { InspectableReactive, Inspector, Position, ProtocolTag, provideId, toDevObject } from "./inspectable.js";
 import { DevArrayModel, DevMapModel, DevSetModel } from "./models.js";
 import { DevExpression, DevReference } from "./state.js";
 
 export const ModelId = Symbol("model-id");
 
-function shareState<T>(
-    target: DevFragment<unknown, unknown, object> | DevTag<unknown, unknown, object>,
-    name: string,
-    value: T,
-): T {
+export function shareStateById<T>(id: number, inspector: Inspector, name: string, value: T): T {
     if (
         value instanceof DevReference ||
         value instanceof DevExpression ||
@@ -28,14 +14,14 @@ function shareState<T>(
         value instanceof DevSetModel ||
         value instanceof DevMapModel
     ) {
-        target.inspector.addContextState({
-            id: target.id,
+        inspector.addContextState({
+            id: id,
             name: name,
             stateId: value.id,
         });
     } else if (value && typeof value == "object" && ModelId in value) {
-        target.inspector.addContextState({
-            id: target.id,
+        inspector.addContextState({
+            id: id,
             name: name,
             stateId: value[ModelId] as number,
         });
@@ -46,7 +32,7 @@ function shareState<T>(
 
 export class DevFragment<Node, Element, TagOptions extends object>
     extends Fragment<Node, Element, TagOptions>
-    implements Inspectable
+    implements InspectableReactive
 {
     id: number;
     declaration: Position | null;
@@ -74,13 +60,6 @@ export class DevFragment<Node, Element, TagOptions extends object>
         });
     }
 
-    public shareContextState<T extends DevReference<unknown> | DevExpression<unknown, unknown[]>>(
-        value: T,
-        name: string,
-    ): T {
-        return shareState(this, name, value);
-    }
-
     public destroy(): void {
         this.inspector.destroy(this.id);
     }
@@ -96,7 +75,7 @@ export class DevFragment<Node, Element, TagOptions extends object>
 
 export abstract class DevTag<Node, Element, TagOptions extends object>
     extends Tag<Node, Element, TagOptions>
-    implements Inspectable
+    implements InspectableReactive
 {
     id: number;
     declaration: Position;
@@ -118,10 +97,6 @@ export abstract class DevTag<Node, Element, TagOptions extends object>
     public destroy(): void {
         this.inspector.destroy(this.id);
         super.destroy();
-    }
-
-    public shareContextState<T>(value: T, name: string): T {
-        return shareState(this, name, value);
     }
 
     protected abstract toProtocolTag(options: TagOptions): ProtocolTag;

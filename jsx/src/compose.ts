@@ -1,6 +1,6 @@
 import { Fragment, App, reportError, Runner, Reactive, Destroyable } from "vasille";
 
-interface CompositionProps {
+export interface CompositionProps {
     slot?: (...args: any[]) => void;
 }
 

@@ -87,7 +87,7 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
         inspector.newReference({
             id: this.id,
             declaration: declaration,
-            value: this.state,
+            value: toDevValue(this.state),
         });
     }
 
@@ -101,7 +101,7 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
         this.inspector.updateReference({
             id: this.id,
             position: position,
-            value: this.state,
+            value: toDevValue(this.state),
         });
     }
 
@@ -214,7 +214,7 @@ export class DevExpression<T, Args extends unknown[]>
             id: this.id,
             declaration: this.declaration,
             isWatch: isWatch,
-            value: this.sync.V,
+            value: toDevValue(this.sync.V),
             deps: values.map((dep, index) => {
                 if (dep instanceof DevReference || dep instanceof DevExpression) {
                     return {

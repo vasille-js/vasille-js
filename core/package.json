@@ -11,6 +11,12 @@
       "browser": "./lib/index.js",
       "node": "./lib/index.js"
     },
+    "./dev": {
+      "types": "./types/dev/index.d.ts",
+      "import": "./lib/dev/index.js",
+      "browser": "./lib/dev/index.js",
+      "node": "./lib/dev/index.js"
+    },
     "./web-runner": {
       "types": "./types/runner/web/runner.d.ts",
       "import": "./lib/runner/web/runner.js",

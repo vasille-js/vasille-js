@@ -29,12 +29,7 @@ export class DevWatch<Node, Element, TagOptions extends object, T> extends Watch
     }
 }
 
-export class DevApp<Node, Element, TagOptions extends object, T extends object> extends App<
-    Node,
-    Element,
-    TagOptions,
-    T
-> {
+export class DevApp<Node, Element, TagOptions extends object> extends App<Node, Element, TagOptions> {
     public constructor(node: Element, runner: IRunner<Node, Element, TagOptions>, inspector: Inspector) {
         super(node, runner);
 

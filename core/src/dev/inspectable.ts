@@ -17,10 +17,9 @@ export interface Inspectable {
     id: number;
 }
 
-export interface InspectableReactive extends Inspectable {
-    declaration: Position;
-    usage: Position;
-    props: { [k in string]: Position };
+export interface InspectableReactive {
+    id: number;
+    inspector: Inspector;
 }
 
 export interface InspectableReference<T> extends Inspectable {
@@ -40,12 +39,12 @@ export interface ProtocolPosition {
 }
 
 export interface ProtocolReference extends ProtocolPosition {
-    value: unknown;
+    value: DevValue;
 }
 
 export interface ProtocolReferenceUpdate {
     id: number;
-    value: unknown;
+    value: DevValue;
     position: Position;
 }
 
@@ -110,6 +109,12 @@ export interface ProtocolNode {
     text: number | DevValue;
 }
 
+export interface ProtocolComponentError {
+    id: number;
+    name: string;
+    error: unknown;
+}
+
 export interface ProtocolModel {
     id: number;
     type: "array" | "set" | "map";
@@ -121,6 +126,15 @@ export interface ProtocolModelUpdate {
     method: string;
     args: (number | DevValue)[];
     return: number | DevValue;
+}
+
+export interface ProtocolStore extends ProtocolPosition {
+    name: string;
+}
+
+export interface ProtocolCustomModel extends ProtocolPosition {
+    usage: Position;
+    name: string;
 }
 
 export interface Inspector {
@@ -145,10 +159,13 @@ export interface Inspector {
     createNode(node: ProtocolNode): void;
     addContextState(state: ProtocolState): void;
     setElementParent(parent: ProtocolParent): void;
+    reportComponentError(error: ProtocolComponentError): void;
 
     // Models
     createModel(model: ProtocolModel): void;
     updateModel(update: ProtocolModelUpdate): void;
+    createStore(store: ProtocolStore): void;
+    createCustomModel(model: ProtocolCustomModel): void;
 
     // any
     destroy(id: number): void;

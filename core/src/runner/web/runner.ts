@@ -9,17 +9,24 @@ export type AttrType<T> = IValue<T | string | null> | T | string | null | undefi
 export type StyleType<T> = T | number | number[] | IValue<string | number | number[]>;
 
 export interface TagOptions {
-    attr?: Record<string, AttrType<number | boolean>>;
-    class?: (string | IValue<string> | Record<string, boolean | IValue<boolean>>)[];
-    style?: Record<string, StyleType<string>>;
-    events?: Record<string, ((...args: unknown[]) => unknown) | [(...args: unknown[]) => unknown, object | boolean]>;
-    bind?: Record<string, any>;
-    slot?: (ctx: Tag) => void;
-    callback?: (node: Element) => void;
+    /** attributes */
+    a?: Record<string, AttrType<number | boolean>>;
+    /** classes */
+    c?: (string | IValue<string> | Record<string, boolean | IValue<boolean>>)[];
+    /** style */
+    s?: Record<string, StyleType<string>>;
+    /** events */
+    e?: Record<string, ((...args: unknown[]) => unknown) | [(...args: unknown[]) => unknown, object | boolean]>;
+    /** bindings */
+    b?: Record<string, any>;
+    /** slot */
+    l?: (ctx: Tag<typeof this>) => void;
+    /** callback */
+    k?: (node: Element) => void;
 }
 
-export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
-    declare public readonly runner: Runner;
+export class TextNode<Options extends TagOptions> extends AbstractTextNode<Node, Element, Options> {
+    declare public readonly runner: Runner<Options>;
     protected node!: Text;
 
     public compose(): void {
@@ -46,8 +53,8 @@ export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
     }
 }
 
-export class Tag extends AbstractTag<Node, Element, TagOptions> {
-    declare public readonly runner: Runner;
+export class Tag<Options extends TagOptions> extends AbstractTag<Node, Element, Options> {
+    declare public readonly runner: Runner<Options>;
 
     public compose(): void {
         if (!this.name) {
@@ -59,8 +66,8 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
         this.node = node;
         this.applyOptions(this.options);
         this.parent.appendNode(node);
-        this.options.callback?.(this.node);
-        this.options.slot?.(this);
+        this.options.k?.(this.node);
+        this.options.l?.(this);
     }
 
     public override destroy() {
@@ -69,9 +76,9 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
     }
 
     protected applyOptions(options: TagOptions): void {
-        if (options.attr) {
-            for (const name in options.attr) {
-                const value = options.attr[name];
+        if (options.a) {
+            for (const name in options.a) {
+                const value = options.a[name];
 
                 if (value instanceof IValue) {
                     this.bind(new AttributeBinding(this, name, value));
@@ -89,8 +96,8 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
             }
         }
 
-        if (options.class) {
-            options.class.forEach(item => {
+        if (options.c) {
+            options.c.forEach(item => {
                 if (item instanceof IValue) {
                     this.bind(new DynamicalClassBinding(this, item));
                 } else if (typeof item == "string") {
@@ -111,9 +118,9 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
             });
         }
 
-        if (options.style && this.node instanceof HTMLElement) {
-            for (const name in options.style) {
-                const value = options.style[name];
+        if (options.s && this.node instanceof HTMLElement) {
+            for (const name in options.s) {
+                const value = options.s[name];
 
                 if (value instanceof IValue) {
                     this.bind(new StyleBinding(this, name, value));
@@ -123,9 +130,9 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
             }
         }
 
-        if (options.events) {
-            for (const name in options.events) {
-                const event = options.events[name];
+        if (options.e) {
+            for (const name in options.e) {
+                const event = options.e[name];
 
                 if (event instanceof Array) {
                     this.node.addEventListener(name, safe(event[0]), event[1]);
@@ -135,11 +142,11 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
             }
         }
 
-        if (options.bind) {
+        if (options.b) {
             const node = this.node;
 
-            for (const k in options.bind) {
-                const value = options.bind[k];
+            for (const k in options.b) {
+                const value = options.b[k];
 
                 if (!(value instanceof IValue)) {
                     (node as unknown as Record<string, unknown>)[k] = value;
@@ -152,7 +159,7 @@ export class Tag extends AbstractTag<Node, Element, TagOptions> {
     }
 }
 
-export class Runner implements IRunner<Node, Element, TagOptions> {
+export class Runner<Options extends TagOptions> implements IRunner<Node, Element, Options> {
     public readonly document: Document;
 
     public constructor(document: Document) {
@@ -170,16 +177,16 @@ export class Runner implements IRunner<Node, Element, TagOptions> {
     appendChild(node: Element, child: Element | Node): void {
         node.appendChild(child);
     }
-    textNode(text: unknown): AbstractTextNode<Node, Element, TagOptions> {
+    textNode(text: unknown): AbstractTextNode<Node, Element, Options> {
         return new TextNode({ text }, this);
     }
     tag(
         tagName: string,
-        input: TagOptions,
-        cb?: ((ctx: AbstractTag<Node, Element, TagOptions>) => void) | undefined,
-    ): AbstractTag<Node, Element, TagOptions> {
+        input: Options,
+        cb?: ((ctx: AbstractTag<Node, Element, Options>) => void) | undefined,
+    ): AbstractTag<Node, Element, Options> {
         if (cb) {
-            input.slot = cb;
+            input.l = cb;
         }
 
         return new Tag(input, this, tagName);

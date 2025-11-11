@@ -1,10 +1,11 @@
 import { IValue } from "../core/ivalue.js";
 import { TextProps } from "../node/node.js";
+import { IRunner } from "../node/runner.js";
 import { Runner, Tag, TagOptions, TextNode } from "../runner/web/runner.js";
 import { DevValue, Inspector, Position, provideId, toDevId, toDevIdOrValue, toDevObject } from "./inspectable.js";
 import { DevExpression, DevReference } from "./state.js";
 
-interface DevTagOptions extends TagOptions {
+export interface DevTagOptions extends TagOptions {
     usage?: Position;
 }
 
@@ -13,7 +14,7 @@ export class PositionedText {
     position: Position;
 }
 
-class DevTextNode extends TextNode {
+class DevTextNode extends TextNode<DevTagOptions> {
     public readonly id: number;
     public readonly usage: Position;
     public readonly inspector: Inspector;
@@ -41,7 +42,7 @@ class DevTextNode extends TextNode {
     }
 }
 
-class DevTag extends Tag {
+class DevTag extends Tag<DevTagOptions> {
     public readonly id: number;
     public readonly usage: Position;
     public readonly inspector: Inspector;
@@ -65,11 +66,11 @@ class DevTag extends Tag {
             id: this.id,
             tagName: tagName,
             position: usage,
-            callback: options.callback && toDevIdOrValue(options.callback),
-            attr: options.attr && toDevObject(options.attr),
+            callback: options.k && toDevIdOrValue(options.k),
+            attr: options.a && toDevObject(options.a),
             class:
-                options.class &&
-                options.class.map(item => {
+                options.c &&
+                options.c.map(item => {
                     if (typeof item === "string") {
                         return item;
                     }
@@ -89,8 +90,8 @@ class DevTag extends Tag {
                     return obj;
                 }),
             style:
-                options.style &&
-                Object.entries(options.style).reduce(
+                options.s &&
+                Object.entries(options.s).reduce(
                     (obj, [key, value]) => {
                         return {
                             ...obj,
@@ -107,16 +108,16 @@ class DevTag extends Tag {
                     {} as { [k: string]: number | string },
                 ),
             events:
-                options.events &&
-                Object.entries(options.events).reduce(
+                options.e &&
+                Object.entries(options.e).reduce(
                     (obj, [key, value]) => {
                         return { ...obj, [key]: toDevIdOrValue(value) };
                     },
                     {} as { [k: string]: number | DevValue },
                 ),
             bind:
-                options.bind &&
-                Object.entries(options.bind).reduce(
+                options.b &&
+                Object.entries(options.b).reduce(
                     (obj, [key, value]) => {
                         return { ...obj, [key]: toDevIdOrValue(value) };
                     },
@@ -135,7 +136,7 @@ class DevTag extends Tag {
     }
 }
 
-export class DevRunner extends Runner {
+export class DevRunner extends Runner<DevTagOptions> {
     public readonly inspector: Inspector;
 
     public constructor(document: Document, inspector: Inspector) {
@@ -156,7 +157,7 @@ export class DevRunner extends Runner {
             throw new Error("Dev build is broken");
         }
         if (cb) {
-            input.slot = cb;
+            input.l = cb;
         }
 
         return new DevTag(input, this, tagName, input.usage, this.inspector);

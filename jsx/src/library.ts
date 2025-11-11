@@ -1,9 +1,9 @@
 import { IValue } from "vasille";
 import { ref } from "./internal.js";
 
-export function awaited<T>(target: () => Promise<T>): [IValue<unknown>, IValue<unknown>, () => void] {
-    const value = ref<unknown>(undefined);
-    const err = ref<unknown>(undefined);
+export function awaited<T>(target: () => Promise<T>, createRef = ref): [IValue<unknown>, IValue<unknown>, () => void] {
+    const err = createRef<unknown>(undefined);
+    const value = createRef<unknown>(undefined);
     let running = false;
 
     function run() {
