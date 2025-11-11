@@ -4,8 +4,6 @@ import {
     KindOfIValue,
     Expression,
     Reference,
-    Forward,
-    Backward,
     SetModel,
     MapModel,
     ArrayModel,
@@ -17,14 +15,6 @@ export function expr<T, Args extends unknown[]>(
     values: KindOfIValue<Args>,
 ): Expression<T, Args> {
     return new Expression(func, values, ctx);
-}
-
-export function forward<T>(ctx: Reactive | undefined, v: IValue<T>): IValue<T> {
-    return new Forward(v, ctx);
-}
-
-export function backward<T>(v: IValue<T>): IValue<T> {
-    return new Backward(v);
 }
 
 /**

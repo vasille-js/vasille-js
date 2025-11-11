@@ -149,17 +149,6 @@ export function Watch<Node, Element, TagOptions extends object, T>(
     }
 }
 
-interface DebugOptions {
-    $model: IValue<unknown>;
-}
-
-export function Debug<Node, Element, TagOptions extends object>(
-    { $model }: DebugOptions,
-    ctx: Fragment<Node, Element, TagOptions>,
-) {
-    ctx.debug($model);
-}
-
 interface DelayOptions<Node, Element, TagOptions extends object> {
     time?: number;
     slot?: (ctx: Fragment<Node, Element, TagOptions>) => unknown;
@@ -170,7 +159,7 @@ export function Delay<Node, Element, TagOptions extends object>(
     ctx: Fragment<Node, Element, TagOptions>,
     defaultSlot?: (ctx: Fragment<Node, Element, TagOptions>) => void,
 ) {
-    const fragment = new Fragment(ctx.runner);
+    const fragment = new Fragment<Node, Element, TagOptions>(ctx.runner);
     const slot = _slot ?? defaultSlot;
     let timer: number | undefined;
 

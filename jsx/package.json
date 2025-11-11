@@ -43,9 +43,6 @@
     "firefox 21",
     "opera 15"
   ],
-  "dependencies": {
-    "vasille": "^4.3.0"
-  },
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/jsdom": "^21.1.7",
@@ -59,5 +56,8 @@
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.39.1"
+  },
+  "dependencies": {
+    "vasille": "file:../core"
   }
 }

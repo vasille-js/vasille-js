@@ -1,11 +1,4 @@
-import {
-    TextNode as AbstractTextNode,
-    DebugNode as AbstractDebugNode,
-    Tag as AbstractTag,
-    Runner as IRunner,
-    IValue,
-    safe,
-} from "../../index.js";
+import { TextNode as AbstractTextNode, Tag as AbstractTag, Runner as IRunner, IValue, safe } from "../../index.js";
 import { internalError } from "../../core/errors.js";
 import { AttributeBinding } from "./binding/attribute.js";
 import { addClass, DynamicalClassBinding, removeClass, StaticClassBinding } from "./binding/class.js";

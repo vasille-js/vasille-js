@@ -63,8 +63,8 @@ export function mount<Node, Element, TagOptions extends object, T>(
     runner: Runner<Node, Element, TagOptions>,
     $: T,
 ): App<Node, Element, TagOptions> {
-    const root = new App(tag, runner);
-    const frag = new Fragment(runner);
+    const root = new App<Node, Element, TagOptions>(tag, runner);
+    const frag = new Fragment<Node, Element, TagOptions>(runner);
 
     root.create(frag, function () {
         view($, frag);
