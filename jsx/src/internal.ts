@@ -101,4 +101,5 @@ export function set(o: object, key: string | symbol | number, value: unknown) {
     } else {
         o[key] = value;
     }
+    return value;
 }

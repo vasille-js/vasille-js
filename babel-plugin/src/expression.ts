@@ -419,20 +419,27 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       const path = nodePath as NodePath<types.ObjectExpression>;
 
       for (const propPath of path.get("properties")) {
-        const prop = propPath.node;
+        if (propPath.isObjectProperty()) {
+          const keyPath = propPath.get("key");
+          const valuePath = propPath.get("value");
 
-        if (t.isObjectProperty(prop)) {
-          const path = propPath as NodePath<types.ObjectProperty>;
-          const valuePath = path.get("value");
-
-          if (path.node.computed) {
-            checkOrIgnoreExpression(path.get("key"), search);
+          if (
+            propPath.node.computed ||
+            !(
+              keyPath.isIdentifier() &&
+              valuePath.isIdentifier() &&
+              keyPath.node.name.startsWith("$") === valuePath.node.name.startsWith("$")
+            )
+          ) {
+            if (propPath.node.computed) {
+              checkOrIgnoreExpression(propPath.get("key"), search);
+            }
+            checkOrIgnoreExpression<
+              types.ArrayPattern | types.AssignmentPattern | types.ObjectPattern | types.RestElement | types.VoidPattern
+            >(valuePath, search);
           }
-          checkOrIgnoreExpression<
-            types.ArrayPattern | types.AssignmentPattern | types.ObjectPattern | types.RestElement | types.VoidPattern
-          >(valuePath, search);
-        } else if (t.isObjectMethod(prop)) {
-          checkFunction(propPath as NodePath<types.ObjectMethod>, search);
+        } else if (propPath.isObjectMethod()) {
+          checkFunction(propPath, search);
         } else {
           checkAllUnknown([propPath as NodePath<t.SpreadElement>], search);
         }
