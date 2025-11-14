@@ -5,10 +5,18 @@
   "main": "./lib/index.js",
   "types": "./types/index.d.ts",
   "exports": {
-    "types": "./types/index.d.ts",
-    "import": "./lib/index.js",
-    "browser": "./lib/index.js",
-    "node": "./lib/index.js"
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./lib/index.js",
+      "browser": "./lib/index.js",
+      "node": "./lib/index.js"
+    },
+    "./dev": {
+      "types": "./types/dev.d.ts",
+      "import": "./lib/dev.js",
+      "browser": "./lib/dev.js",
+      "node": "./lib/dev.js"
+    }
   },
   "type": "module",
   "scripts": {

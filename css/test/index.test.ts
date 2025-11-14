@@ -1,5 +1,5 @@
 import { JSDOM } from "jsdom";
-import { setIndex, setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth, styleSheet } from "../src";
+import { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth, styleSheet } from "../src";
 
 function page() {
     const page = new JSDOM(`
@@ -18,7 +18,6 @@ function page() {
 }
 
 it("calculated style test", function () {
-    setIndex(0);
     setMobileMaxWidth(400);
     setTabletMaxWidth(800);
     setLaptopMaxWidth(1200);
@@ -35,7 +34,7 @@ it("calculated style test", function () {
         ],
     });
 
-    expect(classes.test).toBe("vasille-1");
+    expect(classes.test).toBe("vasille-2");
 
     function style(index: number) {
         return window.document.head.children[index] as unknown as { media: string };

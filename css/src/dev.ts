@@ -1,14 +1,8 @@
 import { insertRule } from "./lib";
 
-export { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "./lib";
+let index = 0;
 
-let index = 1;
-
-/**
- * Inserts stylesheet to document
- * @param styles CSS styles based on classes
- */
-export function styleSheet<T extends { [k: string]: (string | [number, string])[] }>(
+export function devStyleSheet<T extends { [k: string]: (string | [number, string])[] }>(
     styles: T,
 ): { [K in keyof T]: string } {
     const result: { [k: string]: string } = {};
@@ -16,7 +10,7 @@ export function styleSheet<T extends { [k: string]: (string | [number, string])[
     for (const key in styles) {
         Object.defineProperty(result, key, {
             get() {
-                const className = `vasille-${++index}`;
+                const className = `vasille-${++index}-${key}`;
 
                 for (const item of styles[key]) {
                     if (item instanceof Array) {
