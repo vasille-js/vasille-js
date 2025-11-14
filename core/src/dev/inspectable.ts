@@ -115,6 +115,12 @@ export interface ProtocolComponentError {
     error: unknown;
 }
 
+export interface ProtocolSlotError {
+    componentId: number;
+    error: unknown;
+    usage: Position;
+}
+
 export interface ProtocolModel {
     id: number;
     type: "array" | "set" | "map";
@@ -160,6 +166,7 @@ export interface Inspector {
     addContextState(state: ProtocolState): void;
     setElementParent(parent: ProtocolParent): void;
     reportComponentError(error: ProtocolComponentError): void;
+    reportComponentSlotError(error: ProtocolSlotError): void;
 
     // Models
     createModel(model: ProtocolModel): void;

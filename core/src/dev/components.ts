@@ -75,6 +75,7 @@ export class DevSwitchedNode<Node, Element, TagOptions extends object> extends S
 
     public constructor(
         inspector: Inspector,
+        usage: Position,
         runner: IRunner<Node, Element, TagOptions>,
         cases: SwitchedNodeCase<Node, Element, TagOptions>[],
         _default?: (node: Fragment<Node, Element, TagOptions>) => void,
@@ -89,10 +90,12 @@ export class DevSwitchedNode<Node, Element, TagOptions extends object> extends S
         });
 
         this.id = id;
+        this.inspector = inspector;
         inspector.createComponent({
             id: id,
             name: "Switch",
             props: conditions,
+            usage: usage,
         });
     }
 
