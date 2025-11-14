@@ -1,5 +1,6 @@
 import { JSDOM } from "jsdom";
 import { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth, styleSheet } from "../src";
+import { devStyleSheet } from "../src/dev";
 
 function page() {
     const page = new JSDOM(`
@@ -33,8 +34,21 @@ it("calculated style test", function () {
             [5, "{} { color: #0ff }"],
         ],
     });
+    const devStyles = devStyleSheet({
+        test1: [
+            "{} { color: #000 }",
+            [1, "{} { color: #f00 }"],
+            [2, "{} { color: #0f0 }"],
+            [3, "{} { color: #00f }"],
+            [4, "{} { color: #ff0 }"],
+            [5, "{} { color: #0ff }"],
+        ],
+        testDev2: [],
+    });
 
     expect(classes.test).toBe("vasille-2");
+    expect(devStyles.test1).toBe("vasille-1-test1");
+    expect(devStyles.testDev2).toBe("vasille-2-testDev2");
 
     function style(index: number) {
         return window.document.head.children[index] as unknown as { media: string };
@@ -52,16 +66,16 @@ it("calculated style test", function () {
         return window.document.styleSheets[index] as unknown as { cssRules: { style: { color: string } }[] };
     }
 
-    expect(sheet(0).cssRules.length).toBe(1);
+    expect(sheet(0).cssRules.length).toBe(2);
     expect(sheet(0).cssRules[0].style.color).toBe("#000");
-    expect(sheet(1).cssRules.length).toBe(1);
+    expect(sheet(1).cssRules.length).toBe(2);
     expect(sheet(1).cssRules[0].style.color).toBe("#f00");
-    expect(sheet(2).cssRules.length).toBe(1);
+    expect(sheet(2).cssRules.length).toBe(2);
     expect(sheet(2).cssRules[0].style.color).toBe("#0f0");
-    expect(sheet(3).cssRules.length).toBe(1);
+    expect(sheet(3).cssRules.length).toBe(2);
     expect(sheet(3).cssRules[0].style.color).toBe("#00f");
-    expect(sheet(4).cssRules.length).toBe(1);
+    expect(sheet(4).cssRules.length).toBe(2);
     expect(sheet(4).cssRules[0].style.color).toBe("#ff0");
-    expect(sheet(5).cssRules.length).toBe(1);
+    expect(sheet(5).cssRules.length).toBe(2);
     expect(sheet(5).cssRules[0].style.color).toBe("#0ff");
 });
