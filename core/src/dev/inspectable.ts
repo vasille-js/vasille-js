@@ -19,7 +19,7 @@ export interface Inspectable {
 
 export interface InspectableReactive {
     id: number;
-    inspector: Inspector;
+    inspector?: Inspector;
 }
 
 export interface InspectableReference<T> extends Inspectable {

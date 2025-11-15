@@ -1,8 +1,10 @@
 import { Fragment, Portal, reportError } from "vasille";
 import { Runner, TagOptions } from "vasille/web-runner";
-import { mount as coreMount } from "vasille-jsx";
-import { routeApp as coreRouteApp } from "vasille-router/web-router";
-import { DevFragment, DevPortal, DevTagOptions, Inspector, Position } from "vasille/dev";
+import { devMount as coreMount } from "vasille-jsx/dev";
+import { devRouteApp as coreRouteApp } from "vasille-router/dev";
+import { DevFragment, DevPortal, DevRunner, DevTagOptions, Inspector, Position } from "vasille/dev";
+import { modal, prompt, PromptProps } from "./index.js";
+import { WebRouterInitialization } from "vasille-router/web-router";
 
 function getInspector(node: Fragment<Node, Element, TagOptions>) {
     return "inspector" in node ? (node.inspector as Inspector) : undefined;
@@ -28,36 +30,17 @@ function createPortal(
     return portal;
 }
 
-export function modal<T extends object>(
-    modal: (node: Fragment<Node, Element, TagOptions>, input: T) => void,
+export function devModal<T extends object>(
+    modalFn: (node: Fragment<Node, Element, TagOptions>, input: T) => void,
     declaration: Position,
     name: string,
 ): (input: T, node: Fragment<Node, Element, TagOptions>, usage: Position | undefined) => void {
-    return function (props, node, usage) {
-        if (!node) {
-            throw new Error("Vasille: Modal context is missing");
-        }
-        const portal = createPortal(node, declaration, usage, name);
-
-        try {
-            modal(portal, props);
-        } catch (e) {
-            getInspector(node)?.reportComponentError({
-                id: portal.id,
-                error: e,
-                name: name,
-            });
-            reportError(e);
-        }
+    return (input, node, usage) => {
+        modal(modalFn, node => createPortal(node, declaration, usage, name))(input, node);
     };
 }
 
-export interface PromptProps {
-    resolve(data: unknown): void;
-    reject(err: unknown): void;
-}
-
-export function prompt<T extends PromptProps>(
+export function devPrompt<T extends PromptProps>(
     modal: (node: Fragment<Node, Element, TagOptions>, input: T) => void,
     declaration: Position,
     name: string,
@@ -68,44 +51,18 @@ export function prompt<T extends PromptProps>(
     usage: Position | undefined,
 ) => Promise<unknown> {
     return function (node, input, timeout, usage) {
-        return new Promise((resolve, reject) => {
-            const portal = createPortal(node, declaration, usage, name);
-            const timer =
-                timeout &&
-                setTimeout(() => {
-                    destroy();
-                    reject(new Error("Timeout"));
-                }, timeout);
-
-            function destroy() {
-                timer && clearTimeout(timer);
-                portal.destroy();
-            }
-
-            try {
-                modal(portal, {
-                    ...input,
-                    resolve(value) {
-                        destroy();
-                        resolve(value);
-                    },
-                    reject(error) {
-                        destroy();
-                        reject(error);
-                    },
-                });
-            } catch (e) {
-                destroy();
-                reject(e);
-            }
-        });
+        return prompt(modal, node => createPortal(node, declaration, usage, name))(node, input, timeout);
     };
 }
 
-export function mount<T>(element: Element, component: ($: T) => void, input: T) {
-    return coreMount<Node, Element, TagOptions, T>(element, component, new Runner(window.document), input);
+export function devMount<T>(element: Element, component: ($: T) => void, input: T, inspector: Inspector) {
+    return coreMount<T>(element, component, new DevRunner(window.document, inspector), input, inspector);
 }
 
-export function routerApp<Routes extends string>(init: WebRouterInitialization<Routes>, element?: Element) {
-    return coreRouteApp(element ?? document.body, window, window.location, init);
+export function devRouterApp<Routes extends string>(
+    init: WebRouterInitialization<Routes>,
+    element: Element,
+    inspector: Inspector,
+) {
+    return coreRouteApp(element, window, window.location, init, inspector);
 }

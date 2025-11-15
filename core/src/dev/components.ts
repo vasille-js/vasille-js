@@ -19,13 +19,13 @@ export class DevWatch<Node, Element, TagOptions extends object, T> extends Watch
         input: WatchOptions<Node, Element, TagOptions, T>,
         runner: IRunner<Node, Element, TagOptions>,
         usage: Position,
-        inspector: Inspector,
+        inspector: Inspector | undefined,
     ) {
         super(input, runner);
 
         const id = provideId();
 
-        inspector.createComponent({
+        inspector?.createComponent({
             id: id,
             usage: usage,
             name: "Watch",
@@ -33,7 +33,7 @@ export class DevWatch<Node, Element, TagOptions extends object, T> extends Watch
         });
 
         this.runOnDestroy(() => {
-            inspector.destroy(id);
+            inspector?.destroy(id);
         });
     }
 }
@@ -89,10 +89,10 @@ export class DevPortal<Node, Element, TagOptions extends object> extends Portal<
 
 export class DevSwitchedNode<Node, Element, TagOptions extends object> extends SwitchedNode<Node, Element, TagOptions> {
     public readonly id: number;
-    public readonly inspector: Inspector;
+    public readonly inspector: Inspector | undefined;
 
     public constructor(
-        inspector: Inspector,
+        inspector: Inspector | undefined,
         usage: Position,
         runner: IRunner<Node, Element, TagOptions>,
         cases: SwitchedNodeCase<Node, Element, TagOptions>[],
@@ -109,7 +109,7 @@ export class DevSwitchedNode<Node, Element, TagOptions extends object> extends S
 
         this.id = id;
         this.inspector = inspector;
-        inspector.createComponent({
+        inspector?.createComponent({
             id: id,
             name: "Switch",
             props: conditions,
@@ -118,14 +118,14 @@ export class DevSwitchedNode<Node, Element, TagOptions extends object> extends S
     }
 
     public destroy(): void {
-        this.inspector.destroy(this.id);
+        this.inspector?.destroy(this.id);
         super.destroy();
     }
 
     protected newChild(index: number): Fragment<Node, Element, TagOptions> {
         const frag = new DevFragment(this.runner, null, null, "Case", { index }, this.inspector);
 
-        this.inspector.setElementParent({ parent: this.id, child: frag.id });
+        this.inspector?.setElementParent({ parent: this.id, child: frag.id });
 
         return frag;
     }

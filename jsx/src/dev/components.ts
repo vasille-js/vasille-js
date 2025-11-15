@@ -33,7 +33,7 @@ export function DevSlot<Node, Element, TagOptions extends object, T extends obje
             defaultSlot(ctx);
         }
     } catch (e) {
-        ctx.inspector.reportComponentSlotError({
+        ctx.inspector?.reportComponentSlotError({
             componentId: ctx.id,
             error: e,
             usage: usage,

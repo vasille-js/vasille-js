@@ -36,7 +36,7 @@ export class DevFragment<Node, Element, TagOptions extends object>
 {
     id: number;
     declaration: Position | null;
-    inspector: Inspector;
+    inspector: Inspector | undefined;
 
     public constructor(
         runner: IRunner<Node, Element, TagOptions>,
@@ -44,14 +44,14 @@ export class DevFragment<Node, Element, TagOptions extends object>
         usage: Position | null,
         name: string,
         props: object,
-        inspector: Inspector,
+        inspector: Inspector | undefined,
     ) {
         super(runner);
         this.id = provideId();
         this.declaration = declaration;
         this.inspector = inspector;
 
-        inspector.createComponent({
+        inspector?.createComponent({
             id: this.id,
             declaration: declaration,
             usage: usage,
@@ -61,14 +61,16 @@ export class DevFragment<Node, Element, TagOptions extends object>
     }
 
     public destroy(): void {
-        this.inspector.destroy(this.id);
+        this.inspector?.destroy(this.id);
     }
 
-    protected pushNode(node: DevFragment<Node, Element, TagOptions>): void {
-        this.inspector.setElementParent({
-            parent: this.id,
-            child: node.id,
-        });
+    protected pushNode(node: Fragment<Node, Element, TagOptions>): void {
+        if ("id" in node && typeof node.id == "number") {
+            this.inspector?.setElementParent({
+                parent: this.id,
+                child: node.id,
+            });
+        }
         super.pushNode(node);
     }
 }

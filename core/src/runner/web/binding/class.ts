@@ -3,22 +3,11 @@ import type { INode } from "../../../node/node.js";
 import type { IValue } from "../../../core/ivalue.js";
 
 export function addClass(node: INode<Node, Element, object>, cl: string) {
-    if (process.env.VASILLE_TARGET === "es5" && !node.element.classList) {
-        node.element.className = [...node.element.className.split(" "), cl].filter(item => !!item).join(" ");
-    } else {
-        node.element.classList.add(cl);
-    }
+    node.element.classList.add(cl);
 }
 
 export function removeClass(node: INode<Node, Element, object>, cl: string) {
-    if (process.env.VASILLE_TARGET === "es5" && !node.element.classList) {
-        node.element.className = node.element.className
-            .split(" ")
-            .filter(name => name !== cl)
-            .join(" ");
-    } else {
-        node.element.classList.remove(cl);
-    }
+    node.element.classList.remove(cl);
 }
 
 export class StaticClassBinding extends Binding<boolean> {

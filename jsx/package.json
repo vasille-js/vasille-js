@@ -4,9 +4,16 @@
   "description": "The same framework which is designed to build bulletproof frontends (JSX components)",
   "main": "lib/index.js",
   "exports": {
-    "types": "./types/index.d.ts",
-    "import": "./lib/index.js",
-    "browser": "./lib/index.js"
+      ".": {
+          "types": "./types/index.d.ts",
+          "import": "./lib/index.js",
+          "browser": "./lib/index.js"
+      },
+      "./dev": {
+          "types": "./types/dev/index.d.ts",
+          "import": "./lib/dev/index.js",
+          "browser": "./lib/dev/index.js"
+      }
   },
   "types": "./types/index.d.ts",
   "scripts": {

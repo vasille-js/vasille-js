@@ -1,4 +1,4 @@
-import { App, Destroyable, Fragment, Reactive, Runner } from "vasille";
+import { App, Destroyable, Fragment, Reactive } from "vasille";
 import { CompositionProps } from "../compose.js";
 import {
     DevApp,
@@ -11,11 +11,15 @@ import {
     provideId,
 } from "vasille/dev";
 
+function getInspector<Node, Element, TagOptions extends object>(node: Fragment<Node, Element, TagOptions>) {
+    return "inspector" in node ? (node.inspector as Inspector) : undefined;
+}
+
 export type DevComposed<Node, Element, TagOptions extends object, In extends CompositionProps, Out> = (
     $: In & { callback?(data: Out | undefined): void },
     usage: Position,
     name: string,
-    node?: DevFragment<Node, Element, TagOptions>,
+    node?: Fragment<Node, Element, TagOptions>,
     slot?: In["slot"],
 ) => void;
 
@@ -35,7 +39,7 @@ export function devView<Node, Element, TagOptions extends object, In extends Com
             usage,
             name,
             props,
-            node.inspector,
+            getInspector(node),
         );
 
         if (slot) {
@@ -50,7 +54,7 @@ export function devView<Node, Element, TagOptions extends object, In extends Com
                 callback(result);
             }
         } catch (e) {
-            node.inspector.reportComponentError({
+            getInspector(node)?.reportComponentError({
                 id: frag.id,
                 error: e,
                 name: name,

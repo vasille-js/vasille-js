@@ -50,7 +50,7 @@
     "vasille": "file:../core",
     "vasille-css": "file:../css",
     "vasille-jsx": "file:../jsx",
-    "vasille-router": "^4.0.0"
+    "vasille-router": "file:../router"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

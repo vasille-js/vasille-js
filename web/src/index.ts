@@ -13,8 +13,6 @@ export {
     view,
     view as component,
     view as compose,
-    forward,
-    backward,
     ensure,
     ref,
     expr,
@@ -22,7 +20,6 @@ export {
     expr as calculate,
     expr as watch,
     set,
-    Debug,
     Delay,
     For,
     Slot,
@@ -75,12 +72,13 @@ function createPortal(node: Fragment<Node, Element, TagOptions>) {
 
 export function modal<T extends object>(
     modal: (node: Fragment<Node, Element, TagOptions>, input: T) => void,
+    create: (node: Fragment<Node, Element, TagOptions>) => Portal<Node, Element, TagOptions> = createPortal,
 ): (input: T, node: Fragment<Node, Element, TagOptions>) => void {
     return function (props, node) {
         if (!node) {
             throw new Error("Vasille: Modal context is missing");
         }
-        const portal = createPortal(node);
+        const portal = create(node);
 
         try {
             modal(portal, props);
@@ -97,10 +95,11 @@ export interface PromptProps {
 
 export function prompt<T extends PromptProps>(
     modal: (node: Fragment<Node, Element, TagOptions>, input: T) => void,
+    create: (node: Fragment<Node, Element, TagOptions>) => Portal<Node, Element, TagOptions> = createPortal,
 ): (node: Fragment<Node, Element, TagOptions>, input: T, timeout?: number) => Promise<unknown> {
     return function (node, input, timeout) {
         return new Promise((resolve, reject) => {
-            const portal = createPortal(node);
+            const portal = create(node);
             const timer =
                 timeout &&
                 setTimeout(() => {
@@ -134,17 +133,9 @@ export function prompt<T extends PromptProps>(
 }
 
 export function mount<T>(element: Element, component: ($: T) => void, input: T) {
-    return coreMount<Node, Element, TagOptions, T>(
-        element,
-        component,
-        new Runner(window.document),
-        input,
-    );
+    return coreMount<Node, Element, TagOptions, T>(element, component, new Runner(window.document), input);
 }
 
-export function routerApp<Routes extends string>(
-    init: WebRouterInitialization<Routes>,
-    element?: Element,
-) {
+export function routerApp<Routes extends string>(init: WebRouterInitialization<Routes>, element?: Element) {
     return coreRouteApp(element ?? document.body, window, window.location, init);
 }
