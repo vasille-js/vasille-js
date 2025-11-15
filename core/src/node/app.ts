@@ -6,11 +6,12 @@ import { IRunner } from "./runner.js";
  * @class App
  * @extends Root
  */
-export class App<Node, Element, TagOptions extends object, T extends object = object> extends Root<
+export class App<
     Node,
     Element,
-    TagOptions
-> {
+    TagOptions extends object,
+    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
+> extends Root<Node, Element, TagOptions, Runner> {
     private readonly node: Element;
 
     /**
@@ -18,7 +19,7 @@ export class App<Node, Element, TagOptions extends object, T extends object = ob
      * @param node {Element} The root of application
      * @param runner {IRunner} A adapter which execute DOM manipulation
      */
-    constructor(node: Element, runner: IRunner<Node, Element, TagOptions>) {
+    constructor(node: Element, runner: Runner) {
         super(runner);
 
         this.node = node;
@@ -29,15 +30,25 @@ export class App<Node, Element, TagOptions extends object, T extends object = ob
     }
 }
 
-export interface PortalOptions<Node, Element, TagOptions extends object> {
+export interface PortalOptions<
+    Node,
+    Element,
+    TagOptions extends object,
+    Runner extends IRunner<Node, Element, TagOptions>,
+> {
     node: Element;
-    slot?: (ctx: Fragment<Node, Element, TagOptions>) => void;
+    slot?: (ctx: Fragment<Node, Element, TagOptions, Runner>) => void;
 }
 
-export class Portal<Node, Element, TagOptions extends object> extends Fragment<Node, Element, TagOptions> {
+export class Portal<
+    Node,
+    Element,
+    TagOptions extends object,
+    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
+> extends Fragment<Node, Element, TagOptions, Runner> {
     private readonly node: Element;
 
-    constructor(input: PortalOptions<Node, Element, TagOptions>, runner: IRunner<Node, Element, TagOptions>) {
+    constructor(input: PortalOptions<Node, Element, TagOptions, Runner>, runner: Runner) {
         super(runner);
 
         this.node = input.node;

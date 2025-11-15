@@ -20,13 +20,17 @@ export interface TagOptions {
     /** bindings */
     b?: Record<string, any>;
     /** slot */
-    l?: (ctx: Tag<typeof this>) => void;
+    l?: (ctx: Tag<typeof this, Runner<typeof this>>) => void;
     /** callback */
     k?: (node: Element) => void;
 }
 
-export class TextNode<Options extends TagOptions> extends AbstractTextNode<Node, Element, Options> {
-    declare public readonly runner: Runner<Options>;
+export class TextNode<Options extends TagOptions, RunnerT extends Runner<Options>> extends AbstractTextNode<
+    Node,
+    Element,
+    Options,
+    RunnerT
+> {
     protected node!: Text;
 
     public compose(): void {
@@ -53,9 +57,12 @@ export class TextNode<Options extends TagOptions> extends AbstractTextNode<Node,
     }
 }
 
-export class Tag<Options extends TagOptions> extends AbstractTag<Node, Element, Options> {
-    declare public readonly runner: Runner<Options>;
-
+export class Tag<Options extends TagOptions, RunnerT extends Runner<Options>> extends AbstractTag<
+    Node,
+    Element,
+    Options,
+    RunnerT
+> {
     public compose(): void {
         if (!this.name) {
             throw internalError("wrong Tag constructor call");

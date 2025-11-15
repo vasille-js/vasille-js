@@ -1,62 +1,70 @@
 import { Fragment, Tag } from "../node/node.js";
-import { IRunner } from "../node/runner.js";
-import { InspectableReactive, Inspector, ProtocolTag, provideId, StaticPosition, toDevObject } from "./inspectable.js";
+import {
+    IDevRunner,
+    InspectableReactive,
+    Inspector,
+    ProtocolTag,
+    provideId,
+    StaticPosition,
+    toDevObject,
+} from "./inspectable.js";
 import { DevArrayModel, DevMapModel, DevSetModel } from "./models.js";
 import { DevExpression, DevReference } from "./state.js";
 
 export const ModelId = Symbol("model-id");
 
-export function shareStateById<T>(ctx: object, name: string, value: T): T {
-    const id = "id" in ctx && typeof ctx.id === "number" ? ctx.id : null;
-    const inspector = "inspector" in ctx ? (ctx.inspector as Inspector) : null;
+export function shareStateById<T>(
+    id: number | undefined,
+    runner: IDevRunner<unknown, unknown, object>,
+    name: string,
+    value: T,
+): T {
+    const inspector = runner.inspector;
 
-    if (id !== null && inspector) {
-        if (
-            value instanceof DevReference ||
-            value instanceof DevExpression ||
-            value instanceof DevArrayModel ||
-            value instanceof DevSetModel ||
-            value instanceof DevMapModel
-        ) {
-            inspector.addContextState({
-                id: id,
-                name: name,
-                stateId: value.id,
-            });
-        } else if (value && typeof value == "object" && ModelId in value) {
-            inspector.addContextState({
-                id: id,
-                name: name,
-                stateId: value[ModelId] as number,
-            });
-        }
+    if (
+        value instanceof DevReference ||
+        value instanceof DevExpression ||
+        value instanceof DevArrayModel ||
+        value instanceof DevSetModel ||
+        value instanceof DevMapModel
+    ) {
+        inspector.addContextState({
+            id: id ?? 0,
+            name: name,
+            stateId: value.id,
+        });
+    } else if (value && typeof value == "object" && ModelId in value) {
+        inspector.addContextState({
+            id: id ?? 0,
+            name: name,
+            stateId: value[ModelId] as number,
+        });
     }
 
     return value;
 }
 
 export class DevFragment<Node, Element, TagOptions extends object>
-    extends Fragment<Node, Element, TagOptions>
+    extends Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>
     implements InspectableReactive
 {
     id: number;
     declaration: StaticPosition | null;
-    inspector: Inspector | undefined;
+    inspector: Inspector;
 
     public constructor(
-        runner: IRunner<Node, Element, TagOptions>,
+        runner: IDevRunner<Node, Element, TagOptions>,
         declaration: StaticPosition | null,
         usage: StaticPosition | null,
         name: string,
         props: object,
-        inspector: Inspector | undefined,
     ) {
         super(runner);
         this.id = provideId();
         this.declaration = declaration;
-        this.inspector = inspector;
+        this.inspector = runner.inspector;
 
-        inspector?.createComponent({
+        runner.inspector.createComponent({
             id: this.id,
             declaration: declaration,
             usage: usage,
@@ -66,12 +74,12 @@ export class DevFragment<Node, Element, TagOptions extends object>
     }
 
     public destroy(): void {
-        this.inspector?.destroy(this.id);
+        this.inspector.destroy(this.id);
     }
 
     protected pushNode(node: Fragment<Node, Element, TagOptions>): void {
         if ("id" in node && typeof node.id == "number") {
-            this.inspector?.setElementParent({
+            this.inspector.setElementParent({
                 parent: this.id,
                 child: node.id,
             });
@@ -90,15 +98,14 @@ export abstract class DevTag<Node, Element, TagOptions extends object>
 
     public constructor(
         options: TagOptions,
-        runner: IRunner<Node, Element, TagOptions>,
+        runner: IDevRunner<Node, Element, TagOptions>,
         tagName: string,
         declaration: StaticPosition,
-        inspector: Inspector,
     ) {
         super(options, runner, tagName);
         this.declaration = declaration;
-        this.inspector = inspector;
-        inspector.createTag(this.toProtocolTag(options));
+        this.inspector = runner.inspector;
+        runner.inspector.createTag(this.toProtocolTag(options));
     }
 
     public destroy(): void {

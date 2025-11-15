@@ -3,7 +3,14 @@ import { Fragment } from "../node/node.js";
 import { IRunner } from "../node/runner.js";
 
 // RNO = RepeatNodeOptions
-export interface RepeatNodeOptions<Node, Element, TagOptions extends object, T, IdT> {
+export interface RepeatNodeOptions<
+    Node,
+    Element,
+    TagOptions extends object,
+    Runner extends IRunner<Node, Element, TagOptions>,
+    T,
+    IdT,
+> {
     slot?: (ctx: Fragment<Node, Element, TagOptions>, value: T, index: IdT) => void;
 }
 
@@ -18,27 +25,29 @@ export class RepeatNode<
     TagOptions extends object,
     IdT,
     T,
-    Opts extends RepeatNodeOptions<Node, Element, TagOptions, T, IdT> = RepeatNodeOptions<
+    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
+    Opts extends RepeatNodeOptions<Node, Element, TagOptions, Runner, T, IdT> = RepeatNodeOptions<
         Node,
         Element,
         TagOptions,
+        Runner,
         T,
         IdT
     >,
-> extends Fragment<Node, Element, TagOptions> {
+> extends Fragment<Node, Element, TagOptions, Runner> {
     /**
      * Children node hash
      * @type {Map}
      */
-    protected nodes: Map<IdT, Fragment<Node, Element, TagOptions>> = new Map();
+    protected nodes: Map<IdT, Fragment<Node, Element, TagOptions, Runner>> = new Map();
     protected slot: ((ctx: Fragment<Node, Element, TagOptions>, value: T, index: IdT) => void) | undefined;
 
-    public constructor(input: Opts, runner: IRunner<Node, Element, TagOptions>) {
+    public constructor(input: Opts, runner: Runner) {
         super(runner);
         this.slot = input.slot && safe(input.slot);
     }
 
-    public createChild(id: IdT, item: T, before?: Fragment<Node, Element, TagOptions>): any {
+    public createChild(id: IdT, item: T, before?: Fragment<Node, Element, TagOptions, Runner>): any {
         const node = this.newChild(id, item);
 
         node.parent = this;
@@ -76,7 +85,7 @@ export class RepeatNode<
         this.nodes.clear();
     }
 
-    protected newChild(_id: IdT, _item: T): Fragment<Node, Element, TagOptions> {
+    protected newChild(_id: IdT, _item: T): Fragment<Node, Element, TagOptions, Runner> {
         return new Fragment(this.runner);
     }
 }

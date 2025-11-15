@@ -1,7 +1,16 @@
 import { IValue } from "../core/ivalue.js";
 import { TextProps } from "../node/node.js";
 import { Runner, Tag, TagOptions, TextNode } from "../runner/web/runner.js";
-import { DevValue, Inspector, provideId, StaticPosition, toDevId, toDevIdOrValue, toDevObject } from "./inspectable.js";
+import {
+    DevValue,
+    IDevRunner,
+    Inspector,
+    provideId,
+    StaticPosition,
+    toDevId,
+    toDevIdOrValue,
+    toDevObject,
+} from "./inspectable.js";
 import { DevExpression, DevReference } from "./state.js";
 
 export interface DevTagOptions extends TagOptions {
@@ -13,16 +22,14 @@ export class PositionedText {
     position: StaticPosition;
 }
 
-class DevTextNode extends TextNode<DevTagOptions> {
+class DevTextNode extends TextNode<DevTagOptions, DevRunner> {
     public readonly id: number;
     public readonly usage: StaticPosition;
-    public readonly inspector: Inspector;
 
     public constructor(input: TextProps, runner: DevRunner, usage: StaticPosition, inspector: Inspector) {
         super(input, runner);
         this.id = provideId();
         this.usage = usage;
-        this.inspector = inspector;
 
         inspector.createNode({
             id: this.id,
@@ -31,7 +38,7 @@ class DevTextNode extends TextNode<DevTagOptions> {
     }
 
     public destroy(): void {
-        this.inspector.destroy(this.id);
+        this.runner.inspector.destroy(this.id);
         super.destroy();
     }
 
@@ -41,12 +48,9 @@ class DevTextNode extends TextNode<DevTagOptions> {
     }
 }
 
-class DevTag extends Tag<DevTagOptions> {
+class DevTag extends Tag<DevTagOptions, DevRunner> {
     public readonly id: number;
     public readonly usage: StaticPosition | undefined;
-    public readonly inspector: Inspector;
-
-    declare public runner: DevRunner;
 
     public constructor(
         options: DevTagOptions,
@@ -59,7 +63,6 @@ class DevTag extends Tag<DevTagOptions> {
 
         this.id = provideId();
         this.usage = usage;
-        this.inspector = inspector;
 
         inspector.createTag({
             id: this.id,
@@ -126,7 +129,7 @@ class DevTag extends Tag<DevTagOptions> {
     }
 
     public destroy(): void {
-        this.inspector.destroy(this.id);
+        this.runner.inspector.destroy(this.id);
     }
 
     public compose(): void {
@@ -135,7 +138,7 @@ class DevTag extends Tag<DevTagOptions> {
     }
 }
 
-export class DevRunner extends Runner<DevTagOptions> {
+export class DevRunner extends Runner<DevTagOptions> implements IDevRunner<Node, Element, DevTagOptions> {
     public readonly inspector: Inspector;
 
     public constructor(document: Document, inspector: Inspector) {
@@ -143,7 +146,7 @@ export class DevRunner extends Runner<DevTagOptions> {
         this.inspector = inspector;
     }
 
-    public textNode(text: unknown): TextNode<DevTagOptions> {
+    public textNode(text: unknown): TextNode<DevTagOptions, DevRunner> {
         if (text instanceof PositionedText) {
             return new DevTextNode({ text: text.text }, this, text.position, this.inspector);
         }

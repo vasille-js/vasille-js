@@ -1,5 +1,5 @@
 import { Router, WebRouterInitialization } from "./router.js";
-import { DevApp, DevFragment, DevRunner, DevTagOptions, Inspector, StaticPosition } from "vasille/dev";
+import { DevApp, DevFragment, DevRunner, DevTagOptions, IDevRunner, Inspector, StaticPosition } from "vasille/dev";
 import { Fragment } from "vasille";
 import { ScreenProps } from "../types.js";
 import { devMount } from "vasille-jsx/dev";
@@ -8,7 +8,7 @@ export function devScreen<Node, Element, TagOptions extends object, Route extend
     renderer: (node: DevFragment<Node, Element, TagOptions>, input: ScreenProps<Route>) => Promise<void>,
     declaration: StaticPosition,
     name: string,
-): (props: ScreenProps<Route>, ctx?: Fragment<Node, Element, TagOptions>) => Promise<void> {
+): (props: ScreenProps<Route>, ctx?: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>) => Promise<void> {
     return async function (props, node) {
         if (!node) {
             throw new Error("Vasille: Screen context is missing");
@@ -20,7 +20,6 @@ export function devScreen<Node, Element, TagOptions extends object, Route extend
             null,
             name,
             props,
-            "inspector" in node ? (node.inspector as Inspector) : undefined,
         );
 
         node.create(frag);
@@ -30,24 +29,24 @@ export function devScreen<Node, Element, TagOptions extends object, Route extend
 }
 
 export class DevRouter<Routes extends string> extends Router<Routes> {
-    public readonly inspector: Inspector | undefined;
+    public readonly inspector: Inspector;
 
     public constructor(
         window: Window,
         location: Location,
-        node: DevFragment<Node, Element, DevTagOptions>,
+        node: Fragment<Node, Element, DevTagOptions, IDevRunner<Node, Element, DevTagOptions>>,
         init: WebRouterInitialization<Routes>,
     ) {
         super(window, location, node, init);
 
-        this.inspector = node.inspector;
-        node.inspector?.registeredRoutes({paths: [...Object.keys(init.routes)]});
+        this.inspector = node.runner.inspector;
+        this.inspector.registeredRoutes({paths: [...Object.keys(init.routes)]});
 
         this.$currentUrl.on(value => {
-            node.inspector?.routerStateChange({name: "currentUrl", value});
+            this.inspector.routerStateChange({name: "currentUrl", value});
         });
         this.$loadingUrl.on(value => {
-            node.inspector?.routerStateChange({name:"loadingUrl", value});
+            this.inspector.routerStateChange({name:"loadingUrl", value});
         });
     }
 

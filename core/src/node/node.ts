@@ -8,17 +8,22 @@ import { IRunner } from "./runner.js";
  * This class is symbolic
  * @extends Reactive
  */
-export abstract class Root<Node, Element, TagOptions extends object> extends Reactive {
+export abstract class Root<
+    Node,
+    Element,
+    TagOptions extends object,
+    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
+> extends Reactive {
     /**
      * The children list
      * @type Array
      */
     public readonly children: Set<Fragment<Node, Element, TagOptions>>;
-    public readonly runner: IRunner<Node, Element, TagOptions>;
+    public readonly runner: Runner;
 
     public lastChild: Fragment<Node, Element, TagOptions> | undefined = undefined;
 
-    protected constructor(runner: IRunner<Node, Element, TagOptions>) {
+    protected constructor(runner: Runner) {
         super();
         this.runner = runner;
         this.children = new Set();
@@ -100,10 +105,15 @@ export abstract class Root<Node, Element, TagOptions extends object> extends Rea
     }
 }
 
-export class Fragment<Node, Element, TagOptions extends object> extends Root<Node, Element, TagOptions> {
+export class Fragment<
+    Node,
+    Element,
+    TagOptions extends object,
+    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
+> extends Root<Node, Element, TagOptions, Runner> {
     public parent!: Root<Node, Element, TagOptions>;
 
-    public constructor(runner: IRunner<Node, Element, TagOptions>) {
+    public constructor(runner: Runner) {
         super(runner);
     }
     /**
@@ -209,11 +219,16 @@ export interface TextProps {
  * @class TextNode
  * @extends Fragment
  */
-export abstract class TextNode<Node, Element, TagOptions extends object> extends Fragment<Node, Element, TagOptions> {
+export abstract class TextNode<
+    Node,
+    Element,
+    TagOptions extends object,
+    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
+> extends Fragment<Node, Element, TagOptions, Runner> {
     protected handler: ((v: unknown) => void) | null = null;
     protected readonly data: unknown;
 
-    public constructor(input: TextProps, runner: IRunner<Node, Element, TagOptions>) {
+    public constructor(input: TextProps, runner: Runner) {
         super(runner);
         this.data = input.text;
     }
@@ -238,7 +253,12 @@ export abstract class TextNode<Node, Element, TagOptions extends object> extends
  * @class INode
  * @extends Fragment
  */
-export abstract class INode<Node, Element, TagOptions extends object> extends Fragment<Node, Element, TagOptions> {
+export abstract class INode<
+    Node,
+    Element,
+    TagOptions extends object,
+    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
+> extends Fragment<Node, Element, TagOptions, Runner> {
     /**
      * The element of vasille node
      * @type Element
@@ -261,11 +281,16 @@ export abstract class INode<Node, Element, TagOptions extends object> extends Fr
  * @class Tag
  * @extends INode
  */
-export abstract class Tag<Node, Element, TagOptions extends object> extends INode<Node, Element, TagOptions> {
+export abstract class Tag<
+    Node,
+    Element,
+    TagOptions extends object,
+    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
+> extends INode<Node, Element, TagOptions, Runner> {
     public readonly name: string;
     public readonly options: TagOptions;
 
-    public constructor(options: TagOptions, runner: IRunner<Node, Element, TagOptions>, tagName: string) {
+    public constructor(options: TagOptions, runner: Runner, tagName: string) {
         super(runner);
         this.options = options;
         this.name = tagName;
@@ -282,9 +307,14 @@ export abstract class Tag<Node, Element, TagOptions extends object> extends INod
     }
 }
 
-export interface SwitchedNodeCase<Node, Element, TagOptions extends object> {
+export interface SwitchedNodeCase<
+    Node,
+    Element,
+    TagOptions extends object,
+    Runner extends IRunner<Node, Element, TagOptions>,
+> {
     $case: IValue<unknown>;
-    slot: (node: Fragment<Node, Element, TagOptions>) => void;
+    slot: (node: Fragment<Node, Element, TagOptions, Runner>) => void;
 }
 
 const alwaysTrue = new Reference(true);
@@ -292,7 +322,12 @@ const alwaysTrue = new Reference(true);
 /**
  * Defines a node which can switch its children conditionally
  */
-export class SwitchedNode<Node, Element, TagOptions extends object> extends Fragment<Node, Element, TagOptions> {
+export class SwitchedNode<
+    Node,
+    Element,
+    TagOptions extends object,
+    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
+> extends Fragment<Node, Element, TagOptions, Runner> {
     /**
      * Index of current true condition
      * @type number
@@ -303,7 +338,7 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
      * Array of possible cases
      * @type {Array<{cond : IValue<unknown>, cb : function(Fragment)}>}
      */
-    private cases: SwitchedNodeCase<Node, Element, TagOptions>[];
+    private cases: SwitchedNodeCase<Node, Element, TagOptions, Runner>[];
 
     /**
      * A function that syncs index and content will be bounded to each condition
@@ -315,8 +350,8 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
      * Constructs a switch node and define a sync function
      */
     public constructor(
-        runner: IRunner<Node, Element, TagOptions>,
-        cases: SwitchedNodeCase<Node, Element, TagOptions>[],
+        runner: Runner,
+        cases: SwitchedNodeCase<Node, Element, TagOptions, Runner>[],
         _default?: (node: Fragment<Node, Element, TagOptions>) => void,
     ) {
         super(runner);
@@ -371,7 +406,7 @@ export class SwitchedNode<Node, Element, TagOptions extends object> extends Frag
         super.destroy();
     }
 
-    protected newChild(index: number): Fragment<Node, Element, TagOptions> {
+    protected newChild(_index: number): Fragment<Node, Element, TagOptions, Runner> {
         return new Fragment(this.runner);
     }
 }

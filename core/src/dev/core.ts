@@ -1,17 +1,21 @@
 import { Reactive } from "../core/core.js";
-import { InspectableReactive, Inspector, provideId } from "./inspectable.js";
+import { IDevRunner, InspectableReactive, provideId } from "./inspectable.js";
 
-export class DevReactive extends Reactive implements InspectableReactive {
+export class DevReactive<Runner extends IDevRunner<unknown, unknown, object>>
+    extends Reactive
+    implements InspectableReactive
+{
     public readonly id: number;
-    public readonly inspector: Inspector | undefined;
+    public readonly runner: Pick<Runner, "inspector">;
 
-    public constructor(inspector: Inspector | undefined) {
+    public constructor(runner: Pick<Runner, "inspector">) {
         super();
         this.id = provideId();
-        this.inspector = inspector;
+        this.runner = runner;
     }
 
     public destroy() {
-        this.inspector?.destroy(this.id);
+        this.runner.inspector.destroy(this.id);
+        super.destroy();
     }
 }

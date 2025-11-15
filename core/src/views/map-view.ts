@@ -1,3 +1,4 @@
+import { IRunner } from "../node/runner.js";
 import { BaseView } from "./base-view.js";
 import { MapModel } from "../models/map-model.js";
 
@@ -6,14 +7,14 @@ import { MapModel } from "../models/map-model.js";
  * @class MapView
  * @extends BaseView
  */
-export class MapView<Node, Element, TagOptions extends object, K, T> extends BaseView<
+export class MapView<
     Node,
     Element,
-    TagOptions,
+    TagOptions extends object,
     K,
     T,
-    MapModel<K, T>
-> {
+    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
+> extends BaseView<Node, Element, TagOptions, K, T, MapModel<K, T>, Runner> {
     public override compose() {
         super.compose();
         this.model.forEach((value, key) => {

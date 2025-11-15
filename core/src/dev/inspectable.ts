@@ -1,3 +1,4 @@
+import { IRunner } from "../node/runner.js";
 import { DevExpression, DevReference } from "./state.js";
 
 export type StaticPosition = string;
@@ -5,24 +6,24 @@ export type ExecutionPosition = number;
 
 let positionId: number = 1;
 
-export function executionPosition(ctx: object | undefined, pathLineAndChar: string, error: Error): ExecutionPosition {
-    if (ctx && "inspector" in ctx) {
-        const id = positionId++;
+export function executionPosition(
+    runner: IDevRunner<unknown, unknown, object>,
+    pathLineAndChar: string,
+    error: Error,
+): ExecutionPosition {
+    const id = positionId++;
 
-        (ctx.inspector as Inspector).registerExecutionPosition({
-            id: id,
-            position: pathLineAndChar,
-            stack:
-                error.stack
-                    ?.split("\n")
-                    .slice(1)
-                    .map(line => line.trim()) ?? [],
-        });
+    runner.inspector.registerExecutionPosition({
+        id: id,
+        position: pathLineAndChar,
+        stack:
+            error.stack
+                ?.split("\n")
+                .slice(1)
+                .map(line => line.trim()) ?? [],
+    });
 
-        return id;
-    }
-
-    return 0;
+    return id;
 }
 
 export interface Inspectable {
@@ -31,12 +32,10 @@ export interface Inspectable {
 
 export interface InspectableReactive {
     id: number;
-    inspector?: Inspector;
 }
 
 export interface InspectableReference<T> extends Inspectable {
     declaration?: StaticPosition;
-    inspector?: Inspector;
     update(value: T, position?: ExecutionPosition): void;
 }
 
@@ -253,17 +252,19 @@ const primitiveTypes: string[] = ["number", "string", "boolean"] as const;
 
 export const devValues = new Map<number, object>();
 
-let devValueIndex = 1;
-
-export function registerDevValue<T extends object>(value: T, declaration: StaticPosition, inspector?: Inspector): T {
+export function registerDevValue<T extends object>(
+    value: T,
+    declaration: StaticPosition,
+    runner: IDevRunner<unknown, unknown, object>,
+): T {
     if (!(DevValueInternalKey in value)) {
-        const id = devValueIndex++;
+        const id = provideId();
 
         Object.defineProperty(value, DevValueInternalKey, {
             value: { id } satisfies DevValueInternal,
             writable: false,
         });
-        inspector?.registerDevValue({ id, pos: declaration });
+        runner.inspector.registerDevValue({ id, pos: declaration });
         devValues.set(id, value);
     }
 
@@ -315,4 +316,8 @@ export function toDevObject(value: object): { [k: string]: number | DevValue } {
         },
         {} as { [k: string]: number | DevValue },
     );
+}
+
+export interface IDevRunner<Node, Element, TagOptions extends object> extends IRunner<Node, Element, TagOptions> {
+    inspector: Inspector;
 }

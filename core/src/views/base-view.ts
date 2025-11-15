@@ -2,8 +2,15 @@ import { IRunner } from "../node/runner.js";
 import { RepeatNode, RepeatNodeOptions } from "./repeat-node.js";
 import { ListenableModel } from "../models/model.js";
 
-export interface BaseViewOptions<Node, Element, TagOptions extends object, K, T, Model extends ListenableModel<K, T>>
-    extends RepeatNodeOptions<Node, Element, TagOptions, T, K> {
+export interface BaseViewOptions<
+    Node,
+    Element,
+    TagOptions extends object,
+    K,
+    T,
+    Model extends ListenableModel<K, T>,
+    Runner extends IRunner<Node, Element, TagOptions>,
+> extends RepeatNodeOptions<Node, Element, TagOptions, Runner, T, K> {
     model: Model;
 }
 
@@ -19,7 +26,16 @@ export class BaseView<
     K,
     T,
     Model extends ListenableModel<K, T>,
-> extends RepeatNode<Node, Element, TagOptions, K, T, BaseViewOptions<Node, Element, TagOptions, K, T, Model>> {
+    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
+> extends RepeatNode<
+    Node,
+    Element,
+    TagOptions,
+    K,
+    T,
+    Runner,
+    BaseViewOptions<Node, Element, TagOptions, K, T, Model, Runner>
+> {
     model: Model;
 
     /**
@@ -34,10 +50,7 @@ export class BaseView<
      */
     protected removeHandler!: (index: K, value: T) => void;
 
-    public constructor(
-        input: BaseViewOptions<Node, Element, TagOptions, K, T, Model>,
-        runner: IRunner<Node, Element, TagOptions>,
-    ) {
+    public constructor(input: BaseViewOptions<Node, Element, TagOptions, K, T, Model, Runner>, runner: Runner) {
         super(input, runner);
         this.model = input.model;
     }

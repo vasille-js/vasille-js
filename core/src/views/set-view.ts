@@ -7,18 +7,14 @@ import { SetModel } from "../models/set-model.js";
  * @class SetView
  * @extends BaseView
  */
-export class SetView<Node, Element, TagOptions extends object, T> extends BaseView<
+export class SetView<
     Node,
     Element,
-    TagOptions,
+    TagOptions extends object,
     T,
-    T,
-    SetModel<T>
-> {
-    public constructor(
-        input: BaseViewOptions<Node, Element, TagOptions, T, T, SetModel<T>>,
-        runner: IRunner<Node, Element, TagOptions>,
-    ) {
+    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
+> extends BaseView<Node, Element, TagOptions, T, T, SetModel<T>, Runner> {
+    public constructor(input: BaseViewOptions<Node, Element, TagOptions, T, T, SetModel<T>, Runner>, runner: Runner) {
         super(input, runner);
     }
 

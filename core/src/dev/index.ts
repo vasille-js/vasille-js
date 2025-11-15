@@ -34,6 +34,7 @@ export {
     type ProtocolRouterStateChange,
     type ProtocolRoutes,
     type ProtocolRouterTargetResult,
+    type IDevRunner,
     executionPosition,
     devValues,
     provideId,

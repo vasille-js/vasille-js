@@ -1,4 +1,4 @@
-import { App, Fragment, Portal, reportError } from "vasille";
+import { App, Fragment, Portal, reportError, Runner as IRunner } from "vasille";
 import { StyleProps } from "../spec/css.js";
 import { Runner, TagOptions } from "vasille/web-runner";
 import { mount as coreMount } from "vasille-jsx";
@@ -49,18 +49,25 @@ export { Router, type WebRouterInitialization, type NavigationMode } from "vasil
 
 export { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "vasille-css";
 
-function createPortal(node: Fragment<Node, Element, TagOptions>) {
-    const portal = new Portal<Node, Element, TagOptions>({ node: document.body }, node.runner);
+function createPortal<Runner extends IRunner<Node, Element, TagOptions>>(
+    node: Fragment<Node, Element, TagOptions, Runner>,
+) {
+    const portal = new Portal<Node, Element, TagOptions, Runner>({ node: document.body }, node.runner);
 
     node.create(portal);
 
     return portal;
 }
 
-export function modal<T extends object>(
-    modal: (node: Fragment<Node, Element, TagOptions>, input: T) => void,
-    create: (node: Fragment<Node, Element, TagOptions>) => Portal<Node, Element, TagOptions> = createPortal,
-): (input: T, node: Fragment<Node, Element, TagOptions>) => void {
+export function modal<
+    T extends object,
+    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
+>(
+    modal: (node: Fragment<Node, Element, TagOptions, Runner>, input: T) => void,
+    create: (
+        node: Fragment<Node, Element, TagOptions, Runner>,
+    ) => Portal<Node, Element, TagOptions, Runner> = createPortal,
+): (input: T, node: Fragment<Node, Element, TagOptions, Runner>) => void {
     return function (props, node) {
         if (!node) {
             throw new Error("Vasille: Modal context is missing");
@@ -80,10 +87,15 @@ export interface PromptProps {
     reject(err: unknown): void;
 }
 
-export function prompt<T extends PromptProps>(
-    modal: (node: Fragment<Node, Element, TagOptions>, input: T) => void,
-    create: (node: Fragment<Node, Element, TagOptions>) => Portal<Node, Element, TagOptions> = createPortal,
-): (node: Fragment<Node, Element, TagOptions>, input: T, timeout?: number) => Promise<unknown> {
+export function prompt<
+    T extends PromptProps,
+    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
+>(
+    modal: (node: Fragment<Node, Element, TagOptions, Runner>, input: T) => void,
+    create: (
+        node: Fragment<Node, Element, TagOptions, Runner>,
+    ) => Portal<Node, Element, TagOptions, Runner> = createPortal,
+): (node: Fragment<Node, Element, TagOptions, Runner>, input: T, timeout?: number) => Promise<unknown> {
     return function (node, input, timeout) {
         return new Promise((resolve, reject) => {
             const portal = create(node);
