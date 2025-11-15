@@ -13,36 +13,36 @@ export { safe } from "vasille";
 export declare function setErrorHandler(handler: (e: unknown) => void): void;
 
 declare interface Params {
-    slot(...args: unknown[]): unknown;
+  slot(...args: unknown[]): unknown;
 }
 
 declare type Composed<In extends object, Out> = (
-    $: (Required<In> extends Params ? Omit<In, "slot"> & { slot?: unknown } : In) & {
-        callback?(data: Out): void;
-    },
+  $: (Required<In> extends Params ? Omit<In, "slot"> & { slot?: unknown } : In) & {
+    callback?(data: Out): void;
+  },
 ) => void;
 declare type ComposedNoCallback<In extends object, Out> = (
-    $: Required<In> extends Params ? Omit<In, "slot"> & { slot?: unknown } : In,
+  $: Required<In> extends Params ? Omit<In, "slot"> & { slot?: unknown } : In,
 ) => void;
 
 /** Composes a component (v3), which can receive external reactive values via props */
 export declare function compose<In extends object, Out extends NonNullable<unknown>>(
-    renderer: (input: In) => Out,
+  renderer: (input: In) => Out,
 ): Composed<In, Out>;
 export declare function compose<In extends object>(renderer: (input: In) => void): ComposedNoCallback<In, void>;
 
 /** Composes a component (v4), which can receive external reactive values via props */
 export declare function component<In extends object, Out extends NonNullable<unknown>>(
-    renderer: (input: In) => Out,
+  renderer: (input: In) => Out,
 ): Composed<In, Out>;
 export declare function component<In extends object>(renderer: (input: In) => void): ComposedNoCallback<In, void>;
 
 /** Composes a view, which can receive external reactive values via props */
 export declare function view<Out extends NonNullable<unknown>>(
-    renderer: () => Out,
+  renderer: () => Out,
 ): Composed<NonNullable<unknown>, Out>;
 export declare function view<In extends object, Out extends NonNullable<unknown>>(
-    renderer: (input: In) => Out,
+  renderer: (input: In) => Out,
 ): Composed<In, Out>;
 export declare function view(renderer: () => void): ComposedNoCallback<NonNullable<unknown>, void>;
 export declare function view<In extends object>(renderer: (input: In) => void): ComposedNoCallback<In, void>;
@@ -83,10 +83,10 @@ export declare function awaited<T>(target: () => Promise<T>): [unknown, T | unde
 /** Mounts a slot parameter of the component */
 export declare function Slot(options: { model?: () => void; slot?: () => void }): void;
 export declare function Slot<Props extends object>(
-    options: {
-        model?: (props: Props) => void;
-        slot?: () => void;
-    } & Props,
+  options: {
+    model?: (props: Props) => void;
+    slot?: () => void;
+  } & Props,
 ): void;
 
 /** Renders content conditionally */
@@ -118,11 +118,11 @@ export declare function store<Return extends object>(fn: () => Return): Return;
 /** Creates a model (state) constructor */
 export declare function model<Return extends object>(fn: () => Return): () => Return & Destroyable;
 export declare function model<Input extends object, Return extends object>(
-    fn: (input: Input) => Return,
+  fn: (input: Input) => Return,
 ): (input: Input) => Return & Destroyable;
 
 export { QueryParams, ScreenProps, RouteParameters } from "vasille-router";
-export { Router, NavigationMode } from "vasille-router/web-router";
+export { type Router, NavigationMode } from "vasille-router/web-router";
 
 /** Applies the value to theme `name` */
 export declare function theme<T>(name: string, value: T): T;
@@ -143,43 +143,43 @@ export { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "vasille
 
 /** Creates a local style sheet */
 export declare const styleSheet: <
-    T extends {
-        [className: string]: {
-            [media: `@${string}`]: {
-                [state: `:${string}`]: StyleProps;
-            } & StyleProps;
-            [state: `:${string}`]: StyleProps;
-        } & StyleProps;
-    },
+  T extends {
+    [className: string]: {
+      [media: `@${string}`]: {
+        [state: `:${string}`]: StyleProps;
+      } & StyleProps;
+      [state: `:${string}`]: StyleProps;
+    } & StyleProps;
+  },
 >(
-    input: T,
+  input: T,
 ) => { [K in keyof T]: string };
 
 /** Mounts a Vasille.JS component to page */
 export declare function mount<T>(
-    element: Element,
-    component: ($: T) => void,
-    $: T,
+  element: Element,
+  component: ($: T) => void,
+  $: T,
 ): App<Node, Element, TagOptions>;
 
 interface RouterInitialization<Routes extends string> {
-    routes: {
-        [K in Routes]: {
-            screen: Screen<K>;
-            minAccessLevel?: number;
-        };
+  routes: {
+    [K in Routes]: {
+      screen: Screen<K>;
+      minAccessLevel?: number;
     };
-    getAccessLevel?(): Promise<number>;
-    fallbackScreen?(arg: { cause: "not-found" | "no-access" }): void;
-    errorScreen?(data: { error: unknown }): void;
-    loadingScreen?(props: object): void;
-    loadingOverlay?(props: object): void;
+  };
+  getAccessLevel?(): Promise<number>;
+  fallbackScreen?(arg: { cause: "not-found" | "no-access" }): void;
+  errorScreen?(data: { error: unknown }): void;
+  loadingScreen?(props: object): void;
+  loadingOverlay?(props: object): void;
 }
 
 /** Starts a route app */
 export declare function routerApp<Routes extends string>(
-    init: RouterInitialization<Routes>,
-    element?: Element,
+  init: RouterInitialization<Routes>,
+  element?: Element,
 ): App<Node, Element, TagOptions>;
 
 /** Run a function before component mount */
@@ -201,11 +201,11 @@ export declare function modal<T extends object>(modal: (input: T) => void): (inp
 
 /** Describes properties of a prompt window */
 export interface PromptProps<T> {
-    resolve(data: T): void;
-    reject(err: unknown): void;
+  resolve(data: T): void;
+  reject(err: unknown): void;
 }
 
 /** Composes a function which will show a prompt on call */
 export declare function prompt<T, Input extends PromptProps<T> = PromptProps<T>>(
-    modal: (input: Input) => void,
+  modal: (input: Input) => void,
 ): (input: Omit<Input, keyof PromptProps<unknown>>, timeout?: number) => Promise<T>;

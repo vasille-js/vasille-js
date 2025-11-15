@@ -51,13 +51,6 @@
     "url": "https://github.com/vasille-js/vasille-js/issues"
   },
   "homepage": "https://github.com/vasille-js/vasille-js#readme",
-  "browserslist": [
-    "safari 6",
-    "ie 10",
-    "chrome 23",
-    "firefox 21",
-    "opera 15"
-  ],
   "devDependencies": {
     "@types/debug": "^4.1.12",
     "@types/eslint": "^9.6.1",
@@ -70,7 +63,6 @@
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",
     "cross-env": "^10.0.0",
-    "eslint": "^9.33.0",
     "eslint-plugin-compat": "^6.0.2",
     "jest": "^30.0.5",
     "jsdom": "^26.1.0",
@@ -81,6 +73,7 @@
     "typescript-eslint": "^8.39.0"
   },
   "dependencies": {
-    "vasille": "file:../core"
+    "vasille": "file:../core",
+    "vasille-jsx": "file:../jsx"
   }
 }

@@ -10,7 +10,7 @@ import {
     DevSetView,
     DevSwitchedNode,
     DevWatch as DevCoreWatch,
-    Position,
+    StaticPosition,
 } from "vasille/dev";
 
 interface DevSlotOptions<Node, Element, TagOptions extends object, T extends object> {
@@ -22,7 +22,7 @@ export function DevSlot<Node, Element, TagOptions extends object, T extends obje
     { model, slot, ...options }: DevSlotOptions<Node, Element, TagOptions, T> & T,
     ctx: DevFragment<Node, Element, TagOptions>,
     defaultSlot: ((ctx: DevFragment<Node, Element, TagOptions>) => void) | undefined,
-    usage: Position,
+    usage: StaticPosition,
 ) {
     try {
         if (model) {
@@ -55,7 +55,7 @@ export function DevSwitch<Node, Element, TagOptions extends object>(
     options: DevSwitchOptions<Node, Element, TagOptions>,
     ctx: DevFragment<Node, Element, TagOptions>,
     _slot: undefined,
-    usage: Position,
+    usage: StaticPosition,
 ) {
     ctx.create(new DevSwitchedNode(ctx.inspector, usage, ctx.runner, options.cases, options.default));
 }
@@ -76,7 +76,7 @@ export function DevFor<
     { of: model, slot: _slot }: DevForOptions<Node, Element, TagOptions, T, K, V>,
     ctx: DevFragment<Node, Element, TagOptions>,
     defaultSlot: ((ctx: DevFragment<Node, Element, TagOptions>) => void) | undefined,
-    usage: Position,
+    usage: StaticPosition,
 ) {
     const slot = _slot ?? defaultSlot;
 
@@ -154,7 +154,7 @@ export function DevWatch<Node, Element, TagOptions extends object, T>(
     { $model, slot: _slot }: DevWatchOptions<Node, Element, TagOptions, T>,
     ctx: DevFragment<Node, Element, TagOptions>,
     defaultSlot: (ctx: DevFragment<Node, Element, TagOptions>) => void | undefined,
-    usage: Position,
+    usage: StaticPosition,
 ) {
     const slot = _slot ?? defaultSlot;
 
@@ -173,7 +173,7 @@ export function DevDelay<Node, Element, TagOptions extends object>(
     { time, slot: _slot }: DevDelayOptions<Node, Element, TagOptions>,
     ctx: DevFragment<Node, Element, TagOptions>,
     defaultSlot: (ctx: DevFragment<Node, Element, TagOptions>) => void | undefined,
-    usage: Position,
+    usage: StaticPosition,
 ) {
     const fragment = new DevFragment<Node, Element, TagOptions>(
         ctx.runner,

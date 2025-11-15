@@ -8,7 +8,7 @@ import {
     DevSetModel,
     Inspector,
     KindOfDevIValue,
-    Position,
+    StaticPosition,
 } from "vasille/dev";
 import { match, set } from "../internal.js";
 
@@ -17,33 +17,38 @@ export function devExpr<T, Args extends unknown[]>(
     func: (...args: Args) => T,
     values: KindOfDevIValue<Args>,
     depsCode: string[],
-    declaration: Position,
+    declaration: StaticPosition,
     inspector: Inspector,
 ): DevExpression<T, Args> {
     return new DevExpression<T, Args>(func, values, ctx, depsCode, declaration, inspector, false);
 }
 
-export function devRef<T>(v: T, declaration: Position, inspector: Inspector): DevIValue<T> {
+export function devRef<T>(v: T, declaration: StaticPosition, inspector?: Inspector): DevIValue<T> {
     return new DevReference(v, declaration, inspector);
 }
 
-export function devSetModel(inspector: Inspector, ctx: Reactive | undefined, data?: unknown[]) {
+export function devSetModel(inspector: Inspector | undefined, ctx: Reactive | undefined, data?: unknown[]) {
     return new DevSetModel(inspector, data, ctx);
 }
 
-export function devMapModel(inspector: Inspector, ctx: Reactive | undefined, data?: [unknown, unknown][]) {
+export function devMapModel(inspector: Inspector | undefined, ctx: Reactive | undefined, data?: [unknown, unknown][]) {
     return new DevMapModel(inspector, data, ctx);
 }
 
-export function devArrayModel(inspector: Inspector, ctx: Reactive | undefined, data?: unknown[] | number) {
+export function devArrayModel(inspector: Inspector | undefined, ctx: Reactive | undefined, data?: unknown[] | number) {
     return new DevArrayModel(inspector, data, ctx);
 }
 
-export function devEnsure(data: unknown, declaration: Position, inspector: Inspector) {
+export function devEnsure(data: unknown, declaration: StaticPosition, inspector: Inspector | undefined) {
     return data instanceof IValue ? data : devRef(data, declaration, inspector);
 }
 
-export function devMatch(name: string | number | symbol, data: unknown, declaration: Position, inspector: Inspector) {
+export function devMatch(
+    name: string | number | symbol,
+    data: unknown,
+    declaration: StaticPosition,
+    inspector: Inspector | undefined,
+) {
     return match(name, data, v => devRef(v, declaration, inspector));
 }
 
@@ -51,8 +56,8 @@ export function devSet(
     o: object,
     key: string | symbol | number,
     value: unknown,
-    declaration: Position,
-    inspector: Inspector,
+    declaration: StaticPosition,
+    inspector: Inspector | undefined,
 ) {
     return set(o, key, value, v => devRef(v, declaration, inspector));
 }

@@ -1,7 +1,8 @@
-import { App, Fragment, Reference, reportError } from "vasille";
+import { Fragment, Reference, reportError } from "vasille";
 import { Runner, TagOptions } from "vasille/web-runner";
 import { Router as AbstractRouter, RouteRenderScope, RouterInitialization } from "../router.js";
 import { QueryParams, Answer, ScreenProps } from "../types.js";
+import { mount } from "vasille-jsx";
 
 export interface WebRouterInitialization<Routes extends string>
     extends RouterInitialization<Node, Element, TagOptions, Routes, {}> {
@@ -48,21 +49,10 @@ export class Router<Routes extends string> extends AbstractRouter<
         this.build(node, node => (this.contentNode = node));
         this.build(node, node => (this.overlayNode = node));
 
-        if (process.env.VASILLE_TARGET === "es5" && window.onpopstate !== null) {
-            window.addEventListener("hashchange", () => {
-                const path = location.hash.substring(1);
-
-                if (path !== this.$currentUrl.V) {
-                    this.doNavigate(path, false, "loading-screen");
-                }
-            });
-            this.doNavigate(location.hash.substring(1) || location.href, true, "loading-screen");
-        } else {
-            window.addEventListener("popstate", () => {
-                this.doNavigate(location.href, false, "loading-screen");
-            });
-            this.doNavigate(location.href, true, "loading-screen");
-        }
+        window.addEventListener("popstate", () => {
+            this.doNavigate(location.href, false, "loading-screen");
+        });
+        this.doNavigate(location.href, true, "loading-screen");
     }
 
     /**
@@ -98,37 +88,12 @@ export class Router<Routes extends string> extends AbstractRouter<
     }
 
     protected parseUrl(url: string): [string, QueryParams, string] {
-        if (process.env.VASILLE_TARGET === "es5" && !("URL" in this.window)) {
-            if (!/^https?:\/\//.test(url) && url.charAt(0) !== "/") {
-                throw new TypeError("Invalid URL");
-            }
+        const parsed = new URL(url, this.location.origin);
+        const query = [...parsed.searchParams.keys()].reduce((prev, key) => {
+            return { ...prev, [key]: parsed.searchParams.getAll(key) };
+        }, {} as QueryParams);
 
-            const a = this.window.document.createElement("a");
-            const query: QueryParams = {};
-            const pairs = (url.split("?")[1] || "").split("&");
-            pairs.forEach(pair => {
-                const [key, value] = pair.split("=").map(decodeURIComponent);
-
-                if (value) {
-                    if (key in query) {
-                        query[key].push(value);
-                    } else {
-                        query[key] = [value];
-                    }
-                }
-            });
-
-            a.href = url;
-
-            return [a.pathname, query, a.hash];
-        } else {
-            const parsed = new URL(url, this.location.origin);
-            const query = [...parsed.searchParams.keys()].reduce((prev, key) => {
-                return { ...prev, [key]: parsed.searchParams.getAll(key) };
-            }, {} as QueryParams);
-
-            return [parsed.pathname, query, parsed.hash];
-        }
+        return [parsed.pathname, query, parsed.hash];
     }
 
     protected async loadTarget<Route extends string>(
@@ -153,11 +118,7 @@ export class Router<Routes extends string> extends AbstractRouter<
 
             this.$currentUrl.V = props.url;
             if (this.location.href !== props.url && this.location.hash !== "#" + props.url) {
-                if (process.env.VASILLE_TARGET === "es5" && !this.window.history) {
-                    this.location.hash = "#" + props.url;
-                } else {
-                    this.window.history.pushState({}, "", props.url);
-                }
+                this.window.history.pushState({}, "", props.url);
             }
         } catch (error) {
             if (mode !== "silent") {
@@ -192,11 +153,7 @@ export class Router<Routes extends string> extends AbstractRouter<
         });
 
         if (scope === "not-found") {
-            if (process.env.VASILLE_TARGET === "es5" && !this.window.history) {
-                this.window.location.hash = "#/";
-            } else {
-                this.window.history.replaceState({}, "", "/");
-            }
+            this.window.history.replaceState({}, "", "/");
         }
     }
 
@@ -212,12 +169,14 @@ export class Router<Routes extends string> extends AbstractRouter<
         children.clear();
     }
 
-    protected build(node: Fragment<Node, Element, TagOptions>, run?: (node: Fragment<Node, Element, TagOptions>) => void) {
+    protected build(
+        node: Fragment<Node, Element, TagOptions>,
+        run?: (node: Fragment<Node, Element, TagOptions>) => void,
+    ) {
         const child = new Fragment<Node, Element, TagOptions>(node.runner);
 
         node.create(child, run);
     }
-
 }
 
 export function routeApp<Routes extends string>(
@@ -227,16 +186,18 @@ export function routeApp<Routes extends string>(
     init: WebRouterInitialization<Routes>,
 ) {
     const runner = new Runner(window.document);
-    const app = new App(node, runner);
 
-    app.create(new Fragment(runner), node => {
-        const router = new Router(window, location, node, init);
+    return mount(
+        node,
+        (_data, node) => {
+            const router = new Router(window, location, node, init);
 
-        Object.defineProperty(runner, "router", {
-            value: router,
-            writable: false,
-        });
-    });
-
-    return app;
+            Object.defineProperty(runner, "router", {
+                value: router,
+                writable: false,
+            });
+        },
+        runner,
+        {},
+    );
 }

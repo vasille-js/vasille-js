@@ -1,16 +1,28 @@
-import { DevExpression, BaseDevReference, DevReference } from "./state.js";
+import { DevExpression, DevReference } from "./state.js";
 
-export interface Position {
-    pathLineAndChar: string;
-    error?: Error;
-}
+export type StaticPosition = string;
+export type ExecutionPosition = number;
 
-export function declarationPosition(pathLineAndChar: string) {
-    return { pathLineAndChar };
-}
+let positionId: number = 1;
 
-export function usagePosition(pathLineAndChar: string, error: Error): Position {
-    return { error, pathLineAndChar };
+export function executionPosition(ctx: object | undefined, pathLineAndChar: string, error: Error): ExecutionPosition {
+    if (ctx && "inspector" in ctx) {
+        const id = positionId++;
+
+        (ctx.inspector as Inspector).registerExecutionPosition({
+            id: id,
+            position: pathLineAndChar,
+            stack:
+                error.stack
+                    ?.split("\n")
+                    .slice(1)
+                    .map(line => line.trim()) ?? [],
+        });
+
+        return id;
+    }
+
+    return 0;
 }
 
 export interface Inspectable {
@@ -23,9 +35,9 @@ export interface InspectableReactive {
 }
 
 export interface InspectableReference<T> extends Inspectable {
-    declaration?: Position;
-    inspector: Inspector;
-    update(value: T, position: Position): void;
+    declaration?: StaticPosition;
+    inspector?: Inspector;
+    update(value: T, position?: ExecutionPosition): void;
 }
 
 export interface Dependency extends Inspectable {
@@ -35,7 +47,7 @@ export interface Dependency extends Inspectable {
 
 export interface ProtocolPosition {
     id: number;
-    declaration: Position;
+    declaration: StaticPosition;
 }
 
 export interface ProtocolReference extends ProtocolPosition {
@@ -45,14 +57,14 @@ export interface ProtocolReference extends ProtocolPosition {
 export interface ProtocolReferenceUpdate {
     id: number;
     value: DevValue;
-    position: Position;
+    position?: ExecutionPosition;
 }
 
 export interface ProtocolReferenceError {
     id: number;
     error: unknown;
     handler: DevValue;
-    position: Position;
+    position?: ExecutionPosition;
 }
 
 export interface ProtocolExpression extends ProtocolReference {
@@ -77,8 +89,8 @@ export interface ProtocolComponent {
     id: number;
     name: string;
     props: { [k: string]: number | DevValue };
-    declaration?: Position | null;
-    usage?: Position | null;
+    declaration?: StaticPosition | null;
+    usage?: StaticPosition | null;
 }
 
 export interface ProtocolState {
@@ -94,7 +106,7 @@ export interface ProtocolParent {
 
 export interface ProtocolTag {
     id: number;
-    usage: Position | undefined;
+    usage: StaticPosition | undefined;
     tagName: string;
     attr?: { [k: string]: number | DevValue };
     class?: (number | string | { [k: string]: number | DevValue })[];
@@ -118,7 +130,7 @@ export interface ProtocolComponentError {
 export interface ProtocolSlotError {
     componentId: number;
     error: unknown;
-    usage: Position;
+    usage: StaticPosition;
 }
 
 export interface ProtocolModel {
@@ -139,7 +151,7 @@ export interface ProtocolStore extends ProtocolPosition {
 }
 
 export interface ProtocolCustomModel extends ProtocolPosition {
-    usage: Position;
+    usage: StaticPosition;
     name: string;
 }
 
@@ -152,7 +164,34 @@ export interface ProtocolRouterTargetResult {
     params: object;
 }
 
+export interface ProtocolExecutionPosition {
+    id: number;
+    position: StaticPosition;
+    stack: string[];
+}
+
+export interface ProtocolDevValue {
+    id: number;
+    pos: StaticPosition;
+}
+
+export interface ProtocolRoutes {
+    paths: string[];
+}
+
+export interface ProtocolRouterStateChange {
+    name: string;
+    value: string | null | undefined;
+}
+
+export interface ProtocolRouterActionCall {
+    name: string;
+    path: string;
+}
+
 export interface Inspector {
+    registerExecutionPosition(pos: ProtocolExecutionPosition): void;
+    registerDevValue(value: ProtocolDevValue): void;
     idToPosition(pos: ProtocolPosition): void;
 
     // Reference
@@ -184,9 +223,9 @@ export interface Inspector {
     createCustomModel(model: ProtocolCustomModel): void;
 
     // routes
-    registeredRoutes(path: string[]): void;
-    routerStateChange(name: string, value: string | null | undefined): void;
-    routerActionCall(name: string, path: string): void;
+    registeredRoutes(routes: ProtocolRoutes): void;
+    routerStateChange(change: ProtocolRouterStateChange): void;
+    routerActionCall(call: ProtocolRouterActionCall): void;
     routerTargetResult(data: ProtocolRouterTargetResult): void;
 
     // any
@@ -202,12 +241,11 @@ export function provideId() {
 export interface DevValue {
     type: string;
     value?: string | undefined;
-    internal?: DevValueInternal;
+    id?: number;
 }
 
 interface DevValueInternal {
     id: number;
-    declaration: Position;
 }
 
 const DevValueInternalKey = Symbol("DevValueInternal");
@@ -215,17 +253,21 @@ const primitiveTypes: string[] = ["number", "string", "boolean"] as const;
 
 export const devValues = new Map<number, object>();
 
-export function registerDevValue(value: object, declaration: Position, inspector: Inspector) {
+let devValueIndex = 1;
+
+export function registerDevValue<T extends object>(value: T, declaration: StaticPosition, inspector?: Inspector): T {
     if (!(DevValueInternalKey in value)) {
-        const id = provideId();
+        const id = devValueIndex++;
 
         Object.defineProperty(value, DevValueInternalKey, {
-            value: { id, declaration } satisfies DevValueInternal,
+            value: { id } satisfies DevValueInternal,
             writable: false,
         });
-        inspector.reportReferenceError;
+        inspector?.registerDevValue({ id, pos: declaration });
         devValues.set(id, value);
     }
+
+    return value;
 }
 
 export function toDevValue(value: unknown) {
@@ -238,7 +280,7 @@ export function toDevValue(value: unknown) {
     return {
         type: type,
         value: primitiveTypes.includes(type) || value === null ? JSON.stringify(value) : undefined,
-        internal: data,
+        id: data?.id,
     } satisfies DevValue;
 }
 

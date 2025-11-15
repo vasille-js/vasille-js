@@ -1,3 +1,4 @@
+export { DevReactive } from "./core.js";
 export { DevApp, DevPortal, DevSwitchedNode, DevWatch } from "./components.js";
 export {
     type Dependency,
@@ -6,7 +7,9 @@ export {
     type InspectableReactive,
     type InspectableReference,
     type Inspector,
-    type Position,
+    type StaticPosition,
+    type ExecutionPosition,
+    type ProtocolExecutionPosition,
     type ProtocolComponent,
     type ProtocolDependency,
     type ProtocolExpression,
@@ -25,7 +28,13 @@ export {
     type ProtocolCustomModel,
     type ProtocolStore,
     type ProtocolComponentError,
-    declarationPosition,
+    type ProtocolRouterActionCall,
+    type ProtocolDevValue,
+    type ProtocolSlotError,
+    type ProtocolRouterStateChange,
+    type ProtocolRoutes,
+    type ProtocolRouterTargetResult,
+    executionPosition,
     devValues,
     provideId,
     registerDevValue,
@@ -33,7 +42,6 @@ export {
     toDevIdOrValue,
     toDevObject,
     toDevValue,
-    usagePosition,
 } from "./inspectable.js";
 export { DevArrayModel, DevMapModel, DevSetModel } from "./models.js";
 export { DevFragment, DevTag, ModelId, shareStateById } from "./node.js";

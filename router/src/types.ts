@@ -11,16 +11,20 @@ export type GetRouteParameter<S extends string> = RemoveTail<S, `/${string}`>;
 export type RouteParameters<Route extends string> = string extends Route
     ? NoParams
     : Route extends `${string}/*`
-        ? RouteParameters<RemoveTail<Route, "/*">> & {
-        "*": string;
-    } : Route extends `${string}*${string}`
-            ? NoParams
-            : Route extends `(${infer Id})/${string}`
-                ? RouteParameters<RemoveHead<Route, `(${Id})/`>> & { [k in Id]: string }
-                : Route extends `${infer Head}/${string}`
-                    ? RouteParameters<RemoveHead<Route, `${Head}/`>>
-                    : Route extends `(${infer Id})` ? {[k in Id]: string }
-                        : Route extends `/${infer Path}` ? RouteParameters<Path> : NoParams;
+      ? RouteParameters<RemoveTail<Route, "/*">> & {
+            "*": string;
+        }
+      : Route extends `${string}*${string}`
+        ? NoParams
+        : Route extends `(${infer Id})/${string}`
+          ? RouteParameters<RemoveHead<Route, `(${Id})/`>> & { [k in Id]: string }
+          : Route extends `${infer Head}/${string}`
+            ? RouteParameters<RemoveHead<Route, `${Head}/`>>
+            : Route extends `(${infer Id})`
+              ? { [k in Id]: string }
+              : Route extends `/${infer Path}`
+                ? RouteParameters<Path>
+                : NoParams;
 
 export type QueryParams = { [k: string]: string[] };
 

@@ -4,7 +4,7 @@ import { ArrayView } from "../views/array-view.js";
 import { BaseViewOptions } from "../views/base-view.js";
 import { MapView } from "../views/map-view.js";
 import { SetView } from "../views/set-view.js";
-import { Inspector, Position, provideId, toDevObject } from "./inspectable.js";
+import { Inspector, provideId, StaticPosition, toDevObject } from "./inspectable.js";
 import { DevArrayModel, DevMapModel, DevSetModel } from "./models.js";
 import { DevFragment } from "./node.js";
 
@@ -16,7 +16,7 @@ export class DevArrayView<Node, Element, TagOptions extends object, T> extends A
         input: BaseViewOptions<Node, Element, TagOptions, T, T, DevArrayModel<T>>,
         runner: IRunner<Node, Element, TagOptions>,
         inspector: Inspector | undefined,
-        usage: Position,
+        usage: StaticPosition,
     ) {
         super(input, runner);
         this.id = provideId();
@@ -45,7 +45,7 @@ export class DevSetView<Node, Element, TagOptions extends object, T> extends Set
         input: BaseViewOptions<Node, Element, TagOptions, T, T, DevSetModel<T>>,
         runner: IRunner<Node, Element, TagOptions>,
         inspector: Inspector | undefined,
-        usage: Position,
+        usage: StaticPosition,
     ) {
         super(input, runner);
         this.id = provideId();
@@ -80,7 +80,7 @@ export class DevMapView<Node, Element, TagOptions extends object, K, T> extends 
         input: BaseViewOptions<Node, Element, TagOptions, K, T, DevMapModel<K, T>>,
         runner: IRunner<Node, Element, TagOptions>,
         inspector: Inspector | undefined,
-        usage: Position,
+        usage: StaticPosition,
     ) {
         super(input, runner);
         this.id = provideId();

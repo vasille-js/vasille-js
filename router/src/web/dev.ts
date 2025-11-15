@@ -1,8 +1,36 @@
 import { Router, WebRouterInitialization } from "./router.js";
-import { DevApp, DevFragment, DevRunner, DevTagOptions, Inspector } from "vasille/dev";
+import { DevApp, DevFragment, DevRunner, DevTagOptions, Inspector, StaticPosition } from "vasille/dev";
+import { Fragment } from "vasille";
+import { ScreenProps } from "../types.js";
+import { devMount } from "vasille-jsx/dev";
+
+export function devScreen<Node, Element, TagOptions extends object, Route extends string>(
+    renderer: (node: DevFragment<Node, Element, TagOptions>, input: ScreenProps<Route>) => Promise<void>,
+    declaration: StaticPosition,
+    name: string,
+): (props: ScreenProps<Route>, ctx?: Fragment<Node, Element, TagOptions>) => Promise<void> {
+    return async function (props, node) {
+        if (!node) {
+            throw new Error("Vasille: Screen context is missing");
+        }
+
+        const frag = new DevFragment<Node, Element, TagOptions>(
+            node.runner,
+            declaration,
+            null,
+            name,
+            props,
+            "inspector" in node ? (node.inspector as Inspector) : undefined,
+        );
+
+        node.create(frag);
+
+        await renderer(frag, props);
+    };
+}
 
 export class DevRouter<Routes extends string> extends Router<Routes> {
-    public readonly inspector: Inspector;
+    public readonly inspector: Inspector | undefined;
 
     public constructor(
         window: Window,
@@ -13,40 +41,40 @@ export class DevRouter<Routes extends string> extends Router<Routes> {
         super(window, location, node, init);
 
         this.inspector = node.inspector;
-        node.inspector.registeredRoutes([...Object.keys(init.routes)]);
+        node.inspector?.registeredRoutes({paths: [...Object.keys(init.routes)]});
 
         this.$currentUrl.on(value => {
-            node.inspector.routerStateChange("currentUrl", value);
+            node.inspector?.routerStateChange({name: "currentUrl", value});
         });
         this.$loadingUrl.on(value => {
-            node.inspector.routerStateChange("loadingUrl", value);
+            node.inspector?.routerStateChange({name:"loadingUrl", value});
         });
     }
 
     public goTo(url: string) {
-        this.inspector.routerActionCall("goTo", url);
+        this.inspector?.routerActionCall({name:"goTo", path: url});
         super.goTo(url);
     }
 
     public ajax(url: string) {
-        this.inspector.routerActionCall("ajax", url);
+        this.inspector?.routerActionCall({name:"ajax", path:url});
         super.ajax(url);
     }
 
     public load(url: string): Promise<void> {
-        this.inspector.routerActionCall("load", url);
+        this.inspector?.routerActionCall({name:"load", path:url});
         return super.load(url);
     }
 
     public reload() {
-        this.inspector.routerActionCall("reload", this.$currentUrl.V);
+        this.inspector?.routerActionCall({name:"reload", path:this.$currentUrl.V});
         super.reload();
     }
 
     protected targetByUrl(url: string) {
-        const result =  super.targetByUrl(url);
+        const result = super.targetByUrl(url);
 
-        this.inspector.routerTargetResult({
+        this.inspector?.routerTargetResult({
             url: result.url,
             path: result.path,
             query: result.query,
@@ -67,13 +95,18 @@ export function devRouteApp<Routes extends string>(
     inspector: Inspector,
 ) {
     const runner = new DevRunner(window.document, inspector);
-    const app = new DevApp(node, runner, inspector);
 
-    app.create(new DevFragment(runner, null, null, "Root", {}, inspector), node => {
-        const router = new DevRouter(window, location, node, init);
+    return devMount<object>(
+        node,
+        (_data, node) => {
+            const router = new DevRouter(window, location, node, init);
 
-        Object.defineProperty(runner, "router", {
-            value: router,
-        });
-    });
+            Object.defineProperty(runner, "router", {
+                value: router,
+            });
+        },
+        runner,
+        {},
+        inspector,
+    );
 }

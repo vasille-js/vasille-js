@@ -1,10 +1,10 @@
-import { Fragment, Portal, reportError } from "vasille";
+import { App, Fragment, Portal, reportError } from "vasille";
 import { StyleProps } from "../spec/css.js";
 import { Runner, TagOptions } from "vasille/web-runner";
 import { mount as coreMount } from "vasille-jsx";
-import { styleSheet as coreStyleSheet } from "vasille-css";
 import { routeApp as coreRouteApp, WebRouterInitialization } from "vasille-router/web-router";
 
+export { styleSheet } from "vasille-css";
 export type { RawStyleProps as StyleProps } from "../spec/css.js";
 export type { ClassItem } from "./jsx-runtime.js";
 export { safe } from "vasille";
@@ -45,22 +45,9 @@ export {
     type ErrorScreenProps,
 } from "vasille-router";
 
-export { Router, type WebRouterInitialization, type NavigationMode, routeApp } from "vasille-router/web-router";
+export { Router, type WebRouterInitialization, type NavigationMode } from "vasille-router/web-router";
 
 export { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "vasille-css";
-
-export const styleSheet = coreStyleSheet as <
-    T extends {
-        [className: string]: {
-            [media: `@${string}`]: {
-                [state: `:${string}`]: StyleProps;
-            } & StyleProps;
-            [state: `:${string}`]: StyleProps;
-        } & StyleProps;
-    },
->(
-    input: T,
-) => { [K in keyof T]: string };
 
 function createPortal(node: Fragment<Node, Element, TagOptions>) {
     const portal = new Portal<Node, Element, TagOptions>({ node: document.body }, node.runner);
@@ -132,10 +119,13 @@ export function prompt<T extends PromptProps>(
     };
 }
 
-export function mount<T>(element: Element, component: ($: T) => void, input: T) {
+export function mount<T>(element: Element, component: ($: T) => void, input: T): App<Node, Element, TagOptions> {
     return coreMount<Node, Element, TagOptions, T>(element, component, new Runner(window.document), input);
 }
 
-export function routerApp<Routes extends string>(init: WebRouterInitialization<Routes>, element?: Element) {
+export function routerApp<Routes extends string>(
+    init: WebRouterInitialization<Routes>,
+    element?: Element,
+): App<Node, Element, TagOptions> {
     return coreRouteApp(element ?? document.body, window, window.location, init);
 }

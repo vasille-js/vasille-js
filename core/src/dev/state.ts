@@ -1,14 +1,13 @@
 import { Reactive } from "../core/core.js";
 import { Destroyable } from "../core/destroyable.js";
 import { IValue } from "../core/ivalue.js";
-import { Reference } from "../value/reference.js";
 import {
     Dependency,
-    Inspectable,
+    ExecutionPosition,
     InspectableReference,
     Inspector,
-    Position,
     provideId,
+    StaticPosition,
     toDevValue,
 } from "./inspectable.js";
 
@@ -17,12 +16,12 @@ export type KindOfDevIValue<T extends unknown[]> = {
 };
 
 export abstract class DevIValue<T> extends IValue<T> {
-    public abstract update(value: T, position: Position): void;
+    public abstract update(value: T, position: ExecutionPosition): void;
 }
 
 export class BaseDevReference<T> extends DevIValue<T> {
     protected state: T;
-    protected readonly onChange: Set<(value: T, position: Position) => void>;
+    protected readonly onChange: Set<(value: T, position?: ExecutionPosition) => void>;
 
     public constructor(value: T) {
         super();
@@ -34,12 +33,11 @@ export class BaseDevReference<T> extends DevIValue<T> {
         return this.state;
     }
 
-    public set V(v: T) {
-        void v;
-        throw new Error("Production API access detected");
+    public set V(value: T) {
+        this.update(value);
     }
 
-    public update(value: T, position: Position) {
+    public update(value: T, position?: ExecutionPosition) {
         if (this.state !== value) {
             this.state = value;
 
@@ -55,19 +53,19 @@ export class BaseDevReference<T> extends DevIValue<T> {
         }
     }
 
-    public on(handler: (value: T, position: Position) => void): void {
+    public on(handler: (value: T, position: ExecutionPosition) => void): void {
         this.onChange.add(handler);
     }
 
-    public off(handler: (value: T, position: Position) => void): void {
+    public off(handler: (value: T, position: ExecutionPosition) => void): void {
         this.onChange.delete(handler);
     }
 
-    protected shareUpdate(position: Position) {
+    protected shareUpdate(position?: ExecutionPosition) {
         void position;
     }
 
-    protected shareError(error: unknown, handler: unknown, position: Position) {
+    protected shareError(error: unknown, handler: unknown, position?: ExecutionPosition) {
         void error;
         void handler;
         void position;
@@ -76,15 +74,15 @@ export class BaseDevReference<T> extends DevIValue<T> {
 
 export class DevReference<T> extends BaseDevReference<T> implements InspectableReference<T>, Destroyable {
     public readonly id: number;
-    public readonly inspector: Inspector;
+    public readonly inspector: Inspector | undefined;
 
-    public constructor(value: T, declaration: Position, inspector: Inspector) {
+    public constructor(value: T, declaration: StaticPosition, inspector?: Inspector) {
         super(value);
 
         this.id = provideId();
         this.inspector = inspector;
 
-        inspector.newReference({
+        inspector?.newReference({
             id: this.id,
             declaration: declaration,
             value: toDevValue(this.state),
@@ -95,18 +93,16 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
         this.shareDestroy();
     }
 
-    protected shareCreated() {}
-
-    protected shareUpdate(position: Position) {
-        this.inspector.updateReference({
+    protected shareUpdate(position?: ExecutionPosition) {
+        this.inspector?.updateReference({
             id: this.id,
             position: position,
             value: toDevValue(this.state),
         });
     }
 
-    protected shareError(error: unknown, handler: unknown, position: Position) {
-        this.inspector.reportReferenceError({
+    protected shareError(error: unknown, handler: unknown, position?: ExecutionPosition) {
+        this.inspector?.reportReferenceError({
             handler: toDevValue(handler),
             id: this.id,
             error: error,
@@ -115,23 +111,23 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
     }
 
     protected shareDestroy() {
-        this.inspector.destroy(this.id);
+        this.inspector?.destroy(this.id);
     }
 }
 
 export class ExpressionDevReference<T> extends BaseDevReference<T> implements InspectableReference<T> {
     public readonly id: number;
-    public readonly inspector: Inspector;
+    public readonly inspector: Inspector | undefined;
 
-    public constructor(id: number, value: T, inspector: Inspector) {
+    public constructor(id: number, value: T, inspector: Inspector | undefined) {
         super(value);
 
         this.id = id;
         this.inspector = inspector;
     }
 
-    protected shareError(error: unknown, handler: unknown, position: Position) {
-        this.inspector.reportReferenceError({
+    protected shareError(error: unknown, handler: unknown, position: ExecutionPosition) {
+        this.inspector?.reportReferenceError({
             handler: toDevValue(handler),
             id: this.id,
             error: error,
@@ -145,8 +141,8 @@ export class DevExpression<T, Args extends unknown[]>
     implements Destroyable, InspectableReference<T>
 {
     public readonly id: number;
-    public readonly declaration: Position;
-    public readonly inspector: Inspector;
+    public readonly declaration: StaticPosition;
+    public readonly inspector: Inspector | undefined;
 
     private values: KindOfDevIValue<Args>;
     private readonly valuesCache: Args;
@@ -158,14 +154,14 @@ export class DevExpression<T, Args extends unknown[]>
         values: KindOfDevIValue<Args>,
         ctx: Reactive | undefined,
         depsCode: string[],
-        declaration: Position,
-        inspector: Inspector,
+        declaration: StaticPosition,
+        inspector: Inspector | undefined,
         isWatch: boolean,
     ) {
         super();
 
         const id = provideId();
-        const handler = (i: number, value: unknown, position: Position) => {
+        const handler = (i: number, value: unknown, position: ExecutionPosition) => {
             try {
                 this.valuesCache[i] = value;
 
@@ -173,7 +169,7 @@ export class DevExpression<T, Args extends unknown[]>
 
                 if (this.sync.V !== newValue || isWatch) {
                     this.sync.update(newValue, position);
-                    inspector.updateExpression({
+                    inspector?.updateExpression({
                         id: id,
                         position: position,
                         value: newValue,
@@ -181,7 +177,7 @@ export class DevExpression<T, Args extends unknown[]>
                     });
                 }
             } catch (e) {
-                inspector.reportExpressionCalculationError({
+                inspector?.reportExpressionCalculationError({
                     id: id,
                     error: e,
                     handler: toDevValue(func),
@@ -210,7 +206,7 @@ export class DevExpression<T, Args extends unknown[]>
         this.values = values;
         ctx?.bind(this);
 
-        inspector.newExpression({
+        inspector?.newExpression({
             id: this.id,
             declaration: this.declaration,
             isWatch: isWatch,
@@ -229,7 +225,7 @@ export class DevExpression<T, Args extends unknown[]>
         });
     }
 
-    public update(value: T, position: Position): void {
+    public update(value: T, position?: ExecutionPosition): void {
         this.sync.update(value, position);
     }
 
@@ -238,20 +234,19 @@ export class DevExpression<T, Args extends unknown[]>
     }
 
     public set V(v: T) {
-        void v;
-        throw new Error("Production API access detected");
+        this.sync.V = v;
     }
 
-    public on(handler: (value: T, position: Position) => void): void {
+    public on(handler: (value: T, position: ExecutionPosition) => void): void {
         this.sync.on(handler);
     }
 
-    public off(handler: (value: T, position: Position) => void): void {
+    public off(handler: (value: T, position: ExecutionPosition) => void): void {
         this.sync.off(handler);
     }
 
     public destroy(): void {
-        this.inspector.destroy(this.id);
+        this.inspector?.destroy(this.id);
         for (let i = 0; i < this.values.length; i++) {
             this.values[i]?.off(this.linkedFunc[i]);
         }

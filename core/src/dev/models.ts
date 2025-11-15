@@ -6,15 +6,15 @@ import { Inspector, provideId, toDevIdOrValue, toDevValue } from "./inspectable.
 
 export class DevArrayModel<T> extends ArrayModel<T> {
     public readonly id: number;
-    public readonly inspector: Inspector;
+    public readonly inspector: Inspector | undefined;
 
-    public constructor(inspector: Inspector, data?: Array<T> | number, ctx?: Reactive) {
+    public constructor(inspector: Inspector | undefined, data?: Array<T> | number, ctx?: Reactive) {
         super(data, ctx);
 
         this.id = provideId();
         this.inspector = inspector;
 
-        inspector.createModel({
+        inspector?.createModel({
             id: this.id,
             type: "array",
             values: this.map((item, index) => [index, toDevValue(item)]),
@@ -22,7 +22,7 @@ export class DevArrayModel<T> extends ArrayModel<T> {
     }
 
     public destroy(): void {
-        this.inspector.destroy(this.id);
+        this.inspector?.destroy(this.id);
         super.destroy();
     }
 
@@ -61,7 +61,7 @@ export class DevArrayModel<T> extends ArrayModel<T> {
     }
 
     protected shareChange(method: string, args: unknown[], result: unknown) {
-        this.inspector.updateModel({
+        this.inspector?.updateModel({
             id: this.id,
             method: method,
             args: args.map(toDevIdOrValue),
@@ -72,14 +72,14 @@ export class DevArrayModel<T> extends ArrayModel<T> {
 
 export class DevSetModel<T> extends SetModel<T> {
     public readonly id: number;
-    public readonly inspector: Inspector;
+    public readonly inspector: Inspector | undefined;
 
-    public constructor(inspector: Inspector, set?: T[], ctx?: Reactive) {
+    public constructor(inspector: Inspector | undefined, set?: T[], ctx?: Reactive) {
         super(set, ctx);
         this.id = provideId();
         this.inspector = inspector;
 
-        inspector.createModel({
+        inspector?.createModel({
             id: this.id,
             type: "set",
             values: [...this].map(item => [0, toDevIdOrValue(item)]),
@@ -87,28 +87,28 @@ export class DevSetModel<T> extends SetModel<T> {
     }
 
     public destroy(): void {
-        this.inspector.destroy(this.id);
+        this.inspector?.destroy(this.id);
         super.destroy();
     }
 
     public add(value: T): this {
         this.shareChange("add", [value], undefined);
-        return this.add(value);
+        return super.add(value);
     }
 
     public clear(): void {
         this.shareChange("clear", [], undefined);
-        return this.clear();
+        return super.clear();
     }
 
     public delete(value: T): boolean {
-        const result = this.delete(value);
+        const result = super.delete(value);
         this.shareChange("delete", [value], result);
         return result;
     }
 
     protected shareChange(method: string, args: unknown[], result: unknown) {
-        this.inspector.updateModel({
+        this.inspector?.updateModel({
             id: this.id,
             method: method,
             args: args.map(toDevIdOrValue),
@@ -119,14 +119,14 @@ export class DevSetModel<T> extends SetModel<T> {
 
 export class DevMapModel<K, T> extends MapModel<K, T> {
     public readonly id: number;
-    public readonly inspector: Inspector;
+    public readonly inspector: Inspector | undefined;
 
-    public constructor(inspector: Inspector, map?: [K, T][], ctx?: Reactive) {
+    public constructor(inspector: Inspector | undefined, map?: [K, T][], ctx?: Reactive) {
         super(map, ctx);
         this.id = provideId();
         this.inspector = inspector;
 
-        inspector.createModel({
+        inspector?.createModel({
             id: this.id,
             type: "map",
             values: [...this.entries()].map(([key, value]) => [toDevIdOrValue(key), toDevIdOrValue(value)]),
@@ -134,7 +134,7 @@ export class DevMapModel<K, T> extends MapModel<K, T> {
     }
 
     public destroy(): void {
-        this.inspector.destroy(this.id);
+        this.inspector?.destroy(this.id);
     }
 
     public clear(): void {
@@ -154,7 +154,7 @@ export class DevMapModel<K, T> extends MapModel<K, T> {
     }
 
     protected shareChange(method: string, args: unknown[], result: unknown) {
-        this.inspector.updateModel({
+        this.inspector?.updateModel({
             id: this.id,
             method: method,
             args: args.map(toDevIdOrValue),

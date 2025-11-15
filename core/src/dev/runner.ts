@@ -1,25 +1,24 @@
 import { IValue } from "../core/ivalue.js";
 import { TextProps } from "../node/node.js";
-import { IRunner } from "../node/runner.js";
 import { Runner, Tag, TagOptions, TextNode } from "../runner/web/runner.js";
-import { DevValue, Inspector, Position, provideId, toDevId, toDevIdOrValue, toDevObject } from "./inspectable.js";
+import { DevValue, Inspector, provideId, StaticPosition, toDevId, toDevIdOrValue, toDevObject } from "./inspectable.js";
 import { DevExpression, DevReference } from "./state.js";
 
 export interface DevTagOptions extends TagOptions {
-    usage?: Position;
+    usage?: StaticPosition;
 }
 
 export class PositionedText {
     text: unknown;
-    position: Position;
+    position: StaticPosition;
 }
 
 class DevTextNode extends TextNode<DevTagOptions> {
     public readonly id: number;
-    public readonly usage: Position;
+    public readonly usage: StaticPosition;
     public readonly inspector: Inspector;
 
-    public constructor(input: TextProps, runner: DevRunner, usage: Position, inspector: Inspector) {
+    public constructor(input: TextProps, runner: DevRunner, usage: StaticPosition, inspector: Inspector) {
         super(input, runner);
         this.id = provideId();
         this.usage = usage;
@@ -44,7 +43,7 @@ class DevTextNode extends TextNode<DevTagOptions> {
 
 class DevTag extends Tag<DevTagOptions> {
     public readonly id: number;
-    public readonly usage: Position | undefined;
+    public readonly usage: StaticPosition | undefined;
     public readonly inspector: Inspector;
 
     declare public runner: DevRunner;
@@ -53,7 +52,7 @@ class DevTag extends Tag<DevTagOptions> {
         options: DevTagOptions,
         runner: DevRunner,
         tagName: string,
-        usage: Position | undefined,
+        usage: StaticPosition | undefined,
         inspector: Inspector,
     ) {
         super(options, runner, tagName);

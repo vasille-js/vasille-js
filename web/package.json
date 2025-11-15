@@ -4,12 +4,9 @@
   "description": "The same framework which is designed to build bulletproof frontends.",
   "main": "index.js",
   "types": "./index.d.ts",
-  "bin": {
-    "vasille-web": "./lib/bin.js"
-  },
   "exports": {
     ".": {
-      "types": "./fake-types/index.d.ts",
+      "types": "./types/index.d.ts",
       "import": "./lib/index.js",
       "browser": "./lib/index.js",
       "node": "./lib/index.js"
@@ -19,13 +16,19 @@
       "import": "./lib/jsx-runtime.js",
       "browser": "./lib/jsx-runtime.js",
       "node": "./lib/jsx-runtime.js"
+    },
+    "./dev": {
+      "types": "./types/dev.d.ts",
+      "import": "./lib/dev.js",
+      "browser": "./lib/dev.js",
+      "node": "./lib/dev.js"
     }
   },
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
-    "prettier": "prettier src fake-types --write",
-    "build": "tsc --build tsconfig.json",
-    "check-types": "tsc --noEmit --lib es2020 --types web --moduleResolution Node16 --module Node16 ./fake-types/index.d.ts"
+    "prettier": "prettier src --write",
+    "prebuild": "rm -rf lib types",
+    "build": "tsc --build tsconfig.json"
   },
   "type": "module",
   "repository": {

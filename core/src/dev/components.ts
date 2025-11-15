@@ -4,10 +4,9 @@ import { IRunner } from "../node/runner.js";
 import { Watch, WatchOptions } from "../node/watch.js";
 import {
     DevValue,
-    InspectableReactive,
     Inspector,
-    Position,
     provideId,
+    StaticPosition,
     toDevIdOrValue,
     toDevObject,
     toDevValue,
@@ -18,7 +17,7 @@ export class DevWatch<Node, Element, TagOptions extends object, T> extends Watch
     public constructor(
         input: WatchOptions<Node, Element, TagOptions, T>,
         runner: IRunner<Node, Element, TagOptions>,
-        usage: Position,
+        usage: StaticPosition,
         inspector: Inspector | undefined,
     ) {
         super(input, runner);
@@ -63,8 +62,8 @@ export class DevPortal<Node, Element, TagOptions extends object> extends Portal<
         input: PortalOptions<Node, Element, TagOptions>,
         runner: IRunner<Node, Element, TagOptions>,
         inspector: Inspector | undefined,
-        declaration: Position | undefined,
-        usage: Position | undefined,
+        declaration: StaticPosition | undefined,
+        usage: StaticPosition | undefined,
         name: string | undefined,
     ) {
         super(input, runner);
@@ -93,7 +92,7 @@ export class DevSwitchedNode<Node, Element, TagOptions extends object> extends S
 
     public constructor(
         inspector: Inspector | undefined,
-        usage: Position,
+        usage: StaticPosition,
         runner: IRunner<Node, Element, TagOptions>,
         cases: SwitchedNodeCase<Node, Element, TagOptions>[],
         _default?: (node: Fragment<Node, Element, TagOptions>) => void,

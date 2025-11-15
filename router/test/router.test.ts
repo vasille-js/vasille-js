@@ -11,7 +11,7 @@ it("empty", function (done) {
 
     routeApp(body, window as unknown as Window, window.location, {
         fallbackScreen(props, ctx) {
-            ctx.tag("div", { class: ["fallback"] }, div => {
+            ctx.tag("div", { c: ["fallback"] }, div => {
                 div.text(props.cause);
             });
         },
@@ -36,7 +36,7 @@ it("error", function (done) {
             throw new Error("test error");
         },
         errorScreen(props, ctx) {
-            ctx.tag("div", { class: ["error"] }, div => {
+            ctx.tag("div", { c: ["error"] }, div => {
                 div.text(props.error);
             });
         },
@@ -120,7 +120,7 @@ it("static /", function (done) {
             "/": {
                 screen: screen<Node, Element, TagOptions, "/">((ctx, props) => {
                     expect(props.path).toBe("/");
-                    ctx.tag("div", { class: ["answer200"] }, div => {
+                    ctx.tag("div", { c: ["answer200"] }, div => {
                         div.text(props.query.text);
                     });
 
@@ -149,7 +149,7 @@ it("static /about", function (done) {
             "/about": {
                 async screen(props, ctx) {
                     expect(props.path).toBe("/about");
-                    ctx.tag("div", { class: ["answer301"] }, div => {
+                    ctx.tag("div", { c: ["answer301"] }, div => {
                         div.text(Array.isArray(props.query.text) && props.query.text.join(","));
                     });
                 },
@@ -176,7 +176,7 @@ it("static /error/404", function (done) {
             "/error/404": {
                 async screen(props, ctx) {
                     expect(props.path).toBe("/error/404");
-                    ctx.tag("div", { class: ["answer404"] }, div => {
+                    ctx.tag("div", { c: ["answer404"] }, div => {
                         div.text(props.hash);
                     });
                 },
@@ -203,7 +203,7 @@ it("dynamic /(test)", function (done) {
             "/(test)": {
                 async screen(props, ctx) {
                     expect(props.path).toBe("/test-value");
-                    ctx.tag("div", { class: [props.params.test] });
+                    ctx.tag("div", { c: [props.params.test] });
                 },
             },
         },
@@ -227,7 +227,7 @@ it("dynamic /path/(value)", function (done) {
             "/path/(value)": {
                 async screen(props, ctx) {
                     expect(props.path).toBe("/path/c23");
-                    ctx.tag("div", { class: [props.params.value] });
+                    ctx.tag("div", { c: [props.params.value] });
                 },
             },
         },
@@ -251,7 +251,7 @@ it("dynamic /before/(value)/after", function (done) {
             "/before/(value)/after": {
                 async screen(props, ctx) {
                     expect(props.path).toBe("/before/vx/after");
-                    ctx.tag("div", { class: [props.params.value] });
+                    ctx.tag("div", { c: [props.params.value] });
                 },
             },
         },
@@ -275,22 +275,22 @@ it("dynamic /(v) /1/(v) /(v)/2/3 /1/2/(v)/4", function (done) {
             routes: {
                 "/(v)": {
                     async screen(props, ctx) {
-                        ctx.tag("div", { class: [`c_${props.params.v}`] });
+                        ctx.tag("div", { c: [`c_${props.params.v}`] });
                     },
                 },
                 "/1/(v)": {
                     async screen(props, ctx) {
-                        ctx.tag("div", { class: [`c_1_${props.params.v}`] });
+                        ctx.tag("div", { c: [`c_1_${props.params.v}`] });
                     },
                 },
                 "/(v)/2/3": {
                     async screen(props, ctx) {
-                        ctx.tag("div", { class: [`c_${props.params.v}_2_3`] });
+                        ctx.tag("div", { c: [`c_${props.params.v}_2_3`] });
                     },
                 },
                 "/1/2/(v)/4": {
                     async screen(props, ctx) {
-                        ctx.tag("div", { class: [`c_1_2_${props.params.v}_4`] });
+                        ctx.tag("div", { c: [`c_1_2_${props.params.v}_4`] });
                     },
                 },
             },
@@ -330,22 +330,22 @@ it("dynamic vs static /1 /(v) /1/2 /1/(v)", function (done) {
             routes: {
                 "/(v)": {
                     async screen(props, ctx) {
-                        ctx.tag("div", { class: [`d_${props.params.v}`] });
+                        ctx.tag("div", { c: [`d_${props.params.v}`] });
                     },
                 },
                 "/1": {
                     async screen(props, ctx) {
-                        ctx.tag("div", { class: [`s_1`] });
+                        ctx.tag("div", { c: [`s_1`] });
                     },
                 },
                 "/1/(v)": {
                     async screen(props, ctx) {
-                        ctx.tag("div", { class: [`d_1_${props.params.v}`] });
+                        ctx.tag("div", { c: [`d_1_${props.params.v}`] });
                     },
                 },
                 "/1/2": {
                     async screen(props, ctx) {
-                        ctx.tag("div", { class: [`s_1_2`] });
+                        ctx.tag("div", { c: [`s_1_2`] });
                     },
                 },
             },
@@ -385,7 +385,7 @@ it("switch page: found -> found", function (done) {
         routes: {
             "/about": {
                 async screen(props, ctx) {
-                    ctx.tag("div", { class: [`about`] });
+                    ctx.tag("div", { c: [`about`] });
                     expect("router" in ctx.runner).toBe(true);
                     if ("router" in ctx.runner && ctx.runner.router instanceof Router) {
                         router = ctx.runner.router;
@@ -394,7 +394,7 @@ it("switch page: found -> found", function (done) {
             },
             "/article/(id)": {
                 async screen(props, ctx) {
-                    ctx.tag("div", { class: [`article_${props.params.id}`] });
+                    ctx.tag("div", { c: [`article_${props.params.id}`] });
                 },
             },
         },
@@ -423,13 +423,13 @@ it("switch page: found -> fallback", function (done) {
 
     routeApp(body, window as unknown as Window, createLocation("/found"), {
         fallbackScreen(props, ctx) {
-            ctx.tag("div", { class: [`fallback`] });
+            ctx.tag("div", { c: [`fallback`] });
         },
         errorScreen() {},
         routes: {
             "/found": {
                 async screen(props, ctx) {
-                    ctx.tag("div", { class: [`found`] });
+                    ctx.tag("div", { c: [`found`] });
                     if ("router" in ctx.runner && ctx.runner.router instanceof Router) {
                         router = ctx.runner.router;
                     }
@@ -457,7 +457,7 @@ it("switch page: fallback -> error", function (done) {
 
     routeApp(body, window as unknown as Window, createLocation("/"), {
         fallbackScreen(props, ctx) {
-            ctx.tag("div", { class: [`fallback`] });
+            ctx.tag("div", { c: [`fallback`] });
             if ("router" in ctx.runner && ctx.runner.router instanceof Router) {
                 router = ctx.runner.router;
             }
@@ -489,7 +489,7 @@ it("switch page: error -> found", function (done) {
             throw new Error("error");
         },
         errorScreen(props, ctx) {
-            ctx.tag("div", { class: [`error`] });
+            ctx.tag("div", { c: [`error`] });
             if ("router" in ctx.runner && ctx.runner.router instanceof Router) {
                 router = ctx.runner.router;
             }
@@ -497,7 +497,7 @@ it("switch page: error -> found", function (done) {
         routes: {
             "/exists": {
                 async screen(props, ctx) {
-                    ctx.tag("div", { class: [`exists`] });
+                    ctx.tag("div", { c: [`exists`] });
                 },
             },
         },
@@ -525,7 +525,7 @@ it("no access fallback", function (done) {
             return Promise.resolve(path !== "/exists" || giveAccess);
         },
         fallbackScreen(props, ctx) {
-            ctx.tag("div", { class: [props.cause] });
+            ctx.tag("div", { c: [props.cause] });
             if ("router" in ctx.runner && ctx.runner.router instanceof Router) {
                 router = ctx.runner.router;
             }
@@ -534,7 +534,7 @@ it("no access fallback", function (done) {
         routes: {
             "/exists": {
                 async screen(props, ctx) {
-                    ctx.tag("div", { class: [`exists`] });
+                    ctx.tag("div", { c: [`exists`] });
                 },
             },
         },
@@ -560,13 +560,13 @@ it("window popstate event", function (done) {
 
     routeApp(body, window as unknown as Window, location, {
         fallbackScreen(props, ctx) {
-            ctx.tag("div", { class: ["fallback"] });
+            ctx.tag("div", { c: ["fallback"] });
         },
         errorScreen() {},
         routes: {
             "/exists": {
                 async screen(props, ctx) {
-                    ctx.tag("div", { class: [`exists`] });
+                    ctx.tag("div", { c: [`exists`] });
                 },
             },
         },
@@ -608,13 +608,13 @@ it("loading screen: before first screen", function (done) {
         fallbackScreen() {},
         errorScreen() {},
         loadingScreen(_, node) {
-            node.tag("div", { class: ["loading"] });
+            node.tag("div", { c: ["loading"] });
         },
         routes: {
             "/": {
                 async screen(props, ctx) {
                     await new Promise(rv => (resolve = rv));
-                    ctx.tag("div", { class: ["content"] });
+                    ctx.tag("div", { c: ["content"] });
                 },
             },
         },
@@ -642,12 +642,12 @@ it("loading screen: between screens", function (done) {
         fallbackScreen() {},
         errorScreen() {},
         loadingScreen(_, node) {
-            node.tag("div", { class: ["loading"] });
+            node.tag("div", { c: ["loading"] });
         },
         routes: {
             "/": {
                 async screen(props, ctx) {
-                    ctx.tag("div", { class: [`first`] });
+                    ctx.tag("div", { c: [`first`] });
                     if ("router" in ctx.runner && ctx.runner.router instanceof Router) {
                         router = ctx.runner.router;
                     }
@@ -656,7 +656,7 @@ it("loading screen: between screens", function (done) {
             "/wait": {
                 async screen(props, ctx) {
                     await new Promise(rv => (resolve = rv));
-                    ctx.tag("div", { class: ["second"] });
+                    ctx.tag("div", { c: ["second"] });
                 },
             },
         },
@@ -693,20 +693,20 @@ it("loading overlay", function (done) {
 
     routeApp(body, window as unknown as Window, window.location, {
         fallbackScreen(props, ctx) {
-            ctx.tag("div", { class: [`fallback`] });
+            ctx.tag("div", { c: [`fallback`] });
             if ("router" in ctx.runner && ctx.runner.router instanceof Router) {
                 router = ctx.runner.router;
             }
         },
         errorScreen() {},
         loadingOverlay(_, node) {
-            node.tag("div", { class: ["overlay"] });
+            node.tag("div", { c: ["overlay"] });
         },
         routes: {
             "/content": {
                 async screen(_, ctx) {
                     await new Promise(rv => (resolve = rv));
-                    ctx.tag("div", { class: ["content"] });
+                    ctx.tag("div", { c: ["content"] });
                 },
             },
         },
@@ -737,7 +737,7 @@ it("throw error in component", function (done) {
     routeApp(body, window as unknown as Window, window.location, {
         fallbackScreen() {},
         errorScreen(props, ctx) {
-            ctx.tag("div", { class: ["error"] }, div => {
+            ctx.tag("div", { c: ["error"] }, div => {
                 div.text(props.error);
             });
         },

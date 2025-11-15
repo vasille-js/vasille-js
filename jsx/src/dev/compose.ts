@@ -1,4 +1,5 @@
 import { App, Destroyable, Fragment, Reactive } from "vasille";
+import { DevReactive, StaticPosition } from "vasille/dev";
 import { CompositionProps } from "../compose.js";
 import {
     DevApp,
@@ -6,7 +7,7 @@ import {
     DevRunner,
     DevTagOptions,
     Inspector,
-    Position,
+    ModelId,
     ProtocolStore,
     provideId,
 } from "vasille/dev";
@@ -17,7 +18,7 @@ function getInspector<Node, Element, TagOptions extends object>(node: Fragment<N
 
 export type DevComposed<Node, Element, TagOptions extends object, In extends CompositionProps, Out> = (
     $: In & { callback?(data: Out | undefined): void },
-    usage: Position,
+    usage: StaticPosition,
     name: string,
     node?: Fragment<Node, Element, TagOptions>,
     slot?: In["slot"],
@@ -25,7 +26,7 @@ export type DevComposed<Node, Element, TagOptions extends object, In extends Com
 
 export function devView<Node, Element, TagOptions extends object, In extends CompositionProps, Out>(
     renderer: (node: Fragment<Node, Element, TagOptions>, input: In) => Out,
-    declaration: Position,
+    declaration: StaticPosition,
 ): DevComposed<Node, Element, TagOptions, In, Out> {
     return function (props, usage, name, node, slot) {
         const { callback } = props;
@@ -68,8 +69,7 @@ export const stores = new Map<number, ProtocolStore>();
 
 export function devStore<Out extends object>(
     fn: (ctx: Reactive) => Out,
-    inspector: Inspector,
-    declaration: Position,
+    declaration: StaticPosition,
     name: string,
 ): Out {
     const id = provideId();
@@ -81,21 +81,22 @@ export function devStore<Out extends object>(
 }
 
 export function devModel<In extends object, Out extends object>(
-    fn: (ctx: Reactive, o: In, inspector: Inspector) => Out,
-    declaration: Position,
+    fn: (ctx: Reactive, o: In, inspector?: Inspector) => Out,
+    declaration: StaticPosition,
     name: string,
-): (o: In, usage: Position, inspector: Inspector) => Out & Destroyable {
+): (o: In, usage: StaticPosition, inspector?: Inspector) => Out & Destroyable {
     return (o, usage, inspector) => {
-        const ctx = new Reactive();
-        const id = provideId();
+        const ctx = new DevReactive(inspector);
+        const id = ctx.id;
 
-        inspector.createCustomModel({ id, declaration, usage, name });
+        inspector?.createCustomModel({ id, declaration, usage, name });
 
         return {
             ...fn(ctx, o, inspector),
             destroy() {
                 ctx.destroy();
             },
+            [ModelId]: id,
         };
     };
 }

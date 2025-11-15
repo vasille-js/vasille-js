@@ -13,6 +13,6 @@ export function screen<Node, Element, TagOptions extends object, Route extends s
 
         node.create(frag);
 
-        await renderer(node, props);
+        await renderer(frag, props);
     };
 }
