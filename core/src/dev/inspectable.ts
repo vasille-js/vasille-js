@@ -94,7 +94,7 @@ export interface ProtocolParent {
 
 export interface ProtocolTag {
     id: number;
-    position: Position;
+    usage: Position | undefined;
     tagName: string;
     attr?: { [k: string]: number | DevValue };
     class?: (number | string | { [k: string]: number | DevValue })[];

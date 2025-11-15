@@ -44,7 +44,7 @@ class DevTextNode extends TextNode<DevTagOptions> {
 
 class DevTag extends Tag<DevTagOptions> {
     public readonly id: number;
-    public readonly usage: Position;
+    public readonly usage: Position | undefined;
     public readonly inspector: Inspector;
 
     declare public runner: DevRunner;
@@ -53,7 +53,7 @@ class DevTag extends Tag<DevTagOptions> {
         options: DevTagOptions,
         runner: DevRunner,
         tagName: string,
-        usage: Position,
+        usage: Position | undefined,
         inspector: Inspector,
     ) {
         super(options, runner, tagName);
@@ -65,7 +65,7 @@ class DevTag extends Tag<DevTagOptions> {
         inspector.createTag({
             id: this.id,
             tagName: tagName,
-            position: usage,
+            usage: usage,
             callback: options.k && toDevIdOrValue(options.k),
             attr: options.a && toDevObject(options.a),
             class:
@@ -144,18 +144,15 @@ export class DevRunner extends Runner<DevTagOptions> {
         this.inspector = inspector;
     }
 
-    public textNode(text: unknown): DevTextNode {
-        if (!(text instanceof PositionedText)) {
-            throw new Error("Dev build is broken");
+    public textNode(text: unknown): TextNode<DevTagOptions> {
+        if (text instanceof PositionedText) {
+            return new DevTextNode({ text: text.text }, this, text.position, this.inspector);
         }
 
-        return new DevTextNode({ text: text.text }, this, text.position, this.inspector);
+        return new TextNode({ text: text }, this);
     }
 
     public tag(tagName: string, input: DevTagOptions, cb?: ((ctx: DevTag) => void) | undefined): DevTag {
-        if (!input.usage) {
-            throw new Error("Dev build is broken");
-        }
         if (cb) {
             input.l = cb;
         }

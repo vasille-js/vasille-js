@@ -2,7 +2,16 @@ import { App, Portal, PortalOptions } from "../node/app.js";
 import { Fragment, SwitchedNode, SwitchedNodeCase } from "../node/node.js";
 import { IRunner } from "../node/runner.js";
 import { Watch, WatchOptions } from "../node/watch.js";
-import { DevValue, Inspector, Position, provideId, toDevIdOrValue, toDevObject, toDevValue } from "./inspectable.js";
+import {
+    DevValue,
+    InspectableReactive,
+    Inspector,
+    Position,
+    provideId,
+    toDevIdOrValue,
+    toDevObject,
+    toDevValue,
+} from "./inspectable.js";
 import { DevFragment } from "./node.js";
 
 export class DevWatch<Node, Element, TagOptions extends object, T> extends Watch<Node, Element, TagOptions, T> {
@@ -48,24 +57,33 @@ export class DevApp<Node, Element, TagOptions extends object> extends App<Node, 
 }
 
 export class DevPortal<Node, Element, TagOptions extends object> extends Portal<Node, Element, TagOptions> {
+    public readonly id: number;
+
     constructor(
         input: PortalOptions<Node, Element, TagOptions>,
         runner: IRunner<Node, Element, TagOptions>,
-        inspector: Inspector,
+        inspector: Inspector | undefined,
+        declaration: Position | undefined,
+        usage: Position | undefined,
+        name: string | undefined,
     ) {
         super(input, runner);
 
-        const id = provideId();
+        if (inspector) {
+            const id = (this.id = provideId());
 
-        inspector.createComponent({
-            id: id,
-            name: "Portal",
-            props: {},
-        });
+            inspector.createComponent({
+                id: id,
+                name: name ?? "Portal",
+                props: {},
+                declaration: declaration,
+                usage: usage,
+            });
 
-        this.runOnDestroy(() => {
-            inspector.destroy(id);
-        });
+            this.runOnDestroy(() => {
+                inspector.destroy(id);
+            });
+        }
     }
 }
 
