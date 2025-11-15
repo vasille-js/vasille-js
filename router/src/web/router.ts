@@ -11,12 +11,6 @@ export interface WebRouterInitialization<Routes extends string>
 
 export type NavigationMode = "silent" | "loading-screen" | "loading-overlay";
 
-function build(node: Fragment<Node, Element, TagOptions>, run?: (node: Fragment<Node, Element, TagOptions>) => void) {
-    const child = new Fragment<Node, Element, TagOptions>(node.runner);
-
-    node.create(child, run);
-}
-
 export class Router<Routes extends string> extends AbstractRouter<
     Node,
     Element,
@@ -25,8 +19,8 @@ export class Router<Routes extends string> extends AbstractRouter<
     {},
     [NavigationMode]
 > {
-    public readonly currentUrl = new Reference<string>("");
-    public readonly loadingUrl = new Reference<string | null>(null);
+    public readonly $currentUrl = new Reference<string>("");
+    public readonly $loadingUrl = new Reference<string | null>(null);
 
     protected readonly webInit: WebRouterInitialization<Routes>;
     protected readonly window: Window;
@@ -48,17 +42,17 @@ export class Router<Routes extends string> extends AbstractRouter<
         this.window = window;
         this.location = location;
         this.node = node;
-        this.currentUrl.V = location.pathname;
+        this.$currentUrl.V = location.pathname;
 
-        build(node, node => (this.loadingNode = node));
-        build(node, node => (this.contentNode = node));
-        build(node, node => (this.overlayNode = node));
+        this.build(node, node => (this.loadingNode = node));
+        this.build(node, node => (this.contentNode = node));
+        this.build(node, node => (this.overlayNode = node));
 
         if (process.env.VASILLE_TARGET === "es5" && window.onpopstate !== null) {
             window.addEventListener("hashchange", () => {
                 const path = location.hash.substring(1);
 
-                if (path !== this.currentUrl.V) {
+                if (path !== this.$currentUrl.V) {
                     this.doNavigate(path, false, "loading-screen");
                 }
             });
@@ -93,7 +87,7 @@ export class Router<Routes extends string> extends AbstractRouter<
     }
 
     public reload(): void {
-        this.doNavigate(this.currentUrl.V, true, "loading-screen");
+        this.doNavigate(this.$currentUrl.V, true, "loading-screen");
     }
 
     protected doNavigate(url: string, canNavigate: boolean, mode: NavigationMode) {
@@ -142,22 +136,22 @@ export class Router<Routes extends string> extends AbstractRouter<
         props: ScreenProps<Route>,
         mode: NavigationMode,
     ): Promise<void> {
-        this.loadingUrl.V = props.path;
+        this.$loadingUrl.V = props.path;
 
         try {
             const { loadingScreen, loadingOverlay } = this.webInit;
 
             if (mode === "loading-screen" && loadingScreen) {
                 this.clearNode(this.contentNode);
-                build(this.loadingNode, node => loadingScreen({}, node));
+                this.build(this.loadingNode, node => loadingScreen({}, node));
             }
             if (mode === "loading-overlay" && loadingOverlay) {
-                build(this.overlayNode, node => loadingOverlay({}, node));
+                this.build(this.overlayNode, node => loadingOverlay({}, node));
             }
 
             await this.renderScreen(target.screen, props, "found");
 
-            this.currentUrl.V = props.url;
+            this.$currentUrl.V = props.url;
             if (this.location.href !== props.url && this.location.hash !== "#" + props.url) {
                 if (process.env.VASILLE_TARGET === "es5" && !this.window.history) {
                     this.location.hash = "#" + props.url;
@@ -172,7 +166,7 @@ export class Router<Routes extends string> extends AbstractRouter<
             throw error;
         } finally {
             this.clearLoadings();
-            this.loadingUrl.V = null;
+            this.$loadingUrl.V = null;
         }
     }
 
@@ -185,7 +179,7 @@ export class Router<Routes extends string> extends AbstractRouter<
         const oldChildren = [...children];
         let ctx: Fragment<Node, Element, TagOptions> | null = null;
 
-        build(this.contentNode, node => (ctx = node));
+        this.build(this.contentNode, node => (ctx = node));
 
         /* istanbul ignore else */
         if (ctx) {
@@ -217,6 +211,13 @@ export class Router<Routes extends string> extends AbstractRouter<
         children.forEach(node => node.destroy());
         children.clear();
     }
+
+    protected build(node: Fragment<Node, Element, TagOptions>, run?: (node: Fragment<Node, Element, TagOptions>) => void) {
+        const child = new Fragment<Node, Element, TagOptions>(node.runner);
+
+        node.create(child, run);
+    }
+
 }
 
 export function routeApp<Routes extends string>(
@@ -232,9 +233,8 @@ export function routeApp<Routes extends string>(
         const router = new Router(window, location, node, init);
 
         Object.defineProperty(runner, "router", {
-            get(): Router<Routes> {
-                return router;
-            },
+            value: router,
+            writable: false,
         });
     });
 

@@ -143,6 +143,15 @@ export interface ProtocolCustomModel extends ProtocolPosition {
     name: string;
 }
 
+export interface ProtocolRouterTargetResult {
+    url: string;
+    path: string;
+    query: { [k: string]: string[] };
+    hash: string;
+    targetFound: boolean;
+    params: object;
+}
+
 export interface Inspector {
     idToPosition(pos: ProtocolPosition): void;
 
@@ -173,6 +182,12 @@ export interface Inspector {
     updateModel(update: ProtocolModelUpdate): void;
     createStore(store: ProtocolStore): void;
     createCustomModel(model: ProtocolCustomModel): void;
+
+    // routes
+    registeredRoutes(path: string[]): void;
+    routerStateChange(name: string, value: string | null | undefined): void;
+    routerActionCall(name: string, path: string): void;
+    routerTargetResult(data: ProtocolRouterTargetResult): void;
 
     // any
     destroy(id: number): void;

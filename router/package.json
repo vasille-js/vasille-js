@@ -16,6 +16,12 @@
       "import": "./lib/web/router.js",
       "browser": "./lib/web/router.js",
       "node": "./lib/web/router.js"
+    },
+    "./dev": {
+      "types": "./types/web/dev.d.ts",
+      "import": "./lib/web/dev.js",
+      "browser": "./lib/web/dev.js",
+      "node": "./lib/web/dev.js"
     }
   },
   "scripts": {
@@ -75,6 +81,6 @@
     "typescript-eslint": "^8.39.0"
   },
   "dependencies": {
-    "vasille": "^4.0.0"
+    "vasille": "file:../core"
   }
 }

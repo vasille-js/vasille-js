@@ -666,19 +666,19 @@ it("loading screen: between screens", function (done) {
         expect(body.children.length).toBe(1);
         expect(body.children[0].className).toBe("first");
         resolve?.(1);
-        expect(router.loadingUrl.V).toBeNull();
-        expect(router.currentUrl.V).toBe("http://localhost:8080/");
+        expect(router.$loadingUrl.V).toBeNull();
+        expect(router.$currentUrl.V).toBe("http://localhost:8080/");
         router.goTo("/wait");
         setTimeout(() => {
             expect(body.children.length).toBe(1);
             expect(body.children[0].className).toBe("loading");
-            expect(router.loadingUrl.V).toBe("/wait");
+            expect(router.$loadingUrl.V).toBe("/wait");
             resolve?.(2);
             setTimeout(() => {
                 expect(body.children.length).toBe(1);
                 expect(body.children[0].className).toBe("second");
-                expect(router.loadingUrl.V).toBeNull();
-                expect(router.currentUrl.V).toBe("/wait");
+                expect(router.$loadingUrl.V).toBeNull();
+                expect(router.$currentUrl.V).toBe("/wait");
                 done();
             }, 1);
         }, 1);
