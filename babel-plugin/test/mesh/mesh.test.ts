@@ -12,6 +12,10 @@ it("mesh expression function", function () {
   runTest(__dirname, "mesh-expression", false);
 });
 
+it("class", function () {
+  runTest(__dirname, "class", false);
+});
+
 it("export default class", function () {
   runTest(__dirname, "default-class", false);
 });

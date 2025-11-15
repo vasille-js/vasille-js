@@ -1181,14 +1181,20 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             checkNonReactiveName(idPath, internal);
           }
           // const s = new Set(), const m = new Map()
-          else if (initPath.isNewExpression() && t.isIdentifier(initPath.node.callee)) {
-            const name = initPath.node.callee.name;
-
-            if (name === "Map" || name === "Set") {
-              processModelCall(initPath, name, kind === "const", internal, idName());
-              meshInit = false;
-              checkNonReactiveName(idPath, internal);
-            }
+          else if (
+            initPath.isNewExpression() &&
+            t.isIdentifier(initPath.node.callee) &&
+            ["Set", "Map"].includes(initPath.node.callee.name)
+          ) {
+            processModelCall(
+              initPath,
+              initPath.node.callee.name as "Map" | "Set",
+              kind === "const",
+              internal,
+              idName(),
+            );
+            meshInit = false;
+            checkNonReactiveName(idPath, internal);
           } else if (kind === "let") {
             meshExpression(declaration.get("init"), internal);
 

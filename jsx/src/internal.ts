@@ -82,4 +82,5 @@ export function set(o: object, key: string | symbol | number, value: unknown, cr
     } else {
         o[key] = value;
     }
+    return value;
 }
