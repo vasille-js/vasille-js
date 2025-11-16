@@ -24,6 +24,8 @@ import { TagOptions } from "vasille/web-runner";
 import { devScreen } from "vasille-router/dev";
 import { Inspector } from "./inspector.js";
 
+export { executionPosition, registerDevValue, shareStateById, positionedText } from "vasille/dev";
+
 export {
     type QueryParams,
     type ScreenProps,

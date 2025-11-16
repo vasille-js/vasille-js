@@ -1,14 +1,14 @@
 import { IRunner } from "../node/runner.js";
 import { DevExpression, DevReference } from "./state.js";
 
-export type StaticPosition = string;
+export type StaticPosition = [string, number, number, number, number];
 export type ExecutionPosition = number;
 
 let positionId: number = 1;
 
 export function executionPosition(
     runner: IDevRunner<unknown, unknown, object>,
-    pathLineAndChar: string,
+    pathLineAndChar: StaticPosition,
     error: Error,
 ): ExecutionPosition {
     const id = positionId++;

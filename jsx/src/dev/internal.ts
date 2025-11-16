@@ -6,6 +6,7 @@ import {
     DevMapModel,
     DevReference,
     DevSetModel,
+    ExecutionPosition,
     Inspector,
     KindOfDevIValue,
     StaticPosition,
@@ -58,6 +59,12 @@ export function devSet(
     value: unknown,
     declaration: StaticPosition,
     inspector: Inspector | undefined,
+    executionPosition: ExecutionPosition,
 ) {
+    if (o[key] instanceof DevIValue) {
+        o[key].update(value, executionPosition);
+        return value;
+    }
+
     return set(o, key, value, v => devRef(v, declaration, inspector));
 }

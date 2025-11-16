@@ -2,7 +2,7 @@ import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { calls, composeFunctions, hintFunctions, modelFunctions, reactivityFunctions } from "./call.js";
 import { checkNode, exprIsSure, idIsIValue, memberIsIValue } from "./expression.js";
-import { ctx, Internal, VariableState } from "./internal.js";
+import { ctx, inspector, Internal, VariableState } from "./internal.js";
 import { ConditionCollection, processConditions, transformJsx } from "./jsx.js";
 import {
   arrayModel,
@@ -11,7 +11,6 @@ import {
   err,
   Errors,
   exprCall,
-  named,
   parseCalculateCall,
   processCalculateCall,
   processModelCall,
@@ -20,6 +19,7 @@ import {
 import { checkOrder } from "./order-check";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
+import { nodeToStaticPosition } from "./transformer";
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
   nodePaths: NodePath<types.Expression | null | T>[],
@@ -54,8 +54,8 @@ export function meshComposeCall(
   compose(arg, internal, false, false);
   arg.node.params.unshift(ctx);
 
-  if (internal.devMode && path.isCallExpression()) {
-    path.node.arguments.push(t.stringLiteral(name ? name : "#"));
+  if (internal.devLayer && path.isCallExpression()) {
+    path.node.arguments.push(nodeToStaticPosition(internal, path.node), t.stringLiteral(name ? name : "#"));
   }
 }
 
@@ -174,7 +174,7 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       }
       // watch call
       else if (calls(path, ["watch"], internal)) {
-        processCalculateCall(path, internal);
+        processCalculateCall(path, internal, path.node, undefined);
       } else if (
         path.isCallExpression() &&
         t.isIdentifier(path.node.callee) &&
@@ -234,6 +234,7 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
                 left.node.object,
                 !left.node.computed && t.isIdentifier(property) ? t.stringLiteral(property.name) : property,
                 right.node,
+                path.node,
               ),
             );
           }
@@ -475,12 +476,12 @@ function ignoreObjectPattern(pattern: NodePath<types.ObjectPattern>, internal: I
         meshExpression(right, internal);
 
         if (property.computed && t.isIdentifier(property.key)) {
-          right.replaceWith(internal.match(t.stringLiteral(property.key.name), right.node));
+          right.replaceWith(internal.match(t.stringLiteral(property.key.name), right.node, property));
         } else if (
           (t.isIdentifier(property.key) && property.key.name.startsWith("$")) ||
           (t.isStringLiteral(property.key) && property.key.value.startsWith("$"))
         ) {
-          right.replaceWith(internal.ref(right.node));
+          right.replaceWith(internal.ref(right.node, property, undefined));
         }
       } else if (t.isIdentifier(property.value)) {
         internal.stack.set(property.value.name, {});
@@ -488,9 +489,11 @@ function ignoreObjectPattern(pattern: NodePath<types.ObjectPattern>, internal: I
         if (property.computed) {
           path
             .get("value")
-            .replaceWith(t.assignmentPattern(property.value, internal.match(t.stringLiteral(property.value.name))));
+            .replaceWith(
+              t.assignmentPattern(property.value, internal.match(t.stringLiteral(property.value.name), null, property)),
+            );
         } else if (property.value.name.startsWith("$")) {
-          path.get("value").replaceWith(t.assignmentPattern(property.value, internal.ref()));
+          path.get("value").replaceWith(t.assignmentPattern(property.value, internal.ref(null, property, undefined)));
         }
       }
     }
@@ -611,7 +614,7 @@ function procedureProcessObjectExpression(
           if (name.startsWith("$")) {
             if (internal.isComposing && !internal.isFunctionParsing) {
               meshExpression(valuePath, internal);
-              valuePath.replaceWith(internal.ref(valuePath.node));
+              valuePath.replaceWith(internal.ref(valuePath.node, prop.node, undefined));
               state[name] = 1;
             } else if (
               !(
@@ -632,7 +635,7 @@ function procedureProcessObjectExpression(
         meshLValue(valuePath, internal);
         /* istanbul ignore else */
         if (keyPath.isExpression() && valuePath.isExpression()) {
-          valuePath.replaceWith(internal.match(keyPath.node, valuePath.node));
+          valuePath.replaceWith(internal.match(keyPath.node, valuePath.node, prop.node));
         }
       }
     } else if (prop.isObjectMethod()) {
@@ -867,7 +870,10 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
           meshComposeCall(id.name, initPath, internal);
         }
         // calculate call
-        else if (calls(initPath, ["calculate"], internal) && processCalculateCall(initPath, internal)) {
+        else if (
+          calls(initPath, ["calculate"], internal) &&
+          processCalculateCall(initPath, internal, declaration.node, t.isIdentifier(id) ? id.name : undefined)
+        ) {
           checkReactiveName(idPath, internal);
         }
         // ref call
@@ -876,7 +882,10 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
           checkReactiveName(idPath, internal);
         }
         // bind call
-        else if (calls(initPath, ["bind"], internal) && exprCall(initPath, initPath.node, internal, { strong: true })) {
+        else if (
+          calls(initPath, ["bind"], internal) &&
+          exprCall(initPath, initPath.node, internal, { strong: true }, declaration.node)
+        ) {
           checkReactiveName(idPath, internal);
         }
         // variable declaration
@@ -990,7 +999,7 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
     case "OptionalCallExpression": {
       /* istanbul ignore else */
       if (calls(path, ["watch"], internal)) {
-        parseCalculateCall(path, internal);
+        parseCalculateCall(path, internal, path.node, undefined);
 
         const args = (path.node as types.CallExpression).arguments;
 
@@ -1084,10 +1093,13 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
           return name;
         }
 
-        function idDoubleName(): [string, string] {
+        function idDoubleName(): { names: [string, string]; nodes: [types.Node | null, types.Node | null] } {
           const pattern = id as types.ArrayPattern;
 
-          return [idName(pattern.elements?.[0]), idName(pattern.elements?.[1])];
+          return {
+            names: [idName(pattern.elements?.[0]), idName(pattern.elements?.[1])],
+            nodes: [pattern.elements?.[0], pattern.elements?.[1]],
+          };
         }
 
         ignoreParams(declaration.get("id"), internal, ["id", "array"]);
@@ -1099,10 +1111,26 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
           reactiveArrayPattern(declaration.get("id"), internal);
           meshAllUnknown(callPath.get("arguments"), internal);
           /* istanbul ignore else */
-          if (internal.devMode) {
-            callPath.node.arguments.push(ctx);
+          if (internal.devLayer) {
+            const error = t.identifier("error");
+            const value = t.identifier("value");
+            const { names, nodes } = idDoubleName();
+
+            callPath.node.arguments.push(
+              t.arrowFunctionExpression(
+                [error, value],
+                t.blockStatement([
+                  t.expressionStatement(internal.shareStateById(error, names[0])),
+                  t.expressionStatement(internal.shareStateById(value, names[1])),
+                ]),
+              ),
+              t.arrayExpression([
+                nodeToStaticPosition(internal, nodes[0] ?? id),
+                nodeToStaticPosition(internal, nodes[1] ?? id),
+              ]),
+              inspector,
+            );
           }
-          named(callPath.node, idDoubleName(), internal, 2);
           meshInit = false;
         } else if (t.isIdentifier(id)) {
           const idPath = declaration.get("id") as NodePath<types.Identifier>;
@@ -1122,12 +1150,18 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
           // const x = bind(a + b);
           else if (calls(initPath, ["bind", "calculate"], internal)) {
             const argument = (init as types.CallExpression).arguments[0] as types.Expression;
-            const isReactive = exprCall(initPath, initPath.node, internal, { name: idName(), strong: true });
+            const isReactive = exprCall(
+              initPath,
+              initPath.node,
+              internal,
+              { name: idName(), strong: true },
+              declaration.node,
+            );
 
             meshInit = !isReactive;
 
             if (!isReactive) {
-              declaration.get("init").replaceWith(ref(argument, internal, idName()));
+              declaration.get("init").replaceWith(ref(argument, internal, declaration.node, idName()));
             }
             checkReactiveName(idPath, internal);
           }
@@ -1137,7 +1171,9 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
 
             const argument = (init as types.CallExpression).arguments[0];
 
-            declaration.get("init").replaceWith(ref(t.isExpression(argument) ? argument : null, internal, idName()));
+            declaration
+              .get("init")
+              .replaceWith(ref(t.isExpression(argument) ? argument : null, internal, declaration.node, idName()));
             checkReactiveName(idPath, internal);
             meshInit = false;
           }
@@ -1199,16 +1235,22 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             meshExpression(declaration.get("init"), internal);
 
             if (idPath.isIdentifier() && idPath.node.name.startsWith("$")) {
-              declaration.get("init").replaceWith(ref(declaration.node.init, internal, idName()));
+              declaration.get("init").replaceWith(ref(declaration.node.init, internal, declaration.node, idName()));
             } else {
               switchToConst = false;
             }
             meshInit = false;
           } else {
-            const isReactive = exprCall(declaration.get("init"), declaration.node.init, internal, {
-              name: idName(),
-              strong: true,
-            });
+            const isReactive = exprCall(
+              declaration.get("init"),
+              declaration.node.init,
+              internal,
+              {
+                name: idName(),
+                strong: true,
+              },
+              declaration.node,
+            );
 
             if (isReactive) {
               checkReactiveName(idPath, internal);

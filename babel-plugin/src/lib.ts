@@ -1,10 +1,11 @@
 import { NodePath, types } from "@babel/core";
 import { Identifier } from "@babel/types";
 import * as t from "@babel/types";
-import { checkNode, encodeName, exprIsSure } from "./expression.js";
-import { Internal, ctx } from "./internal.js";
+import { checkNode, Dependency, exprIsSure } from "./expression.js";
+import { Internal, ctx, inspector } from "./internal.js";
 import { calls } from "./call.js";
 import { meshAllUnknown } from "./mesh";
+import { nodeToStaticPosition } from "./transformer";
 
 export enum Errors {
   IncorrectArguments = 1,
@@ -34,32 +35,12 @@ export function err<T>(e: Errors, node: NodePath<unknown>, content: string, inte
   return ret;
 }
 
-function unprefixedName(name: string): string {
-  return name[0] === "$" ? name.substring(1) : name;
-}
-
-export function named(
-  call: types.CallExpression,
-  name: undefined | string | string[],
+export function processCalculateCall(
+  path: NodePath<types.CallExpression>,
   internal: Internal,
-  argPos: number,
-) {
-  if (internal.devMode && name) {
-    while (argPos && call.arguments.length < argPos) {
-      call.arguments.push(t.buildUndefinedNode());
-    }
-
-    call.arguments.push(
-      ...(typeof name === "string" ? [name] : name.map(item => item)).map(name =>
-        t.stringLiteral(unprefixedName(name)),
-      ),
-    );
-  }
-
-  return call;
-}
-
-export function processCalculateCall(path: NodePath<types.CallExpression>, internal: Internal): boolean {
+  area: types.Node,
+  name: string | undefined,
+): boolean {
   const call = path.node.arguments[0];
 
   if (path.node.arguments.length !== 1) {
@@ -83,9 +64,18 @@ export function processCalculateCall(path: NodePath<types.CallExpression>, inter
       internal,
     );
 
-    call.params = [...exprData.found.keys()].map(name => encodeName(name));
+    call.params = [...exprData.found.values()].map(item => t.identifier(item.paramName));
     path.node.arguments.unshift(internal.isComposing ? ctx : t.nullLiteral());
-    path.node.arguments.push(t.arrayExpression([...exprData.found.values()]));
+    path.node.arguments.push(
+      t.arrayExpression([...exprData.found.values()].map(item => item.node)),
+      t.arrayExpression([...exprData.found.keys()].map(name => t.identifier(name))),
+      nodeToStaticPosition(internal, area),
+      inspector,
+    );
+
+    if (name) {
+      path.replaceWith(internal.shareStateById(path.node, name));
+    }
 
     return true;
   }
@@ -93,9 +83,14 @@ export function processCalculateCall(path: NodePath<types.CallExpression>, inter
   return err(Errors.IncorrectArguments, path, "Argument of calculate must be a function", internal, false);
 }
 
-export function parseCalculateCall(path: NodePath<types.Expression | null | undefined>, internal: Internal): boolean {
+export function parseCalculateCall(
+  path: NodePath<types.Expression | null | undefined>,
+  internal: Internal,
+  area: types.Node,
+  name: string | undefined,
+): boolean {
   if (path.isCallExpression() && calls(path, ["calculate", "watch"], internal)) {
-    return processCalculateCall(path, internal);
+    return processCalculateCall(path, internal, area, name);
   }
   return false;
 }
@@ -103,15 +98,16 @@ export function parseCalculateCall(path: NodePath<types.Expression | null | unde
 export function bindCall(
   path: NodePath<types.Expression | null | undefined>,
   expr: types.Expression | null | undefined,
-  data: Map<string, types.Expression>,
+  data: Map<string, Dependency>,
   internal: Internal,
   name?: string,
 ) {
-  const names = [...data.keys()].map(encodeName);
-  const dependencies = t.arrayExpression([...data.values()]);
+  const names = [...data.values()].map(item => t.identifier(item.paramName));
+  const dependencies = [...data.values()].map(item => item.node);
+  const codes = [...data.keys()];
 
   if (names.length > 0 && expr) {
-    path.replaceWith(named(internal.expr(t.arrowFunctionExpression(names, expr), dependencies), name, internal, 3));
+    path.replaceWith(internal.expr(t.arrowFunctionExpression(names, expr), dependencies, codes, expr, name));
 
     return true;
   }
@@ -127,10 +123,9 @@ export function exprCall(
     name?: string;
     strong?: boolean;
   },
+  area: types.Node,
 ): boolean {
-  if (parseCalculateCall(path, internal)) {
-    named(path.node as types.CallExpression, opts.name, internal, 3);
-
+  if (parseCalculateCall(path, internal, area, opts.name)) {
     return true;
   }
 
@@ -144,14 +139,27 @@ export function exprCall(
     const exprData = checkNode(argPath, internal);
 
     if (exprData.self) {
-      path.replaceWith(internal.forward(exprData.self));
+      path.replaceWith(exprData.self);
     } else if (exprData.found.size > 0) {
-      argPath.replaceWith(t.arrowFunctionExpression([...exprData.found.keys()].map(encodeName), argPath.node));
+      argPath.replaceWith(
+        t.arrowFunctionExpression(
+          [...exprData.found.values()].map(item => t.identifier(item.paramName)),
+          argPath.node,
+        ),
+      );
       expr.arguments.unshift(internal.isComposing ? ctx : t.nullLiteral());
-      expr.arguments.push(t.arrayExpression([...exprData.found.values()]));
-      named(expr, opts.name, internal, 3);
+      expr.arguments.push(
+        t.arrayExpression([...exprData.found.values()].map(item => item.node)),
+        t.arrayExpression([...exprData.found.keys()].map(item => t.stringLiteral(item))),
+        nodeToStaticPosition(internal, area),
+        inspector,
+      );
+
+      if (opts.name) {
+        path.replaceWith(internal.shareStateById(path.node, opts.name));
+      }
     } else {
-      path.replaceWith(named(internal.ref(argPath.node), opts.name, internal, 1));
+      path.replaceWith(internal.ref(argPath.node, area, opts.name));
     }
 
     return true;
@@ -163,7 +171,7 @@ export function exprCall(
     if (!opts.strong || exprIsSure(path, internal)) {
       path.replaceWith(exprData.self);
     } else {
-      path.replaceWith(internal.ensure(exprData.self));
+      path.replaceWith(internal.ensure(exprData.self, area));
     }
 
     return true;
@@ -172,20 +180,20 @@ export function exprCall(
   return bindCall(path, expr, exprData.found, internal, opts.name);
 }
 
-export function ref(expr: types.Expression | null | undefined, internal: Internal, name?: string) {
-  return named(internal.ref(expr), name, internal, 1);
+export function ref(expr: types.Expression | null | undefined, internal: Internal, area: types.Node, name?: string) {
+  return internal.ref(expr ?? null, area, name);
 }
 
 export function arrayModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
-  return named(internal.arrayModel(args[0]), name, internal, 2);
+  return internal.arrayModel(args[0], name);
 }
 
 export function setModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
-  return named(internal.setModel(args[0]), name, internal, 2);
+  return internal.setModel(args[0], name);
 }
 
 export function mapModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
-  return named(internal.mapModel(args[0]), name, internal, 2);
+  return internal.mapModel(args[0], name);
 }
 
 export function processModelCall(

@@ -4,7 +4,7 @@ import { transformProgram } from "./transformer.js";
 export default function (): Babel.PluginObj<{
   file: { opts: { filename: string } };
   opts: {
-    devMode: unknown;
+    devLayer: unknown;
     strictFolders: unknown;
     replaceWeb: unknown;
     headTag: unknown;
@@ -16,7 +16,7 @@ export default function (): Babel.PluginObj<{
     visitor: {
       Program(path, params) {
         transformProgram(path, params.file.opts.filename, {
-          devMode: params.opts.devMode !== false,
+          devLayer: params.opts.devLayer !== false,
           strictFolders: params.opts.strictFolders !== false,
           replaceWeb: typeof params.opts.replaceWeb === "string" ? params.opts.replaceWeb : undefined,
           headTag: !!params.opts.headTag,

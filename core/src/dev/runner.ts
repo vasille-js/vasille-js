@@ -18,8 +18,17 @@ export interface DevTagOptions extends TagOptions {
 }
 
 export class PositionedText {
-    text: unknown;
-    position: StaticPosition;
+    public text: unknown;
+    public position: StaticPosition;
+
+    public constructor(text: unknown, position: StaticPosition) {
+        this.text = text;
+        this.position = position;
+    }
+}
+
+export function positionedText(text: unknown, position: StaticPosition) {
+    return new PositionedText(text, position);
 }
 
 class DevTextNode extends TextNode<DevTagOptions, DevRunner> {

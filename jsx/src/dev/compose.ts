@@ -2,16 +2,7 @@ import { App, Destroyable, Fragment, Reactive } from "vasille";
 import { DevReactive, StaticPosition } from "vasille/dev";
 import { IDevRunner } from "vasille/dev";
 import { CompositionProps } from "../compose.js";
-import {
-    DevApp,
-    DevFragment,
-    DevRunner,
-    DevTagOptions,
-    Inspector,
-    ModelId,
-    ProtocolStore,
-    provideId,
-} from "vasille/dev";
+import { DevApp, DevFragment, DevRunner, DevTagOptions, Inspector, ModelId } from "vasille/dev";
 import { earlyInspector } from "./early-inspector.js";
 
 export type DevComposed<Node, Element, TagOptions extends object, In extends CompositionProps, Out> = (

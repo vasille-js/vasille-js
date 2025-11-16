@@ -7,8 +7,13 @@ import { ignoreParams, meshAllUnknown, meshExpression } from "./mesh";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
 
+export interface Dependency {
+  node: types.Expression;
+  paramName: string;
+}
+
 export interface Search {
-  found: Map<string, types.Expression>;
+  found: Map<string, Dependency>;
   external: Internal;
   self: types.Expression | null;
   inserted: Set<types.Expression>;
@@ -27,46 +32,18 @@ function insertName(name: string, search?: Search): types.Identifier {
   return id;
 }
 
-function addIdentifier(path: NodePath<types.Identifier>, search: Search) {
-  const name = unprefixedName(path.node.name);
+function addExpression(path: NodePath<types.Expression>, search: Search) {
+  const name = path.getSource();
+  const found = search.found.get(name);
 
-  if (!search.found.has(name)) {
-    search.found.set(name, path.node);
+  if (!found) {
+    const paramName = `param_${search.found.size}`;
+
+    search.found.set(name, { node: path.node, paramName });
+    path.replaceWith(insertName(paramName, search));
+  } else {
+    path.replaceWith(insertName(found.paramName, search));
   }
-
-  path.replaceWith(insertName(name, search));
-}
-
-function unprefixedName(name: string): string {
-  return name[0] === "$" ? name.slice(1) : name;
-}
-
-function extractMemberName(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, search: Search) {
-  const names: string[] = [];
-  let it: types.Expression = path.node;
-
-  while (t.isMemberExpression(it)) {
-    names.push(stringify(it.property));
-    it = it.object;
-  }
-
-  names.push(stringify(it));
-
-  if (names.filter(name => name.startsWith("$")).length > 1) {
-    err(Errors.RulesOfVasille, path, "The reactive/observable value is nested", search.external, null);
-  }
-
-  return names.reverse().map(unprefixedName).join("_");
-}
-
-function addMemberExpr(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>, search: Search) {
-  const name = extractMemberName(path, search);
-
-  /* istanbul ignore else */
-  if (!search.found.has(name)) {
-    search.found.set(name, path.node);
-  }
-  path.replaceWith(insertName(name, search));
 }
 
 function meshIdentifier(path: NodePath<types.Identifier>) {
@@ -250,7 +227,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       /* istanbul ignore else */
       if (expr && nodePath.isIdentifier()) {
         if (idIsIValue(nodePath)) {
-          addIdentifier(nodePath, search);
+          addExpression(nodePath, search);
         }
       }
       break;
@@ -305,6 +282,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
               left.node.object,
               !left.node.computed && t.isIdentifier(property) ? t.stringLiteral(property.name) : property,
               right.node,
+              path.node,
             ),
           );
         }
@@ -320,7 +298,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       const node = path.node;
 
       if (memberIsIValue(node)) {
-        addMemberExpr(path, search);
+        addExpression(path, search);
       } else {
         checkExpression(path.get("object"), search);
         checkOrIgnoreExpression<types.PrivateName>(path.get("property"), search);

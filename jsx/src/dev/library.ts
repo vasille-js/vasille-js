@@ -5,7 +5,7 @@ import { IValue } from "vasille";
 
 export function devAwaited<T>(
     target: () => Promise<T>,
-    callback: (error: unknown, data: unknown) => void,
+    callback: (error: IValue<unknown>, data: IValue<unknown>) => void,
     declaration: [StaticPosition, StaticPosition],
     inspector?: Inspector,
 ): [IValue<unknown>, IValue<unknown>, () => void] {

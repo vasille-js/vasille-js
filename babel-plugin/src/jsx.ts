@@ -1,10 +1,10 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { calls } from "./call";
-import { ctx, Internal } from "./internal.js";
+import { ctx, inspector, Internal } from "./internal.js";
 import { bodyHasJsx } from "./jsx-detect.js";
 import { err, Errors, exprCall } from "./lib.js";
 import { compose, meshExpression } from "./mesh.js";
+import { nodeToStaticPosition } from "./transformer";
 
 export interface ConditionCollection {
   cases: { condition: types.Expression; slot: types.FunctionExpression | types.ArrowFunctionExpression }[] | null;
@@ -44,7 +44,9 @@ export function transformJsxArray(
           .replace(/\n\s+$/m, "")
           .replace(/^\s*\n\s+/m, "")
           .replace(/\s*\n\s*/gm, "\n");
-        const call = t.callExpression(t.memberExpression(ctx, t.identifier("text")), [t.stringLiteral(fixed)]);
+        const call = t.callExpression(t.memberExpression(ctx, t.identifier("text")), [
+          internal.devLayer ? internal.positionedText(t.stringLiteral(fixed), path.node) : t.stringLiteral(fixed),
+        ]);
 
         call.loc = path.node.loc;
 
@@ -75,7 +77,9 @@ export function transformJsxArray(
         const value = transformJsxExpressionContainer(path, internal, false, false, true, true);
         /* istanbul ignore else */
         if (!t.isJSXEmptyExpression(value)) {
-          const call = t.callExpression(t.memberExpression(ctx, t.identifier("text")), [value]);
+          const call = t.callExpression(t.memberExpression(ctx, t.identifier("text")), [
+            internal.devLayer ? internal.positionedText(value, value) : value,
+          ]);
 
           call.loc = value.loc;
           result.push(t.expressionStatement(call));
@@ -113,7 +117,7 @@ function checkIfExpressionIsConditionalJsx(expr: types.Expression): boolean {
 }
 
 function processReactiveCondition(path: NodePath<types.Expression>, internal: Internal) {
-  exprCall(path, path.node, internal, {});
+  exprCall(path, path.node, internal, {}, path.node);
 
   return path.node;
 }
@@ -225,55 +229,11 @@ function transformJsxExpressionContainer(
   /* istanbul ignore else */
   if (expression.isExpression()) {
     if (acceptsReactive) {
-      // cals backward
-      if (calls(expression, ["backward"], internal)) {
-        const argPath = (expression as NodePath<types.CallExpression>).get("arguments")[0];
-
-        if (argPath && argPath.isExpression()) {
-          const argValue = argPath.node;
-
-          if (exprCall(argPath, argPath.node, internal, { strong: true })) {
-            if (!argPath.isMemberExpression() && !argPath.isIdentifier()) {
-              argPath.node = argValue;
-              err(
-                Errors.RulesOfVasille,
-                argPath,
-                "A reactive variable or object field expected, reactive expression are forward only",
-                internal,
-              );
-            }
-          } else {
-            argPath.node = argValue;
-            err(Errors.RulesOfVasille, argPath, "The backward argument is not reactive", internal);
-          }
-        } else {
-          err(Errors.IncorrectArguments, expression, "The argument is missing", internal);
-        }
-      }
-      // calls forward
-      else if (calls(expression, ["forward"], internal)) {
-        const argPath = (expression as NodePath<types.CallExpression>).get("arguments")[0];
-
-        if (argPath && argPath.isExpression()) {
-          const argValue = argPath.node;
-
-          if (!exprCall(argPath, argPath.node, internal, { strong: true })) {
-            argPath.node = argValue;
-            err(Errors.RulesOfVasille, argPath, "A reactive expression expected, argument value is constant", internal);
-          } else {
-            expression.node.arguments.unshift(ctx);
-          }
-        } else {
-          err(Errors.IncorrectArguments, expression, "The argument is missing", internal);
-        }
-      }
       // two-side binding
-      else {
-        const isReactive = exprCall(expression, expression.node, internal, { strong: !acceptsRaw });
+      const isReactive = exprCall(expression, expression.node, internal, { strong: !acceptsRaw }, expression.node);
 
-        if (!isReactive && !acceptsRaw) {
-          expression.replaceWith(internal.ref(expression.node));
-        }
+      if (!isReactive && !acceptsRaw) {
+        expression.replaceWith(internal.ref(expression.node, expression.node, undefined));
       }
     } else {
       meshExpression(expression, internal);
@@ -399,7 +359,7 @@ function transformJsxElement(
                     elementPath.node.operator === "&&" &&
                     t.isStringLiteral(elementPath.node.right)
                   ) {
-                    exprCall(elementPath.get("left"), elementPath.node.left, internal, {});
+                    exprCall(elementPath.get("left"), elementPath.node.left, internal, {}, elementPath.node);
 
                     classObject.push(idToProp(elementPath.node.right, elementPath.node.left));
                   }
@@ -413,7 +373,7 @@ function transformJsxElement(
 
                         /* istanbul ignore else */
                         if (valuePath.isExpression()) {
-                          exprCall(valuePath, valuePath.node, internal, {});
+                          exprCall(valuePath, valuePath.node, internal, {}, elementPath.node);
                         }
 
                         if (keyPath.isExpression() && !keyPath.isIdentifier()) {
@@ -438,7 +398,7 @@ function transformJsxElement(
                   }
                   // class={[..]}
                   else {
-                    exprCall(elementPath, elementPath.node, internal, { strong: true });
+                    exprCall(elementPath, elementPath.node, internal, { strong: true }, elementPath.node);
 
                     classElements.push(elementPath.node);
                   }
@@ -455,7 +415,7 @@ function transformJsxElement(
             }
             // class={`a ${b}`}
             else if (expressionPath && expressionPath.isExpression()) {
-              if (exprCall(expressionPath, expressionPath.node, internal, { strong: true })) {
+              if (exprCall(expressionPath, expressionPath.node, internal, { strong: true }, expressionPath.node)) {
                 console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
               }
 
@@ -463,7 +423,7 @@ function transformJsxElement(
             }
             // class={name}
             else if (expressionPath && expressionPath.isExpression()) {
-              exprCall(expressionPath, expressionPath.node, internal, {});
+              exprCall(expressionPath, expressionPath.node, internal, {}, expressionPath.node);
               attrs.push(t.objectProperty(t.identifier("class"), expressionPath.node));
             }
             // class="a b"
@@ -482,7 +442,7 @@ function transformJsxElement(
 
                   /* istanbul ignore else */
                   if (valuePath.isExpression()) {
-                    exprCall(valuePath, valuePath.node, internal, { strong: true });
+                    exprCall(valuePath, valuePath.node, internal, { strong: true }, prop.node);
                   }
 
                   const value = valuePath.node;
@@ -542,7 +502,7 @@ function transformJsxElement(
             }
             // style={`a: ${b}px`}
             else if (expressionPath && expressionPath.isExpression()) {
-              if (exprCall(expressionPath, expressionPath.node, internal, { strong: true })) {
+              if (exprCall(expressionPath, expressionPath.node, internal, { strong: true }, expressionPath.node)) {
                 console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
               }
 
@@ -554,7 +514,7 @@ function transformJsxElement(
           } else {
             /* istanbul ignore else */
             if (expressionPath && expressionPath.isExpression()) {
-              exprCall(expressionPath, expressionPath.node, internal, {});
+              exprCall(expressionPath, expressionPath.node, internal, {}, expressionPath.node);
               attrs.push(idToProp(name, expressionPath.node));
             } else if (t.isStringLiteral(attr.value)) {
               attrs.push(idToProp(name, attr.value));
@@ -571,7 +531,7 @@ function transformJsxElement(
             if (expressionPath) {
               /* istanbul ignore else */
               if (expressionPath.isExpression()) {
-                exprCall(expressionPath, expressionPath.node, internal, { strong: true });
+                exprCall(expressionPath, expressionPath.node, internal, { strong: true }, expressionPath.node);
                 bind.push(idToProp(name.name, expressionPath.node));
                 pushed = true;
               }
@@ -629,6 +589,9 @@ function transformJsxElement(
           : []),
         ...(styleObject.length > 0 ? [t.objectProperty(t.identifier("style"), t.objectExpression(styleObject))] : []),
         ...(callback ? [t.objectProperty(t.identifier("callback"), callback)] : []),
+        ...(internal.devLayer
+          ? [t.objectProperty(t.identifier("usage"), nodeToStaticPosition(internal, path.node))]
+          : []),
       ]),
       ...(statements.length > 0 ? [t.arrowFunctionExpression([ctx], t.blockStatement(statements))] : []),
     ]);
@@ -644,10 +607,6 @@ function transformJsxElement(
     let run: types.FunctionExpression | types.ArrowFunctionExpression | undefined;
     const mapped = internal.mapping.get(name.name);
 
-    if (mapped === "Debug" && internal.stack.get(name.name) === undefined && !internal.devMode) {
-      return processConditions(conditions, internal);
-    }
-
     for (const attrPath of opening.get("attributes")) {
       const attr = attrPath.node;
 
@@ -658,7 +617,7 @@ function transformJsxElement(
         // <A prop=".."/>
         /* istanbul ignore else */
         if (t.isStringLiteral(attr.value)) {
-          props.push(idToProp(attr.name, needReactive ? internal.ref(attr.value) : attr.value));
+          props.push(idToProp(attr.name, needReactive ? internal.ref(attr.value, attr, undefined) : attr.value));
         }
         // <A prop={..}/>
         else if (valuePath && valuePath.isJSXExpressionContainer()) {
@@ -675,7 +634,12 @@ function transformJsxElement(
 
           props.push(idToProp(attr.name, value));
         } else if (!attr.value) {
-          props.push(idToProp(attr.name, needReactive ? internal.ref(t.booleanLiteral(true)) : t.booleanLiteral(true)));
+          props.push(
+            idToProp(
+              attr.name,
+              needReactive ? internal.ref(t.booleanLiteral(true), attr, undefined) : t.booleanLiteral(true),
+            ),
+          );
         }
       }
       // <A {...arg}/>
@@ -780,7 +744,12 @@ function transformJsxElement(
       return ret;
     }
 
-    const call = t.callExpression(t.identifier(name.name), [t.objectExpression(props), ctx, ...(run ? [run] : [])]);
+    const call = t.callExpression(t.identifier(name.name), [
+      t.objectExpression(props),
+      ctx,
+      ...(run ? [run] : internal.devLayer ? [t.buildUndefinedNode()] : []),
+      ...(internal.devLayer ? [nodeToStaticPosition(internal, path.node)] : []),
+    ]);
 
     call.loc = path.node.loc;
 

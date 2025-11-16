@@ -1,9 +1,10 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { ctx, Internal, StackedStates } from "./internal.js";
+import { ctx, inspector, Internal, runner, StackedStates } from "./internal.js";
 import { meshStatement } from "./mesh.js";
 import { findStyleInNode } from "./css-transformer.js";
-import { ArrowFunctionExpression, CallExpression, FunctionExpression } from "@babel/types";
+import * as fs from "node:fs";
+import path from "path";
 
 const imports = new Map([["vasille-web", "VasilleWeb"]]);
 const ignoreMembers = new Set([
@@ -24,6 +25,7 @@ const ignoreMembers = new Set([
   "ElseIf",
   "Else",
 ]);
+const filePathId = t.identifier("VasilleFilePath");
 
 function extractText(node: types.Identifier | types.StringLiteral) {
   // no case found for string literal
@@ -74,10 +76,7 @@ function handleImportDeclaration(
   }
   statement.specifiers = statement.specifiers.filter(spec => {
     if (!t.isImportSpecifier(spec)) return true;
-    return !(
-      ignoreMembers.has(extractText(spec.imported)) ||
-      (!internal.devMode && extractText(spec.imported) === "Debug")
-    );
+    return !ignoreMembers.has(extractText(spec.imported));
   });
 }
 
@@ -130,12 +129,27 @@ function updateImports(
 }
 
 export interface TransformerOptions {
-  devMode: boolean;
+  devLayer: boolean;
   strictFolders: boolean;
   replaceWeb?: string;
   headTag?: boolean;
   bodyTag?: boolean;
 }
+
+export function nodeToStaticPosition(internal: Internal, node: types.Node) {
+  if (node.loc) {
+    return t.arrayExpression([
+      filePathId,
+      t.numericLiteral(node.loc.start.line),
+      t.numericLiteral(node.loc.start.column),
+      t.numericLiteral(node.loc.end.line),
+      t.numericLiteral(node.loc.end.column),
+    ]);
+  }
+  return t.arrayExpression([filePathId]);
+}
+
+const packageJson = JSON.parse(fs.readFileSync(path.join(process.cwd(), "package.json"), { encoding: "utf-8" }));
 
 // Main transformer function
 export function transformProgram(path: NodePath<types.Program>, filename: string, opts: TransformerOptions) {
@@ -153,6 +167,10 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     set: "VasilleSet",
     Switch: "VasilleSwitch",
     safe: "VasilleSafe",
+    executionPosition: "VasilleExePos",
+    registerDevValue: "VasilleDevValue",
+    shareStateById: "VasilleState",
+    positionedText: "VasillePosText",
   };
 
   function call(
@@ -173,29 +191,161 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     prefix: "Vasille_",
     importStatement: null,
     stateOnly: false,
-    filename,
+    filename: filename,
+    steelFilePath: packageJson.name + filename.substring(process.cwd().length),
     stylesConnected: false,
-    devMode: opts.devMode,
+    devLayer: opts.devLayer,
     strictFolders: opts.strictFolders,
     replaceWeb: opts.replaceWeb,
     headTag: opts.headTag,
     bodyTag: opts.bodyTag,
-    ref: arg => call("ref", arg ? [arg] : []),
-    expr: (func, values) => call("expr", [getCtx(), func, values]),
-    forward: arg => call("forward", [getCtx(), arg]),
-    setModel: arg => call("setModel", arg ? [getCtx(), arg] : [getCtx()]),
-    mapModel: arg => call("mapModel", arg ? [getCtx(), arg] : [getCtx()]),
-    arrayModel: arg => call("arrayModel", arg ? [getCtx(), arg] : [getCtx()]),
-    ensure: arg => call("ensure", [arg]),
-    match: (name, arg) => call("match", arg ? [name, arg] : [name]),
-    set: (obj, field, value) => call("set", [obj, field, value]),
-    Switch: arg => call("Switch", [arg, ctx]),
-    safe: (arg: FunctionExpression | ArrowFunctionExpression) => call("safe", [arg]),
+    ref(arg, area, name) {
+      if (opts.devLayer) {
+        return named(
+          call("ref", [arg ? arg : t.buildUndefinedNode(), nodeToStaticPosition(this, area), getInspector()]),
+          name,
+        );
+      }
+
+      return call("ref", arg ? [arg] : []);
+    },
+    expr(func, values, codes, area, name) {
+      if (opts.devLayer) {
+        return named(
+          call("expr", [
+            getCtx(),
+            func,
+            t.arrayExpression(values),
+            t.arrayExpression(codes.map(item => t.stringLiteral(item))),
+            nodeToStaticPosition(this, area),
+            getInspector(),
+          ]),
+          name,
+        );
+      }
+
+      return call("expr", [getCtx(), func, t.arrayExpression(values)]);
+    },
+    setModel(arg, name) {
+      if (opts.devLayer) {
+        return named(call("setModel", [getInspector(), getCtx(), arg ?? t.buildUndefinedNode()]), name);
+      }
+
+      return call("setModel", arg ? [getCtx(), arg] : [getCtx()]);
+    },
+    mapModel(arg, name) {
+      if (opts.devLayer) {
+        return named(call("mapModel", [getInspector(), getCtx(), arg ?? t.buildUndefinedNode()]), name);
+      }
+
+      return call("mapModel", arg ? [getCtx(), arg] : [getCtx()]);
+    },
+    arrayModel(arg, name) {
+      if (opts.devLayer) {
+        return named(call("arrayModel", [getInspector(), getCtx(), arg ?? t.buildUndefinedNode()]), name);
+      }
+
+      return call("arrayModel", arg ? [getCtx(), arg] : [getCtx()]);
+    },
+    ensure(arg, area) {
+      if (opts.devLayer) {
+        return call("ensure", [arg, nodeToStaticPosition(this, area), getInspector()]);
+      }
+
+      return call("ensure", [arg]);
+    },
+    match(name, arg, area) {
+      if (opts.devLayer) {
+        return call("match", [name, arg ?? t.buildUndefinedNode(), nodeToStaticPosition(this, area), getInspector()]);
+      }
+
+      return call("match", arg ? [name, arg] : [name]);
+    },
+    set(obj, field, value, area) {
+      if (opts.devLayer) {
+        return call("set", [
+          obj,
+          field,
+          value,
+          nodeToStaticPosition(this, area),
+          getInspector(),
+          getExecutionPosition(area),
+        ]);
+      }
+
+      return call("set", [obj, field, value]);
+    },
+    Switch(arg) {
+      return call("Switch", [arg, ctx]);
+    },
+    safe: (arg: types.FunctionExpression | types.ArrowFunctionExpression) => call("safe", [arg]),
+    updateIValue(node: types.AssignmentExpression): types.Expression {
+      const { left, right } = node;
+
+      if (t.isExpression(left)) {
+        return t.callExpression(t.memberExpression(left, t.identifier("update")), [right, getExecutionPosition(node)]);
+      }
+
+      return node;
+    },
+    registerDevValue(value: types.Expression): types.Expression {
+      return registerDevValue(value);
+    },
+    shareStateById(value: types.Expression, name: string): types.Expression {
+      return shareStateById(value, name);
+    },
+    positionedText(text: types.Expression, area: types.Node): types.Expression {
+      return call("positionedText", [text, nodeToStaticPosition(this, area)]);
+    },
   };
 
   function getCtx() {
     if (internal.isComposing) return ctx;
     return t.nullLiteral();
+  }
+
+  function getInspector() {
+    if (internal.isComposing) {
+      return inspector;
+    }
+
+    return t.nullLiteral();
+  }
+
+  function getExecutionPosition(area: types.Node) {
+    if (internal.isComposing) {
+      return call("executionPosition", [
+        runner,
+        nodeToStaticPosition(internal, area),
+        t.newExpression(t.identifier("Error"), [t.stringLiteral("execution-position")]),
+      ]);
+    }
+
+    return t.buildUndefinedNode();
+  }
+
+  function named(node: t.CallExpression, name: string | undefined) {
+    if (name && internal.isComposing) {
+      return shareStateById(node, name);
+    }
+
+    return node;
+  }
+
+  function registerDevValue(value: types.Expression) {
+    if (internal.isComposing) {
+      return call("registerDevValue", [value, nodeToStaticPosition(internal, value), runner]);
+    }
+
+    return value;
+  }
+
+  function shareStateById(node: types.Expression, name: string | undefined) {
+    if (internal.isComposing && name) {
+      return call("shareStateById", [t.memberExpression(ctx, t.identifier("id")), runner, t.stringLiteral(name), node]);
+    }
+
+    return node;
   }
 
   for (const statementPath of path.get("body")) {
@@ -210,4 +360,10 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
   updateImports(path, internal, ids, used);
 
   if (internal.firstError) throw internal.firstError;
+
+  if (opts.devLayer) {
+    path.node.body.unshift(
+      t.variableDeclaration("const", [t.variableDeclarator(filePathId, t.stringLiteral(internal.steelFilePath))]),
+    );
+  }
 }

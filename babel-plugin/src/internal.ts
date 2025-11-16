@@ -34,6 +34,7 @@ export class StackedStates {
 }
 
 export interface Internal {
+  // settings
   mapping: Map<string, string>;
   stack: StackedStates;
   global: string;
@@ -44,23 +45,56 @@ export interface Internal {
   isFunctionParsing?: boolean;
   firstError?: Error;
   filename: string;
-  devMode: boolean;
+  steelFilePath: string;
+  devLayer: boolean;
   strictFolders: boolean;
   stylesConnected: boolean;
   replaceWeb?: string;
   headTag?: boolean;
   bodyTag?: boolean;
-  ref(arg?: types.Expression | null): types.CallExpression;
-  expr(func: types.Expression, values: types.ArrayExpression): types.CallExpression;
-  forward(arg: types.Expression): types.CallExpression;
-  setModel(arg?: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null): types.CallExpression;
-  mapModel(arg?: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null): types.CallExpression;
-  arrayModel(arg?: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null): types.CallExpression;
-  ensure(arg: types.Expression): types.CallExpression;
-  match(name: types.Expression, arg?: types.Expression | null): types.CallExpression;
-  set(obj: types.Expression, field: types.Expression, value: types.Expression): types.CallExpression;
+
+  // reactivity
+  ref(arg: types.Expression | null, area: types.Node, name: string | undefined): types.Expression;
+  expr(
+    func: types.Expression,
+    values: types.Expression[],
+    codes: string[],
+    area: types.Node,
+    name: string | undefined,
+  ): types.Expression;
+
+  // models
+  setModel(
+    arg: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null,
+    name: string | undefined,
+  ): types.Expression;
+  mapModel(
+    arg: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null,
+    name: string | undefined,
+  ): types.Expression;
+  arrayModel(
+    arg: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null,
+    name: string | undefined,
+  ): types.Expression;
+
+  // helpers
+  ensure(arg: types.Expression, area: types.Node): types.CallExpression;
+  match(name: types.Expression, arg: types.Expression | null, area: types.Node): types.CallExpression;
+  set(obj: types.Expression, field: types.Expression, value: types.Expression, area: types.Node): types.CallExpression;
+
+  // components
   Switch(arg: types.ObjectExpression): types.CallExpression;
+
+  // safety
   safe(arg: types.FunctionExpression | types.ArrowFunctionExpression): types.CallExpression;
+
+  // dev helpers
+  updateIValue(node: types.AssignmentExpression): types.Expression;
+  registerDevValue(value: types.Expression): types.Expression;
+  shareStateById(value: types.Expression, name: string): types.Expression;
+  positionedText(text: types.Expression, area: types.Node): types.Expression;
 }
 
 export const ctx = t.identifier("Vasille");
+export const runner = t.memberExpression(ctx, t.identifier("runner"));
+export const inspector = t.memberExpression(runner, t.identifier("inspector"));
