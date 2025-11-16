@@ -3,4 +3,4 @@ const C = DX["compose"]((Vasille, {
   a
 }) => {
   DX.safe(() => a = 3)();
-}, "C");
+});

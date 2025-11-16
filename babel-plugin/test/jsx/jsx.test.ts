@@ -44,14 +44,6 @@ it("loop", function () {
   runJsxTest(__dirname, "loop");
 });
 
-it("backward", function () {
-  runJsxTest(__dirname, "backward");
-});
-
-it("forward", function () {
-  runJsxTest(__dirname, "forward");
-});
-
 it("default prop value", function () {
   runJsxTest(__dirname, "default-prop");
 });
@@ -107,31 +99,6 @@ it("namespaced tag name error", function () {
     "Unsupported tag detected, html lowercase tag names and components are accepted",
     true,
   );
-});
-
-it("backward const value error", function () {
-  throwTest(__dirname, "backward-const", "The backward argument is not reactive", true);
-});
-
-it("backward forward-only value error", function () {
-  throwTest(
-    __dirname,
-    "backward-forward-only",
-    "A reactive variable or object field expected, reactive expression are forward only",
-    true,
-  );
-});
-
-it("backward missing argument error", function () {
-  throwTest(__dirname, "backward-missing-argument", "The argument is missing", true);
-});
-
-it("forward const value error", function () {
-  throwTest(__dirname, "forward-const", "A reactive expression expected, argument value is constant", true);
-});
-
-it("forward missing argument error", function () {
-  throwTest(__dirname, "forward-missing-argument", "The argument is missing", true);
 });
 
 it("condition spread attribute error", function () {

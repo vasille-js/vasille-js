@@ -64,17 +64,20 @@ export function processCalculateCall(
       internal,
     );
 
-    call.params = [...exprData.found.values()].map(item => t.identifier(item.paramName));
+    call.params = [...exprData.found.values()].map(item => item.paramName);
     path.node.arguments.unshift(internal.isComposing ? ctx : t.nullLiteral());
-    path.node.arguments.push(
-      t.arrayExpression([...exprData.found.values()].map(item => item.node)),
-      t.arrayExpression([...exprData.found.keys()].map(name => t.identifier(name))),
-      nodeToStaticPosition(internal, area),
-      inspector,
-    );
+    path.node.arguments.push(t.arrayExpression([...exprData.found.values()].map(item => item.node)));
 
-    if (name) {
-      path.replaceWith(internal.shareStateById(path.node, name));
+    if (internal.devLayer) {
+      path.node.arguments.push(
+        t.arrayExpression([...exprData.found.keys()].map(name => t.identifier(name))),
+        nodeToStaticPosition(internal, area),
+        inspector,
+      );
+
+      if (name) {
+        path.replaceWith(internal.shareStateById(path.node, name));
+      }
     }
 
     return true;
@@ -102,7 +105,7 @@ export function bindCall(
   internal: Internal,
   name?: string,
 ) {
-  const names = [...data.values()].map(item => t.identifier(item.paramName));
+  const names = [...data.values()].map(item => item.paramName);
   const dependencies = [...data.values()].map(item => item.node);
   const codes = [...data.keys()];
 
@@ -143,20 +146,23 @@ export function exprCall(
     } else if (exprData.found.size > 0) {
       argPath.replaceWith(
         t.arrowFunctionExpression(
-          [...exprData.found.values()].map(item => t.identifier(item.paramName)),
+          [...exprData.found.values()].map(item => item.paramName),
           argPath.node,
         ),
       );
       expr.arguments.unshift(internal.isComposing ? ctx : t.nullLiteral());
-      expr.arguments.push(
-        t.arrayExpression([...exprData.found.values()].map(item => item.node)),
-        t.arrayExpression([...exprData.found.keys()].map(item => t.stringLiteral(item))),
-        nodeToStaticPosition(internal, area),
-        inspector,
-      );
+      expr.arguments.push(t.arrayExpression([...exprData.found.values()].map(item => item.node)));
 
-      if (opts.name) {
-        path.replaceWith(internal.shareStateById(path.node, opts.name));
+      if (internal.devLayer) {
+        expr.arguments.push(
+          t.arrayExpression([...exprData.found.keys()].map(item => t.stringLiteral(item))),
+          nodeToStaticPosition(internal, area),
+          inspector,
+        );
+
+        if (opts.name) {
+          path.replaceWith(internal.shareStateById(path.node, opts.name));
+        }
       }
     } else {
       path.replaceWith(internal.ref(argPath.node, area, opts.name));

@@ -1,6 +1,6 @@
 import { compose, ref as VasilleRef } from "vasille-web";
 const C = compose(Vasille => {
-  const $a = VasilleRef("text", "a");
+  const $a = VasilleRef("text");
   Vasille.tag("div", {}, Vasille => {
     Vasille.text("text1 Hello ");
     Vasille.text("world");
@@ -8,4 +8,4 @@ const C = compose(Vasille => {
     Vasille.text(" is text");
     Vasille.tag("div", {});
   });
-}, "C");
+});

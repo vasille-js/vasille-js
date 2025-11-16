@@ -1,9 +1,9 @@
 import { compose, ref as VasilleRef, expr as VasilleExpr, Switch as VasilleSwitch } from "vasille-web";
 const C1 = compose((Vasille, props) => {
   Vasille.tag("div", {});
-}, "C1");
+});
 const C2 = compose(Vasille => {
-  const $a = VasilleRef(1, "a");
+  const $a = VasilleRef(1);
   Vasille.tag("div", {}, Vasille => {
     C1({
       "$bool": VasilleRef(true),
@@ -16,7 +16,7 @@ const C2 = compose(Vasille => {
         ...{
           $a: VasilleRef(1)
         },
-        "$b": VasilleExpr(Vasille, Vasille_a => Vasille_a + 1, [$a]),
+        "$b": VasilleExpr(Vasille, Vasille_0 => Vasille_0 + 1, [$a]),
         "$bool": VasilleRef(true)
       }, Vasille, (_VasilleWeb, Vasille) => {
         Vasille.tag("div", {});
@@ -33,10 +33,10 @@ const C2 = compose(Vasille => {
   }, Vasille);
   VasilleSwitch({
     cases: [{
-      $case: VasilleExpr(Vasille, Vasille_a => Vasille_a > 1, [$a]),
+      $case: VasilleExpr(Vasille, Vasille_0 => Vasille_0 > 1, [$a]),
       slot: Vasille => {
         C1({}, Vasille);
       }
     }]
   }, Vasille);
-}, "C2");
+});

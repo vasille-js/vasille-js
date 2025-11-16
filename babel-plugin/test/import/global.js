@@ -3,4 +3,4 @@ const C = DX.compose((Vasille, {
   $a = DX.ref()
 }) => {
   DX.safe(() => $a.V = 3)();
-}, "C");
+});

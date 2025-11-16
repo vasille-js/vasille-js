@@ -6,7 +6,7 @@ const SubComponent = component((Vasille, {
   slot1,
   slot2
 }) => {
-  const $x = VasilleRef(0, "x");
+  const $x = VasilleRef(0);
   VasilleSafe(() => {
     if (slot1) {
       control = {
@@ -31,7 +31,7 @@ const SubComponent = component((Vasille, {
     model: slot2,
     x: 3
   }, Vasille);
-}, "SubComponent");
+});
 export const SlotTest = component(Vasille => {
   Vasille.tag("div", {}, Vasille => {
     SubComponent({}, Vasille);
@@ -69,4 +69,4 @@ export const SlotTest = component(Vasille => {
       }
     }, Vasille);
   });
-}, "SlotTest");
+});

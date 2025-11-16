@@ -1,8 +1,8 @@
 import { compose, ref as VasilleRef, expr as VasilleExpr } from "vasille-web";
 let c = "c";
 const C = compose(Vasille => {
-  const $a = VasilleRef("a", "a");
-  const $b = VasilleRef(false, "b");
+  const $a = VasilleRef("a");
+  const $b = VasilleRef(false);
   Vasille.tag("div", {
     attr: {
       class: "static1 static2"
@@ -13,7 +13,7 @@ const C = compose(Vasille => {
   });
   Vasille.tag("div", {
     class: [{
-      aIsB: VasilleExpr(Vasille, Vasille_a => Vasille_a === "b", [$a])
+      aIsB: VasilleExpr(Vasille, Vasille_0 => Vasille_0 === "b", [$a])
     }]
   });
   Vasille.tag("div", {
@@ -48,7 +48,7 @@ const C = compose(Vasille => {
   });
   Vasille.tag("div", {
     attr: {
-      class: VasilleExpr(Vasille, Vasille_a => `${Vasille_a} b`, [$a])
+      class: VasilleExpr(Vasille, Vasille_0 => `${Vasille_0} b`, [$a])
     }
   });
   Vasille.tag("div", {
@@ -61,4 +61,4 @@ const C = compose(Vasille => {
       class: $a
     }
   });
-}, "C");
+});

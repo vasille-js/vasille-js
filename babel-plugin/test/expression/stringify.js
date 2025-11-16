@@ -5,9 +5,9 @@ class Class {
   };
   compose() {
     return compose(Vasille => {
-      watch(Vasille, Vasille__obj_prop => {
-        let x = [Vasille__obj_prop, Vasille__obj_prop];
-      }, [this.#obj.$prop]);
-    }, "#");
+      watch(Vasille, (Vasille_0, Vasille_1) => {
+        let x = [Vasille_0, Vasille_1];
+      }, [this.#obj.$prop, this.#obj["$prop"]]);
+    });
   }
 }

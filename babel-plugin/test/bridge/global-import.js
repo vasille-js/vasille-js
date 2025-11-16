@@ -10,4 +10,4 @@ const C = Web.compose(Vasille => {
     const xx = Web.ref(2);
   }
   Web.safe(() => Vasille.runner.router)();
-}, "C");
+});

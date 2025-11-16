@@ -16,7 +16,7 @@ export default function (): Babel.PluginObj<{
     visitor: {
       Program(path, params) {
         transformProgram(path, params.file.opts.filename, {
-          devLayer: params.opts.devLayer !== false,
+          devLayer: params.opts.devLayer === true,
           strictFolders: params.opts.strictFolders !== false,
           replaceWeb: typeof params.opts.replaceWeb === "string" ? params.opts.replaceWeb : undefined,
           headTag: !!params.opts.headTag,

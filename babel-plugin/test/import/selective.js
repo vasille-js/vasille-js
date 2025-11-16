@@ -3,4 +3,4 @@ const C = compose((Vasille, {
   $a = VasilleRef(0)
 }) => {
   VasilleSafe(() => $a.V = 3)();
-}, "C");
+});

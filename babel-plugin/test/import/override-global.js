@@ -6,4 +6,4 @@ const C = DX.compose(Vasille => {
     }
   };
   const sum = DX1.compose() + 2;
-}, "C");
+});

@@ -2,16 +2,16 @@ import { Slot, compose, ref as VasilleRef, safe as VasilleSafe } from "vasille-w
 const C1 = compose((Vasille, {
   slot
 }) => {
-  const $a = VasilleRef(0, "a");
+  const $a = VasilleRef(0);
   Vasille.tag("div", {}, Vasille => {
     Slot({
       model: slot,
       "$a": $a
     }, Vasille);
   });
-}, "C1");
+});
 const C2 = compose(Vasille => {
-  const $a = VasilleRef(2, "a");
+  const $a = VasilleRef(2);
   C1({
     slot: ({
       $a = VasilleRef()
@@ -33,4 +33,4 @@ const C2 = compose(Vasille => {
     }
   }, Vasille);
   VasilleSafe(() => console.log($a.V))();
-}, "C2");
+});

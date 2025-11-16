@@ -4,8 +4,8 @@ const obj = {
   b: 2
 };
 const sStore = store(Vasille => {
-  const $a = VasilleRef(2, "a");
-  const $b = VasilleRef(3, "b");
+  const $a = VasilleRef(2);
+  const $b = VasilleRef(3);
   const o = {
     a: 1,
     $b: VasilleRef({
@@ -18,21 +18,21 @@ const sStore = store(Vasille => {
     $b: $b,
     o: o
   };
-}, "sStore");
+});
 const s = sStore;
 const Component = compose(Vasille => {
   const $a = VasilleEnsure(s.$a);
   const $b = VasilleEnsure(s.$b);
-  const $bc1 = watch(Vasille, Vasille_s_o_b => Vasille_s_o_b.c, [s.o.$b], "bc1");
-  const $bc2 = watch(Vasille, Vasille_s_o_b => Vasille_s_o_b?.c, [s.o.$b], "bc2");
-  watch(Vasille, (Vasille_a, Vasille_b, Vasille_s_o_b) => {
-    console.log(Vasille_a, Vasille_b, Vasille_s_o_b.c, Vasille_s_o_b?.c);
+  const $bc1 = watch(Vasille, Vasille_0 => Vasille_0.c, [s.o.$b]);
+  const $bc2 = watch(Vasille, Vasille_0 => Vasille_0?.c, [s.o.$b]);
+  watch(Vasille, (Vasille_0, Vasille_1, Vasille_2) => {
+    console.log(Vasille_0, Vasille_1, Vasille_2.c, Vasille_2?.c);
   }, [$a, $b, s.o.$b]);
   VasilleSafe(() => console.log($a.V, $b.V, s.o.$b.V.c, s.o.$b?.V?.c))();
   Vasille.tag("div", {}, Vasille => {
     Vasille.text($a);
     Vasille.text($b);
-    Vasille.text(watch(Vasille, Vasille_s_o_b => Vasille_s_o_b.c, [s.o.$b]));
-    Vasille.text(watch(Vasille, Vasille_s_o_b => Vasille_s_o_b?.c, [s.o.$b]));
+    Vasille.text(watch(Vasille, Vasille_0 => Vasille_0.c, [s.o.$b]));
+    Vasille.text(watch(Vasille, Vasille_0 => Vasille_0?.c, [s.o.$b]));
   });
-}, "Component");
+});

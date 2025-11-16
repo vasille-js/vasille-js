@@ -1,9 +1,9 @@
 import { store, calculate, component, ref as VasilleRef } from "vasille-web";
 const modelStore = store(Vasille => {
-  const $r = VasilleRef("test", "r");
-  const $text = calculate(Vasille, Vasille_r => {
-    return "+" + Vasille_r;
-  }, [$r], "text");
+  const $r = VasilleRef("test");
+  const $text = calculate(Vasille, Vasille_0 => {
+    return "+" + Vasille_0;
+  }, [$r]);
   return {
     $r,
     $text,
@@ -11,14 +11,14 @@ const modelStore = store(Vasille => {
       $r.V = value;
     }
   };
-}, "modelStore");
+});
 const Component = component(Vasille => {
   Vasille.tag("div", {}, Vasille => {
     Vasille.text("Hello ");
     Vasille.text(modelStore.$text);
     Vasille.text("!");
   });
-}, "Component");
+});
 export const x = {
   model: modelStore,
   Component

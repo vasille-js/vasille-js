@@ -1,6 +1,6 @@
 import { compose, ref as VasilleRef, Switch as VasilleSwitch } from "vasille-web";
 const C = compose(Vasille => {
-  const $condition = VasilleRef(true, "condition");
+  const $condition = VasilleRef(true);
   VasilleSwitch({
     cases: [{
       $case: $condition,
@@ -77,4 +77,4 @@ const C = compose(Vasille => {
     }]
   }, Vasille);
   Vasille.tag("div", {});
-}, "C");
+});

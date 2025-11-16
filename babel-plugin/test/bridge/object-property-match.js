@@ -5,4 +5,4 @@ const C = compose(Vasille => {
     $a: VasilleRef(1),
     [key]: VasilleMatch(key, 2)
   };
-}, "C");
+});

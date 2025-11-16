@@ -1,11 +1,11 @@
 import { component, ref } from "vasille-web";
 const C = component(Vasille => {
-  const $a = ref(0, "a");
+  const $a = ref(0);
   return {
     $a
   };
-}, "C");
-const C2 = component((Vasille, props) => {}, "C2");
+});
+const C2 = component((Vasille, props) => {});
 C({
   callback(data) {
     data.$a?.V;

@@ -9,7 +9,7 @@ import { stringify } from "./utils";
 
 export interface Dependency {
   node: types.Expression;
-  paramName: string;
+  paramName: types.Identifier;
 }
 
 export interface Search {
@@ -20,12 +20,8 @@ export interface Search {
   stack: StackedStates;
 }
 
-export function encodeName(name: string) {
-  return insertName(name);
-}
-
 function insertName(name: string, search?: Search): types.Identifier {
-  const id = t.identifier(`Vasille_${name}`);
+  const id = t.identifier(name);
 
   search?.inserted.add(id);
 
@@ -33,16 +29,32 @@ function insertName(name: string, search?: Search): types.Identifier {
 }
 
 function addExpression(path: NodePath<types.Expression>, search: Search) {
-  const name = path.getSource();
+  const name = path
+    .getSource()
+    .trim()
+    .replace(/\s*\n\s*/g, "");
   const found = search.found.get(name);
 
-  if (!found) {
-    const paramName = `param_${search.found.size}`;
+  if (path.isMemberExpression()) {
+    let it: types.Expression | null = path.node;
 
-    search.found.set(name, { node: path.node, paramName });
-    path.replaceWith(insertName(paramName, search));
+    while (t.isMemberExpression(it) || t.isIdentifier(it)) {
+      const name = stringify(t.isMemberExpression(it) ? it.property : it);
+
+      if (it !== path.node && name.startsWith("$")) {
+        err(Errors.RulesOfVasille, path, "The reactive/observable value is nested", search.external, null);
+      }
+      it = t.isMemberExpression(it) ? it.object : null;
+    }
+  }
+
+  if (!found) {
+    const paramName = insertName(`Vasille_${search.found.size}`, search);
+
+    search.found.set(name, { node: path.node, paramName: paramName });
+    path.replaceWith(paramName);
   } else {
-    path.replaceWith(insertName(found.paramName, search));
+    path.replaceWith(found.paramName);
   }
 }
 

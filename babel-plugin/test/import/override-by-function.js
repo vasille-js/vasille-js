@@ -6,4 +6,4 @@ const C = compose(Vasille => {
   VasilleSafe(function () {
     const sum = compose() + 2;
   })();
-}, "C");
+});

@@ -15,7 +15,6 @@ export type FnNames =
   | "awaited"
   | "calculate"
   | "forward"
-  | "backward"
   | "watch"
   | "ref"
   | "bind"
@@ -54,8 +53,6 @@ export const bindFunctions = ["watch", "calculate", "bind"] as const satisfies F
 
 export const modelFunctions = ["arrayModel", "mapModel", "setModel"] as const satisfies FnNames[];
 
-export const boundaryFunctions = ["forward", "backward"] as const satisfies FnNames[];
-
 export const composeOnly = ["router", "beforeMount", "afterMount", "beforeDestroy"] as const satisfies FnNames[];
 export const styleOnly = [
   "theme",
@@ -75,7 +72,6 @@ export const hintFunctions: FnNames[] = [
   ...modelFunctions,
   ...composeOnly,
   ...styleOnly,
-  ...boundaryFunctions,
 ];
 
 function checkCall<T extends string>(name: T, internal: Internal): T {

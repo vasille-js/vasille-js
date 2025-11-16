@@ -1,6 +1,6 @@
 import { compose, ref as VasilleRef, expr as VasilleExpr } from "vasille-web";
 const C = compose(Vasille => {
-  const $a = VasilleRef(0.5, "a");
+  const $a = VasilleRef(0.5);
   const b = 0;
   Vasille.tag("video", {
     bind: {
@@ -19,7 +19,7 @@ const C = compose(Vasille => {
   });
   Vasille.tag("video", {
     bind: {
-      volume: VasilleExpr(Vasille, Vasille_a => Vasille_a + 0.1, [$a])
+      volume: VasilleExpr(Vasille, Vasille_0 => Vasille_0 + 0.1, [$a])
     }
   });
   // @ts-expect-error
@@ -38,4 +38,4 @@ const C = compose(Vasille => {
       value: "value"
     }
   });
-}, "C");
+});

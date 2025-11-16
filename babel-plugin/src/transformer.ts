@@ -157,8 +157,6 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
   const ids = {
     ref: "VasilleRef",
     expr: "VasilleExpr",
-    forward: "VasilleForward",
-    backward: "VasilleBackward",
     setModel: "VasilleSetModel",
     mapModel: "VasilleMapModel",
     arrayModel: "VasilleArrayModel",

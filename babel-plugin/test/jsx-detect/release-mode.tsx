@@ -1,4 +1,4 @@
-import { compose, Debug } from "vasille-web";
+import { compose } from "vasille-web";
 
 const C = compose(() => {
   let $a = 3;
@@ -15,6 +15,4 @@ const C = compose(() => {
   };
   let $f = 4;
   let $g = $a + $f;
-
-  <Debug $model={$g} />;
 });

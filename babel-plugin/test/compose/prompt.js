@@ -4,12 +4,12 @@ const promptName = prompt((Vasille, props) => {
     props.resolve("x");
     props.reject(new Error("x"));
   }
-}, "promptName");
+});
 const promptWithRules = prompt((Vasille, props) => {
   function save() {
     props.resolve(props.rules[0]);
   }
-}, "promptWithRules");
+});
 const App = compose(Vasille => {
   VasilleSafe(() => {
     promptName(Vasille, {});
@@ -17,4 +17,4 @@ const App = compose(Vasille => {
       rules: ["x"]
     });
   })();
-}, "App");
+});

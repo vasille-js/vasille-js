@@ -8,5 +8,5 @@ const C = compose(Vasille => {
   };
   const $c1 = o.$a;
   const c2 = o1.a;
-  const $s = VasilleExpr(Vasille, Vasille_c1 => Vasille_c1 + c2, [$c1], "s");
-}, "C");
+  const $s = VasilleExpr(Vasille, Vasille_0 => Vasille_0 + c2, [$c1]);
+});

@@ -1,6 +1,6 @@
 import { store, For, component, setModel as VasilleSetModel } from "vasille-web";
 const modelStore = store(Vasille => {
-  const s = VasilleSetModel(Vasille, ["m"], "s");
+  const s = VasilleSetModel(Vasille, ["m"]);
   return {
     s,
     addValue(value) {
@@ -10,7 +10,7 @@ const modelStore = store(Vasille => {
       s.delete(value);
     }
   };
-}, "modelStore");
+});
 const Component = component(Vasille => {
   For({
     of: modelStore.s,
@@ -22,7 +22,7 @@ const Component = component(Vasille => {
       });
     }
   }, Vasille);
-}, "Component");
+});
 export const x = {
   model: modelStore,
   Component

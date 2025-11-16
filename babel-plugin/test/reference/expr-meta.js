@@ -1,16 +1,16 @@
 import { compose, ref, bind, calculate, safe as VasilleSafe } from "vasille-web";
 const C = compose(Vasille => {
-  const $a = ref(2, "a");
+  const $a = ref(2);
   let b = $a.V;
-  const $c = bind(Vasille, Vasille_a => Vasille_a + b, [$a], "c");
-  const $d = calculate(Vasille, (Vasille_a, Vasille_c) => {
-    return Vasille_a + b + Vasille_c;
-  }, [$a, $c], "d");
-  const $e = bind(Vasille, Vasille_a => Vasille_a + b, [$a], "e");
+  const $c = bind(Vasille, Vasille_0 => Vasille_0 + b, [$a]);
+  const $d = calculate(Vasille, (Vasille_0, Vasille_1) => {
+    return Vasille_0 + b + Vasille_1;
+  }, [$a, $c]);
+  const $e = bind(Vasille, Vasille_0 => Vasille_0 + b, [$a]);
   let f = (() => $a.V + b)();
   // @ts-expect-error
-  const $g = ref(void 0, "g");
-  const $h = ref(3, "h");
-  const $j = ref(4, "j");
+  const $g = ref();
+  const $h = ref(3);
+  const $j = ref(4);
   VasilleSafe(() => console.log($a.V, b, $c.V, $d.V, $e.V, f, $g.V, $h.V, $j.V))();
-}, "C");
+});

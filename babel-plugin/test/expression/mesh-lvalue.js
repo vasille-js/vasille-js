@@ -5,14 +5,14 @@ const obj = {
   })
 };
 const C = compose(Vasille => {
-  const $a = ref(2, "a");
-  const $sum = calculate(Vasille, (Vasille_a, Vasille_obj_nested) => {
-    return Vasille_a + Vasille_obj_nested.level2;
-  }, [$a, obj.$nested], "sum");
-  watch(Vasille, function update(Vasille_obj_nested, Vasille_a) {
+  const $a = ref(2);
+  const $sum = calculate(Vasille, (Vasille_0, Vasille_1) => {
+    return Vasille_0 + Vasille_1.level2;
+  }, [$a, obj.$nested]);
+  watch(Vasille, function update(Vasille_0, Vasille_1) {
     let rest;
     $a.V = 3;
     obj.$nested.V.level2 = 3;
-    [$a.V, obj.$nested.V.level2, ...rest] = [Vasille_obj_nested.level2, Vasille_a];
+    [$a.V, obj.$nested.V.level2, ...rest] = [Vasille_0.level2, Vasille_1];
   }, [obj.$nested, $a]);
-}, "C");
+});

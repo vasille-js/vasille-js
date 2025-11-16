@@ -11,4 +11,4 @@ export default page(async Vasille => {
       class: "ssg"
     }
   });
-}, "#");
+});

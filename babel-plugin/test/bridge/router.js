@@ -1,13 +1,13 @@
 import { calculate, compose, ref as VasilleRef, safe as VasilleSafe } from "vasille-web";
 const C = compose(Vasille => {
-  const $a = VasilleRef(2, "a");
-  const $b = calculate(Vasille, Vasille_a => {
+  const $a = VasilleRef(2);
+  const $b = calculate(Vasille, Vasille_0 => {
     Vasille.runner.router?.goTo("/1");
-    return Vasille_a + 1;
-  }, [$a], "b");
+    return Vasille_0 + 1;
+  }, [$a]);
   function goNext() {
     Vasille.runner.router?.goTo("/x");
   }
   VasilleSafe(() => Vasille.runner.router?.goTo("/"))();
   VasilleSafe(() => Vasille.runner.router)();
-}, "C");
+});

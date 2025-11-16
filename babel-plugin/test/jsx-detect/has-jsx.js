@@ -7,7 +7,7 @@ const C = compose((Vasille, {
     "$a": VasilleRef(1),
     "$b": VasilleRef(2)
   }, Vasille);
-}, "C");
+});
 const C1 = compose(Vasille => {
   C({
     slot01: ({
@@ -25,4 +25,4 @@ const C1 = compose(Vasille => {
     },
     slot03: (_VasilleWeb, Vasille) => Vasille.tag("div", {})
   }, Vasille);
-}, "C1");
+});
