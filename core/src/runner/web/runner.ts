@@ -83,6 +83,8 @@ export class Tag<Options extends TagOptions, RunnerT extends Runner<Options>> ex
     }
 
     protected applyOptions(options: TagOptions): void {
+        const { node } = this;
+
         if (options.a) {
             for (const name in options.a) {
                 const value = options.a[name];
@@ -94,10 +96,10 @@ export class Tag<Options extends TagOptions, RunnerT extends Runner<Options>> ex
                     if (typeof value === "boolean") {
                         /* istanbul ignore else */
                         if (value) {
-                            this.node.setAttribute(name, "");
+                            node.setAttribute(name, "");
                         }
                     } else if (value !== null && value !== undefined) {
-                        this.node.setAttribute(name, `${value}`);
+                        node.setAttribute(name, `${value}`);
                     }
                 }
             }
@@ -125,14 +127,14 @@ export class Tag<Options extends TagOptions, RunnerT extends Runner<Options>> ex
             });
         }
 
-        if (options.s && this.node instanceof HTMLElement) {
+        if (options.s && node instanceof HTMLElement) {
             for (const name in options.s) {
                 const value = options.s[name];
 
                 if (value instanceof IValue) {
                     this.bind(new StyleBinding(this, name, value));
                 } else {
-                    this.node.style.setProperty(name, stringifyStyleValue(value));
+                    node.style.setProperty(name, stringifyStyleValue(value));
                 }
             }
         }
@@ -140,18 +142,17 @@ export class Tag<Options extends TagOptions, RunnerT extends Runner<Options>> ex
         if (options.e) {
             for (const name in options.e) {
                 const event = options.e[name];
+                const handler = event instanceof Array ? event : ([event, {}] as const);
 
-                if (event instanceof Array) {
-                    this.node.addEventListener(name, safe(event[0]), event[1]);
-                } else {
-                    this.node.addEventListener(name, safe(event));
-                }
+                node.addEventListener(
+                    name,
+                    safe(ev => handler[0](ev, node)),
+                    handler[1],
+                );
             }
         }
 
         if (options.b) {
-            const node = this.node;
-
             for (const k in options.b) {
                 const value = options.b[k];
 
