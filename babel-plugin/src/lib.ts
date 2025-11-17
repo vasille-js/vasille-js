@@ -75,6 +75,7 @@ export function processCalculateCall(
         inspector,
       );
 
+      /* istanbul ignore else */
       if (name) {
         path.replaceWith(internal.shareStateById(path.node, name));
       }
@@ -160,6 +161,7 @@ export function exprCall(
           inspector,
         );
 
+        /* istanbul ignore else */
         if (opts.name) {
           path.replaceWith(internal.shareStateById(path.node, opts.name));
         }

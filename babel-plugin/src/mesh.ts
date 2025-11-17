@@ -874,7 +874,9 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
           calls(initPath, ["calculate"], internal) &&
           processCalculateCall(initPath, internal, declaration.node, t.isIdentifier(id) ? id.name : undefined)
         ) {
-          checkReactiveName(idPath, internal);
+          if (!idPath.isArrayPattern() && !idPath.isObjectPattern()) {
+            checkReactiveName(idPath, internal);
+          }
         }
         // ref call
         else if (calls(initPath, reactivityFunctions, internal)) {
