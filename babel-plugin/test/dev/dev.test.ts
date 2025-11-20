@@ -8,6 +8,10 @@ it("ref", function () {
   runTest(__dirname, "ref", true);
 });
 
+it("ref without args", function () {
+  runTest(__dirname, "ref-no-args", true);
+});
+
 it("bind", function () {
   runTest(__dirname, "bind", true);
 });
@@ -34,6 +38,26 @@ it("awaited", function () {
 
 it("awaited 2", function () {
   runTest(__dirname, "awaited-2", true);
+});
+
+it("set model", function () {
+  runTest(__dirname, "set-model", true);
+});
+
+it("map model", function () {
+  runTest(__dirname, "map-model", true);
+});
+
+it("array model", function () {
+  runTest(__dirname, "array-model", true);
+});
+
+it("ensure", function () {
+  runTest(__dirname, "ensure", true);
+});
+
+it("match", function () {
+  runTest(__dirname, "match", true);
 });
 
 it("tag", function () {

@@ -1,0 +1,5 @@
+const VasilleFilePath = "babel-plugin-vasille/test/dev/set-model.ts";
+import { component, setModel as VasilleSetModel, shareStateById as VasilleState } from "vasille-web";
+const C = component(Vasille => {
+  const set = VasilleState(Vasille.id, Vasille.runner, "set", VasilleSetModel(Vasille.runner.inspector, Vasille, void 0));
+}, [VasilleFilePath, 3, 10, 5, 2], "C");
