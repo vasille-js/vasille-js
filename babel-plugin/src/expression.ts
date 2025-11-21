@@ -2,7 +2,7 @@ import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { calls, hintFunctions } from "./call.js";
 import { Internal, StackedStates } from "./internal.js";
-import { checkNonReactiveName, err, Errors } from "./lib";
+import { checkNonReactiveName, err, Errors, ref } from "./lib";
 import { ignoreParams, meshAllUnknown, meshExpression } from "./mesh";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
@@ -136,7 +136,12 @@ function meshLValue(
   }
 }
 
-export function checkNode(path: NodePath<types.Node | null | undefined>, internal: Internal): Search {
+export function checkNode(
+  path: NodePath<types.Node | null | undefined>,
+  internal: Internal,
+  area: types.Node,
+  name?: string,
+): Search {
   const search: Search = {
     external: internal,
     found: new Map(),
@@ -156,7 +161,10 @@ export function checkNode(path: NodePath<types.Node | null | undefined>, interna
     }
   }
   if (path.isExpression() && calls(path, ["ref"], internal)) {
+    const refValue = path.node.arguments[0];
+
     meshAllUnknown(path.get("arguments"), internal);
+    path.replaceWith(ref(refValue, internal, area, name));
     search.self = path.node;
   }
 

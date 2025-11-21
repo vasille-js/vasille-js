@@ -589,9 +589,7 @@ function transformJsxElement(
           : []),
         ...(styleObject.length > 0 ? [t.objectProperty(t.identifier("style"), t.objectExpression(styleObject))] : []),
         ...(callback ? [t.objectProperty(t.identifier("callback"), callback)] : []),
-        ...(internal.devLayer
-          ? [t.objectProperty(t.identifier("usage"), nodeToStaticPosition(internal, path.node))]
-          : []),
+        ...(internal.devLayer ? [t.objectProperty(t.identifier("usage"), nodeToStaticPosition(path.node))] : []),
       ]),
       ...(statements.length > 0 ? [t.arrowFunctionExpression([ctx], t.blockStatement(statements))] : []),
     ]);
@@ -748,7 +746,7 @@ function transformJsxElement(
       t.objectExpression(props),
       ctx,
       ...(run ? [run] : internal.devLayer ? [t.buildUndefinedNode()] : []),
-      ...(internal.devLayer ? [nodeToStaticPosition(internal, path.node)] : []),
+      ...(internal.devLayer ? [nodeToStaticPosition(path.node)] : []),
     ]);
 
     call.loc = path.node.loc;

@@ -60,6 +60,10 @@ it("match", function () {
   runTest(__dirname, "match", true);
 });
 
+it("set value", function () {
+  runTest(__dirname, "set-value", true);
+});
+
 it("tag", function () {
   runJsxTest(__dirname, "tag", true);
 });
@@ -78,4 +82,8 @@ it("child", function () {
 
 it("page", function () {
   runTest(__dirname, "page", true);
+});
+
+it("module level reactivity", function () {
+  runTest(__dirname, "module-level-reactivity", true);
 });

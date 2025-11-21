@@ -39,6 +39,7 @@ export {
     devValues,
     provideId,
     registerDevValue,
+    registerReference,
     toDevId,
     toDevIdOrValue,
     toDevObject,

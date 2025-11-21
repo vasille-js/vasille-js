@@ -252,11 +252,21 @@ const primitiveTypes: string[] = ["number", "string", "boolean"] as const;
 
 export const devValues = new Map<number, object>();
 
-export function registerDevValue<T extends object>(
-    value: T,
+export function registerReference<T>(
+    value: DevReference<T>,
     declaration: StaticPosition,
-    runner: IDevRunner<unknown, unknown, object>,
-): T {
+    inspector: Inspector,
+): DevReference<T> {
+    inspector.newReference({
+        id: value.id,
+        value: toDevValue(value.V),
+        declaration: declaration,
+    });
+
+    return value;
+}
+
+export function registerDevValue<T extends object>(value: T, declaration: StaticPosition, inspector: Inspector): T {
     if (!(DevValueInternalKey in value)) {
         const id = provideId();
 
@@ -264,7 +274,7 @@ export function registerDevValue<T extends object>(
             value: { id } satisfies DevValueInternal,
             writable: false,
         });
-        runner.inspector.registerDevValue({ id, pos: declaration });
+        inspector.registerDevValue({ id, pos: declaration });
         devValues.set(id, value);
     }
 

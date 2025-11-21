@@ -47,7 +47,9 @@ export const composeFunctions = [
   "screen",
 ] as const satisfies FnNames[];
 
-export const reactivityFunctions = ["ref", "awaited"] as const satisfies FnNames[];
+export const refFunctions = ["ref"] as const satisfies FnNames[];
+
+export const asyncFunctions = ["awaited"] as const satisfies FnNames[];
 
 export const bindFunctions = ["watch", "calculate", "bind"] as const satisfies FnNames[];
 
@@ -66,7 +68,8 @@ export const styleOnly = [
 ] as const satisfies FnNames[];
 
 export const hintFunctions: FnNames[] = [
-  ...reactivityFunctions,
+  ...refFunctions,
+  ...asyncFunctions,
   ...composeFunctions,
   ...bindFunctions,
   ...modelFunctions,

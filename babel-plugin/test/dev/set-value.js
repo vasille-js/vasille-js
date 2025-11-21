@@ -1,0 +1,8 @@
+const VasilleFilePath = "babel-plugin-vasille/test/dev/set-value.ts";
+import { component, arrayModel as VasilleArrayModel, shareStateById as VasilleState, executionPosition as VasilleExePos, set as VasilleSet, safe as VasilleSafe } from "vasille-web";
+const C = component(Vasille => {
+  const arr = VasilleState(Vasille.id, Vasille.runner, "arr", VasilleArrayModel(Vasille.runner.inspector, Vasille, [1, 2]));
+  VasilleSafe(() => {
+    VasilleSet(arr, 1, 3, [VasilleFilePath, 7, 4, 7, 14], Vasille.runner.inspector, VasilleExePos(Vasille.runner, [VasilleFilePath, 7, 4, 7, 14], new Error("execution-position")));
+  })();
+}, [VasilleFilePath, 3, 10, 9, 2], "C");

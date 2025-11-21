@@ -5,7 +5,7 @@ import { checkNode, Dependency, exprIsSure } from "./expression.js";
 import { Internal, ctx, inspector } from "./internal.js";
 import { calls } from "./call.js";
 import { meshAllUnknown } from "./mesh";
-import { nodeToStaticPosition } from "./transformer";
+import { inspectorOf, nodeToStaticPosition } from "./transformer";
 
 export enum Errors {
   IncorrectArguments = 1,
@@ -62,6 +62,8 @@ export function processCalculateCall(
         types.FunctionExpression | types.ArrowFunctionExpression
       >,
       internal,
+      area,
+      name,
     );
 
     call.params = [...exprData.found.values()].map(item => item.paramName);
@@ -71,8 +73,8 @@ export function processCalculateCall(
     if (internal.devLayer) {
       path.node.arguments.push(
         t.arrayExpression([...exprData.found.keys()].map(name => t.identifier(name))),
-        nodeToStaticPosition(internal, area),
-        inspector,
+        nodeToStaticPosition(area),
+        inspectorOf(internal),
       );
 
       /* istanbul ignore else */
@@ -140,7 +142,7 @@ export function exprCall(
     t.isExpression(expr.arguments[0])
   ) {
     const argPath = (path as NodePath<types.CallExpression>).get("arguments")[0] as NodePath<types.Expression>;
-    const exprData = checkNode(argPath, internal);
+    const exprData = checkNode(argPath, internal, area, opts.name);
 
     if (exprData.self) {
       path.replaceWith(exprData.self);
@@ -157,8 +159,8 @@ export function exprCall(
       if (internal.devLayer) {
         expr.arguments.push(
           t.arrayExpression([...exprData.found.keys()].map(item => t.stringLiteral(item))),
-          nodeToStaticPosition(internal, area),
-          inspector,
+          nodeToStaticPosition(area),
+          inspectorOf(internal),
         );
 
         /* istanbul ignore else */
@@ -173,7 +175,7 @@ export function exprCall(
     return true;
   }
 
-  const exprData = checkNode(path, internal);
+  const exprData = checkNode(path, internal, area, opts.name);
 
   if (exprData.self) {
     if (!opts.strong || exprIsSure(path, internal)) {
@@ -188,8 +190,8 @@ export function exprCall(
   return bindCall(path, expr, exprData.found, internal, opts.name);
 }
 
-export function ref(expr: types.Expression | null | undefined, internal: Internal, area: types.Node, name?: string) {
-  return internal.ref(expr ?? null, area, name);
+export function ref(expr: types.Node | null | undefined, internal: Internal, area: types.Node, name?: string) {
+  return internal.ref(t.isExpression(expr) ? expr : null, area, name);
 }
 
 export function arrayModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {

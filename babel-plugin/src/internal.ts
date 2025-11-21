@@ -93,6 +93,7 @@ export interface Internal {
   registerDevValue(value: types.Expression): types.Expression;
   shareStateById(value: types.Expression, name: string): types.Expression;
   positionedText(text: types.Expression, area: types.Node): types.Expression;
+  earlyInspector(): types.Expression;
 }
 
 export const ctx = t.identifier("Vasille");
