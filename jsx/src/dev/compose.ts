@@ -1,4 +1,4 @@
-import { App, Destroyable, Fragment, Reactive } from "vasille";
+import { App, Fragment, Reactive } from "vasille";
 import { DevReactive, StaticPosition } from "vasille/dev";
 import { IDevRunner } from "vasille/dev";
 import { CompositionProps } from "../compose.js";
@@ -63,18 +63,18 @@ export function devModel<In extends object, Out extends object>(
     fn: (ctx: DevReactive<IDevRunner<unknown, unknown, object>>, o: In) => Out,
     declaration: StaticPosition,
     name: string,
-): (o: In, usage: StaticPosition, runner: IDevRunner<unknown, unknown, object>) => Out & Destroyable {
-    return (o, usage, runner) => {
-        const ctx = new DevReactive(runner);
+): (o: In, parent: Reactive | undefined, usage: StaticPosition) => Out {
+    return (o, parent, usage) => {
+        const ctx = new DevReactive({ inspector: earlyInspector });
         const id = ctx.id;
 
-        runner.inspector.createCustomModel({ id, declaration, usage, name });
+        earlyInspector.createCustomModel({ id, declaration, usage, name });
+        if (parent) {
+            parent.runOnDestroy(() => ctx.destroy());
+        }
 
         return {
             ...fn(ctx, o),
-            destroy() {
-                ctx.destroy();
-            },
             [ModelId]: id,
         };
     };

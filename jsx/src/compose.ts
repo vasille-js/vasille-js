@@ -44,16 +44,15 @@ export function store<Out extends object>(fn: (ctx: Reactive) => Out): Out {
 
 export function model<In extends object, Out extends object>(
     fn: (ctx: Reactive, o: In) => Out,
-): (o: In) => Out & Destroyable {
-    return o => {
+): (o: In, parent?: Reactive) => Out {
+    return (o, parent) => {
         const ctx = new Reactive();
 
-        return {
-            ...fn(ctx, o),
-            destroy() {
-                ctx.destroy();
-            },
-        };
+        if (parent) {
+            parent.runOnDestroy(() => ctx.destroy());
+        }
+
+        return fn(ctx, o);
     };
 }
 
