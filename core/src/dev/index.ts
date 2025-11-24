@@ -37,6 +37,8 @@ export {
     type ProtocolFunctionError,
     type ProtocolFunctionResult,
     type ProtocolFunctionCall,
+    type ProtocolEventTrigger,
+    type ProtocolComposeTime,
     type IDevRunner,
     executionPosition,
     provideId,

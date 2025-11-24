@@ -43,6 +43,11 @@ export function devView<Node, Element, TagOptions extends object, In extends Com
                 name: name,
             });
             reportError(e);
+        } finally {
+            node.runner.inspector.composeTime({
+                id: frag.id,
+                time: Date.now(),
+            });
         }
     };
 }

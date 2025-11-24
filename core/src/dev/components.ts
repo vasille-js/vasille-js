@@ -29,6 +29,7 @@ export class DevWatch<Node, Element, TagOptions extends object, T> extends Watch
             usage: usage,
             name: "Watch",
             props: toDevObject(input),
+            time: Date.now(),
         });
 
         this.runOnDestroy(() => {
@@ -47,6 +48,7 @@ export class DevApp<Node, Element, TagOptions extends object> extends App<Node, 
             id: id,
             name: "App",
             props: {},
+            time: Date.now(),
         });
 
         this.runOnDestroy(() => {
@@ -80,6 +82,7 @@ export class DevPortal<
             props: {},
             declaration: declaration,
             usage: usage,
+            time: Date.now(),
         });
 
         this.runOnDestroy(() => {
@@ -117,6 +120,7 @@ export class DevSwitchedNode<Node, Element, TagOptions extends object> extends S
             name: "Switch",
             props: conditions,
             usage: usage,
+            time: Date.now(),
         });
     }
 

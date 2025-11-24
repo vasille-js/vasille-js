@@ -137,6 +137,35 @@ class DevTag extends Tag<DevTagOptions, DevRunner> {
         });
     }
 
+    public applyOptions(options: DevTagOptions): void {
+        if (options.e) {
+            for (const [key, handler] of Object.entries(options.e)) {
+                if (handler instanceof Array) {
+                    const userHandler = handler[0];
+
+                    handler[0] = ev => {
+                        this.runner.inspector.eventTrigger({
+                            tagId: this.id,
+                            eventName: key,
+                            time: Date.now(),
+                        });
+                        userHandler(ev);
+                    };
+                } else {
+                    options[key] = ev => {
+                        this.runner.inspector.eventTrigger({
+                            tagId: this.id,
+                            eventName: key,
+                            time: Date.now(),
+                        });
+                        handler(ev);
+                    };
+                }
+            }
+        }
+        super.applyOptions(options);
+    }
+
     public destroy(): void {
         this.runner.inspector.destroy(this.id);
     }

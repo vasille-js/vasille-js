@@ -19,7 +19,6 @@ import {
     ProtocolState,
     ProtocolStore,
     ProtocolTag,
-    ProtocolDevValue,
     ProtocolRouterActionCall,
     ProtocolRouterStateChange,
     ProtocolRouterTargetResult,
@@ -28,6 +27,8 @@ import {
     ProtocolFunctionCall,
     ProtocolFunctionResult,
     ProtocolFunctionError,
+    ProtocolEventTrigger,
+    ProtocolComposeTime,
 } from "vasille/dev";
 
 export class EarlyInspector implements Inspector {
@@ -45,6 +46,10 @@ export class EarlyInspector implements Inspector {
 
     public addContextState(state: ProtocolState): void {
         this.send(this.addContextState.name, state);
+    }
+
+    public composeTime(time: ProtocolComposeTime): void {
+        this.send(this.composeTime.name, time);
     }
 
     public createComponent(comp: ProtocolComponent): void {
@@ -75,6 +80,22 @@ export class EarlyInspector implements Inspector {
         this.send(this.destroy.name, { id });
     }
 
+    public eventTrigger(call: ProtocolEventTrigger) {
+        this.send(this.eventTrigger.name, call);
+    }
+
+    public functionCall(call: ProtocolFunctionCall): void {
+        this.send(this.functionCall.name, call);
+    }
+
+    public functionReturn(result: ProtocolFunctionResult): void {
+        this.send(this.functionReturn.name, result);
+    }
+
+    public functionThrows(error: ProtocolFunctionError): void {
+        this.send(this.functionThrows.name, error);
+    }
+
     public idToPosition(pos: ProtocolPosition): void {
         this.send(this.idToPosition.name, pos);
     }
@@ -89,18 +110,6 @@ export class EarlyInspector implements Inspector {
 
     public newReference(ref: ProtocolReference): void {
         this.send(this.newReference.name, ref);
-    }
-
-    public functionCall(call: ProtocolFunctionCall): void {
-        this.send(this.functionCall.name, call);
-    }
-
-    public functionReturn(result: ProtocolFunctionResult): void {
-        this.send(this.functionReturn.name, result);
-    }
-
-    public functionThrows(error: ProtocolFunctionError): void {
-        this.send(this.functionThrows.name, error);
     }
 
     public registerExecutionPosition(pos: ProtocolExecutionPosition): void {

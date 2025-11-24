@@ -70,6 +70,7 @@ export class DevFragment<Node, Element, TagOptions extends object>
             usage: usage,
             name: name,
             props: toDevObject(props),
+            time: Date.now(),
         });
     }
 

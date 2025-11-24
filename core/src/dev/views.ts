@@ -37,6 +37,7 @@ export class DevArrayView<Node, Element, TagOptions extends object, T> extends A
             name: "ArrayView",
             props: toDevObject(input),
             usage: usage,
+            time: Date.now(),
         });
     }
 
@@ -69,6 +70,7 @@ export class DevSetView<Node, Element, TagOptions extends object, T> extends Set
             name: "SetView",
             props: toDevObject(input),
             usage: usage,
+            time: Date.now(),
         });
     }
 
@@ -110,6 +112,7 @@ export class DevMapView<Node, Element, TagOptions extends object, K, T> extends 
             name: "MapView",
             props: toDevObject(input),
             usage: usage,
+            time: Date.now(),
         });
     }
 

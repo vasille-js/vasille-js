@@ -56,6 +56,7 @@ export interface ProtocolPosition {
 
 export interface ProtocolReference extends ProtocolPosition {
     value: DevValue;
+    time: number;
 }
 
 export interface ProtocolReferenceUpdate {
@@ -95,6 +96,7 @@ export interface ProtocolComponent {
     props: { [k: string]: number | DevValue };
     declaration?: StaticPosition | null;
     usage?: StaticPosition | null;
+    time: number;
 }
 
 export interface ProtocolState {
@@ -135,6 +137,11 @@ export interface ProtocolSlotError {
     componentId: number;
     error: unknown;
     usage: StaticPosition;
+}
+
+export interface ProtocolComposeTime {
+    id: number;
+    time: number;
 }
 
 export interface ProtocolModel {
@@ -200,6 +207,12 @@ export interface ProtocolFunctionCall {
     time: number;
 }
 
+export interface ProtocolEventTrigger {
+    tagId: number;
+    eventName: string;
+    time: number;
+}
+
 export interface ProtocolFunctionResult {
     id: number;
     result: DevValue;
@@ -240,6 +253,7 @@ export interface Inspector {
     setElementParent(parent: ProtocolParent): void;
     reportComponentError(error: ProtocolComponentError): void;
     reportComponentSlotError(error: ProtocolSlotError): void;
+    composeTime(time: ProtocolComposeTime): void;
 
     // Models
     createModel(model: ProtocolModel): void;
@@ -257,6 +271,7 @@ export interface Inspector {
     functionCall(call: ProtocolFunctionCall): void;
     functionReturn(result: ProtocolFunctionResult): void;
     functionThrows(error: ProtocolFunctionError): void;
+    eventTrigger(call: ProtocolEventTrigger): void;
 
     // any
     destroy(id: number): void;
@@ -274,10 +289,6 @@ export interface DevValue {
     id?: number;
 }
 
-interface DevValueInternal {
-    id: number;
-}
-
 const primitiveTypes: string[] = ["number", "string", "boolean"] as const;
 
 export function registerReference<T>(
@@ -289,6 +300,7 @@ export function registerReference<T>(
         id: value.id,
         value: toDevValue(value.V),
         declaration: declaration,
+        time: Date.now(),
     });
 
     return value;

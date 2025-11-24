@@ -86,6 +86,7 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
             id: this.id,
             declaration: declaration,
             value: toDevValue(this.state),
+            time: Date.now(),
         });
     }
 
@@ -222,6 +223,7 @@ export class DevExpression<T, Args extends unknown[]>
 
                 return depsCode[index];
             }),
+            time: Date.now(),
         });
     }
 
