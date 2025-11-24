@@ -251,6 +251,12 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
             );
           }
         }
+      } else if (
+        internal.devLayer &&
+        ((left.isIdentifier() && idIsIValue(left)) || (left.isMemberExpression() && memberIsIValue(left.node)))
+      ) {
+        meshExpression(right, internal);
+        path.replaceWith(internal.updateIValue(path.node, left.node, right.node));
       } else {
         meshLValue(left, internal);
         meshExpression(right, internal);
@@ -607,7 +613,6 @@ function procedureProcessObjectExpression(
   path: NodePath<types.ObjectExpression>,
   internal: Internal,
   state: VariableState,
-  prefix: string,
 ): VariableState {
   for (const prop of path.get("properties")) {
     const keyPath = prop.get("key");
@@ -632,7 +637,7 @@ function procedureProcessObjectExpression(
           state[name] = 1;
         } else {
           if (valuePath.isObjectExpression()) {
-            procedureProcessObjectExpression(valuePath, internal, state, `${prefix}${name}.`);
+            procedureProcessObjectExpression(valuePath, internal, state);
           }
 
           if (name.startsWith("$")) {
@@ -670,11 +675,12 @@ function procedureProcessObjectExpression(
         err(Errors.RulesOfVasille, prop.get("key"), "Method name can not start with $", internal);
       }
       meshStatement(prop.get("body"), internal);
+      internal.wrapFunctionBody(prop.node);
     } else if (prop.isSpreadElement()) {
       const argumentPath = prop.get("argument");
 
       if (argumentPath.isObjectExpression()) {
-        procedureProcessObjectExpression(argumentPath, internal, state, prefix);
+        procedureProcessObjectExpression(argumentPath, internal, state);
       } else {
         meshExpression(argumentPath, internal);
       }
@@ -1017,6 +1023,14 @@ export function meshFunction(
     meshExpression(bodyPath, internal);
   } else if (bodyPath.isBlockStatement()) {
     meshStatement(bodyPath, internal);
+  }
+
+  if (path.isFunctionExpression() || path.isArrowFunctionExpression()) {
+    path.replaceWith(internal.wrapFunction(path.node));
+  } else {
+    internal.wrapFunctionBody(
+      path.node as types.FunctionDeclaration | types.ObjectMethod | types.ClassMethod | types.ClassPrivateMethod,
+    );
   }
 
   internal.stack.pop();

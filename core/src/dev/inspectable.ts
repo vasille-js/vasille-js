@@ -6,21 +6,26 @@ export type ExecutionPosition = number;
 
 let positionId: number = 1;
 
+function getErrorStack(error: Error) {
+    return (
+        error.stack
+            ?.split("\n")
+            .slice(1)
+            .map(line => line.trim()) ?? []
+    );
+}
+
 export function executionPosition(
-    runner: IDevRunner<unknown, unknown, object>,
+    inspector: Inspector,
     pathLineAndChar: StaticPosition,
     error: Error,
 ): ExecutionPosition {
     const id = positionId++;
 
-    runner.inspector.registerExecutionPosition({
+    inspector.registerExecutionPosition({
         id: id,
         position: pathLineAndChar,
-        stack:
-            error.stack
-                ?.split("\n")
-                .slice(1)
-                .map(line => line.trim()) ?? [],
+        stack: getErrorStack(error),
     });
 
     return id;
@@ -188,9 +193,30 @@ export interface ProtocolRouterActionCall {
     path: string;
 }
 
+export interface ProtocolFunctionCall {
+    position: StaticPosition;
+    id: number;
+    args: DevValue[];
+    time: number;
+}
+
+export interface ProtocolFunctionResult {
+    id: number;
+    result: DevValue;
+    async: boolean;
+    time: number;
+}
+
+export interface ProtocolFunctionError {
+    id: number;
+    message: string;
+    stack: string[];
+    async: boolean;
+    time: number;
+}
+
 export interface Inspector {
     registerExecutionPosition(pos: ProtocolExecutionPosition): void;
-    registerDevValue(value: ProtocolDevValue): void;
     idToPosition(pos: ProtocolPosition): void;
 
     // Reference
@@ -227,6 +253,11 @@ export interface Inspector {
     routerActionCall(call: ProtocolRouterActionCall): void;
     routerTargetResult(data: ProtocolRouterTargetResult): void;
 
+    // function
+    functionCall(call: ProtocolFunctionCall): void;
+    functionReturn(result: ProtocolFunctionResult): void;
+    functionThrows(error: ProtocolFunctionError): void;
+
     // any
     destroy(id: number): void;
 }
@@ -247,10 +278,7 @@ interface DevValueInternal {
     id: number;
 }
 
-const DevValueInternalKey = Symbol("DevValueInternal");
 const primitiveTypes: string[] = ["number", "string", "boolean"] as const;
-
-export const devValues = new Map<number, object>();
 
 export function registerReference<T>(
     value: DevReference<T>,
@@ -266,47 +294,92 @@ export function registerReference<T>(
     return value;
 }
 
-export function registerDevValue<T extends object>(value: T, declaration: StaticPosition, inspector: Inspector): T {
-    if (!(DevValueInternalKey in value)) {
-        const id = provideId();
+let executionId = 0;
 
-        Object.defineProperty(value, DevValueInternalKey, {
-            value: { id } satisfies DevValueInternal,
-            writable: false,
+export function wrapFn<Args extends unknown[], Result extends object>(
+    fn: (...args: Args) => Result,
+    declaration: StaticPosition,
+    inspector: Inspector,
+): (...args: Args) => Result {
+    return (...args: Args) => {
+        return runFn(fn, args, declaration, inspector);
+    };
+}
+
+export function runFn<Args extends unknown[], Result extends object>(
+    fn: (...args: Args) => Result,
+    args: Args,
+    declaration: StaticPosition,
+    inspector: Inspector,
+): Result {
+    const id = ++executionId;
+
+    inspector.functionCall({
+        id: id,
+        position: declaration,
+        args: args.map(toDevValue),
+        time: Date.now(),
+    });
+
+    try {
+        let result: Result = fn(...args);
+
+        if (result instanceof Promise) {
+            return new Promise<Awaited<Result>>((resolve, reject) => {
+                result.then(result => {
+                    inspector.functionReturn({
+                        id: id,
+                        result: toDevValue(result),
+                        async: true,
+                        time: Date.now(),
+                    });
+                    resolve(result);
+                });
+                result.catch(e => {
+                    inspector.functionThrows({
+                        id: id,
+                        message: e instanceof Error ? e.message : `${e}`,
+                        stack: e instanceof Error ? getErrorStack(e) : [],
+                        async: false,
+                        time: Date.now(),
+                    });
+                    reject(e);
+                });
+            }) as unknown as Result;
+        } else {
+            inspector.functionReturn({
+                id: id,
+                result: toDevValue(result),
+                async: false,
+                time: Date.now(),
+            });
+
+            return result;
+        }
+    } catch (e) {
+        inspector.functionThrows({
+            id: id,
+            message: e instanceof Error ? e.message : `${e}`,
+            stack: e instanceof Error ? getErrorStack(e) : [],
+            async: false,
+            time: Date.now(),
         });
-        inspector.registerDevValue({ id, pos: declaration });
-        devValues.set(id, value);
+        throw e;
     }
-
-    return value;
 }
 
 export function toDevValue(value: unknown) {
     const type = typeof value;
-    const data =
-        value && (typeof value === "object" || typeof value === "function") && DevValueInternalKey in value
-            ? (value[DevValueInternalKey] as DevValueInternal)
-            : undefined;
 
     return {
         type: type,
         value: primitiveTypes.includes(type) || value === null ? JSON.stringify(value) : undefined,
-        id: data?.id,
     } satisfies DevValue;
 }
 
 export function toDevId(value: unknown): number | undefined {
     if (value instanceof DevReference || value instanceof DevExpression) {
         return value.id;
-    }
-
-    const data =
-        value && (typeof value === "object" || typeof value === "function") && DevValueInternalKey in value
-            ? (value[DevValueInternalKey] as DevValueInternal)
-            : null;
-
-    if (data) {
-        return data.id;
     }
 
     return undefined;

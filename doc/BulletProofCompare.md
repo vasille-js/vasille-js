@@ -12,19 +12,60 @@ All frameworks are scored in the next way:
 
 | Name    | Version | Button | Counter | Updatable | Bonus | Total | Bandle size |
 |---------|---------|--------|---------|-----------|-------|-------|-------------|
+| Alpine  | 3.15.2  | 3      | 3       | 3         | 1     | 10    | 44.9 kB     |
 | Angular | 20.3.9  | 3      | 0       | 0         | 0     | 3     | 131.2 kB    |
 | Aurelia | 2.0.0b  | 2      | 2       | 2         | 0     | 6     | 252.9 kB    |
 | Ember   | 6.8.0   | 2      | 1       | 0         | 0     | 3     | 1013.8 kB   |
 | Lit     | 3.3.1   | 0      | 0       | 0         | 0     | 0     | 17.2 kB     |
+| Marko   | 6.0.114 | 0      | 0       | 0         | 0     | 0     | 2.4kB       |
 | Mithril | 2.3.7   | 0      | 0       | 0         | 0     | 0     | 20.6 kB     |
 | Preact  | 10.26.9 | 0      | 0       | 0         | 0     | 0     | 13.7 kB     |
+| Stencil | 4.22.2  | 0      | 0       | 0         | 0     | 0     | 21.9 kB     |
 | Qwik    | 1.17.1  | 0      | 0       | 0         | 0     | 0     | 52.9 kB     |
 | React   | 19.2.0  | 0      | 0       | 0         | 0     | 0     | 190.2 kB    |
+| Ripple  | 0.2.176 | 0      | 0       | 0         | 0     | 0     | 14.4kB      |
 | Solid   | 1.9.10  | 0      | 0       | 0         | 0     | 0     | 8.3 kB      |
 | Svelte  | 5.43.2  | 0      | 0       | 0         | 0     | 0     | 25.7 kB     |
 | Vasille | 4.3.1   | 3      | 3       | 3         | 1     | 10    | 8.4 kB      |
 | Vue     | 3.5.22  | 2      | 2       | 2         | 0     | 6     | 59.0 kB     |
 
+
+## Alpine
+
+[Demo](https://vasille-js.gitlab.io/bullet-proof/alpine/)
+
+### Code
+
+```html
+<html>
+<head>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <button x-data="{ count: 0 }" x-on:click="count++">
+        Before clicked
+        <span x-text="count"></span>
+        times
+    </button>
+    <button x-data="{ count: 0 }" x-on:click="count++">
+        <span x-text="throwNow()"></span>
+        clicked
+        <span x-text="count"></span>
+        times
+    </button>
+    <button x-data="{ count: 0 }" x-on:click="count++">
+        After clicked
+        <span x-text="count"></span>
+        times
+    </button>
+</body>
+<script>
+    function throwNow() {
+        throw new Error("now");
+    }
+</script>
+</html>
+```
 
 ## Angular
 
@@ -74,22 +115,6 @@ bootstrapApplication(App)
     .catch((err) => console.error(err));
 ```
 
-### Console Output
-
-```
-ERROR Error: now
-    at _App.throwNow (main.ts:32:11)
-    at App_Template (main.ts:27:12)
-    at executeTemplate (debug_node.mjs:9040:9)
-    at refreshView (debug_node.mjs:10076:13)
-    at detectChangesInView (debug_node.mjs:10296:9)
-    at detectChangesInViewIfAttached (debug_node.mjs:10256:5)
-    at detectChangesInComponent (debug_node.mjs:10244:5)
-    at detectChangesInChildComponents (debug_node.mjs:10322:9)
-    at refreshView (debug_node.mjs:10131:13)
-    at detectChangesInView (debug_node.mjs:10296:9)
-```
-
 ## Aurelia
 
 [Demo](https://vasille-js.gitlab.io/bullet-proof/aurelia/)
@@ -134,22 +159,6 @@ export class MyApp {
 }
 ```
 
-### Output
-
-```
-Uncaught Error: now
-    at MyApp.throwNow (my-app.ts:5:11)
-    at astEvaluate2 (ast.eval.ts:200:21)
-    at ContentBinding.bind (content-binding.ts:149:29)
-    at _Controller.bind (controller.ts:607:26)
-    at _Controller.activate (controller.ts:591:10)
-    at _AuSlot.attaching (au-slot.ts:211:32)
-    at _Controller._attach (controller.ts:702:41)
-    at _Controller.bind (controller.ts:643:10)
-    at _Controller.activate (controller.ts:591:10)
-    at _Controller._attach (controller.ts:719:31)
-```
-
 ## Ember
 
 [Demo](https://vasille-js.gitlab.io/bullet-proof/ember/)
@@ -192,23 +201,9 @@ export default class App extends Component {
 }
 ```
 
-### Output
-
-```
-Error: now
-    at throwNow (application.gjs:6:11)
-    at FunctionHelperManager.getValue (index.js:242:86)
-    at index.js:220:52
-    at index.js:62:37
-    at track (index.js:394:5)
-    at valueForRef (index.js:60:16)
-    at index.js:1757:78
-    at index.js:62:37
-    at track (index.js:394:5)
-    at valueForRef (index.js:60:16)
-```
-
 ## Lit
+
+### [Demo](https://vasille-js.gitlab.io/bullet-proof/lit/)
 
 ### Code
 
@@ -266,19 +261,30 @@ export class MyElement extends LitElement {
 }
 ```
 
-### [Demo](https://vasille-js.gitlab.io/bullet-proof/lit/)
+## Marko
 
-### Output
+Demo need server side script.
 
+### Code
+
+`+page.marko`
+```html
+<const/throwNow=() => "s".unexisting()>
+<div class="container">
+  <counter>Before</counter>
+  <counter>${throwNow()}</counter>
+  <counter>After</counter>
+</div>
 ```
-Uncaught (in promise) Error: now
-    at throwNow (my-element.ts:32:9)
-    at MyElement.render (my-element.ts:46:21)
-    at MyElement.update (lit-element.ts:166:24)
-    at MyElement.performUpdate (reactive-element.ts:1504:14)
-    at MyElement.scheduleUpdate (reactive-element.ts:1400:25)
-    at MyElement.__enqueueUpdate (reactive-element.ts:1372:25)
+
+`counter.marko`
+```html
+<let/count=0>
+<button onClick() { count++ }>
+  <${input.content}/> clicked ${count} times
+</button>
 ```
+
 ## Mithril
 
 [Demo](https://vasille-js.gitlab.io/bullet-proof/mithril/)
@@ -327,22 +333,6 @@ Uncaught (in promise) Error: now
 </body>
 ```
 
-### Output
-
-```
-Uncaught Error: now
-    at throwNow (index.html:26:15)
-    at Object.view (index.html:33:28)
-    at view.callHook (mithril.js:199:16)
-    at initComponent (mithril.js:312:46)
-    at createComponent (mithril.js:317:3)
-    at createNode (mithril.js:234:8)
-    at createNodes (mithril.js:218:5)
-    at updateNodes (mithril.js:423:45)
-    at mithril.js:1038:4
-    at m.mount (mithril.js:1083:4)
-```
-
 ## Preact
 
 [Demo](https://vasille-js.gitlab.io/bullet-proof/preact/)
@@ -377,20 +367,6 @@ export function App() {
 
 
 render(<App />, document.getElementById('app'));
-```
-
-### Output
-
-```
-Error: now
-    at throwNow (index.tsx:14:1)
-    at x.App [as constructor] (index.tsx:20:24)
-    at x.E [as render] (index.js:687:14)
-    at O (index.js:241:14)
-    at I (children.js:97:16)
-    at O (index.js:267:13)
-    at G (render.js:42:2)
-    at index.tsx:18:3
 ```
 
 ## Qwik
@@ -428,20 +404,6 @@ export const App = component$(() => {
 })
 ```
 
-### Output
-
-```
-QWIK ERROR now Error: now
-    at throwNow (http://localhost:5173/src/app.tsx:10:11)
-    at qrl.App_component_AkbU84a8zes [as resolved] (http://localhost:5173/src/app.tsx_App_component_AkbU84a8zes.js:16:27)
-    at qrl.invokeApply (http://localhost:5173/node_modules/@builder.io/qwik/dist/core.prod.mjs?v=db9122e0:2706:46)
-    at qrl.invoke (http://localhost:5173/node_modules/@builder.io/qwik/dist/core.prod.mjs?v=db9122e0:2699:24)
-    at http://localhost:5173/node_modules/@builder.io/qwik/dist/core.prod.mjs?v=db9122e0:5515:27
-    at async Promise.all (index 0)
-    at async renderRoot (http://localhost:5173/node_modules/@builder.io/qwik/dist/core.prod.mjs?v=db9122e0:5651:9)
-    at async render (http://localhost:5173/node_modules/@builder.io/qwik/dist/core.prod.mjs?v=db9122e0:5638:5)
-```
-
 ## React
 
 [Demo](https://vasille-js.gitlab.io/bullet-proof/react/)
@@ -476,20 +438,92 @@ function App() {
 export default App
 ```
 
-### Output
+## Ripple
+
+[Demo](https://vasille-js.gitlab.io/bullet-proof/ripple/)
+
+### Code
 
 ```
-Uncaught Error: now
-    at throwNow (App.tsx:12:9)
-    at App (App.tsx:19:15)
-    at Object.react_stack_bottom_frame (react-dom-client.development.js:25904:20)
-    at renderWithHooks (react-dom-client.development.js:7662:22)
-    at updateFunctionComponent (react-dom-client.development.js:10166:19)
-    at beginWork (react-dom-client.development.js:11778:18)
-    at runWithFiberInDEV (react-dom-client.development.js:871:30)
-    at performUnitOfWork (react-dom-client.development.js:17641:22)
-    at workLoopSync (react-dom-client.development.js:17469:41)
-    at renderRootSync (react-dom-client.development.js:17450:11)
+import { track } from "ripple";
+
+export component Counter({ children }) {
+  let count = track(0);
+
+  function incrementCount() {
+    @count++;
+  }
+
+  <button onClick={incrementCount}><children /> {`clicked ${@count} times`}</button>
+}
+
+export component App() {
+  function throwNow() {
+    throw new Error("now");
+  }
+
+  <div class="app">
+    <Counter>{"Before "}</Counter>
+    <Counter>{throwNow()}</Counter>
+    <Counter>{"After "}</Counter>
+  </div>
+}
+```
+
+## Stencil
+
+[Demo](https://vasille-js.gitlab.io/bullet-proof/stencil/)
+
+### Code
+
+`app-root.tsx`
+```typescript jsx
+import { Component, h } from '@stencil/core';
+
+@Component({
+  tag: 'app-root',
+  shadow: true,
+})
+export class AppRoot {
+  render() {
+    function throwNow(): string {
+      throw new Error("now");
+    }
+
+    return (
+      <div>
+        <my-counter>Before</my-counter>
+        <my-counter>{throwNow()}</my-counter>
+        <my-counter>After</my-counter>
+      </div>
+    );
+  }
+}
+```
+
+`counter.tsx`
+```typescript jsx
+import { Component, State, h } from '@stencil/core';
+
+@Component({
+  tag: 'my-counter',
+  shadow: true,
+})
+export class MyCounter {
+  @State() count: number = 0;
+
+  private increment = () => {
+    this.count++;
+  }
+
+  render() {
+    return (
+      <button class="btn btn-increment" onClick={this.increment}>
+        <slot /> has {this.count} clicks
+      </button>
+    );
+  }
+}
 ```
 
 ## Solid
@@ -523,22 +557,6 @@ function App() {
 }
 
 export default App
-```
-
-### Output
-
-```
-Uncaught Error: now
-    at throwNow (App.tsx:4:9)
-    at get children (App.tsx:18:15)
-    at App.tsx:11:12
-    at Object.fn (dev.js:334:58)
-    at runComputation (dev.js:742:22)
-    at updateComputation (dev.js:724:3)
-    at createRenderEffect (dev.js:240:75)
-    at insert (dev.js:334:3)
-    at App.tsx:10:54
-    at _$$component.location (App.tsx:11:32)
 ```
 
 ## Svelte
@@ -577,27 +595,6 @@ Uncaught Error: now
     <Counter>{throwNow()}</Counter>
     <Counter>After</Counter>
 </main>
-```
-
-### Output
-
-```
-Uncaught Error: now
-
-	in <unknown>
-	in Counter.svelte
-	in App.svelte
-
-    at throwNow (App.svelte:4:31)
-    at update_reaction (runtime.js:297:16)
-    at execute_derived (deriveds.js:332:12)
-    at update_derived (deriveds.js:356:14)
-    at get (runtime.js:685:4)
-    at Array.map (<anonymous>)
-    at effects.js:372:51
-    at update_reaction (runtime.js:297:16)
-    at update_effect (runtime.js:477:18)
-    at create_effect (effects.js:126:4)
 ```
 
 ## Vasille
@@ -639,22 +636,6 @@ export default page(async () => {
 });
 ```
 
-### Output
-
-```
-Error: now
-    at throwNow (index.tsx:5:9)
-    at index.tsx:10:13
-    at Slot (components.js:5:13)
-    at Object.slot (Counter.tsx:11:5)
-    at Tag2.compose (runner.js:57:22)
-    at Fragment.tag (node.js:68:13)
-    at Counter.tsx:10:3
-    at compose.js:14:28
-    at index.tsx:10:3
-    at Module.<anonymous> (screen.js:9:15)
-```
-
 ## Vue
 
 [Demo](https://vasille-js.gitlab.io/bullet-proof/vue/)
@@ -691,20 +672,4 @@ function throwNow(): string {
   <Counter>{{ throwNow() }}</Counter>
   <Counter>After</Counter>
 </template>
-```
-
-### Output
-
-```
-Uncaught Error: now
-    at Proxy.throwNow (App.vue:5:9)
-    at App.vue:11:15
-    at renderFnWithContext (runtime-core.esm-bundler.js:695:13)
-    at renderSlot (runtime-core.esm-bundler.js:3045:53)
-    at Proxy._sfc_render (Counter.vue:9:5)
-    at renderComponentRoot (runtime-core.esm-bundler.js:6590:16)
-    at ReactiveEffect.componentUpdateFn [as fn] (runtime-core.esm-bundler.js:5390:46)
-    at ReactiveEffect.run (reactivity.esm-bundler.js:237:19)
-    at setupRenderEffect (runtime-core.esm-bundler.js:5525:5)
-    at mountComponent (runtime-core.esm-bundler.js:5299:7)
 ```

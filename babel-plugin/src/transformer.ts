@@ -169,7 +169,8 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     Switch: "VasilleSwitch",
     safe: "VasilleSafe",
     executionPosition: "VasilleExePos",
-    registerDevValue: "VasilleDevValue",
+    runFn: "VasilleRun",
+    wrapFn: "VasilleWrap",
     shareStateById: "VasilleState",
     positionedText: "VasillePosText",
     earlyInspector: "VasilleInspector",
@@ -275,17 +276,42 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
       return call("Switch", [arg, ctx]);
     },
     safe: (arg: types.FunctionExpression | types.ArrowFunctionExpression) => call("safe", [arg]),
-    updateIValue(node: types.AssignmentExpression): types.Expression {
-      const { left, right } = node;
+    updateIValue(
+      assign: types.AssignmentExpression,
+      left: types.Expression,
+      right: types.Expression,
+    ): types.Expression {
+      return t.callExpression(t.memberExpression(left, t.identifier("update")), [right, getExecutionPosition(assign)]);
+    },
+    wrapFunctionBody(
+      fn: types.FunctionDeclaration | types.ObjectMethod | types.ClassMethod | types.ClassPrivateMethod,
+    ): void {
+      const params = fn.params.map((item: types.FunctionParameter | types.TSParameterProperty) => {
+        return t.isFunctionParameter(item) ? item : item.parameter;
+      });
+      const body = fn.body;
+      const args = t.identifier("VasilleArgs");
 
-      if (t.isExpression(left)) {
-        return t.callExpression(t.memberExpression(left, t.identifier("update")), [right, getExecutionPosition(node)]);
+      if (opts.devLayer) {
+        fn.body = t.blockStatement([
+          t.returnStatement(
+            call("runFn", [
+              t.arrowFunctionExpression(params, body, fn.async),
+              args,
+              nodeToStaticPosition(fn),
+              getInspector(),
+            ]),
+          ),
+        ]);
+        fn.params = [t.restElement(args)];
+      }
+    },
+    wrapFunction(fn: types.FunctionExpression | types.ArrowFunctionExpression): types.Node {
+      if (opts.devLayer) {
+        return call("wrapFn", [fn, nodeToStaticPosition(fn), getInspector()]);
       }
 
-      return node;
-    },
-    registerDevValue(value: types.Expression): types.Expression {
-      return call("registerDevValue", [value, nodeToStaticPosition(value), getInspector()]);
+      return fn;
     },
     shareStateById(value: types.Expression, name: string): types.Expression {
       return shareStateById(value, name);
@@ -315,7 +341,7 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
 
   function getExecutionPosition(area: types.Node) {
     return call("executionPosition", [
-      runner,
+      getInspector(),
       nodeToStaticPosition(area),
       t.newExpression(t.identifier("Error"), [t.stringLiteral("execution-position")]),
     ]);

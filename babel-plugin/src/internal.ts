@@ -89,8 +89,11 @@ export interface Internal {
   safe(arg: types.FunctionExpression | types.ArrowFunctionExpression): types.CallExpression;
 
   // dev helpers
-  updateIValue(node: types.AssignmentExpression): types.Expression;
-  registerDevValue(value: types.Expression): types.Expression;
+  updateIValue(assign: types.AssignmentExpression, left: types.Expression, right: types.Expression): types.Expression;
+  wrapFunctionBody(
+    fn: types.FunctionDeclaration | types.ObjectMethod | types.ClassMethod | types.ClassPrivateMethod,
+  ): void;
+  wrapFunction(fn: types.FunctionExpression | types.ArrowFunctionExpression): types.Node;
   shareStateById(value: types.Expression, name: string): types.Expression;
   positionedText(text: types.Expression, area: types.Node): types.Expression;
   earlyInspector(): types.Expression;

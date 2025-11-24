@@ -64,6 +64,14 @@ it("set value", function () {
   runTest(__dirname, "set-value", true);
 });
 
+it("value assignment", function () {
+  runTest(__dirname, "value-assignment", true);
+});
+
+it("function wrap", function () {
+  runTest(__dirname, "function-wrap", true);
+});
+
 it("tag", function () {
   runJsxTest(__dirname, "tag", true);
 });

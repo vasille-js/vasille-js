@@ -25,6 +25,9 @@ import {
     ProtocolRouterTargetResult,
     ProtocolRoutes,
     ProtocolSlotError,
+    ProtocolFunctionCall,
+    ProtocolFunctionResult,
+    ProtocolFunctionError,
 } from "vasille/dev";
 
 export class EarlyInspector implements Inspector {
@@ -88,8 +91,16 @@ export class EarlyInspector implements Inspector {
         this.send(this.newReference.name, ref);
     }
 
-    public registerDevValue(value: ProtocolDevValue): void {
-        this.send(this.registerDevValue.name, value);
+    public functionCall(call: ProtocolFunctionCall): void {
+        this.send(this.functionCall.name, call);
+    }
+
+    public functionReturn(result: ProtocolFunctionResult): void {
+        this.send(this.functionReturn.name, result);
+    }
+
+    public functionThrows(error: ProtocolFunctionError): void {
+        this.send(this.functionThrows.name, error);
     }
 
     public registerExecutionPosition(pos: ProtocolExecutionPosition): void {
