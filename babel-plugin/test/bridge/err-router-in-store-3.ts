@@ -1,4 +1,4 @@
-import { calculate, router, store } from "vasille-web";
+import { calculate, router, store } from "steel-frame";
 
 const sStore = store(() => {
   let $a = 2;

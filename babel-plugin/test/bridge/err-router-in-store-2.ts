@@ -1,4 +1,4 @@
-import { router, store } from "vasille-web";
+import { router, store } from "steel-frame";
 
 const sStore = store(() => {
   function goNext() {

@@ -1,5 +1,5 @@
 const VasilleFilePath = "babel-plugin-vasille/test/dev/calculate-2.tsx";
-import { calculate, ref, earlyInspector as VasilleInspector } from "vasille-web";
+import { calculate, ref, earlyInspector as VasilleInspector } from "steel-frame";
 let $a = ref(1, [VasilleFilePath, 3, 4, 3, 15], VasilleInspector);
 const {
   $b

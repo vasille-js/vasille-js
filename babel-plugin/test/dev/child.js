@@ -1,5 +1,5 @@
 const VasilleFilePath = "babel-plugin-vasille/test/dev/child.tsx";
-import { component, positionedText as VasillePosText } from "vasille-web";
+import { component, positionedText as VasillePosText } from "steel-frame";
 const C = component(Vasille => {
   Vasille.tag("div", {
     usage: [VasilleFilePath, 4, 2, 6, 8]

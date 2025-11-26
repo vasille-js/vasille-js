@@ -1,5 +1,5 @@
 const VasilleFilePath = "babel-plugin-vasille/test/dev/awaited-2.ts";
-import { awaited, component, wrapFn as VasilleWrap, shareStateById as VasilleState } from "vasille-web";
+import { awaited, component, wrapFn as VasilleWrap, shareStateById as VasilleState } from "steel-frame";
 const C = component(Vasille => {
   const [] = awaited(VasilleWrap(async () => {
     return 1;

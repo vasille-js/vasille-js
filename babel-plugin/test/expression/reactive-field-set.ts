@@ -1,4 +1,4 @@
-import { compose, raw, ref, watch } from "vasille-web";
+import { compose, raw, ref, watch } from "steel-frame";
 
 let o1 = {
   $x: ref(1),

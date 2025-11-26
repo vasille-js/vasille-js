@@ -1,4 +1,4 @@
-import * as DX from "vasille-web";
+import * as DX from "steel-frame";
 
 const prop = "compose";
 

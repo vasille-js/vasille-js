@@ -1,4 +1,4 @@
-import { compose, ref, watch } from "vasille-web";
+import { compose, ref, watch } from "steel-frame";
 
 class Class {
   #obj = {

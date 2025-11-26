@@ -1,4 +1,4 @@
 // @ts-ignore
-import { prefersDark } from "vasille-web";
+import { prefersDark } from "steel-frame";
 
 const a = prefersDark(32);

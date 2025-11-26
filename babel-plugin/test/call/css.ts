@@ -1,4 +1,4 @@
-import * as CSS from "vasille-web";
+import * as CSS from "steel-frame";
 
 const styles = CSS.styleSheet({
   c1: {

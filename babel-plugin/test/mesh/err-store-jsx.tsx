@@ -1,4 +1,4 @@
-import { store } from "vasille-web";
+import { store } from "steel-frame";
 
 const sStore = store(() => {
   <div />;

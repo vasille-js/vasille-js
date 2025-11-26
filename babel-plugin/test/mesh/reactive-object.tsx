@@ -1,4 +1,4 @@
-import { beforeMount, bind, compose, store, watch } from "vasille-web";
+import { beforeMount, bind, compose, store, watch } from "steel-frame";
 
 const obj = { a: 1, b: 2 };
 

@@ -1,4 +1,4 @@
-import { insertRule } from "./lib";
+import { insertRule } from "./lib.js";
 
 let index = 0;
 

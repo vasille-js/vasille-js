@@ -1,4 +1,4 @@
-import { store, view, For, component } from "vasille-web";
+import { store, For, component } from "steel-frame";
 
 const modelStore = store(() => {
   const s = new Set(["m"]);

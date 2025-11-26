@@ -49,7 +49,7 @@ export interface Internal {
   devLayer: boolean;
   strictFolders: boolean;
   stylesConnected: boolean;
-  replaceWeb?: string;
+  replaceWeb: string;
   headTag?: boolean;
   bodyTag?: boolean;
 

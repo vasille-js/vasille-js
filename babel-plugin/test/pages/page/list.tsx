@@ -1,4 +1,4 @@
-import { page } from "vasille-web";
+import { page } from "steel-frame";
 
 export default page<"/page/list">(async () => {
   <>test</>;

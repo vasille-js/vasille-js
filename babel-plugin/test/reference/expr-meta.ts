@@ -1,4 +1,4 @@
-import { compose, raw, ref, bind, calculate, beforeMount } from "vasille-web";
+import { compose, raw, ref, bind, calculate, beforeMount } from "steel-frame";
 
 const C = compose(() => {
   let $a = ref(2);

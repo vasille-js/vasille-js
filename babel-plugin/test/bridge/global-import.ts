@@ -1,4 +1,4 @@
-import * as Web from "vasille-web";
+import * as Web from "steel-frame";
 
 const $a = Web.ref(2);
 

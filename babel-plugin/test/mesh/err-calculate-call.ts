@@ -1,4 +1,4 @@
-import { calculate, compose } from "vasille-web";
+import { calculate, compose } from "steel-frame";
 
 const C = compose(() => {
   // @ts-ignore

@@ -1,4 +1,4 @@
-import { beforeMount, component, Slot, view } from "vasille-web";
+import { beforeMount, component, Slot } from "steel-frame";
 
 interface SubProps {
   slot?: () => void;

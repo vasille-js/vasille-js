@@ -1,11 +1,10 @@
 import { App, Fragment, Portal, reportError, Runner as IRunner } from "vasille";
-import { StyleProps } from "./spec/css.js";
 import { Runner, TagOptions } from "vasille/web-runner";
 import { mount as coreMount } from "vasille-jsx";
 import { routeApp as coreRouteApp, WebRouterInitialization } from "vasille-router/web-router";
 
 export { styleSheet } from "vasille-css";
-export type { RawStyleProps as StyleProps } from "./spec/css.js";
+export type { RawStyleProps as StyleProps, StyleSheetProps } from "./spec/css.js";
 export type { ClassItem } from "./jsx-runtime.js";
 export { safe } from "vasille";
 

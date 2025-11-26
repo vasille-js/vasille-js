@@ -1,7 +1,5 @@
-import { ref } from "vasille-web";
-
-const o = {
+const o6 = {
   a: 1,
 };
 
-const { a: $a } = o;
+const { a: $a } = o6;

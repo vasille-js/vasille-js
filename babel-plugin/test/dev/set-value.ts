@@ -1,4 +1,4 @@
-import { beforeMount, component } from "vasille-web";
+import { beforeMount, component } from "steel-frame";
 
 const C = component(() => {
   const arr = [1, 2];

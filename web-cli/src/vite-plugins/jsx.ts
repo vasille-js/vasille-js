@@ -1,20 +1,7 @@
 import pluginJsxSyntax from "@babel/plugin-syntax-jsx";
 import pluginVasille from "babel-plugin-vasille";
 import pluginTypescript from "@babel/plugin-transform-typescript";
-import pluginInlineEnv from "babel-plugin-transform-inline-environment-variables";
 import babel from "vite-plugin-babel";
-
-// @ts-expect-error
-export const processEnvPlugin = babel({
-    loader: "js",
-    filter: /(router|class)\.js$/,
-    babelConfig: {
-        presets: [],
-        plugins: [pluginInlineEnv],
-        configFile: false,
-        babelrc: false,
-    },
-});
 
 export function getVitePlugins(devMode: boolean) {
     return [
@@ -31,6 +18,5 @@ export function getVitePlugins(devMode: boolean) {
                 babelrc: false,
             },
         }),
-        processEnvPlugin,
     ];
 }

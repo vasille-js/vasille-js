@@ -9,7 +9,7 @@
     "module": "ES2022",
     "moduleResolution": "bundler",
     "jsx": "preserve",
-    "jsxImportSource": "vasille-web",
+    "jsxImportSource": "steel-frame",
     "skipLibCheck": true,
     "strictNullChecks": true,
     "esModuleInterop": true,

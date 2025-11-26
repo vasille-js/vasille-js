@@ -1,4 +1,4 @@
-import { compose, If, ElseIf, Else } from "vasille-web";
+import { compose, If, ElseIf, Else } from "steel-frame";
 
 const C = compose(() => {
   let $condition = true;

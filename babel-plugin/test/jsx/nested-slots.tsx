@@ -1,4 +1,4 @@
-import { Slot, compose, afterMount, beforeMount } from "vasille-web";
+import { Slot, compose, afterMount, beforeMount } from "steel-frame";
 
 const C1 = compose(({ slot }: { slot(props: { $a: number }): void }) => {
   let $a = 0;

@@ -1,4 +1,4 @@
-import { compose } from "vasille-web";
+import { compose } from "steel-frame";
 
 const C = compose(() => {
   let $a = 0.5;

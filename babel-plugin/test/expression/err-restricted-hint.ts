@@ -1,4 +1,4 @@
-import { compose, calculate, arrayModel } from "vasille-web";
+import { compose, calculate, arrayModel } from "steel-frame";
 
 const C = compose(() => {
   const $a = calculate(() => {

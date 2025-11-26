@@ -1,4 +1,4 @@
-import { raw } from "vasille-web";
+import { raw } from "steel-frame";
 
 // @ts-expect-error
 const a = raw();

@@ -1,4 +1,4 @@
-import { afterMount, compose, Slot } from "vasille-web";
+import { afterMount, compose, Slot } from "steel-frame";
 
 const C = compose(
   ({

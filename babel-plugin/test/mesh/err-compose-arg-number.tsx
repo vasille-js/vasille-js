@@ -1,4 +1,4 @@
-import { compose, For } from "vasille-web";
+import { compose, For } from "steel-frame";
 
 const C = compose((props: { slot: (a: number, b: number) => void }) => {});
 

@@ -1,6 +1,6 @@
-import { insertRule } from "./lib";
+import { insertRule } from "./lib.js";
 
-export { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "./lib";
+export { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "./lib.js";
 
 let index = 1;
 

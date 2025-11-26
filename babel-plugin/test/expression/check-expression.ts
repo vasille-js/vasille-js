@@ -1,4 +1,4 @@
-import { bind, calculate, compose } from "vasille-web";
+import { bind, calculate, compose } from "steel-frame";
 import { Reference } from "vasille";
 
 function tag(args: TemplateStringsArray, count: number): string {

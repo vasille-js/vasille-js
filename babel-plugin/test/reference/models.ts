@@ -1,4 +1,4 @@
-import { arrayModel, beforeMount, compose, mapModel, ref, setModel } from "vasille-web";
+import { arrayModel, beforeMount, compose, mapModel, ref, setModel } from "steel-frame";
 
 const C = compose(() => {
   let $a = 3;

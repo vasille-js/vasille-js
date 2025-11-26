@@ -1,4 +1,4 @@
-import { compose, If } from "vasille-web";
+import { compose, If } from "steel-frame";
 
 const C = compose(() => {
   <If {...{ $condition: true }} />;

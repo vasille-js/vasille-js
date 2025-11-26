@@ -1,4 +1,4 @@
-import { component } from "vasille-web";
+import { component } from "steel-frame";
 
 const k = "key";
 

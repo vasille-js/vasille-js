@@ -1,5 +1,5 @@
 const VasilleFilePath = "babel-plugin-vasille/test/dev/value-assignment.ts";
-import { component, ref, shareStateById as VasilleState, executionPosition as VasilleExePos, runFn as VasilleRun, earlyInspector as VasilleInspector } from "vasille-web";
+import { component, ref, shareStateById as VasilleState, executionPosition as VasilleExePos, runFn as VasilleRun, earlyInspector as VasilleInspector } from "steel-frame";
 const C = component(Vasille => {
   const $a = VasilleState(Vasille.id, Vasille.runner, "$a", ref(1, [VasilleFilePath, 4, 6, 4, 12], Vasille.runner.inspector));
   const o = {

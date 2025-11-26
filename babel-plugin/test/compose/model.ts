@@ -1,4 +1,4 @@
-import { model } from "vasille-web";
+import { model } from "steel-frame";
 
 const testModel = model(() => {
   let $a = 1;

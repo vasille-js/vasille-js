@@ -1,4 +1,4 @@
-import { view } from "vasille-web";
+import { view } from "steel-frame";
 
 const X1View = view(() => {
   let $a = 1;

@@ -1,5 +1,5 @@
 const VasilleFilePath = "babel-plugin-vasille/test/dev/set-value.ts";
-import { component, arrayModel as VasilleArrayModel, shareStateById as VasilleState, executionPosition as VasilleExePos, set as VasilleSet, wrapFn as VasilleWrap, safe as VasilleSafe } from "vasille-web";
+import { component, arrayModel as VasilleArrayModel, shareStateById as VasilleState, executionPosition as VasilleExePos, set as VasilleSet, wrapFn as VasilleWrap, safe as VasilleSafe } from "steel-frame";
 const C = component(Vasille => {
   const arr = VasilleState(Vasille.id, Vasille.runner, "arr", VasilleArrayModel(Vasille.runner.inspector, Vasille, [1, 2]));
   VasilleSafe(VasilleWrap(() => {

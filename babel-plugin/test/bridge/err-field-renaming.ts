@@ -1,4 +1,4 @@
-import { ref } from "vasille-web";
+import { ref } from "steel-frame";
 
 const o = {
   $a: ref(1),

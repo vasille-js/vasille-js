@@ -1,4 +1,4 @@
-import { theme, styleSheet } from "vasille-web";
+import { theme, styleSheet } from "steel-frame";
 
 const s = styleSheet({
   c1: {

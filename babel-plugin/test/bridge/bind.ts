@@ -1,4 +1,4 @@
-import { compose, ref, bind } from "vasille-web";
+import { compose, ref, bind } from "steel-frame";
 
 const C = compose(() => {
   let $a = ref(1);

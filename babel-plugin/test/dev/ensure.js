@@ -1,5 +1,5 @@
 const VasilleFilePath = "babel-plugin-vasille/test/dev/ensure.ts";
-import { component, ensure as VasilleEnsure } from "vasille-web";
+import { component, ensure as VasilleEnsure } from "steel-frame";
 const C = component(Vasille => {
   const o = {
     a: 1

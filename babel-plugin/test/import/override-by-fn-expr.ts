@@ -1,4 +1,4 @@
-import { compose } from "vasille-web";
+import { compose } from "steel-frame";
 
 const C = compose(() => {
   const recusive = function compose(x: number) {

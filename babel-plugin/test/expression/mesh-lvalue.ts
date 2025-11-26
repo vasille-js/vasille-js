@@ -1,4 +1,4 @@
-import { calculate, compose, ref, watch } from "vasille-web";
+import { calculate, compose, ref, watch } from "steel-frame";
 
 const obj = {
   $nested: ref({

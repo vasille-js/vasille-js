@@ -1,4 +1,4 @@
-import { beforeMount, compose, ref } from "vasille-web";
+import { beforeMount, compose, ref } from "steel-frame";
 
 let o1 = {
   $x: ref(1),

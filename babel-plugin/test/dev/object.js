@@ -1,5 +1,5 @@
 const VasilleFilePath = "babel-plugin-vasille/test/dev/object.ts";
-import { component, ref as VasilleRef } from "vasille-web";
+import { component, ref as VasilleRef } from "steel-frame";
 const C = component(Vasille => {
   const o = {
     $a: VasilleRef(1, [VasilleFilePath, 5, 4, 5, 9], Vasille.runner.inspector),

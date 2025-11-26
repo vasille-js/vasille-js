@@ -1,4 +1,4 @@
-import { compose, watch } from "vasille-web";
+import { compose, watch } from "steel-frame";
 
 const C = compose(() => {
   const a = 3;

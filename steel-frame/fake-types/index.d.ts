@@ -1,10 +1,10 @@
-import { App, Destroyable } from "vasille";
+import { App } from "vasille";
 import type { TagOptions } from "vasille/web-runner";
-import type { StyleProps } from "../spec/css.d.ts";
+import type { StyleSheetProps as StyleProps } from "vasille-web";
 import type { ScreenProps } from "vasille-router";
 import type { Router } from "vasille-router/web-router";
 
-export type { RawStyleProps as StyleProps } from "../spec/css.d.ts";
+export type { StyleProps } from "vasille-web";
 export type ClassItem = string | Record<string, boolean> | false;
 export type { FallbackScreenProps, ErrorScreenProps } from "vasille-router";
 export { safe } from "vasille";
@@ -65,10 +65,6 @@ export declare function bind<T>(v: T): T;
 export declare function calculate<T>(fn: () => T): T;
 /** Runs the function each time when a dependency is changed */
 export declare function watch(f: () => void): void;
-/** Returns a view-model bind, which send data only forward */
-export declare function forward<T>(v: T): T;
-/** Returns a view-model bind, which send data only backward */
-export declare function backward<T>(v: T): T;
 /** Returns an array model of the array */
 export declare function arrayModel<T>(v?: T[]): T[];
 /** Returns a set model of array values */

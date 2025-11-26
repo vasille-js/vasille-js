@@ -1,4 +1,4 @@
-import { modal, ref } from "vasille-web";
+import { modal, ref } from "steel-frame";
 
 const TestModal = modal((props: { $a: boolean }) => {
   let $b = props.$a;

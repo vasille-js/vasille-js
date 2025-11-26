@@ -1,4 +1,4 @@
-import { screen } from "vasille-web";
+import { screen } from "steel-frame";
 
 const MainScreen = screen(async props => {
   const x = props.query.x;

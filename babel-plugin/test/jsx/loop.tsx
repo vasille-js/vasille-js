@@ -1,4 +1,4 @@
-import { For, compose, Debug } from "vasille-web";
+import { For, compose, Debug } from "steel-frame";
 
 const C = compose(() => {
   const a = [1, 2, 3];

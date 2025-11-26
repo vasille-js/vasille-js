@@ -1,4 +1,4 @@
-import { beforeMount, calculate, compose } from "vasille-web";
+import { beforeMount, calculate, compose } from "steel-frame";
 
 const C = compose(() => {
   let $a = 2;

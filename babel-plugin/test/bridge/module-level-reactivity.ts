@@ -1,4 +1,4 @@
-import { arrayModel, bind, calculate, mapModel, raw, ref, setModel, watch } from "vasille-web";
+import { arrayModel, bind, calculate, mapModel, raw, ref, setModel, watch } from "steel-frame";
 
 let $a = ref(1);
 let $b = ref(2);

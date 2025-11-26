@@ -6,7 +6,7 @@ import { findStyleInNode } from "./css-transformer.js";
 import * as fs from "node:fs";
 import path from "path";
 
-const imports = new Map([["vasille-web", "VasilleWeb"]]);
+const imports = new Map([["steel-frame", "VasilleWeb"]]);
 const ignoreMembers = new Set([
   "raw",
   "theme",
@@ -43,10 +43,7 @@ function handleImportDeclaration(
 
   if (!name) return;
 
-  // replace the web import if is required
-  if (name === "VasilleWeb" && internal.replaceWeb) {
-    statement.source.value = internal.replaceWeb;
-  }
+  statement.source.value = internal.replaceWeb;
 
   internal.prefix = name;
 
@@ -98,7 +95,7 @@ function updateImports(
     path.get("body")[0].insertBefore(
       t.importDeclaration(
         [...used].map(name => t.importSpecifier(t.identifier(ids[name]), t.identifier(name))),
-        t.stringLiteral(internal.replaceWeb ?? "vasille-web"),
+        t.stringLiteral(internal.replaceWeb),
       ),
     );
   }
@@ -200,7 +197,7 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     stylesConnected: false,
     devLayer: opts.devLayer,
     strictFolders: opts.strictFolders,
-    replaceWeb: opts.replaceWeb,
+    replaceWeb: opts.replaceWeb ?? (opts.devLayer ? "steel-frame" : "vasille-web"),
     headTag: opts.headTag,
     bodyTag: opts.bodyTag,
     ref(arg, area, name) {

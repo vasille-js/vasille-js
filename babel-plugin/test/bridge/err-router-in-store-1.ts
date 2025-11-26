@@ -1,4 +1,4 @@
-import { beforeMount, router, store } from "vasille-web";
+import { beforeMount, router, store } from "steel-frame";
 
 const sStore = store(() => {
   beforeMount(() => router());

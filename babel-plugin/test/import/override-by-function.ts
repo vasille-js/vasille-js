@@ -1,4 +1,4 @@
-import { beforeMount, compose } from "vasille-web";
+import { beforeMount, compose } from "steel-frame";
 
 const C = compose(() => {
   function compose() {

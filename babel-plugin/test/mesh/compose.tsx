@@ -1,4 +1,4 @@
-import { afterMount, beforeMount, compose, For } from "vasille-web";
+import { afterMount, beforeMount, compose, For } from "steel-frame";
 
 interface Props {
   $name: string;

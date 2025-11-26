@@ -691,7 +691,7 @@ function procedureProcessObjectExpression(
 }
 
 export function processObjectExpression(path: NodePath<types.ObjectExpression>, internal: Internal): VariableState {
-  return procedureProcessObjectExpression(path, internal, {}, "");
+  return procedureProcessObjectExpression(path, internal, {});
 }
 
 export function meshStatement(path: NodePath<types.Statement | null | undefined>, internal: Internal) {

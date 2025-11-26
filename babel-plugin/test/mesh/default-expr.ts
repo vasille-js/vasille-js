@@ -1,3 +1,3 @@
-import { compose } from "vasille-web";
+import { compose } from "steel-frame";
 
 export default compose(() => {});

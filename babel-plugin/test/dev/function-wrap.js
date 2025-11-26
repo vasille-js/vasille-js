@@ -1,5 +1,5 @@
 const VasilleFilePath = "babel-plugin-vasille/test/dev/function-wrap.ts";
-import { earlyInspector as VasilleInspector, runFn as VasilleRun, wrapFn as VasilleWrap } from "vasille-web";
+import { earlyInspector as VasilleInspector, runFn as VasilleRun, wrapFn as VasilleWrap } from "steel-frame";
 function f1(...VasilleArgs) {
   return VasilleRun(() => {
     console.log(1);

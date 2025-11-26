@@ -1,4 +1,4 @@
-import { component, compose, ref } from "vasille-web";
+import { component, compose, ref } from "steel-frame";
 
 const C = compose(() => {
   let $a = 2;

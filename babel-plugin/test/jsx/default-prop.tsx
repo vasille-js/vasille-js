@@ -1,4 +1,4 @@
-import { compose } from "vasille-web";
+import { compose } from "steel-frame";
 
 const C1 = compose((props: { bool: boolean; $bool: boolean }) => {});
 

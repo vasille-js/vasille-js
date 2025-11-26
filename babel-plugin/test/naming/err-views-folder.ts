@@ -1,3 +1,3 @@
-import { view } from "vasille-web";
+import { view } from "steel-frame";
 
 const View = view(() => {});

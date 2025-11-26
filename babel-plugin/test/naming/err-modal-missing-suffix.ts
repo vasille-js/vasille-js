@@ -1,3 +1,3 @@
-import { modal } from "vasille-web";
+import { modal } from "steel-frame";
 
 const M = modal(() => {});

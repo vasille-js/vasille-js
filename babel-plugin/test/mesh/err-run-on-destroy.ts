@@ -1,4 +1,4 @@
-import { beforeDestroy, store } from "vasille-web";
+import { beforeDestroy, store } from "steel-frame";
 
 const cStore = store(() => {
   beforeDestroy(() => {

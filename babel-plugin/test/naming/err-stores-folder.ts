@@ -1,3 +1,3 @@
-import { store } from "vasille-web";
+import { store } from "steel-frame";
 
 const userStore = store(() => ({}));

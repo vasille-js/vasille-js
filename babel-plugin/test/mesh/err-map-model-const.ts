@@ -1,4 +1,4 @@
-import { compose, mapModel } from "vasille-web";
+import { compose, mapModel } from "steel-frame";
 
 const C = compose(() => {
   let a = mapModel([]);

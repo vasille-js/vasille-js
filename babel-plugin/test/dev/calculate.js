@@ -1,5 +1,5 @@
 const VasilleFilePath = "babel-plugin-vasille/test/dev/calculate.ts";
-import { calculate, component, ref as VasilleRef, shareStateById as VasilleState } from "vasille-web";
+import { calculate, component, ref as VasilleRef, shareStateById as VasilleState } from "steel-frame";
 const C = component(Vasille => {
   const $a = VasilleState(Vasille.id, Vasille.runner, "$a", VasilleRef(1, [VasilleFilePath, 4, 6, 4, 12], Vasille.runner.inspector));
   const $b = VasilleState(Vasille.id, Vasille.runner, "$b", calculate(Vasille, Vasille_0 => {

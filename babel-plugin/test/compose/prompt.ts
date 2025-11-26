@@ -1,4 +1,4 @@
-import { beforeMount, compose, prompt, PromptProps } from "vasille-web";
+import { beforeMount, compose, prompt, PromptProps } from "steel-frame";
 
 const promptName = prompt<string>(props => {
   function save() {

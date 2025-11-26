@@ -1,4 +1,4 @@
-import { compose } from "vasille-web";
+import { compose } from "steel-frame";
 
 type Composed<In extends object> = ReturnType<typeof compose<In>>;
 

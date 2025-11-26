@@ -1,4 +1,4 @@
-import { afterMount, beforeMount, component, ref } from "vasille-web";
+import { afterMount, beforeMount, component, ref } from "steel-frame";
 
 export class Test1 {
   public $1 = ref(1);

@@ -1,4 +1,4 @@
-import { styleSheet, dark, prefersDark, prefersLight, mobile, laptop, tablet, theme } from "vasille-web";
+import { styleSheet, dark, prefersDark, prefersLight, mobile, laptop, tablet, theme } from "steel-frame";
 
 export const styles = styleSheet({
   c1: {
