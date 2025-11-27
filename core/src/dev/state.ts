@@ -46,7 +46,7 @@ export class BaseDevReference<T> extends DevIValue<T> {
                 try {
                     handler(value, position);
                 } catch (e) {
-                    this.shareError(e, handler, position);
+                    this.shareError(e, position);
                     reportError(e);
                 }
             });
@@ -65,9 +65,8 @@ export class BaseDevReference<T> extends DevIValue<T> {
         void position;
     }
 
-    protected shareError(error: unknown, handler: unknown, position?: ExecutionPosition) {
+    protected shareError(error: unknown, position?: ExecutionPosition) {
         void error;
-        void handler;
         void position;
     }
 }
@@ -97,16 +96,17 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
     protected shareUpdate(position?: ExecutionPosition) {
         this.inspector?.updateReference({
             id: this.id,
+            time: Date.now(),
             position: position,
             value: toDevValue(this.state),
         });
     }
 
-    protected shareError(error: unknown, handler: unknown, position?: ExecutionPosition) {
+    protected shareError(error: unknown, position?: ExecutionPosition) {
         this.inspector?.reportReferenceError({
-            handler: toDevValue(handler),
-            id: this.id,
-            error: error,
+            targetId: this.id,
+            time: Date.now(),
+            error: error instanceof Error ? (error.stack ?? error.message) : `${error}`,
             position: position,
         });
     }
@@ -127,11 +127,11 @@ export class ExpressionDevReference<T> extends BaseDevReference<T> implements In
         this.inspector = inspector;
     }
 
-    protected shareError(error: unknown, handler: unknown, position: ExecutionPosition) {
+    protected shareError(error: unknown, position: ExecutionPosition) {
         this.inspector?.reportReferenceError({
-            handler: toDevValue(handler),
-            id: this.id,
-            error: error,
+            targetId: this.id,
+            time: Date.now(),
+            error: error instanceof Error ? (error.stack ?? error.message) : `${error}`,
             position: position,
         });
     }
@@ -172,6 +172,7 @@ export class DevExpression<T, Args extends unknown[]>
                     this.sync.update(newValue, position);
                     inspector?.updateExpression({
                         id: id,
+                        time: Date.now(),
                         position: position,
                         value: newValue,
                         deps: this.valuesCache.map(toDevValue),
@@ -179,9 +180,9 @@ export class DevExpression<T, Args extends unknown[]>
                 }
             } catch (e) {
                 inspector?.reportExpressionCalculationError({
-                    id: id,
-                    error: e,
-                    handler: toDevValue(func),
+                    targetId: id,
+                    time: Date.now(),
+                    error: e instanceof Error ? (e.stack ?? e.message) : `${e}`,
                     position: position,
                     deps: this.valuesCache.map(toDevValue),
                 });

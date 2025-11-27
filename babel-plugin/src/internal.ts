@@ -66,14 +66,17 @@ export interface Internal {
   // models
   setModel(
     arg: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null,
+    usage: types.Node,
     name: string | undefined,
   ): types.Expression;
   mapModel(
     arg: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null,
+    usage: types.Node,
     name: string | undefined,
   ): types.Expression;
   arrayModel(
     arg: types.Expression | types.SpreadElement | types.ArgumentPlaceholder | null,
+    usage: types.Node,
     name: string | undefined,
   ): types.Expression;
 

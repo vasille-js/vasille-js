@@ -1,7 +1,6 @@
 import {
     Inspector,
     ProtocolComponent,
-    ProtocolComponentError,
     ProtocolCustomModel,
     ProtocolDependency,
     ProtocolExecutionPosition,
@@ -12,7 +11,6 @@ import {
     ProtocolModelUpdate,
     ProtocolNode,
     ProtocolParent,
-    ProtocolPosition,
     ProtocolReference,
     ProtocolReferenceError,
     ProtocolReferenceUpdate,
@@ -29,6 +27,7 @@ import {
     ProtocolFunctionError,
     ProtocolEventTrigger,
     ProtocolComposeTime,
+    ProtocolError,
 } from "vasille/dev";
 
 export class EarlyInspector implements Inspector {
@@ -96,14 +95,6 @@ export class EarlyInspector implements Inspector {
         this.send(this.functionThrows.name, error);
     }
 
-    public idToPosition(pos: ProtocolPosition): void {
-        this.send(this.idToPosition.name, pos);
-    }
-
-    public linkDependency(dep: ProtocolDependency): void {
-        this.send(this.linkDependency.name, dep);
-    }
-
     public newExpression(expr: ProtocolExpression): void {
         this.send(this.newExpression.name, expr);
     }
@@ -120,7 +111,7 @@ export class EarlyInspector implements Inspector {
         this.send(this.registeredRoutes.name, routes);
     }
 
-    public reportComponentError(error: ProtocolComponentError): void {
+    public reportComponentError(error: ProtocolError): void {
         this.send(this.reportComponentError.name, error);
     }
 
@@ -128,12 +119,12 @@ export class EarlyInspector implements Inspector {
         this.send(this.reportComponentSlotError.name, error);
     }
 
-    public reportExpressionCalculationError(error: ProtocolExpressionError): void {
-        this.send(this.reportExpressionCalculationError.name, error);
+    public reportError(err: ProtocolError) {
+        this.send(this.reportError.name, err);
     }
 
-    public reportExpressionSyncError(error: ProtocolReferenceError): void {
-        this.send(this.reportExpressionSyncError.name, error);
+    public reportExpressionCalculationError(error: ProtocolExpressionError): void {
+        this.send(this.reportExpressionCalculationError.name, error);
     }
 
     public reportReferenceError(error: ProtocolReferenceError): void {

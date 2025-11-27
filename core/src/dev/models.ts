@@ -2,13 +2,18 @@ import { Reactive } from "../core/core.js";
 import { ArrayModel } from "../models/array-model.js";
 import { MapModel } from "../models/map-model.js";
 import { SetModel } from "../models/set-model.js";
-import { Inspector, provideId, toDevIdOrValue, toDevValue } from "./inspectable.js";
+import { Inspector, provideId, StaticPosition, toDevIdOrValue, toDevValue } from "./inspectable.js";
 
 export class DevArrayModel<T> extends ArrayModel<T> {
     public readonly id: number;
     public readonly inspector: Inspector | undefined;
 
-    public constructor(inspector: Inspector | undefined, data?: Array<T> | number, ctx?: Reactive) {
+    public constructor(
+        inspector: Inspector | undefined,
+        usage: StaticPosition,
+        data?: Array<T> | number,
+        ctx?: Reactive,
+    ) {
         super(data, ctx);
 
         this.id = provideId();
@@ -18,6 +23,7 @@ export class DevArrayModel<T> extends ArrayModel<T> {
             id: this.id,
             type: "array",
             values: this.map((item, index) => [index, toDevValue(item)]),
+            usage: usage,
         });
     }
 
@@ -74,7 +80,7 @@ export class DevSetModel<T> extends SetModel<T> {
     public readonly id: number;
     public readonly inspector: Inspector | undefined;
 
-    public constructor(inspector: Inspector | undefined, set?: T[], ctx?: Reactive) {
+    public constructor(inspector: Inspector | undefined, usage: StaticPosition, set?: T[], ctx?: Reactive) {
         super(set, ctx);
         this.id = provideId();
         this.inspector = inspector;
@@ -83,6 +89,7 @@ export class DevSetModel<T> extends SetModel<T> {
             id: this.id,
             type: "set",
             values: [...this].map(item => [0, toDevIdOrValue(item)]),
+            usage: usage,
         });
     }
 
@@ -121,7 +128,7 @@ export class DevMapModel<K, T> extends MapModel<K, T> {
     public readonly id: number;
     public readonly inspector: Inspector | undefined;
 
-    public constructor(inspector: Inspector | undefined, map?: [K, T][], ctx?: Reactive) {
+    public constructor(inspector: Inspector | undefined, usage: StaticPosition, map?: [K, T][], ctx?: Reactive) {
         super(map, ctx);
         this.id = provideId();
         this.inspector = inspector;
@@ -130,6 +137,7 @@ export class DevMapModel<K, T> extends MapModel<K, T> {
             id: this.id,
             type: "map",
             values: [...this.entries()].map(([key, value]) => [toDevIdOrValue(key), toDevIdOrValue(value)]),
+            usage: usage,
         });
     }
 

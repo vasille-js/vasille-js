@@ -61,14 +61,18 @@ export interface ProtocolReference extends ProtocolPosition {
 
 export interface ProtocolReferenceUpdate {
     id: number;
+    time: number;
     value: DevValue;
     position?: ExecutionPosition;
 }
 
-export interface ProtocolReferenceError {
-    id: number;
-    error: unknown;
-    handler: DevValue;
+export interface ProtocolError {
+    targetId: number;
+    time: number;
+    error: string;
+}
+
+export interface ProtocolReferenceError extends ProtocolError {
     position?: ExecutionPosition;
 }
 
@@ -112,6 +116,7 @@ export interface ProtocolParent {
 
 export interface ProtocolTag {
     id: number;
+    time: number;
     usage: StaticPosition | undefined;
     tagName: string;
     attr?: { [k: string]: number | DevValue };
@@ -124,18 +129,12 @@ export interface ProtocolTag {
 
 export interface ProtocolNode {
     id: number;
+    time: number;
     text: number | DevValue;
+    position: StaticPosition;
 }
 
-export interface ProtocolComponentError {
-    id: number;
-    name: string;
-    error: unknown;
-}
-
-export interface ProtocolSlotError {
-    componentId: number;
-    error: unknown;
+export interface ProtocolSlotError extends ProtocolError {
     usage: StaticPosition;
 }
 
@@ -148,6 +147,7 @@ export interface ProtocolModel {
     id: number;
     type: "array" | "set" | "map";
     values: [number | DevValue, number | DevValue][];
+    usage: StaticPosition;
 }
 
 export interface ProtocolModelUpdate {
@@ -159,14 +159,17 @@ export interface ProtocolModelUpdate {
 
 export interface ProtocolStore extends ProtocolPosition {
     name: string;
+    time: number;
 }
 
 export interface ProtocolCustomModel extends ProtocolPosition {
+    time: number;
     usage: StaticPosition;
     name: string;
 }
 
 export interface ProtocolRouterTargetResult {
+    time: number;
     url: string;
     path: string;
     query: { [k: string]: string[] };
@@ -187,15 +190,18 @@ export interface ProtocolDevValue {
 }
 
 export interface ProtocolRoutes {
+    time: number;
     paths: string[];
 }
 
 export interface ProtocolRouterStateChange {
+    time: number;
     name: string;
     value: string | null | undefined;
 }
 
 export interface ProtocolRouterActionCall {
+    time: number;
     name: string;
     path: string;
 }
@@ -220,17 +226,13 @@ export interface ProtocolFunctionResult {
     time: number;
 }
 
-export interface ProtocolFunctionError {
-    id: number;
-    message: string;
-    stack: string[];
+export interface ProtocolFunctionError extends ProtocolError {
     async: boolean;
-    time: number;
 }
 
 export interface Inspector {
     registerExecutionPosition(pos: ProtocolExecutionPosition): void;
-    idToPosition(pos: ProtocolPosition): void;
+    reportError(err: ProtocolError): void;
 
     // Reference
     newReference(ref: ProtocolReference): void;
@@ -240,9 +242,6 @@ export interface Inspector {
     // Expression
     newExpression(expr: ProtocolExpression): void;
     updateExpression(update: ProtocolExpressionUpdate): void;
-    linkDependency(dep: ProtocolDependency): void;
-    unlinkDependency(dep: ProtocolDependency): void;
-    reportExpressionSyncError(error: ProtocolReferenceError): void;
     reportExpressionCalculationError(error: ProtocolExpressionError): void;
 
     // Components
@@ -251,7 +250,7 @@ export interface Inspector {
     createNode(node: ProtocolNode): void;
     addContextState(state: ProtocolState): void;
     setElementParent(parent: ProtocolParent): void;
-    reportComponentError(error: ProtocolComponentError): void;
+    reportComponentError(error: ProtocolError): void;
     reportComponentSlotError(error: ProtocolSlotError): void;
     composeTime(time: ProtocolComposeTime): void;
 
@@ -349,9 +348,8 @@ export function runFn<Args extends unknown[], Result extends object>(
                 });
                 result.catch(e => {
                     inspector.functionThrows({
-                        id: id,
-                        message: e instanceof Error ? e.message : `${e}`,
-                        stack: e instanceof Error ? getErrorStack(e) : [],
+                        targetId: id,
+                        error: e instanceof Error ? (e.stack ?? e.message) : `${e}`,
                         async: false,
                         time: Date.now(),
                     });
@@ -370,9 +368,8 @@ export function runFn<Args extends unknown[], Result extends object>(
         }
     } catch (e) {
         inspector.functionThrows({
-            id: id,
-            message: e instanceof Error ? e.message : `${e}`,
-            stack: e instanceof Error ? getErrorStack(e) : [],
+            targetId: id,
+            error: e instanceof Error ? (e.stack ?? e.message) : `${e}`,
             async: false,
             time: Date.now(),
         });

@@ -42,7 +42,9 @@ class DevTextNode extends TextNode<DevTagOptions, DevRunner> {
 
         inspector.createNode({
             id: this.id,
+            time: Date.now(),
             text: toDevIdOrValue(input.text),
+            position: usage,
         });
     }
 
@@ -75,6 +77,7 @@ class DevTag extends Tag<DevTagOptions, DevRunner> {
 
         inspector.createTag({
             id: this.id,
+            time: Date.now(),
             tagName: tagName,
             usage: usage,
             callback: options.k && toDevIdOrValue(options.k),

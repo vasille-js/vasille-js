@@ -25,6 +25,7 @@ import { devScreen } from "vasille-router/dev";
 import { Inspector } from "./inspector.js";
 
 export { executionPosition, wrapFn, runFn, registerReference, shareStateById, positionedText } from "vasille/dev";
+export { setErrorHandler } from "vasille-jsx/dev";
 
 export {
     type QueryParams,
@@ -35,7 +36,6 @@ export {
     type WebRouterInitialization,
     type NavigationMode,
     type Router,
-    setErrorHandler,
     setLaptopMaxWidth,
     setTabletMaxWidth,
     setMobileMaxWidth,

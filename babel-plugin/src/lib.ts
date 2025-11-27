@@ -194,20 +194,36 @@ export function ref(expr: types.Node | null | undefined, internal: Internal, are
   return internal.ref(t.isExpression(expr) ? expr : null, area, name);
 }
 
-export function arrayModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
-  return internal.arrayModel(args[0], name);
+export function arrayModel(
+  args: types.CallExpression["arguments"],
+  usage: types.Node,
+  internal: Internal,
+  name?: string,
+) {
+  return internal.arrayModel(args[0], usage, name);
 }
 
-export function setModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
-  return internal.setModel(args[0], name);
+export function setModel(
+  args: types.CallExpression["arguments"],
+  usage: types.Node,
+  internal: Internal,
+  name?: string,
+) {
+  return internal.setModel(args[0], usage, name);
 }
 
-export function mapModel(args: types.CallExpression["arguments"], internal: Internal, name?: string) {
-  return internal.mapModel(args[0], name);
+export function mapModel(
+  args: types.CallExpression["arguments"],
+  usage: types.Node,
+  internal: Internal,
+  name?: string,
+) {
+  return internal.mapModel(args[0], usage, name);
 }
 
 export function processModelCall(
   path: NodePath<types.CallExpression | types.NewExpression>,
+  usage: types.Node,
   type: "Map" | "Set" | "Array",
   isConst: boolean,
   internal: Internal,
@@ -221,10 +237,10 @@ export function processModelCall(
   meshAllUnknown(path.get("arguments"), internal);
   path.replaceWith(
     type === "Map"
-      ? mapModel(args, internal, name)
+      ? mapModel(args, usage, internal, name)
       : type === "Set"
-        ? setModel(args, internal, name)
-        : arrayModel(args, internal, name),
+        ? setModel(args, usage, internal, name)
+        : arrayModel(args, usage, internal, name),
   );
 }
 

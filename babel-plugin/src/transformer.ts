@@ -227,23 +227,32 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
 
       return call("expr", [getCtx(), func, t.arrayExpression(values)]);
     },
-    setModel(arg, name) {
+    setModel(arg, usage, name) {
       if (opts.devLayer) {
-        return named(call("setModel", [getInspector(), getCtx(), arg ?? t.buildUndefinedNode()]), name);
+        return named(
+          call("setModel", [getInspector(), nodeToStaticPosition(usage), getCtx(), arg ?? t.buildUndefinedNode()]),
+          name,
+        );
       }
 
       return call("setModel", arg ? [getCtx(), arg] : [getCtx()]);
     },
-    mapModel(arg, name) {
+    mapModel(arg, usage, name) {
       if (opts.devLayer) {
-        return named(call("mapModel", [getInspector(), getCtx(), arg ?? t.buildUndefinedNode()]), name);
+        return named(
+          call("mapModel", [getInspector(), nodeToStaticPosition(usage), getCtx(), arg ?? t.buildUndefinedNode()]),
+          name,
+        );
       }
 
       return call("mapModel", arg ? [getCtx(), arg] : [getCtx()]);
     },
-    arrayModel(arg, name) {
+    arrayModel(arg, usage, name) {
       if (opts.devLayer) {
-        return named(call("arrayModel", [getInspector(), getCtx(), arg ?? t.buildUndefinedNode()]), name);
+        return named(
+          call("arrayModel", [getInspector(), nodeToStaticPosition(usage), getCtx(), arg ?? t.buildUndefinedNode()]),
+          name,
+        );
       }
 
       return call("arrayModel", arg ? [getCtx(), arg] : [getCtx()]);

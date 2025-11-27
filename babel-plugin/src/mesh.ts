@@ -167,11 +167,11 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
 
         /* istanbul ignore else */
         if (calls(path, ["arrayModel"], internal)) {
-          path.replaceWith(internal.arrayModel(argPath?.node, undefined));
+          path.replaceWith(internal.arrayModel(argPath?.node, path.node, undefined));
         } else if (calls(path, ["mapModel"], internal)) {
-          path.replaceWith(internal.mapModel(argPath?.node, undefined));
+          path.replaceWith(internal.mapModel(argPath?.node, path.node, undefined));
         } else if (calls(path, ["setModel"], internal)) {
-          path.replaceWith(internal.setModel(argPath?.node, undefined));
+          path.replaceWith(internal.setModel(argPath?.node, path.node, undefined));
         }
 
         path.node.loc = loc;
@@ -1219,19 +1219,19 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
           }
           // const arr = arrayModel()
           else if (calls(initPath, ["arrayModel"], internal)) {
-            processModelCall(initPath, "Array", kind === "const", internal, idName());
+            processModelCall(initPath, declaration.node, "Array", kind === "const", internal, idName());
             meshInit = false;
             checkNonReactiveName(idPath, internal);
           }
           // const map = mapModel();
           else if (calls(initPath, ["mapModel"], internal)) {
-            processModelCall(initPath, "Map", kind === "const", internal, idName());
+            processModelCall(initPath, declaration.node, "Map", kind === "const", internal, idName());
             meshInit = false;
             checkNonReactiveName(idPath, internal);
           }
           // const set = setModel();
           else if (calls(initPath, ["setModel"], internal)) {
-            processModelCall(initPath, "Set", kind === "const", internal, idName());
+            processModelCall(initPath, declaration.node, "Set", kind === "const", internal, idName());
             meshInit = false;
             checkNonReactiveName(idPath, internal);
           }
@@ -1253,7 +1253,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             meshExpression(initPath, internal);
             meshInit = false;
 
-            initPath.replaceWith(arrayModel([initPath.node], internal, idName()));
+            initPath.replaceWith(arrayModel([initPath.node], declaration.node, internal, idName()));
             checkNonReactiveName(idPath, internal);
           }
           // const s = new Set(), const m = new Map()
@@ -1264,6 +1264,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
           ) {
             processModelCall(
               initPath,
+              declaration.node,
               initPath.node.callee.name as "Map" | "Set",
               kind === "const",
               internal,

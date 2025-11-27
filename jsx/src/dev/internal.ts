@@ -28,16 +28,31 @@ export function devRef<T>(v: T, declaration: StaticPosition, inspector?: Inspect
     return new DevReference(v, declaration, inspector);
 }
 
-export function devSetModel(inspector: Inspector | undefined, ctx: Reactive | undefined, data?: unknown[]) {
-    return new DevSetModel(inspector, data, ctx);
+export function devSetModel(
+    inspector: Inspector | undefined,
+    usage: StaticPosition,
+    ctx: Reactive | undefined,
+    data?: unknown[],
+) {
+    return new DevSetModel(inspector, usage, data, ctx);
 }
 
-export function devMapModel(inspector: Inspector | undefined, ctx: Reactive | undefined, data?: [unknown, unknown][]) {
-    return new DevMapModel(inspector, data, ctx);
+export function devMapModel(
+    inspector: Inspector | undefined,
+    usage: StaticPosition,
+    ctx: Reactive | undefined,
+    data?: [unknown, unknown][],
+) {
+    return new DevMapModel(inspector, usage, data, ctx);
 }
 
-export function devArrayModel(inspector: Inspector | undefined, ctx: Reactive | undefined, data?: unknown[] | number) {
-    return new DevArrayModel(inspector, data, ctx);
+export function devArrayModel(
+    inspector: Inspector | undefined,
+    usage: StaticPosition,
+    ctx: Reactive | undefined,
+    data?: unknown[] | number,
+) {
+    return new DevArrayModel(inspector, usage, data, ctx);
 }
 
 export function devEnsure(data: unknown, declaration: StaticPosition, inspector: Inspector | undefined) {

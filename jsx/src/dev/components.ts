@@ -37,9 +37,10 @@ export function DevSlot<Node, Element, TagOptions extends object, T extends obje
         }
     } catch (e) {
         ctx.runner.inspector.reportComponentSlotError({
-            componentId: "id" in ctx && typeof ctx.id === "number" ? ctx.id : 0,
+            targetId: "id" in ctx && typeof ctx.id === "number" ? ctx.id : 0,
             error: e,
             usage: usage,
+            time: Date.now(),
         });
         reportError(e);
     }

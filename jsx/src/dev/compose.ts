@@ -38,9 +38,9 @@ export function devView<Node, Element, TagOptions extends object, In extends Com
             }
         } catch (e) {
             node.runner.inspector.reportComponentError({
-                id: frag.id,
+                targetId: frag.id,
                 error: e,
-                name: name,
+                time: Date.now(),
             });
             reportError(e);
         } finally {
@@ -73,7 +73,7 @@ export function devModel<In extends object, Out extends object>(
         const ctx = new DevReactive({ inspector: earlyInspector });
         const id = ctx.id;
 
-        earlyInspector.createCustomModel({ id, declaration, usage, name });
+        earlyInspector.createCustomModel({ id, declaration, usage, name, time: Date.now() });
         if (parent) {
             parent.runOnDestroy(() => ctx.destroy());
         }
