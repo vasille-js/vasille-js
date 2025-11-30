@@ -52,7 +52,7 @@ export {
 } from "./inspectable.js";
 export { DevArrayModel, DevMapModel, DevSetModel } from "./models.js";
 export { DevFragment, DevTag, ModelId, shareStateById } from "./node.js";
-export { DevRunner, PositionedText, type DevTagOptions, positionedText } from "./runner.js";
+export { DevRunner, PositionedText, type DevTagOptions, positionedText, remapObject } from "./runner.js";
 export {
     BaseDevReference,
     DevExpression,

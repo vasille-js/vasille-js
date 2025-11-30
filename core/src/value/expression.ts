@@ -1,5 +1,6 @@
 import { Reactive } from "../core/core.js";
 import { Destroyable } from "../core/destroyable.js";
+import { safe } from "../functional/safety.js";
 import { Reference } from "./reference.js";
 import { IValue } from "../core/ivalue.js";
 
@@ -40,13 +41,13 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> implements 
      */
     public constructor(func: (...args: Args) => T, values: KindOfIValue<Args>, ctx?: Reactive) {
         super();
-        const handler = (i?: number) => {
+        const handler = safe((i?: number) => {
             /* istanbul ignore else */
             if (typeof i === "number") {
                 this.valuesCache[i] = this.values[i]?.V;
             }
             this.sync.V = func.apply(this, this.valuesCache);
-        };
+        });
 
         this.valuesCache = values.map(item => item?.V) as Args;
 

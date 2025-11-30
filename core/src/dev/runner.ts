@@ -10,6 +10,7 @@ import {
     toDevId,
     toDevIdOrValue,
     toDevObject,
+    toDevValue,
 } from "./inspectable.js";
 import { DevExpression, DevReference } from "./state.js";
 
@@ -59,6 +60,19 @@ class DevTextNode extends TextNode<DevTagOptions, DevRunner> {
     }
 }
 
+export function remapObject<Before, After>(
+    obj: { [k: string]: Before },
+    transform: (v: Before) => After,
+): { [k: string]: After } {
+    const r: { [k: string]: After } = {};
+
+    for (const key in obj) {
+        r[key] = transform(obj[key]);
+    }
+
+    return r;
+}
+
 class DevTag extends Tag<DevTagOptions, DevRunner> {
     public readonly id: number;
     public readonly usage: StaticPosition | undefined;
@@ -95,48 +109,21 @@ class DevTag extends Tag<DevTagOptions, DevRunner> {
                         return JSON.stringify(item.V);
                     }
 
-                    const obj: { [k: string]: number | DevValue } = {};
-
-                    for (const key in item) {
-                        obj[key] = toDevIdOrValue(item[key]);
-                    }
-
-                    return obj;
+                    return remapObject(item, toDevIdOrValue);
                 }),
             style:
                 options.s &&
-                Object.entries(options.s).reduce(
-                    (obj, [key, value]) => {
-                        return {
-                            ...obj,
-                            [key]:
-                                typeof value === "number"
-                                    ? `${value}px`
-                                    : value instanceof Array
-                                      ? value.map(v => `${v}px`).join(" ")
-                                      : typeof value === "string"
-                                        ? value
-                                        : (toDevId(value) ?? ""),
-                        };
-                    },
-                    {} as { [k: string]: number | string },
-                ),
-            events:
-                options.e &&
-                Object.entries(options.e).reduce(
-                    (obj, [key, value]) => {
-                        return { ...obj, [key]: toDevIdOrValue(value) };
-                    },
-                    {} as { [k: string]: number | DevValue },
-                ),
-            bind:
-                options.b &&
-                Object.entries(options.b).reduce(
-                    (obj, [key, value]) => {
-                        return { ...obj, [key]: toDevIdOrValue(value) };
-                    },
-                    {} as { [k: string]: number | DevValue },
-                ),
+                remapObject(options.s, value => {
+                    return typeof value === "number"
+                        ? `${value}px`
+                        : value instanceof Array
+                          ? value.map(v => `${v}px`).join(" ")
+                          : typeof value === "string"
+                            ? value
+                            : (toDevId(value) ?? "");
+                }),
+            events: options.e && remapObject(options.e, toDevValue),
+            bind: options.b && remapObject(options.b, toDevIdOrValue),
         });
     }
 

@@ -122,7 +122,7 @@ export interface ProtocolTag {
     attr?: { [k: string]: number | DevValue };
     class?: (number | string | { [k: string]: number | DevValue })[];
     style?: { [k: string]: number | string };
-    events?: { [k: string]: number | DevValue };
+    events?: { [k: string]: DevValue };
     bind?: { [k: string]: number | DevValue };
     callback?: number | DevValue;
 }
@@ -166,6 +166,7 @@ export interface ProtocolCustomModel extends ProtocolPosition {
     time: number;
     usage: StaticPosition;
     name: string;
+    props: { [k: string]: number | DevValue };
 }
 
 export interface ProtocolRouterTargetResult {

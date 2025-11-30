@@ -1,5 +1,5 @@
 import { App, Fragment, Reactive } from "vasille";
-import { DevReactive, StaticPosition } from "vasille/dev";
+import { DevReactive, remapObject, StaticPosition, toDevIdOrValue } from "vasille/dev";
 import { IDevRunner } from "vasille/dev";
 import { CompositionProps } from "../compose.js";
 import { DevApp, DevFragment, DevRunner, DevTagOptions, Inspector, ModelId } from "vasille/dev";
@@ -59,7 +59,7 @@ export function devStore<Out extends object>(
 ): Out {
     const reactive = new DevReactive({ inspector: earlyInspector });
 
-    earlyInspector.createStore({ id: reactive.id, declaration, name });
+    earlyInspector.createStore({ id: reactive.id, declaration, name, time: Date.now() });
 
     return fn(reactive);
 }
@@ -73,7 +73,14 @@ export function devModel<In extends object, Out extends object>(
         const ctx = new DevReactive({ inspector: earlyInspector });
         const id = ctx.id;
 
-        earlyInspector.createCustomModel({ id, declaration, usage, name, time: Date.now() });
+        earlyInspector.createCustomModel({
+            id,
+            declaration,
+            usage,
+            name,
+            time: Date.now(),
+            props: remapObject(o as { [k: string]: unknown }, toDevIdOrValue),
+        });
         if (parent) {
             parent.runOnDestroy(() => ctx.destroy());
         }
