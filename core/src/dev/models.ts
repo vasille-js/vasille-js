@@ -2,7 +2,7 @@ import { Reactive } from "../core/core.js";
 import { ArrayModel } from "../models/array-model.js";
 import { MapModel } from "../models/map-model.js";
 import { SetModel } from "../models/set-model.js";
-import { Inspector, provideId, StaticPosition, toDevIdOrValue, toDevValue } from "./inspectable.js";
+import { DevValue, Inspector, provideId, StaticPosition, toDevIdOrValue, toDevValue } from "./inspectable.js";
 
 export class DevArrayModel<T> extends ArrayModel<T> {
     public readonly id: number;
@@ -19,16 +19,25 @@ export class DevArrayModel<T> extends ArrayModel<T> {
         this.id = provideId();
         this.inspector = inspector;
 
-        inspector?.createModel({
-            id: this.id,
-            type: "array",
-            values: this.map((item, index) => [index, toDevValue(item)]),
-            usage: usage,
-        });
+        if (inspector) {
+            const values: [DevValue, DevValue][] = [];
+
+            for (let i = 0; i < this.length; i++) {
+                values.push([toDevValue(i), toDevValue(this[i])]);
+            }
+
+            inspector.createModel({
+                id: this.id,
+                type: "array",
+                values: values,
+                usage: usage,
+                time: Date.now(),
+            });
+        }
     }
 
     public destroy(): void {
-        this.inspector?.destroy(this.id);
+        this.inspector?.destroy({ id: this.id, time: Date.now() });
         super.destroy();
     }
 
@@ -70,8 +79,8 @@ export class DevArrayModel<T> extends ArrayModel<T> {
         this.inspector?.updateModel({
             id: this.id,
             method: method,
-            args: args.map(toDevIdOrValue),
-            return: toDevIdOrValue(result),
+            args: args.map(toDevValue),
+            return: toDevValue(result),
         });
     }
 }
@@ -88,13 +97,14 @@ export class DevSetModel<T> extends SetModel<T> {
         inspector?.createModel({
             id: this.id,
             type: "set",
-            values: [...this].map(item => [0, toDevIdOrValue(item)]),
+            values: [...this].map(item => [toDevValue(0), toDevValue(item)]),
             usage: usage,
+            time: Date.now(),
         });
     }
 
     public destroy(): void {
-        this.inspector?.destroy(this.id);
+        this.inspector?.destroy({ id: this.id, time: Date.now() });
         super.destroy();
     }
 
@@ -118,8 +128,8 @@ export class DevSetModel<T> extends SetModel<T> {
         this.inspector?.updateModel({
             id: this.id,
             method: method,
-            args: args.map(toDevIdOrValue),
-            return: toDevIdOrValue(result),
+            args: args.map(toDevValue),
+            return: toDevValue(result),
         });
     }
 }
@@ -136,13 +146,14 @@ export class DevMapModel<K, T> extends MapModel<K, T> {
         inspector?.createModel({
             id: this.id,
             type: "map",
-            values: [...this.entries()].map(([key, value]) => [toDevIdOrValue(key), toDevIdOrValue(value)]),
+            values: [...this.entries()].map(([key, value]) => [toDevValue(key), toDevValue(value)]),
             usage: usage,
+            time: Date.now(),
         });
     }
 
     public destroy(): void {
-        this.inspector?.destroy(this.id);
+        this.inspector?.destroy({ id: this.id, time: Date.now() });
     }
 
     public clear(): void {
@@ -165,8 +176,8 @@ export class DevMapModel<K, T> extends MapModel<K, T> {
         this.inspector?.updateModel({
             id: this.id,
             method: method,
-            args: args.map(toDevIdOrValue),
-            return: toDevIdOrValue(result),
+            args: args.map(toDevValue),
+            return: toDevValue(result),
         });
     }
 }

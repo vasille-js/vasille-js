@@ -33,7 +33,7 @@ export class DevWatch<Node, Element, TagOptions extends object, T> extends Watch
         });
 
         this.runOnDestroy(() => {
-            runner.inspector.destroy(id);
+            runner.inspector.destroy({ id, time: Date.now() });
         });
     }
 }
@@ -52,7 +52,7 @@ export class DevApp<Node, Element, TagOptions extends object> extends App<Node, 
         });
 
         this.runOnDestroy(() => {
-            runner.inspector.destroy(id);
+            runner.inspector.destroy({ id, time: Date.now() });
         });
     }
 }
@@ -86,7 +86,7 @@ export class DevPortal<
         });
 
         this.runOnDestroy(() => {
-            runner.inspector.destroy(id);
+            runner.inspector.destroy({ id, time: Date.now() });
         });
     }
 }
@@ -125,7 +125,7 @@ export class DevSwitchedNode<Node, Element, TagOptions extends object> extends S
     }
 
     public destroy(): void {
-        this.runner.inspector.destroy(this.id);
+        this.runner.inspector.destroy({ id: this.id, time: Date.now() });
         super.destroy();
     }
 

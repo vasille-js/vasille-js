@@ -3,38 +3,38 @@ const C = compose(Vasille => {
   const $a = VasilleRef(0.5);
   const b = 0;
   Vasille.tag("video", {
-    bind: {
+    b: {
       volume: $a
     }
   });
   Vasille.tag("video", {
-    bind: {
+    b: {
       volume: b
     }
   });
   Vasille.tag("video", {
-    bind: {
+    b: {
       volume: 1
     }
   });
   Vasille.tag("video", {
-    bind: {
+    b: {
       volume: VasilleExpr(Vasille, Vasille_0 => Vasille_0 + 0.1, [$a])
     }
   });
   // @ts-expect-error
   Vasille.tag("video", {
-    bind: {
+    b: {
       volume: b + 0.1
     }
   });
   Vasille.tag("video", {
-    bind: {
+    b: {
       volume: true
     }
   });
   Vasille.tag("input", {
-    bind: {
+    b: {
       value: "value"
     }
   });

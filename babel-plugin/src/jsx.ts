@@ -573,13 +573,13 @@ function transformJsxElement(
     const call = t.callExpression(t.memberExpression(ctx, t.identifier("tag")), [
       t.stringLiteral(name.name),
       t.objectExpression([
-        ...(attrs.length > 0 ? [t.objectProperty(t.identifier("attr"), t.objectExpression(attrs))] : []),
-        ...(events.length > 0 ? [t.objectProperty(t.identifier("events"), t.objectExpression(events))] : []),
-        ...(bind.length > 0 ? [t.objectProperty(t.identifier("bind"), t.objectExpression(bind))] : []),
+        ...(attrs.length > 0 ? [t.objectProperty(t.identifier("a"), t.objectExpression(attrs))] : []),
+        ...(events.length > 0 ? [t.objectProperty(t.identifier("e"), t.objectExpression(events))] : []),
+        ...(bind.length > 0 ? [t.objectProperty(t.identifier("b"), t.objectExpression(bind))] : []),
         ...(classElements.length > 0 || classObject.length
           ? [
               t.objectProperty(
-                t.identifier("class"),
+                t.identifier("c"),
                 t.arrayExpression([
                   ...classElements,
                   ...(classObject.length > 0 ? [t.objectExpression(classObject)] : []),
@@ -587,8 +587,8 @@ function transformJsxElement(
               ),
             ]
           : []),
-        ...(styleObject.length > 0 ? [t.objectProperty(t.identifier("style"), t.objectExpression(styleObject))] : []),
-        ...(callback ? [t.objectProperty(t.identifier("callback"), callback)] : []),
+        ...(styleObject.length > 0 ? [t.objectProperty(t.identifier("s"), t.objectExpression(styleObject))] : []),
+        ...(callback ? [t.objectProperty(t.identifier("k"), callback)] : []),
         ...(internal.devLayer ? [t.objectProperty(t.identifier("usage"), nodeToStaticPosition(path.node))] : []),
       ]),
       ...(statements.length > 0 ? [t.arrowFunctionExpression([ctx], t.blockStatement(statements))] : []),

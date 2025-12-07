@@ -75,7 +75,8 @@ export class DevFragment<Node, Element, TagOptions extends object>
     }
 
     public destroy(): void {
-        this.inspector.destroy(this.id);
+        this.inspector.destroy({ id: this.id, time: Date.now() });
+        super.destroy();
     }
 
     protected pushNode(node: Fragment<Node, Element, TagOptions>): void {
@@ -110,8 +111,12 @@ export abstract class DevTag<Node, Element, TagOptions extends object>
     }
 
     public destroy(): void {
-        this.inspector.destroy(this.id);
+        this.inspector.destroy({ id: this.id, time: Date.now() });
         super.destroy();
+    }
+
+    public getNode() {
+        return this.node;
     }
 
     protected abstract toProtocolTag(options: TagOptions): ProtocolTag;

@@ -811,6 +811,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
           const idPath = declaration.get("id");
           const isNotUpperCase = name[0].toUpperCase() !== name[0];
           const isNotLowerCase = name[0].toLowerCase() !== name[0];
+          const isExported = t.isExportNamedDeclaration(path.parent);
 
           function report(error: string) {
             err(Errors.RulesOfVasille, idPath, error, internal);
@@ -820,7 +821,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             if (isNotUpperCase) {
               report("The component name must start with a uppercase letter");
             }
-            if (internal.strictFolders && !internal.filename.includes("/components/")) {
+            if (isExported && internal.strictFolders && !internal.filename.includes("/components/")) {
               report("Components must be placed in a folder named `components`");
             }
           }
@@ -831,7 +832,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             if (!name.endsWith("View")) {
               report("The view name must end with `View`");
             }
-            if (internal.strictFolders && !internal.filename.includes("/views/")) {
+            if (isExported && internal.strictFolders && !internal.filename.includes("/views/")) {
               report("Views must be placed in a folder named `views`");
             }
           }
@@ -842,7 +843,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             if (!name.endsWith("Store")) {
               report("The store name must end with `Store`");
             }
-            if (internal.strictFolders && !internal.filename.includes("/stores/")) {
+            if (isExported && internal.strictFolders && !internal.filename.includes("/stores/")) {
               report("Stores must be placed in a folder named `stores`");
             }
           }
@@ -853,7 +854,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             if (!name.endsWith("Model")) {
               report("The model constructor function name must end with `Model`");
             }
-            if (internal.strictFolders && !internal.filename.includes("/models/")) {
+            if (isExported && internal.strictFolders && !internal.filename.includes("/models/")) {
               report("Models must be placed in a folder named `models`");
             }
           }
@@ -864,7 +865,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             if (!name.endsWith("Modal")) {
               report("The modal component name must end with `Modal`");
             }
-            if (internal.strictFolders && !internal.filename.includes("/modals/")) {
+            if (isExported && internal.strictFolders && !internal.filename.includes("/modals/")) {
               report("Modals must be placed in a folder named `modals`");
             }
           }
@@ -872,7 +873,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             if (!name.startsWith("prompt")) {
               report("The prompt function name must start with `prompt`");
             }
-            if (internal.strictFolders && !internal.filename.includes("/prompts/")) {
+            if (isExported && internal.strictFolders && !internal.filename.includes("/prompts/")) {
               report("Prompts must be placed in a folder named `prompts`");
             }
           }
@@ -880,14 +881,14 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
             if (!name.endsWith("Screen")) {
               report("The screen name must start with `Screen`");
             }
-            if (internal.strictFolders && !internal.filename.includes("/screens/")) {
+            if (isExported && internal.strictFolders && !internal.filename.includes("/screens/")) {
               report("Screens must be placed in a folder named `screens`");
             }
           }
           if (calls(initPath, ["page"], internal)) {
             report("Use export default instead");
           }
-          if (t.isExportNamedDeclaration(path.parent)) {
+          if (isExported) {
             /* istanbul ignore else */
             if (
               ![".ts", ".tsx", ".js", ".jsx"].some(ext => {

@@ -40,6 +40,7 @@ export {
     type ProtocolComposeTime,
     type ProtocolError,
     type IDevRunner,
+    type DestroyData,
     executionPosition,
     provideId,
     runFn,

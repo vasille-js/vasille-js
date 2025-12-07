@@ -7,7 +7,7 @@ export default page(async Vasille => {
     });
   });
   Vasille.tag("body", {
-    attr: {
+    a: {
       class: "ssg"
     }
   });

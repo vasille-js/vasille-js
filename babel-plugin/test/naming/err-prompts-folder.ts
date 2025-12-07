@@ -1,3 +1,3 @@
 import { prompt } from "steel-frame";
 
-const promptName = prompt(() => {});
+export const promptName = prompt(() => {});

@@ -15,7 +15,7 @@ export class DevReactive<Runner extends IDevRunner<unknown, unknown, object>>
     }
 
     public destroy() {
-        this.runner.inspector.destroy(this.id);
+        this.runner.inspector.destroy({ id: this.id, time: Date.now() });
         super.destroy();
     }
 }

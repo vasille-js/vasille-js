@@ -2,7 +2,6 @@ import {
     Inspector,
     ProtocolComponent,
     ProtocolCustomModel,
-    ProtocolDependency,
     ProtocolExecutionPosition,
     ProtocolExpression,
     ProtocolExpressionError,
@@ -28,21 +27,10 @@ import {
     ProtocolEventTrigger,
     ProtocolComposeTime,
     ProtocolError,
+    DestroyData,
 } from "vasille/dev";
 
-export class EarlyInspector implements Inspector {
-    protected inspector: Inspector | undefined;
-    protected queue: [string, object][] = [];
-
-    public connect(inspector: Inspector) {
-        this.inspector = inspector;
-
-        for (const item of this.queue) {
-            inspector[item[0]](item[1]);
-        }
-        this.queue = [];
-    }
-
+export abstract class AbstractInspector implements Inspector {
     public addContextState(state: ProtocolState): void {
         this.send(this.addContextState.name, state);
     }
@@ -75,8 +63,8 @@ export class EarlyInspector implements Inspector {
         this.send(this.createTag.name, tag);
     }
 
-    public destroy(id: number): void {
-        this.send(this.destroy.name, { id });
+    public destroy(data: DestroyData): void {
+        this.send(this.destroy.name, data);
     }
 
     public eventTrigger(call: ProtocolEventTrigger) {
@@ -147,10 +135,6 @@ export class EarlyInspector implements Inspector {
         this.send(this.setElementParent.name, parent);
     }
 
-    public unlinkDependency(dep: ProtocolDependency): void {
-        this.send(this.unlinkDependency.name, dep);
-    }
-
     public updateExpression(update: ProtocolExpressionUpdate): void {
         this.send(this.updateExpression.name, update);
     }
@@ -161,6 +145,22 @@ export class EarlyInspector implements Inspector {
 
     public updateReference(update: ProtocolReferenceUpdate): void {
         this.send(this.updateReference.name, update);
+    }
+
+    protected abstract send(name: string, data: object): void;
+}
+
+export class EarlyInspector extends AbstractInspector {
+    protected inspector: Inspector | undefined;
+    protected queue: [string, object][] = [];
+
+    public connect(inspector: Inspector) {
+        this.inspector = inspector;
+
+        for (const item of this.queue) {
+            inspector[item[0]](item[1]);
+        }
+        this.queue = [];
     }
 
     protected send(name: string, data: object) {

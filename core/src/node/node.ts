@@ -313,11 +313,9 @@ export interface SwitchedNodeCase<
     TagOptions extends object,
     Runner extends IRunner<Node, Element, TagOptions>,
 > {
-    $case: IValue<unknown>;
+    $case: unknown;
     slot: (node: Fragment<Node, Element, TagOptions, Runner>) => void;
 }
-
-const alwaysTrue = new Reference(true);
 
 /**
  * Defines a node which can switch its children conditionally
@@ -357,12 +355,12 @@ export class SwitchedNode<
         super(runner);
 
         if (_default) {
-            cases.push({ $case: alwaysTrue, slot: _default });
+            cases.push({ $case: 1, slot: _default });
         }
         this.cases = cases;
 
         this.sync = () => {
-            let i = this.cases.findIndex(item => item.$case.V);
+            let i = this.cases.findIndex(item => (item.$case instanceof IValue ? item.$case.V : item.$case));
 
             if (i === this.index) {
                 return;
@@ -389,7 +387,10 @@ export class SwitchedNode<
         };
 
         cases.forEach(_case => {
-            _case.$case.on(this.sync);
+            const item = _case.$case;
+            if (item instanceof IValue) {
+                item.on(this.sync);
+            }
         });
     }
 
@@ -399,7 +400,10 @@ export class SwitchedNode<
 
     public override destroy() {
         this.cases.forEach(c => {
-            c.$case.off(this.sync);
+            const item = c.$case;
+            if (item instanceof IValue) {
+                item.off(this.sync);
+            }
         });
         this.cases.splice(0);
 

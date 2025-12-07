@@ -5,12 +5,16 @@ export type VariableState = Record<string, 1>;
 
 export class StackedStates {
   private maps: Map<string, VariableState>[] = [];
+  private checkingIndex: number = 0;
 
   public constructor() {
     this.push();
   }
 
-  public push() {
+  public push(startChecking?: boolean) {
+    if (startChecking) {
+      this.checkingIndex = this.maps.length;
+    }
     this.maps.push(new Map<string, VariableState>());
   }
 
@@ -18,8 +22,8 @@ export class StackedStates {
     this.maps.pop();
   }
 
-  public get(name: string): VariableState | undefined {
-    for (let i = this.maps.length - 1; i >= 0; i--) {
+  public get(name: string, checkingContextOnly?: boolean): VariableState | undefined {
+    for (let i = this.maps.length - 1; i >= (checkingContextOnly ? this.checkingIndex : 0); i--) {
       if (this.maps[i].has(name)) {
         return this.maps[i].get(name);
       }
@@ -81,7 +85,7 @@ export interface Internal {
   ): types.Expression;
 
   // helpers
-  ensure(arg: types.Expression, area: types.Node): types.CallExpression;
+  ensure(arg: types.MemberExpression | types.OptionalMemberExpression, area: types.Node): types.CallExpression;
   match(name: types.Expression, arg: types.Expression | null, area: types.Node): types.CallExpression;
   set(obj: types.Expression, field: types.Expression, value: types.Expression, area: types.Node): types.CallExpression;
 

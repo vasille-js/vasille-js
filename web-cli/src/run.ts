@@ -4,7 +4,7 @@ import path from "node:path";
 import { build as viteBuild, createServer } from "vite";
 import inspect from "vite-plugin-inspect";
 import { compress } from "./vite-plugins/compress.js";
-import { getVitePlugins, processEnvPlugin } from "./vite-plugins/jsx.js";
+import { getVitePlugins } from "./vite-plugins/jsx.js";
 import { processArgs } from "./lib/process-args.js";
 import { register } from "node:module";
 import { indexPlugin, watchForIndexUpdates } from "./vite-plugins/index.vasille.js";
@@ -43,7 +43,7 @@ async function run() {
                         external: ["vasille-web"],
                     },
                 },
-                plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins(false), compress()],
+                plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins("vasille-web"), compress()],
                 resolve,
             });
 
@@ -84,7 +84,7 @@ async function run() {
                     },
                     sourcemap: false,
                 },
-                plugins: [compress(), processEnvPlugin, vasilleWebPlugin(imported)],
+                plugins: [compress(), vasilleWebPlugin(imported)],
             });
         }
         if (lib) {
@@ -129,7 +129,7 @@ async function run() {
                     },
                     sourcemap: true,
                 },
-                plugins: getVitePlugins(process.env.NODE_ENV !== "production"),
+                plugins: getVitePlugins("vasille-web"),
                 resolve,
             });
         }
@@ -166,7 +166,7 @@ async function run() {
             esbuild: false,
             appType: "spa",
             command: "serve",
-            plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins(true), inspect()],
+            plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins("steel-frame"), inspect()],
             resolve,
             optimizeDeps: {
                 include: [],

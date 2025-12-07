@@ -25,7 +25,8 @@ import { devScreen } from "vasille-router/dev";
 import { Inspector } from "./inspector.js";
 
 export { executionPosition, wrapFn, runFn, registerReference, shareStateById, positionedText } from "vasille/dev";
-export { setErrorHandler } from "vasille-jsx/dev";
+export { setErrorHandler, earlyInspector } from "vasille-jsx/dev";
+export { type IdeSide, type AppSide } from "./communication.js";
 
 export {
     type QueryParams,
@@ -36,10 +37,10 @@ export {
     type WebRouterInitialization,
     type NavigationMode,
     type Router,
-    setLaptopMaxWidth,
-    setTabletMaxWidth,
-    setMobileMaxWidth,
+    safe,
 } from "vasille-web";
+export { setLaptopMaxWidth, setTabletMaxWidth, setMobileMaxWidth } from "vasille-css";
+export { devStyleSheet as styleSheet } from "vasille-css/dev";
 
 export const view = devView;
 export const component = devView;
@@ -71,12 +72,18 @@ export const modal = devModal;
 export const prompt = devPrompt;
 
 export function mount<T>(element: Element, component: ($: T) => void, input: T): App<Node, Element, TagOptions> {
-    return devMount<T>(element, component, input, new Inspector());
+    const inspector = new Inspector();
+    const app = devMount<T>(element, component, input, inspector);
+    inspector.setup(app);
+    return app;
 }
 
 export function routerApp<Routes extends string>(
     init: WebRouterInitialization<Routes>,
     element?: Element,
 ): App<Node, Element, TagOptions> {
-    return devRouterApp(init, element ?? document.body, new Inspector());
+    const inspector = new Inspector();
+    const app = devRouterApp(init, element ?? document.body, inspector);
+    inspector.setup(app);
+    return app;
 }

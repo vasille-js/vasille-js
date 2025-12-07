@@ -2,7 +2,7 @@ import { compose, ref as VasilleRef } from "vasille-web";
 const C = compose(Vasille => {
   const $a = VasilleRef("a");
   Vasille.tag("div", {
-    events: {
+    e: {
       click: [ev => {
         ev.stopPropagation();
       }, {

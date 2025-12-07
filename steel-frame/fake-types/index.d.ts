@@ -8,6 +8,7 @@ export type { StyleProps } from "vasille-web";
 export type ClassItem = string | Record<string, boolean> | false;
 export type { FallbackScreenProps, ErrorScreenProps } from "vasille-router";
 export { safe } from "vasille";
+export type { AppSide, IdeSide } from "../types/communication";
 
 /** Set a handler for component errors */
 export declare function setErrorHandler(handler: (e: unknown) => void): void;

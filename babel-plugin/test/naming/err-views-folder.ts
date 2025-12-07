@@ -1,3 +1,3 @@
 import { view } from "steel-frame";
 
-const View = view(() => {});
+export const View = view(() => {});

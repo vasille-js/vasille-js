@@ -4,28 +4,28 @@ const C = compose(Vasille => {
   const $a = VasilleRef("a");
   const $b = VasilleRef(false);
   Vasille.tag("div", {
-    attr: {
+    a: {
       class: "static1 static2"
     }
   });
   Vasille.tag("div", {
-    class: [$a]
+    c: [$a]
   });
   Vasille.tag("div", {
-    class: [{
+    c: [{
       aIsB: VasilleExpr(Vasille, Vasille_0 => Vasille_0 === "b", [$a])
     }]
   });
   Vasille.tag("div", {
-    class: [{
+    c: [{
       cIsB: c === "b"
     }]
   });
   Vasille.tag("div", {
-    class: [c]
+    c: [c]
   });
   Vasille.tag("div", {
-    class: [{
+    c: [{
       hover: true,
       "b": $b,
       ...{
@@ -34,30 +34,30 @@ const C = compose(Vasille => {
     }]
   });
   Vasille.tag("div", {
-    class: [...[$a]]
+    c: [...[$a]]
   });
   Vasille.tag("div", {
-    attr: {
+    a: {
       class: "a b"
     }
   });
   Vasille.tag("div", {
-    attr: {
+    a: {
       class: "a b"
     }
   });
   Vasille.tag("div", {
-    attr: {
+    a: {
       class: VasilleExpr(Vasille, Vasille_0 => `${Vasille_0} b`, [$a])
     }
   });
   Vasille.tag("div", {
-    attr: {
+    a: {
       class: `${"a"} b`
     }
   });
   Vasille.tag("div", {
-    attr: {
+    a: {
       class: $a
     }
   });

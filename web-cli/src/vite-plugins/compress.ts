@@ -12,5 +12,5 @@ export function compress() {
                 return code;
             },
         },
-    };
+    } as const;
 }

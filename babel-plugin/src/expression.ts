@@ -77,11 +77,39 @@ export function memberIsIValue(node: types.MemberExpression | types.OptionalMemb
   );
 }
 
+export function memberIsIValueInExpr(
+  path: NodePath<types.MemberExpression | types.OptionalMemberExpression>,
+  search: Search,
+) {
+  const node = path.node;
+  const isIValue = memberIsIValue(node);
+
+  if (isIValue) {
+    let it: types.Expression = node;
+
+    while (t.isMemberExpression(it) || t.isOptionalMemberExpression(it)) {
+      it = it.object;
+    }
+
+    if (t.isIdentifier(it) && search.stack.get(it.name, true)) {
+      err(
+        Errors.RulesOfVasille,
+        path,
+        "This value looks like a reactive but is not. Move code to standalone function or wrap value in raw call.",
+        search.external,
+      );
+    }
+  }
+
+  return isIValue;
+}
+
 export function exprIsSure(path: NodePath<types.Expression | null | undefined>, internal: Internal) {
   if (
-    path.isMemberExpression() &&
-    path.node.computed &&
-    (!t.isStringLiteral(path.node.property) || /^\d+$/.test(path.node.property.value))
+    (path.isMemberExpression() &&
+      path.node.computed &&
+      (!t.isStringLiteral(path.node.property) || /^\d+$/.test(path.node.property.value))) ||
+    path.isOptionalMemberExpression()
   ) {
     return false;
   }
@@ -155,7 +183,7 @@ export function checkNode(
       search.self = path.node;
     }
   }
-  if (path.isMemberExpression()) {
+  if (path.isMemberExpression() || path.isOptionalMemberExpression()) {
     if (memberIsIValue(path.node)) {
       search.self = path.node;
     }
@@ -172,7 +200,7 @@ export function checkNode(
     return search;
   }
 
-  internal.stack.push();
+  internal.stack.push(true);
 
   /* istanbul ignore else */
   if (path.isExpression()) {
@@ -267,6 +295,13 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
         } else {
           err(Errors.IncompatibleContext, path, "The router is not available in stores", search.external, null);
         }
+      } else if (
+        calls(path, ["raw"], search.external) &&
+        path.node.arguments.length === 1 &&
+        t.isExpression(path.node.arguments[0])
+      ) {
+        meshExpression(path.get("arguments")[0] as NodePath<types.Expression>, search.external);
+        path.replaceWith(path.node.arguments[0]);
       } else {
         if (calls(path, hintFunctions, search.external)) {
           err(Errors.IncompatibleContext, path, "Usage of hints is restricted here", search.external, null);
@@ -315,9 +350,8 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
     case "MemberExpression":
     case "OptionalMemberExpression": {
       const path = nodePath as NodePath<types.MemberExpression | types.OptionalMemberExpression>;
-      const node = path.node;
 
-      if (memberIsIValue(node)) {
+      if (memberIsIValueInExpr(path, search)) {
         addExpression(path, search);
       } else {
         checkExpression(path.get("object"), search);

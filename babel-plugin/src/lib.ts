@@ -181,7 +181,7 @@ export function exprCall(
     if (!opts.strong || exprIsSure(path, internal)) {
       path.replaceWith(exprData.self);
     } else {
-      path.replaceWith(internal.ensure(exprData.self, area));
+      path.replaceWith(internal.ensure(exprData.self as types.MemberExpression, area));
     }
 
     return true;

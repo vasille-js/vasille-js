@@ -47,11 +47,7 @@ export function model<In extends object, Out extends object>(
 ): (o: In, parent?: Reactive) => Out {
     return (o, parent) => {
         const ctx = new Reactive();
-
-        if (parent) {
-            parent.runOnDestroy(() => ctx.destroy());
-        }
-
+        parent?.bind(ctx);
         return fn(ctx, o);
     };
 }

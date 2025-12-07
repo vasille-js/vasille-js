@@ -257,12 +257,19 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
 
       return call("arrayModel", arg ? [getCtx(), arg] : [getCtx()]);
     },
-    ensure(arg, area) {
+    ensure(arg: types.MemberExpression | types.OptionalMemberExpression, area) {
+      const object = arg.object;
+      const property = arg.computed
+        ? (arg.property as types.Expression)
+        : t.isIdentifier(arg.property)
+          ? t.stringLiteral(arg.property.name)
+          : (arg.property as types.Expression);
+
       if (opts.devLayer) {
-        return call("ensure", [arg, nodeToStaticPosition(area), getInspector()]);
+        return call("ensure", [object, property, nodeToStaticPosition(area), getInspector()]);
       }
 
-      return call("ensure", [arg]);
+      return call("ensure", [object, property]);
     },
     match(name, arg, area) {
       if (opts.devLayer) {

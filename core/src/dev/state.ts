@@ -112,7 +112,7 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
     }
 
     protected shareDestroy() {
-        this.inspector?.destroy(this.id);
+        this.inspector?.destroy({ id: this.id, time: Date.now() });
     }
 }
 
@@ -249,7 +249,7 @@ export class DevExpression<T, Args extends unknown[]>
     }
 
     public destroy(): void {
-        this.inspector?.destroy(this.id);
+        this.inspector?.destroy({ id: this.id, time: Date.now() });
         for (let i = 0; i < this.values.length; i++) {
             this.values[i]?.off(this.linkedFunc[i]);
         }

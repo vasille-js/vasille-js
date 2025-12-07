@@ -75,6 +75,7 @@ export const hintFunctions: FnNames[] = [
   ...modelFunctions,
   ...composeOnly,
   ...styleOnly,
+  "raw",
 ];
 
 function checkCall<T extends string>(name: T, internal: Internal): T {

@@ -11,7 +11,7 @@ import {
     KindOfDevIValue,
     StaticPosition,
 } from "vasille/dev";
-import { match, set } from "../internal.js";
+import { match, ref, set } from "../internal.js";
 
 export function devExpr<T, Args extends unknown[]>(
     ctx: Reactive | undefined,
@@ -55,8 +55,17 @@ export function devArrayModel(
     return new DevArrayModel(inspector, usage, data, ctx);
 }
 
-export function devEnsure(data: unknown, declaration: StaticPosition, inspector: Inspector | undefined) {
-    return data instanceof IValue ? data : devRef(data, declaration, inspector);
+export function devEnsure<T extends object>(
+    obj: T | null | undefined,
+    key: keyof T,
+    declaration: StaticPosition,
+    inspector: Inspector | undefined,
+) {
+    if (!obj) {
+        return undefined;
+    }
+
+    return key in obj ? obj[key] : (obj[key] = devRef(undefined, declaration, inspector) as unknown as T[keyof T]);
 }
 
 export function devMatch(

@@ -146,15 +146,16 @@ export interface ProtocolComposeTime {
 export interface ProtocolModel {
     id: number;
     type: "array" | "set" | "map";
-    values: [number | DevValue, number | DevValue][];
+    values: [DevValue, DevValue][];
     usage: StaticPosition;
+    time: number;
 }
 
 export interface ProtocolModelUpdate {
     id: number;
     method: string;
-    args: (number | DevValue)[];
-    return: number | DevValue;
+    args: DevValue[];
+    return: DevValue;
 }
 
 export interface ProtocolStore extends ProtocolPosition {
@@ -231,6 +232,11 @@ export interface ProtocolFunctionError extends ProtocolError {
     async: boolean;
 }
 
+export interface DestroyData {
+    id: number;
+    time: number;
+}
+
 export interface Inspector {
     registerExecutionPosition(pos: ProtocolExecutionPosition): void;
     reportError(err: ProtocolError): void;
@@ -274,7 +280,7 @@ export interface Inspector {
     eventTrigger(call: ProtocolEventTrigger): void;
 
     // any
-    destroy(id: number): void;
+    destroy(data: DestroyData): void;
 }
 
 let id = 0;

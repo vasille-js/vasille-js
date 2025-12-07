@@ -2,7 +2,6 @@ import { IValue } from "../core/ivalue.js";
 import { TextProps } from "../node/node.js";
 import { Runner, Tag, TagOptions, TextNode } from "../runner/web/runner.js";
 import {
-    DevValue,
     IDevRunner,
     Inspector,
     provideId,
@@ -34,12 +33,10 @@ export function positionedText(text: unknown, position: StaticPosition) {
 
 class DevTextNode extends TextNode<DevTagOptions, DevRunner> {
     public readonly id: number;
-    public readonly usage: StaticPosition;
 
     public constructor(input: TextProps, runner: DevRunner, usage: StaticPosition, inspector: Inspector) {
         super(input, runner);
         this.id = provideId();
-        this.usage = usage;
 
         inspector.createNode({
             id: this.id,
@@ -50,13 +47,13 @@ class DevTextNode extends TextNode<DevTagOptions, DevRunner> {
     }
 
     public destroy(): void {
-        this.runner.inspector.destroy(this.id);
+        this.runner.inspector.destroy({ id: this.id, time: Date.now() });
         super.destroy();
     }
 
     public compose(): void {
         super.compose();
-        Object.defineProperty(this.node, "vasille", { value: this.usage, configurable: false, enumerable: false });
+        Object.defineProperty(this.node, "vasille", { value: this.id, configurable: false, enumerable: false });
     }
 }
 
@@ -75,7 +72,6 @@ export function remapObject<Before, After>(
 
 class DevTag extends Tag<DevTagOptions, DevRunner> {
     public readonly id: number;
-    public readonly usage: StaticPosition | undefined;
 
     public constructor(
         options: DevTagOptions,
@@ -87,7 +83,6 @@ class DevTag extends Tag<DevTagOptions, DevRunner> {
         super(options, runner, tagName);
 
         this.id = provideId();
-        this.usage = usage;
 
         inspector.createTag({
             id: this.id,
@@ -157,12 +152,13 @@ class DevTag extends Tag<DevTagOptions, DevRunner> {
     }
 
     public destroy(): void {
-        this.runner.inspector.destroy(this.id);
+        this.runner.inspector.destroy({ id: this.id, time: Date.now() });
+        super.destroy();
     }
 
     public compose(): void {
         super.compose();
-        Object.defineProperty(this.element, "vasille", { value: this.usage, configurable: false, enumerable: false });
+        Object.defineProperty(this.element, "vasille", { value: this.id, configurable: false, enumerable: false });
     }
 }
 

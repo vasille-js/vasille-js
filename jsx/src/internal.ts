@@ -44,8 +44,8 @@ export function arrayModel(ctx: Reactive | undefined, data?: unknown[] | number)
  * Use when a value must be IValue but can be undefined
  * 1. `let a = obj.$key` to `const a = ensure(obj.$key)`
  */
-export function ensure(data: unknown) {
-    return data instanceof IValue ? data : new Reference(data);
+export function ensure<T extends object>(obj: T | null | undefined, key: keyof T) {
+    return !obj ? undefined : key in obj ? obj[key] : (obj[key] = ref(undefined) as unknown as T[keyof T]);
 }
 
 /**

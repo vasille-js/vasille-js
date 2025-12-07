@@ -3,10 +3,10 @@ const C = compose(Vasille => {
   const $a = VasilleRef("auto");
   const b = "auto";
   Vasille.tag("div", {
-    attr: {
+    a: {
       style: "width:100px;height:50px;padding:1px 2px 3px 4px"
     },
-    style: {
+    s: {
       ...{
         margin: "1px"
       },
@@ -14,22 +14,22 @@ const C = compose(Vasille => {
     }
   });
   Vasille.tag("div", {
-    attr: {
+    a: {
       style: "margin: 20px;"
     }
   });
   Vasille.tag("div", {
-    attr: {
+    a: {
       style: "margin: 20px;"
     }
   });
   Vasille.tag("div", {
-    attr: {
+    a: {
       style: VasilleExpr(Vasille, Vasille_0 => `margin: ${Vasille_0}`, [$a])
     }
   });
   Vasille.tag("div", {
-    attr: {
+    a: {
       style: `margin: ${b}`
     }
   });

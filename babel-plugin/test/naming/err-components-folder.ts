@@ -1,3 +1,3 @@
 import { component } from "steel-frame";
 
-const C = component(() => {});
+export const C = component(() => {});

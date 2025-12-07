@@ -1,4 +1,4 @@
-import { runJsxTest, runTest } from "../run-test";
+import { runJsxTest } from "../run-test";
 
 it("SSG test", function () {
   runJsxTest(__dirname, "ssg", false, {
