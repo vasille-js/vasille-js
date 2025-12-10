@@ -14,7 +14,7 @@ export async function processArgs() {
     let help = false;
 
     if (!dev && !build) {
-        const mode = await select<"dev" | "build">({
+        const mode = await select<"dev" | "build" | "proxy">({
             message: "Select action",
             choices: [
                 {

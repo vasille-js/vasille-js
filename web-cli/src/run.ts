@@ -13,6 +13,7 @@ import fs from "fs/promises";
 import { checkFile } from "./lib/fs.js";
 import { readdir } from "node:fs/promises";
 import { vasilleWebPlugin } from "./vite-plugins/vasille-web.js";
+import { startProxyServer } from "./proxy/dev-proxy.js";
 
 async function run() {
     const { routerDir, pagesDir, srcDir } = workingDirs();
@@ -43,7 +44,7 @@ async function run() {
                         external: ["vasille-web"],
                     },
                 },
-                plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins("vasille-web"), compress()],
+                plugins: [await indexPlugin(routerDir, pagesDir, "vasille-web"), ...getVitePlugins("vasille-web"), compress()],
                 resolve,
             });
 
@@ -166,7 +167,7 @@ async function run() {
             esbuild: false,
             appType: "spa",
             command: "serve",
-            plugins: [await indexPlugin(routerDir, pagesDir), ...getVitePlugins("steel-frame"), inspect()],
+            plugins: [await indexPlugin(routerDir, pagesDir, "steel-frame"), ...getVitePlugins("steel-frame"), inspect()],
             resolve,
             optimizeDeps: {
                 include: [],
@@ -175,12 +176,14 @@ async function run() {
 
         await server.listen();
 
-        await watchForIndexUpdates(routerDir, pagesDir, () => {
+        await watchForIndexUpdates(routerDir, pagesDir, "steel-frame", () => {
             server.restart();
         });
 
         server.printUrls();
         server.bindCLIShortcuts({ print: true });
+
+        startProxyServer();
     }
     if (!dev) {
         exit(0);

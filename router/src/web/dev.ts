@@ -40,33 +40,33 @@ export class DevRouter<Routes extends string> extends Router<Routes> {
         super(window, location, node, init);
 
         this.inspector = node.runner.inspector;
-        this.inspector.registeredRoutes({paths: [...Object.keys(init.routes)]});
+        this.inspector.registeredRoutes({paths: [...Object.keys(init.routes)],time: Date.now()});
 
         this.$currentUrl.on(value => {
-            this.inspector.routerStateChange({name: "currentUrl", value});
+            this.inspector.routerStateChange({name: "currentUrl", value,time: Date.now()});
         });
         this.$loadingUrl.on(value => {
-            this.inspector.routerStateChange({name:"loadingUrl", value});
+            this.inspector.routerStateChange({name:"loadingUrl", value,time: Date.now()});
         });
     }
 
     public goTo(url: string) {
-        this.inspector?.routerActionCall({name:"goTo", path: url});
+        this.inspector?.routerActionCall({name:"goTo", path: url,time: Date.now()});
         super.goTo(url);
     }
 
     public ajax(url: string) {
-        this.inspector?.routerActionCall({name:"ajax", path:url});
+        this.inspector?.routerActionCall({name:"ajax", path:url,time: Date.now()});
         super.ajax(url);
     }
 
     public load(url: string): Promise<void> {
-        this.inspector?.routerActionCall({name:"load", path:url});
+        this.inspector?.routerActionCall({name:"load", path:url,time: Date.now()});
         return super.load(url);
     }
 
     public reload() {
-        this.inspector?.routerActionCall({name:"reload", path:this.$currentUrl.V});
+        this.inspector?.routerActionCall({name:"reload", path:this.$currentUrl.V,time: Date.now()});
         super.reload();
     }
 
@@ -80,6 +80,7 @@ export class DevRouter<Routes extends string> extends Router<Routes> {
             hash: result.hash,
             params: result.params,
             targetFound: !!result.target,
+            time: Date.now(),
         });
 
         return result;

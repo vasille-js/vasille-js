@@ -1,6 +1,6 @@
 import { findRoutes } from "./find-routes.js";
 
-export async function createIndex(routerDir: string, pagesDir: string): Promise<string> {
+export async function createIndex(routerDir: string, pagesDir: string, replaceWeb: string): Promise<string> {
     const indexJs: string[] = [];
     const { present, paths } = await findRoutes(routerDir, pagesDir);
 
@@ -8,7 +8,7 @@ export async function createIndex(routerDir: string, pagesDir: string): Promise<
         indexJs.push(`import ${item.component} from "${item.file}";`);
     }
 
-    indexJs.push('import { routerApp } from "vasille-web";');
+    indexJs.push(`import { routerApp } from "${replaceWeb}";`);
     indexJs.push("const app = routerApp({");
 
     for (const item of present) {
