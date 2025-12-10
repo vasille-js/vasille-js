@@ -10,16 +10,16 @@ interface Props {
 }
 
 const mvc = view(function (f, $: Pick<Props, "className" | "slot">) {
-    return { class: $.className };
+    return { c: $.className };
 });
 
 const mvvm = view(function (f, $: Props) {
     let div!: Element;
 
     f.tag("div", {
-        slot: $.slot,
-        class: [$.className ?? "class"],
-        callback: node => (div = node),
+        l: $.slot,
+        c: [$.className ?? "class"],
+        k: node => (div = node),
     });
 
     return { div, className: $.className };
@@ -41,7 +41,7 @@ it("MVVM test", function () {
     mount(body, mvvm, node.runner, {
         callback: node => (div = node?.div as Element),
         slot(f: Fragment<Node, Element, object>) {
-            f.tag("div", { class: ["1"] });
+            f.tag("div", { c: ["1"] });
         },
     });
 
@@ -52,12 +52,11 @@ it("MVVM test", function () {
     mount(body, mvvm, node.runner, {
         callback: node => {
             div = node?.div as Element;
-            expect(node?.className).toBeInstanceOf(IValue);
-            expect((node?.className as any)?.$).toBe("replaced");
+            expect(node?.className).toBeInstanceOf("replaced");
         },
         slot(f: Fragment<Node, Element, object>) {
             mvvm({}, f, function (f: Fragment<Node, Element, object>) {
-                f.tag("div", { class: ["2"] });
+                f.tag("div", { c: ["2"] });
             });
         },
         className: "replaced",
@@ -76,7 +75,7 @@ it("MVC test", function () {
 
     mount(body, mvc, node.runner, {
         callback: className => {
-            expect(className?.class).toBe("string");
+            expect(className?.c).toBe("string");
             count++;
         },
         className: "string",
@@ -84,7 +83,7 @@ it("MVC test", function () {
 
     mount(body, mvc, node.runner, {
         callback: className => {
-            expect(className?.class).toBeUndefined();
+            expect(className?.c).toBeUndefined();
             count++;
         },
     });
@@ -191,7 +190,7 @@ const Model = model((ctx, { x }: { x: number }) => {
     const a = ref(2);
     const b = expr(ctx, a => a + x, [a]);
 
-    return { a, b, c: 10 };
+    return { a, b, c: 10, destroy: () => ctx.destroy() };
 });
 
 it("model", function () {

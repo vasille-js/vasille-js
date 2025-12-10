@@ -36,15 +36,15 @@ it("model functions", function () {
 
 it("no context helpers", function () {
     const a = ref<number>(2);
-    const b = forward<number>(undefined, a);
+    const b = forward<number>(a);
     const ex = expr<number, [number, number]>(undefined, (a, b) => a + b, [a, b]);
-    const rv1 = ensure(1);
-    const rv2 = ensure(backward(a));
+    const rv1 = ensure({ x: 1 }, "x") as unknown as IValue<number | undefined>;
+    const rv2 = backward(a);
 
     expect(a.V).toBe(2);
     expect(b.V).toBe(2);
     expect(ex.V).toBe(4);
-    expect(rv1.V).toBe(1);
+    expect(rv1.V).toBe(undefined);
     expect(rv2.V).toBe(2);
 
     b.V = 3;

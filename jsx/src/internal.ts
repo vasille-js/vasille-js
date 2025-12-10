@@ -45,7 +45,7 @@ export function arrayModel(ctx: Reactive | undefined, data?: unknown[] | number)
  * 1. `let a = obj.$key` to `const a = ensure(obj.$key)`
  */
 export function ensure<T extends object>(obj: T | null | undefined, key: keyof T) {
-    return !obj ? undefined : key in obj ? obj[key] : (obj[key] = ref(undefined) as unknown as T[keyof T]);
+    return !obj ? ref(undefined) : key in obj ? obj[key] : (obj[key] = ref(undefined) as unknown as T[keyof T]);
 }
 
 /**
@@ -83,4 +83,14 @@ export function set(o: object, key: string | symbol | number, value: unknown, cr
         o[key] = value;
     }
     return value;
+}
+
+export function forward<T>(value: IValue<T>) {
+    return new Expression(v => v, [value]);
+}
+
+export function backward<T>(value: IValue<T>) {
+    const r = new Reference(value.V);
+    r.on(v => (value.V = v));
+    return r;
 }
