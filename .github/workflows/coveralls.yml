@@ -30,7 +30,7 @@ jobs:
           for pkg in core jsx css babel-plugin; do
             echo "== Testing $pkg =="
             cd $pkg
-            npm ci
+            npm i
             npm run build
             npm run test-coverage
             if [ -f coverage/lcov.info ]; then
