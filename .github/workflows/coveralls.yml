@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd ${{ matrix.package }}
-          npm ci
+          npm i
 
       - name: Run tests with coverage
         run: |
