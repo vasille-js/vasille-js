@@ -1,20 +1,20 @@
 import { App, Fragment, Reference, Watch } from "../../src/index.js";
-import { Runner } from "../../src/runner/web/runner.js";
+import { Runner, TagOptions } from "../../src/runner/web/runner.js";
 import { page } from "../page.js";
 
 it("Watch Test", function () {
     const model = new Reference(false);
     const window = page();
-    const runner = new Runner(true, window.document);
+    const runner = new Runner(window.document);
     const body = window.document.body;
-    const root = new App(body, runner);
+    const root = new App<Node, Element, TagOptions>(body, runner);
 
     root.create(
-        new Watch(
+        new Watch<Node, Element, TagOptions, boolean>(
             {
                 model,
                 slot: function (node, input) {
-                    node.create(new Fragment(runner), ctx => {
+                    node.create(new Fragment<Node, Element, TagOptions>(runner), ctx => {
                         ctx.tag("div", {}, ctx => {
                             ctx.text(input);
                         });
@@ -25,7 +25,7 @@ it("Watch Test", function () {
         ),
     );
 
-    root.create(new Watch({ model }, runner));
+    root.create(new Watch<Node, Element, TagOptions, boolean>({ model }, runner));
 
     expect(body.children.length).toBe(1);
     expect(body.children[0].innerHTML).toBe("false");

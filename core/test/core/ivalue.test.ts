@@ -1,4 +1,4 @@
-import { Backward, Expression, Forward, Reference } from "../../src/index.js";
+import { Expression, Reference } from "../../src/index.js";
 
 it("ivalue", function () {
     const ref = new Reference(22);
@@ -24,27 +24,4 @@ it("expression", function () {
 
     b.V++;
     expect(c.V).toBe(6);
-});
-
-it("forward", function () {
-    const a = new Reference(2);
-    const b = new Forward(a);
-
-    expect(b.V).toBe(2);
-    a.V++;
-    expect(b.V).toBe(3);
-    b.destroy();
-    a.V--;
-    expect(b.V).toBe(3);
-});
-
-it("backward", function () {
-    const a = new Reference(2);
-    const b = new Backward(a);
-
-    expect(b.V).toBe(2);
-    a.V = 5;
-    expect(b.V).toBe(2);
-    b.V = 10;
-    expect(a.V).toBe(10);
 });

@@ -1,6 +1,6 @@
 import { DOMWindow } from "jsdom";
 import { App, Expression, Fragment, IValue, Reference, SwitchedNode, Tag } from "../../src/index.js";
-import { DebugNode, Runner } from "../../src/runner/web/runner.js";
+import { Runner, TagOptions } from "../../src/runner/web/runner.js";
 import { page } from "../page.js";
 
 let compose = false;
@@ -14,8 +14,8 @@ class FragmentTest extends Fragment<Node, Element, object> {
 
 it("Fragment", function () {
     const window = page();
-    const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner);
+    const runner = new Runner(window.document);
+    const root = new App<Node, Element, TagOptions>(window.document.body, runner);
 
     root.create(new FragmentTest(runner));
     expect(root.children.size).toBe(1);
@@ -26,7 +26,7 @@ it("Fragment", function () {
 
 it("Tag", function () {
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document));
+    const root = new App<Node, Element, TagOptions>(window.document.body, new Runner(window.document));
     const text = new Reference("test");
 
     root.tag("div", {}, function (div) {
@@ -39,26 +39,15 @@ it("Tag", function () {
         div.text("test");
         expect(div.element.childNodes[1] instanceof window.Text).toBe(true);
         expect(div.element.childNodes[1].textContent).toBe("test");
-        div.debug(new Reference<string>("debug"));
-        expect(div.element.childNodes.length).toBe(3);
-        expect(div.element.childNodes[2] instanceof window.Comment).toBe(true);
-        expect(div.element.childNodes[2].textContent).toBe("debug");
-
-        const debugRef = new Reference<string | null>(null);
-        div.debug(debugRef);
-        expect(div.element.childNodes[3] instanceof window.Comment).toBe(true);
-        expect(div.element.childNodes[3].textContent).toBe("");
-        debugRef.V = "err";
-        expect(div.element.childNodes[3].textContent).toBe("err");
 
         const textRef = new Reference<string | null>(null);
         div.text(textRef);
-        expect(div.element.childNodes[4] instanceof window.Text).toBe(true);
-        expect(div.element.childNodes[4].textContent).toBe("");
+        expect(div.element.childNodes[2] instanceof window.Text).toBe(true);
+        expect(div.element.childNodes[2].textContent).toBe("");
         textRef.V = "ok";
-        expect(div.element.childNodes[4].textContent).toBe("ok");
+        expect(div.element.childNodes[2].textContent).toBe("ok");
         textRef.V = null;
-        expect(div.element.childNodes[4].textContent).toBe("");
+        expect(div.element.childNodes[2].textContent).toBe("");
     });
 
     root.destroy();
@@ -66,12 +55,12 @@ it("Tag", function () {
 
 it("if", function () {
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document));
+    const root = new App<Node, Element, TagOptions>(window.document.body, new Runner(window.document));
     let check1 = false;
     let check2 = true;
 
     root.create(
-        new SwitchedNode(root.runner, [
+        new SwitchedNode<Node, Element, TagOptions>(root.runner, [
             {
                 $case: new Reference(true),
                 slot: () => (check1 = true),
@@ -79,7 +68,7 @@ it("if", function () {
         ]),
     );
     root.create(
-        new SwitchedNode(root.runner, [
+        new SwitchedNode<Node, Element, TagOptions>(root.runner, [
             {
                 $case: new Reference(false),
                 slot: () => (check2 = false),
@@ -94,16 +83,28 @@ it("if", function () {
 
 it("if else", function () {
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document));
+    const root = new App<Node, Element, TagOptions>(window.document.body, new Runner(window.document));
     const iv1 = new Reference(true);
     const iv2 = new Reference(false);
 
     let check1 = 1,
         check2 = 1;
 
-    root.create(new SwitchedNode(root.runner, [{ $case: iv1, slot: () => (check1 = 1) }], () => (check1 = 2)));
+    root.create(
+        new SwitchedNode<Node, Element, TagOptions>(
+            root.runner,
+            [{ $case: iv1, slot: () => (check1 = 1) }],
+            () => (check1 = 2),
+        ),
+    );
 
-    root.create(new SwitchedNode(root.runner, [{ $case: iv2, slot: () => (check2 = 1) }], () => (check2 = 2)));
+    root.create(
+        new SwitchedNode<Node, Element, TagOptions>(
+            root.runner,
+            [{ $case: iv2, slot: () => (check2 = 1) }],
+            () => (check2 = 2),
+        ),
+    );
 
     expect(check1).toBe(1);
     expect(check2).toBe(2);
@@ -119,13 +120,13 @@ it("if else", function () {
 
 it("switch", function () {
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document));
+    const root = new App<Node, Element, TagOptions>(window.document.body, new Runner(window.document));
     const v = new Reference(1);
     const v2 = new Reference(false);
     let check = 0;
 
     root.create(
-        new SwitchedNode(
+        new SwitchedNode<Node, Element, TagOptions>(
             root.runner,
             [
                 { $case: new Expression(v => v == 1, [v]), slot: () => (check = 1) },
@@ -155,10 +156,10 @@ it("switch", function () {
 
 it("INode", function () {
     const window = page();
-    const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner);
+    const runner = new Runner(window.document);
+    const root = new App<Node, Element, TagOptions>(window.document.body, runner);
 
-    root.create(new Fragment(runner), function (test) {
+    root.create(new Fragment<Node, Element, TagOptions>(runner), function (test) {
         // attr
         (function () {
             const attrName = "data-attr";
@@ -166,7 +167,7 @@ it("INode", function () {
             let el!: Element;
 
             test.tag("div", {
-                attr: {
+                a: {
                     "data-checked": true,
                     "data-checked2": new Reference(true),
                     "data-set": "test",
@@ -178,7 +179,7 @@ it("INode", function () {
                         [attrValue],
                     ),
                 },
-                callback: node => (el = node),
+                k: node => (el = node),
             });
 
             const data = (el as HTMLElement).dataset;
@@ -201,8 +202,8 @@ it("INode", function () {
             let el!: Element;
 
             test.tag("div", {
-                class: ["c1", "c2", "c3", dyn, { float: cond }],
-                callback: node => (el = node),
+                c: ["c1", "c2", "c3", dyn, { float: cond }],
+                k: node => (el = node),
             });
 
             expect(el.className).toBe("c1 c2 c3 dyn");
@@ -224,14 +225,14 @@ it("INode", function () {
             let el!: HTMLElement;
 
             test.tag("div", {
-                style: {
+                s: {
                     display: "none",
                     margin: dyn,
                     padding: num,
                     width: 300,
                     inset: [12, 23],
                 },
-                callback: node => (el = node as HTMLElement),
+                k: node => (el = node as HTMLElement),
             });
 
             expect(el.style.display).toBe("none");
@@ -252,13 +253,13 @@ it("INode", function () {
 it("INode Events 1", function () {
     let test = false;
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document));
+    const root = new App<Node, Element, TagOptions>(window.document.body, new Runner(window.document));
     const handler = () => (test = true);
     let element!: HTMLElement;
 
     root.tag("button", {
-        events: { click: handler },
-        callback: node => (element = node as HTMLElement),
+        e: { click: handler },
+        k: node => (element = node as HTMLElement),
     });
     element.click();
     expect(test).toBe(true);
@@ -269,13 +270,13 @@ it("INode Events 1", function () {
 it("INode Events 2", function () {
     let test = false;
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document));
+    const root = new App<Node, Element, TagOptions>(window.document.body, new Runner(window.document));
     const handler = () => (test = true);
     let element!: HTMLElement;
 
     root.tag("button", {
-        events: { click: [handler, { once: true }] },
-        callback: node => (element = node as HTMLElement),
+        e: { click: [handler, { once: true }] },
+        k: node => (element = node as HTMLElement),
     });
     element.click();
     expect(test).toBe(true);
@@ -285,39 +286,39 @@ it("INode Events 2", function () {
 
 it("bind DOM api test", function () {
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document));
+    const root = new App<Node, Element, TagOptions>(window.document.body, new Runner(window.document));
     const html = new Reference("test me now");
     const bool = new Reference(true);
     const num = new Reference(0.1);
     let el!: Element;
 
     root.tag("div", {
-        bind: {
+        b: {
             innerHTML: html,
         },
-        callback: node => (el = node),
+        k: node => (el = node),
     });
 
     let input!: HTMLTextAreaElement;
     root.tag("textarea", {
-        bind: { value: html },
-        callback: node => (input = node as HTMLTextAreaElement),
+        b: { value: html },
+        k: node => (input = node as HTMLTextAreaElement),
     });
     let checkbox!: HTMLInputElement;
     root.tag("input", {
-        attr: { type: "checkbox" },
-        bind: { checked: bool },
-        callback: node => (checkbox = node as HTMLInputElement),
+        a: { type: "checkbox" },
+        b: { checked: bool },
+        k: node => (checkbox = node as HTMLInputElement),
     });
     let media!: HTMLAudioElement;
     root.tag("audio", {
-        bind: { volume: num },
-        callback: node => (media = node as HTMLAudioElement),
+        b: { volume: num },
+        k: node => (media = node as HTMLAudioElement),
     });
     let media2!: HTMLAudioElement;
     root.tag("audio", {
-        bind: { volume: 0.75 },
-        callback: node => (media2 = node as HTMLAudioElement),
+        b: { volume: 0.75 },
+        k: node => (media2 = node as HTMLAudioElement),
     });
 
     expect(el.innerHTML).toBe("test me now");
@@ -347,7 +348,7 @@ it("bind DOM api test", function () {
 
 it("Error handling", function () {
     const window = page();
-    const root = new App(window.document.body, new Runner(true, window.document));
+    const root = new App<Node, Element, TagOptions>(window.document.body, new Runner(window.document));
 
     root.tag("div", {}, function (f) {
         // eslint-disable-next-line
@@ -357,53 +358,15 @@ it("Error handling", function () {
     });
 });
 
-it("Debug node order", function () {
-    const window = page();
-    const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner);
-    const bool = new Reference(true);
-    const text = new Reference<string | null>("test me now");
-
-    root.tag("div", {}, function (f) {
-        f.create(
-            new SwitchedNode(f.runner, [
-                {
-                    $case: bool,
-                    slot(node) {
-                        node.text(text);
-                    },
-                },
-            ]),
-        );
-        f.create(new DebugNode({ text }, runner));
-
-        expect(f.element.childNodes.length).toBe(2);
-        expect(f.element.childNodes[0]).toBeInstanceOf(window.Text);
-        expect(f.element.childNodes[1]).toBeInstanceOf(window.Comment);
-
-        bool.V = false;
-        expect(f.element.childNodes.length).toBe(1);
-        expect(f.element.childNodes[0]).toBeInstanceOf(window.Comment);
-
-        bool.V = true;
-        expect(f.element.childNodes.length).toBe(2);
-        expect(f.element.childNodes[0]).toBeInstanceOf(window.Text);
-        expect(f.element.childNodes[1]).toBeInstanceOf(window.Comment);
-
-        text.V = null;
-        expect(f.element.childNodes[0].textContent).toBe("");
-    });
-});
-
 it("Class add/removing test", function () {
     const window = page();
-    const runner = new Runner(false, window.document);
-    const root = new App(window.document.body, runner);
+    const runner = new Runner(window.document);
+    const root = new App<Node, Element, TagOptions>(window.document.body, runner);
 
     root.tag(
         "div",
         {
-            class: [
+            c: [
                 "remove",
                 "keep",
                 {
@@ -435,13 +398,13 @@ function checkSpanAfterDiv(node: Tag<Node, Element, object>, bool: IValue<boolea
 
 it("Insert adjacent", function () {
     const window = page();
-    const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner);
+    const runner = new Runner(window.document);
+    const root = new App<Node, Element, TagOptions>(window.document.body, runner);
     const bool = new Reference(true);
 
     root.tag("div", {}, function (node) {
         node.create(
-            new SwitchedNode(node.runner, [
+            new SwitchedNode<Node, Element, TagOptions>(node.runner, [
                 {
                     $case: bool,
                     slot(node) {
@@ -458,13 +421,13 @@ it("Insert adjacent", function () {
 
 it("Find first child of tag", function () {
     const window = page();
-    const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner);
+    const runner = new Runner(window.document);
+    const root = new App<Node, Element, TagOptions>(window.document.body, runner);
     const bool = new Reference(true);
 
     root.tag("div", {}, function (node) {
         node.create(
-            new SwitchedNode(node.runner, [
+            new SwitchedNode<Node, Element, TagOptions>(node.runner, [
                 {
                     $case: bool,
                     slot(node) {
@@ -473,7 +436,7 @@ it("Find first child of tag", function () {
                 },
             ]),
         );
-        node.create(new Fragment(runner), node => {
+        node.create(new Fragment<Node, Element, TagOptions>(runner), node => {
             node.tag("span", {});
         });
 

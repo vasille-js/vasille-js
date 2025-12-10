@@ -6,7 +6,7 @@ class MyApp extends App<Node, Element, TagOptions> {
     div!: HTMLDivElement;
 
     public compose() {
-        this.tag("div", { callback: node => (this.div = node as HTMLDivElement) });
+        this.tag("div", { k: node => (this.div = node as HTMLDivElement) });
 
         this.create(new Portal<Node, Element, TagOptions>({ node: this.div }, this.runner), function (f) {
             f.tag("span", {});
@@ -16,7 +16,7 @@ class MyApp extends App<Node, Element, TagOptions> {
 
 it("App", function () {
     const window = page();
-    const app = new MyApp(window.document.body, new Runner(true, window.document));
+    const app = new MyApp(window.document.body, new Runner(window.document));
 
     app.compose();
     expect(app.div.childElementCount).toBe(1);

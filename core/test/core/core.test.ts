@@ -1,8 +1,7 @@
-import { Expression, Forward, IValue, Reactive, Reference } from "../../src/index.js";
+import { Expression, IValue, Reactive, Reference } from "../../src/index.js";
 
 class CoreTest extends Reactive {
     ref0: IValue<number>;
-    forward0: IValue<number>;
 
     watch_test = 0;
     handler_test = 0;
@@ -15,7 +14,6 @@ class CoreTest extends Reactive {
         super();
 
         this.ref0 = new Reference(1);
-        this.forward0 = new Forward(this.ref0);
 
         new Expression(
             v => {
@@ -25,10 +23,10 @@ class CoreTest extends Reactive {
         );
 
         this.bind0 = new Expression(
-            (x, y) => {
-                return x + y;
+            x => {
+                return x + 1;
             },
-            [this.ref0, this.forward0],
+            [this.ref0],
         );
 
         this.freeze_test = new Reference(false);
@@ -44,7 +42,6 @@ const coreTest = new CoreTest();
 
 it("Reactive", function () {
     expect(coreTest.ref0.V).toBe(1);
-    expect(coreTest.forward0.V).toBe(1);
     expect(coreTest.bind0.V).toBe(2);
 
     coreTest.handler_ref.V = 12;
@@ -53,7 +50,7 @@ it("Reactive", function () {
     coreTest.ref0.V = 2;
     expect(coreTest.ref0.V).toBe(2);
     expect(coreTest.watch_test).toBe(2);
-    expect(coreTest.bind0.V).toBe(4);
+    expect(coreTest.bind0.V).toBe(3);
 
     let test1 = false,
         test2 = false;

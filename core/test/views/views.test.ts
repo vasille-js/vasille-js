@@ -1,18 +1,18 @@
 import { App, ArrayModel, ArrayView, MapModel, MapView, SetModel, SetView } from "../../src/index.js";
-import { Runner } from "../../src/runner/web/runner.js";
+import { Runner, TagOptions } from "../../src/runner/web/runner.js";
 import { page } from "../page.js";
 
 it("array view", function () {
     const window = page();
-    const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner);
+    const runner = new Runner(window.document);
+    const root = new App<Node, Element, TagOptions>(window.document.body, runner);
     const array = new ArrayModel<number>([1]);
     let element!: Element;
 
     root.bind(array);
-    root.tag("div", { callback: node => (element = node) }, function (tag) {
+    root.tag("div", { k: node => (element = node) }, function (tag) {
         tag.create(
-            new ArrayView(
+            new ArrayView<Node, Element, TagOptions, number>(
                 {
                     model: array,
                     slot: function (f, item) {
@@ -79,8 +79,8 @@ it("array view", function () {
 
 it("map view", function () {
     const window = page();
-    const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner);
+    const runner = new Runner(window.document);
+    const root = new App<Node, Element, TagOptions>(window.document.body, runner);
     const model = new MapModel<number, number>([
         [1, 2],
         [2, 3],
@@ -89,9 +89,9 @@ it("map view", function () {
     let element!: HTMLElement;
 
     root.bind(model);
-    root.tag("div", { callback: node => (element = node as HTMLElement) }, function (tag) {
+    root.tag("div", { k: node => (element = node as HTMLElement) }, function (tag) {
         tag.create(
-            new MapView(
+            new MapView<Node, Element, TagOptions, number, number>(
                 {
                     model,
                     slot: function (f, item) {
@@ -119,15 +119,15 @@ it("map view", function () {
 
 it("set view", function () {
     const window = page();
-    const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner);
+    const runner = new Runner(window.document);
+    const root = new App<Node, Element, TagOptions>(window.document.body, runner);
     const model = new SetModel([1, 2, 3]);
     let element!: HTMLElement;
 
     root.bind(model);
-    root.tag("div", { callback: node => (element = node as HTMLElement) }, function (f) {
+    root.tag("div", { k: node => (element = node as HTMLElement) }, function (f) {
         f.create(
-            new SetView(
+            new SetView<Node, Element, TagOptions, number>(
                 {
                     model,
                     slot: function (f, item) {
@@ -152,15 +152,15 @@ it("set view", function () {
 
 it("view timeout test", function (done) {
     const window = page();
-    const runner = new Runner(true, window.document);
-    const root = new App(window.document.body, runner);
+    const runner = new Runner(window.document);
+    const root = new App<Node, Element, TagOptions>(window.document.body, runner);
     const model = new SetModel([1, 2, 3]);
     let element!: HTMLElement;
 
     root.bind(model);
-    root.tag("div", { callback: node => (element = node as HTMLElement) }, function (f) {
+    root.tag("div", { k: node => (element = node as HTMLElement) }, function (f) {
         f.create(
-            new SetView(
+            new SetView<Node, Element, TagOptions, number>(
                 {
                     model,
                     slot: function (f, item) {
