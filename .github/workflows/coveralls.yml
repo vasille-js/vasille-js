@@ -19,13 +19,8 @@ jobs:
         with:
           node-version: 25
 
-      - name: Install Coveralls globally
-        run: npm install -g coveralls
-
       # Loop through each package and run tests sequentially
-      - name: Run tests for all packages sequentially and send coverage
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+      - name: Run tests for all packages sequentially
         run: |
           for pkg in core jsx css babel-plugin; do
             echo "== Testing $pkg =="
@@ -34,8 +29,8 @@ jobs:
             npm i
             npm run build
             npm run test-coverage
-            if [ -f coverage/lcov.info ]; then
-              coveralls < coverage/lcov.info
-            fi
             cd ..
           done
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
