@@ -17,7 +17,6 @@ jobs:
           - jsx
           - css
           - babel-plugin
-          - ssg
 
     steps:
       - name: Checkout repository
