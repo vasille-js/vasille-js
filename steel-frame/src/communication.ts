@@ -4,6 +4,7 @@ export interface AppSide {
 }
 
 export interface IdeSide {
+    clear(): void;
     listDebugItems(ids: number[]): void;
     callInspector(method: string, arg: object): void;
 }

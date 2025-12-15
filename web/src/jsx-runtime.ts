@@ -30,7 +30,7 @@ export declare namespace JSX {
     }
 
     interface IntrinsicElements {
-        a2: HtmlInput<"a">;
+        a: HtmlInput<"a">;
         abbr: HtmlInput<"abbr">;
         address: HtmlInput<"address">;
         area: HtmlInput<"area">;

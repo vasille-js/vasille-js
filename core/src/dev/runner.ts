@@ -31,7 +31,7 @@ export function positionedText(text: unknown, position: StaticPosition) {
     return new PositionedText(text, position);
 }
 
-class DevTextNode extends TextNode<DevTagOptions, DevRunner> {
+export class DevTextNode extends TextNode<DevTagOptions, DevRunner> {
     public readonly id: number;
 
     public constructor(input: TextProps, runner: DevRunner, usage: StaticPosition, inspector: Inspector) {
@@ -70,7 +70,7 @@ export function remapObject<Before, After>(
     return r;
 }
 
-class DevTag extends Tag<DevTagOptions, DevRunner> {
+export class DevTag extends Tag<DevTagOptions, DevRunner> {
     public readonly id: number;
 
     public constructor(
@@ -149,6 +149,10 @@ class DevTag extends Tag<DevTagOptions, DevRunner> {
             }
         }
         super.applyOptions(options);
+    }
+
+    public getNode(): Element {
+        return this.node;
     }
 
     public destroy(): void {

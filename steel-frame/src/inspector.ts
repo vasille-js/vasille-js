@@ -3,17 +3,30 @@ import type { AppSide, IdeSide } from "./communication.js";
 import { App, Fragment, Reactive } from "vasille";
 import { TagOptions, TextNode, Runner } from "vasille/web-runner";
 import { expr, ref } from "vasille-jsx";
-import { DevFragment, DevTag } from "vasille/dev";
+import { DevFragment, DevTag, DevTextNode } from "vasille/dev";
 
 class AppHandler implements AppSide {
     private canvas: HTMLCanvasElement | null = null;
     private app: App<Node, Element, TagOptions> | null = null;
     private active = ref(false);
+    private $width = ref(window.innerWidth);
+    private $height = ref(window.innerHeight);
+
+    public constructor() {
+        window.onresize = () => {
+            this.$width.V = window.innerWidth;
+            this.$height.V = window.innerHeight;
+        };
+    }
 
     public setup(app: App<Node, Element, TagOptions>, bridge: Inspector): void {
         this.app = app;
 
         app.tag("canvas", {
+            a: {
+                width: this.$width,
+                height: this.$height,
+            },
             s: {
                 "pointer-events": expr(app, active => (active ? "auto" : "none"), [this.active]),
                 position: "absolute",
@@ -55,13 +68,14 @@ class AppHandler implements AppSide {
                     ev.preventDefault();
                     this.active.V = false;
                     elements = document.elementsFromPoint(ev.clientX, ev.clientY);
-                    this.active.V = true;
 
                     if (document.caretPositionFromPoint) {
                         textNode = document.caretPositionFromPoint(ev.clientX, ev.clientY)?.offsetNode;
                     } else if (document.caretRangeFromPoint) {
                         textNode = document.caretRangeFromPoint(ev.clientX, ev.clientY)?.startContainer;
                     }
+
+                    this.active.V = true;
 
                     if (textNode && key in textNode) {
                         ids.push(textNode[key] as number);
@@ -90,7 +104,7 @@ class AppHandler implements AppSide {
             return;
         }
 
-        const tags = new Set<DevTag<Node, Element, TagOptions>>();
+        const tags = new Set<DevTag>();
 
         this.iterateFragment(this.app as unknown as Fragment<Node, Element, TagOptions>, new Set(ids), tags);
 
@@ -123,11 +137,7 @@ class AppHandler implements AppSide {
         }
     }
 
-    protected iterateFragment(
-        node: Fragment<Node, Element, TagOptions>,
-        ids: Set<number>,
-        set: Set<DevTag<Node, Element, TagOptions>>,
-    ) {
+    protected iterateFragment(node: Fragment<Node, Element, TagOptions>, ids: Set<number>, set: Set<DevTag>) {
         for (const child of node.children) {
             if ("id" in child && ids.has(child.id as number)) {
                 this.addReactive(child, set);
@@ -137,11 +147,11 @@ class AppHandler implements AppSide {
         }
     }
 
-    protected addTag(node: DevTag<Node, Element, TagOptions>, set: Set<DevTag<Node, Element, TagOptions>>) {
+    protected addTag(node: DevTag, set: Set<DevTag>) {
         set.add(node);
     }
 
-    protected addText(node: TextNode<TagOptions, Runner<TagOptions>>, set: Set<DevTag<Node, Element, TagOptions>>) {
+    protected addText(node: DevTextNode, set: Set<DevTag>) {
         let it = node.parent;
 
         while (it instanceof DevFragment) {
@@ -153,16 +163,16 @@ class AppHandler implements AppSide {
         }
     }
 
-    protected addFragment(node: DevFragment<Node, Element, TagOptions>, set: Set<DevTag<Node, Element, TagOptions>>) {
+    protected addFragment(node: DevFragment<Node, Element, TagOptions>, set: Set<DevTag>) {
         for (const child of node.children) {
             this.addReactive(child, set);
         }
     }
 
-    protected addReactive(node: Reactive, set: Set<DevTag<Node, Element, TagOptions>>) {
+    protected addReactive(node: Reactive, set: Set<DevTag>) {
         if (node instanceof DevTag) {
             this.addTag(node, set);
-        } else if (node instanceof TextNode) {
+        } else if (node instanceof DevTextNode) {
             this.addText(node, set);
         } else if (node instanceof DevFragment) {
             this.addFragment(node, set);
@@ -174,6 +184,7 @@ export class Inspector extends AbstractInspector implements IdeSide {
     private ws: WebSocket | null;
     private queue: (readonly [string, unknown[]])[];
     private app: AppHandler;
+    private clean: boolean = false;
 
     constructor() {
         super();
@@ -196,10 +207,18 @@ export class Inspector extends AbstractInspector implements IdeSide {
         this.sendMessage(this.listDebugItems.name, [ids]);
     }
 
+    public clear() {
+        this.sendMessage(this.clear.name, []);
+    }
+
     private _connect() {
         const ws = (this.ws = new WebSocket("ws://localhost:7374"));
 
         ws.onopen = () => {
+            if (!this.clean) {
+                ws.send(JSON.stringify(["clear", []]));
+                this.clean = true;
+            }
             // Send all queued messages
             while (this.queue.length > 0) {
                 ws.send(JSON.stringify(this.queue.shift()));
@@ -207,7 +226,7 @@ export class Inspector extends AbstractInspector implements IdeSide {
         };
 
         ws.onmessage = ev => {
-            const [method, args] = ev.data as [string, unknown[]];
+            const [method, args] = JSON.parse(ev.data) as [string, unknown[]];
 
             this.app[method](...args);
         };

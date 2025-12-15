@@ -89,35 +89,3 @@ export class DevFragment<Node, Element, TagOptions extends object>
         super.pushNode(node);
     }
 }
-
-export abstract class DevTag<Node, Element, TagOptions extends object>
-    extends Tag<Node, Element, TagOptions>
-    implements InspectableReactive
-{
-    id: number;
-    declaration: StaticPosition;
-    inspector: Inspector;
-
-    public constructor(
-        options: TagOptions,
-        runner: IDevRunner<Node, Element, TagOptions>,
-        tagName: string,
-        declaration: StaticPosition,
-    ) {
-        super(options, runner, tagName);
-        this.declaration = declaration;
-        this.inspector = runner.inspector;
-        runner.inspector.createTag(this.toProtocolTag(options));
-    }
-
-    public destroy(): void {
-        this.inspector.destroy({ id: this.id, time: Date.now() });
-        super.destroy();
-    }
-
-    public getNode() {
-        return this.node;
-    }
-
-    protected abstract toProtocolTag(options: TagOptions): ProtocolTag;
-}
