@@ -229,6 +229,29 @@ export function checkOrIgnoreExpression<T extends types.Node>(
   }
 }
 
+export function assignToSetCall(
+  path: NodePath<types.AssignmentExpression>,
+  internal: Internal,
+  left: types.MemberExpression | types.OptionalMemberExpression,
+  right: types.Expression,
+) {
+  const property = left.property as types.Expression;
+
+  path.replaceWith(
+    internal.set(
+      left.object,
+      !left.computed && t.isIdentifier(property) ? t.stringLiteral(property.name) : property,
+      path.node.operator === "="
+        ? right
+        : t.binaryExpression(
+            path.node.operator.slice(0, path.node.operator.length - 1) as unknown as "+",
+            internal.extract(left),
+            right,
+          ),
+    ),
+  );
+}
+
 export function checkExpression(nodePath: NodePath<types.Expression | null | undefined>, search: Search) {
   const expr = nodePath.node;
 
@@ -300,13 +323,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
 
         /* istanbul ignore else */
         if (!t.isPrivateName(property)) {
-          path.replaceWith(
-            search.external.set(
-              left.node.object,
-              !left.node.computed && t.isIdentifier(property) ? t.stringLiteral(property.name) : property,
-              right.node,
-            ),
-          );
+          assignToSetCall(path, search.external, left.node, right.node);
         }
       } else {
         meshLValue(left, search.external);

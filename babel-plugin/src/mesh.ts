@@ -1,7 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { calls, composeFunctions, hintFunctions, modelFunctions, reactivityFunctions } from "./call.js";
-import { checkNode, exprIsSure, idIsIValue, memberIsIValue } from "./expression.js";
+import { assignToSetCall, checkNode, exprIsSure, idIsIValue, memberIsIValue } from "./expression.js";
 import { ctx, Internal, VariableState } from "./internal.js";
 import { ConditionCollection, processConditions, transformJsx } from "./jsx.js";
 import {
@@ -229,13 +229,7 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
 
           /* istanbul ignore else */
           if (!t.isPrivateName(property)) {
-            path.replaceWith(
-              internal.set(
-                left.node.object,
-                !left.node.computed && t.isIdentifier(property) ? t.stringLiteral(property.name) : property,
-                right.node,
-              ),
-            );
+            assignToSetCall(path, internal, left.node, right.node);
           }
         }
       } else {

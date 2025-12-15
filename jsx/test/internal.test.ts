@@ -1,5 +1,17 @@
-import { IValue } from "vasille";
-import { arrayModel, backward, ensure, expr, forward, mapModel, ref, set, setModel, match } from "../src/internal.js";
+import { IValue, Reference } from "vasille";
+import {
+    arrayModel,
+    backward,
+    ensure,
+    expr,
+    forward,
+    mapModel,
+    ref,
+    set,
+    setModel,
+    match,
+    extract,
+} from "../src/internal.js";
 import { createNode } from "./page.js";
 
 it("model functions", function () {
@@ -93,4 +105,12 @@ it("match test", function () {
     expect(b).toBe(3);
     expect($b).toBeInstanceOf(IValue);
     expect($b.V).toBe(3);
+});
+
+it("extract test", function () {
+    const ref = new Reference(2);
+    const value = 2;
+
+    expect(extract(ref)).toBe(2);
+    expect(extract(value)).toBe(2);
 });

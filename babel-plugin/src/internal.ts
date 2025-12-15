@@ -61,6 +61,7 @@ export interface Internal {
   set(obj: types.Expression, field: types.Expression, value: types.Expression): types.CallExpression;
   Switch(arg: types.ObjectExpression): types.CallExpression;
   safe(arg: types.FunctionExpression | types.ArrowFunctionExpression): types.CallExpression;
+  extract(arg: types.Expression): types.CallExpression;
 }
 
 export const ctx = t.identifier("Vasille");

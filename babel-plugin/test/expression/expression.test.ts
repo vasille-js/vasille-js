@@ -20,6 +20,10 @@ it("reactive field set", function () {
   runTest(__dirname, "reactive-field-set", false);
 });
 
+it("reactive field set - compound assignment", function () {
+  runTest(__dirname, "reactive-field-set-compound", false);
+});
+
 it("nested observable error", function () {
   throwTest(__dirname, "nested-observable", "The reactive/observable value is nested");
 });

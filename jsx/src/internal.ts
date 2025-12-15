@@ -103,3 +103,7 @@ export function set(o: object, key: string | symbol | number, value: unknown) {
     }
     return value;
 }
+
+export function extract<T>(value: IValue<T> | T): T {
+    return value instanceof IValue ? value.V : value;
+}

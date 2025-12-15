@@ -3,7 +3,7 @@ import * as t from "@babel/types";
 import { ctx, Internal, StackedStates } from "./internal.js";
 import { meshStatement } from "./mesh.js";
 import { findStyleInNode } from "./css-transformer.js";
-import { ArrowFunctionExpression, CallExpression, FunctionExpression } from "@babel/types";
+import { ArrowFunctionExpression, CallExpression, Expression, FunctionExpression } from "@babel/types";
 
 const imports = new Map([["vasille-web", "VasilleWeb"]]);
 const ignoreMembers = new Set([
@@ -153,6 +153,7 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     set: "VasilleSet",
     Switch: "VasilleSwitch",
     safe: "VasilleSafe",
+    extract: "VasilleExtract",
   };
 
   function call(
@@ -191,6 +192,7 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     set: (obj, field, value) => call("set", [obj, field, value]),
     Switch: arg => call("Switch", [arg, ctx]),
     safe: (arg: FunctionExpression | ArrowFunctionExpression) => call("safe", [arg]),
+    extract: (arg: Expression) => call("extract", [arg]),
   };
 
   function getCtx() {

@@ -36,6 +36,7 @@ export {
     Switch,
     setErrorHandler,
     match,
+    extract,
 } from "vasille-jsx";
 
 export {
