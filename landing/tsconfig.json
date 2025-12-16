@@ -1,0 +1,17 @@
+{
+  "include": ["src"],
+
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": false,
+    "noEmit": true,
+    "moduleResolution": "node16",
+    "module": "Node16",
+    "jsx": "preserve",
+    "jsxImportSource": "vasille-web",
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "types": []
+  }
+}

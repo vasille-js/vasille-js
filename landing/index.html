@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vasille Example</title>
+    <style>
+      @font-face { font-family: 'FF'; src: url('/font.ttf') format('truetype'); }
+      body{margin:0; font-family: 'FF', sans-serif; font-weight: 500;}
+    </style>
+  </head>
+  <body class="dark">
+    <script type="module" src="/src/index.vasille.js"></script>
+    <noscript>
+        This page require enabled javascript :(
+    </noscript>
+    <script>
+      setTimeout(() => {
+        Array.of(...document.querySelectorAll(".theme-switcher")).forEach(el => {
+          el.onclick = () => {
+            document.body.classList.toggle("dark");
+          }
+        });
+      }, 1000)
+    </script>
+  </body>
+</html>
