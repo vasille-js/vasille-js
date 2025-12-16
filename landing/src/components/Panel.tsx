@@ -136,7 +136,7 @@ const styles = styleSheet({
   panelItemText: {
     "font-size": "12px",
     "font-weight": 500,
-    margin: [10, 0, 0],
+    margin: [7, 0, 0],
   },
   panelItemIcon: {
     width: 24,
@@ -157,6 +157,7 @@ const styles = styleSheet({
   switcher: {
     margin: 10,
     display: "flex",
+    cursor: "pointer",
   },
   switcherTrack: {
     width: 32,
