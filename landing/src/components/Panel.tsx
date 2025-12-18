@@ -48,10 +48,20 @@ interface InternalPanelProps {
   border: string;
   accent: string;
   className: string;
+  lightZ: number;
+  darkZ: number;
 }
 
 const InternalPanel = component(
-  ({ fg, border, bg, accent, className }: InternalPanelProps) => {
+  ({
+    fg,
+    border,
+    bg,
+    accent,
+    className,
+    lightZ,
+    darkZ,
+  }: InternalPanelProps) => {
     <div
       class={[styles.panel, className]}
       style={{
@@ -59,6 +69,8 @@ const InternalPanel = component(
         "--bg": bg,
         "--border": border,
         "--accent": accent,
+        "--light-z": `${lightZ}`,
+        "--dark-z": `${darkZ}`,
       }}
     >
       <div class={styles.logo} style={{ "mask-image": `url("${logoSvg}")` }} />
@@ -76,6 +88,8 @@ export const Panel = component(() => {
     bg={"#FFFFFFED"}
     accent={"#0302DF"}
     className={styles.lightPanel}
+    lightZ={998}
+    darkZ={999}
   />;
   <InternalPanel
     fg={"#FFFFFF"}
@@ -83,6 +97,8 @@ export const Panel = component(() => {
     border={"#4D4D4DED"}
     accent={"#ff946a"}
     className={styles.darkPanel}
+    lightZ={999}
+    darkZ={998}
   />;
   <div class={styles.panelSwitcher}>
     <Switcher />
@@ -100,6 +116,7 @@ const styles = styleSheet({
     "border-right": "1px solid var(--border)",
     transition: "left 0.2s ease-in-out",
     "backdrop-filter": "blur(10px)",
+    "z-index": ["var(--light-z)", dark("var(--dark-z)")],
   },
   darkPanel: {
     left: ["-97px", dark(0)],
@@ -153,6 +170,7 @@ const styles = styleSheet({
     display: "flex",
     "align-items": "center",
     "flex-direction": "column",
+    "z-index": "1000",
   },
   switcher: {
     margin: 10,

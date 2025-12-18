@@ -6,7 +6,10 @@
     <title>Vasille Example</title>
     <style>
       @font-face { font-family: 'FF'; src: url('/font.ttf') format('truetype'); }
-      body{margin:0; font-family: 'FF', sans-serif; font-weight: 500;}
+      html {text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale }
+      body{margin:0; font-family: 'FF', sans-serif; font-weight: 500; background-color: #fff; transition: background-color 0.2s ease-in-out}
+      body.dark{background-color: #191919}
+      * {scrollbar-color: #808080 #80808020}
     </style>
   </head>
   <body class="dark">

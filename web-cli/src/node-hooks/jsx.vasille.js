@@ -18,7 +18,7 @@ export async function resolve(specifier, context, nextResolve) {
 
     const url = specifier.startsWith("/")
         ? specifier
-        : specifier.startsWith("./")
+        : specifier.startsWith("./") || specifier.startsWith("../")
           ? parentURL
               ? new URL(specifier, parentURL).href
               : new URL(specifier).href
