@@ -2,10 +2,10 @@ import { component, dark, styleSheet } from "vasille-web";
 
 export const HLine = component(() => {
   <div class={[styles.line]}>
-    <div class={[styles.inner, styles.light]} style={{ left: 0 }} />
-    <div class={[styles.inner, styles.light]} style={{ right: 0 }} />
-    <div class={[styles.inner, styles.dark]} style={{ left: "50%" }} />
-    <div class={[styles.inner, styles.dark]} style={{ right: "50%" }} />
+    <div class={[styles.inner, styles.light]} style={{ left: "50%" }} />
+    <div class={[styles.inner, styles.light]} style={{ right: "50%" }} />
+    <div class={[styles.inner, styles.dark]} style={{ left: 0 }} />
+    <div class={[styles.inner, styles.dark]} style={{ right: 0 }} />
   </div>;
 });
 

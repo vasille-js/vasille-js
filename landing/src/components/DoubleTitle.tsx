@@ -1,13 +1,13 @@
 import { component, dark, Slot, styleSheet } from "vasille-web";
 
 interface Props {
-  title?(props: { classes: string[] }): void;
+  title?(props: { classes: string[]; isDark: boolean }): void;
 }
 
 export const DoubleTitle = component(({ title }: Props) => {
   <div class={[styles.container]}>
-    <Slot model={title} classes={[styles.dark]} />
-    <Slot model={title} classes={[styles.light]} />
+    <Slot model={title} classes={[styles.dark]} isDark={true} />
+    <Slot model={title} classes={[styles.light]} isDark={false} />
   </div>;
 });
 
@@ -26,7 +26,7 @@ const styles = styleSheet({
   },
   dark: {
     color: "#fff",
-    opacity: [0, dark(1)],
+    opacity: ["0", dark("1")],
     transition: "opacity 0.2s ease-in-out",
   },
 });

@@ -107,7 +107,7 @@ export const Panel = component(() => {
 
 const styles = styleSheet({
   panel: {
-    position: "absolute",
+    position: "fixed",
     width: 96,
     height: "100%",
     display: "flex",
@@ -162,7 +162,7 @@ const styles = styleSheet({
     transition: "background-color 0.2s ease-in-out",
   },
   panelSwitcher: {
-    position: "absolute",
+    position: "fixed",
     bottom: 0,
     left: 0,
     width: 96,

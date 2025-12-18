@@ -5,6 +5,7 @@ import { Button } from "../components/Button.js";
 import { DoubleTitle } from "../components/DoubleTitle.js";
 import { DoubleDescription } from "../components/DoubleDescription.js";
 import metalPng from "../assets/metal.png";
+import { centerText, description, h1 } from "../style/text.js";
 
 export const HeroView = view(() => {
   <div class={styles.hero}>
@@ -18,14 +19,17 @@ export const HeroView = view(() => {
     <span class={styles.title}>SteelFrameKit</span>
     <DoubleTitle
       title={({ classes }) => {
-        <h1 class={[styles.h1, ...classes]}>
+        <h1 class={[h1, centerText, ...classes]} style={{ "max-width": 427 }}>
           Build Fault–Tolerant Web Applications Effortlessly
         </h1>;
       }}
     />
     <DoubleDescription
       description={({ classes }) => {
-        <div class={[styles.description, ...classes]}>
+        <div
+          class={[description, centerText, ...classes]}
+          style={{ "max-width": 494 }}
+        >
           Imagine shipping features without fearing production breakdowns. With
           intuitive state management and minimal boilerplate, focus on what
           matters - building great products
@@ -62,20 +66,20 @@ const styles = styleSheet({
     "z-index": "-1",
   },
   topRight: {
-    transform: ["rotate(126.31deg)", dark("rotate(147.31deg)")],
+    transform: ["rotate(147.31deg)"],
     width: 456,
     height: 512,
-    top: [22, dark("-129px")],
-    right: [148, dark(178)],
-    "transition-property": "transform, opacity, top, right",
+    top: ["-129px"],
+    right: [178],
+    "transition-property": "opacity",
   },
   leftBottom: {
-    transform: ["rotate(-48.65deg)", dark("rotate(-49.65deg)")],
+    transform: ["rotate(-49.65deg)"],
     width: 335.73,
     height: 376.97,
-    bottom: [108, dark(0)],
-    left: ["-120px", dark("-100px")],
-    "transition-property": "transform, opacity, left, bottom",
+    bottom: [0],
+    left: ["-100px"],
+    "transition-property": "opacity",
   },
   title: {
     margin: [40, 0, 32],
@@ -86,23 +90,6 @@ const styles = styleSheet({
     "border-radius": 17,
     color: ["#191919", dark("#fff")],
     transition: "color 1s ease-in-out, border-color 1s ease-in-out",
-  },
-  h1: {
-    "font-size": 35,
-    "letter-spacing": "-3%",
-    "line-height": "1.10",
-    "text-align": "center",
-    "max-width": 427,
-    "text-transform": "uppercase",
-    margin: [0, 0, 12],
-  },
-  description: {
-    "font-size": 15,
-    "line-height": "120%",
-    "letter-spacing": "-2%",
-    "max-width": 494,
-    "margin-bottom": 18,
-    "text-align": "center",
   },
   flex1: {
     flex: 1,
