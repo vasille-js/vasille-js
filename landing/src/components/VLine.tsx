@@ -2,28 +2,38 @@ import { component, dark, styleSheet } from "vasille-web";
 
 interface Props {
   reverse?: boolean;
+  height?: number;
+  marginTop?: number;
+  marginBottom?: number;
 }
 
-export const VLine = component(({ reverse }: Props) => {
-  <div class={[styles.line]}>
+export const VLine = component(
+  ({ reverse, height, marginBottom, marginTop }: Props) => {
     <div
-      class={[styles.inner, styles.light]}
-      style={reverse ? "bottom:0" : "top:0"}
-    />
-    <div
-      class={[styles.inner, styles.dark]}
-      style={reverse ? "top:0" : "bottom:0"}
-    />
-  </div>;
-});
+      class={[styles.line]}
+      style={{
+        height,
+        "margin-top": marginTop,
+        "margin-bottom": marginBottom,
+        flex: height ? "none" : "1",
+      }}
+    >
+      <div
+        class={[styles.inner, styles.light]}
+        style={reverse ? "bottom:0" : "top:0"}
+      />
+      <div
+        class={[styles.inner, styles.dark]}
+        style={reverse ? "top:0" : "bottom:0"}
+      />
+    </div>;
+  },
+);
 
 const styles = styleSheet({
   line: {
-    display: "flex",
     width: 1,
-    "align-items": "stretch",
     position: "relative",
-    flex: "1",
   },
   inner: {
     position: "absolute",

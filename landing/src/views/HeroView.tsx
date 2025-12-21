@@ -42,7 +42,6 @@ export const HeroView = view(() => {
     </div>
     <VLine reverse />
   </div>;
-  <HLine />;
 });
 
 const styles = styleSheet({
@@ -53,9 +52,11 @@ const styles = styleSheet({
     "align-items": "center",
     position: "relative",
     overflow: "hidden",
-    "@media screen and (min-height: 1500px)": {
-      "min-height": "800px",
+    "@media screen and (min-height: 800px) and (min-width: 1125px)": {
+      "min-height": "600px",
     },
+    "content-visibility": "auto",
+    "contain-intrinsic-size": "600px",
   },
   metal: {
     position: "absolute",

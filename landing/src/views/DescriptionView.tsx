@@ -3,12 +3,12 @@ import { VLine } from "../components/VLine.js";
 import { DoubleTitle } from "../components/DoubleTitle.js";
 import { centerText, description, h1 } from "../style/text.js";
 import { DoubleDescription } from "../components/DoubleDescription.js";
+import { HLine } from "../components/HLine.js";
 
 export const DescriptionView = view(() => {
+  <HLine />;
   <div class={styles.center}>
-    <div class={[styles.line, styles.center]} style={{ "margin-bottom": 40 }}>
-      <VLine />
-    </div>
+    <VLine height={40} marginBottom={40} />
     <DoubleTitle
       title={({ classes, isDark }) => {
         const color = isDark ? "#ff946a" : "#0302DF";
@@ -37,10 +37,9 @@ export const DescriptionView = view(() => {
         </div>;
       }}
     />
-    <div class={[styles.line, styles.center]} style={{ "margin-top": 22 }}>
-      <VLine reverse />
-    </div>
+    <VLine height={40} marginTop={22} reverse />
   </div>;
+  <HLine />;
 });
 
 const styles = styleSheet({
@@ -48,6 +47,8 @@ const styles = styleSheet({
     display: "flex",
     "flex-direction": "column",
     "align-items": "center",
+    "content-visibility": "auto",
+    "contain-intrinsic-size": "300px",
   },
   line: {
     height: 40,

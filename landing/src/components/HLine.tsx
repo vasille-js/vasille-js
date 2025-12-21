@@ -15,6 +15,9 @@ const styles = styleSheet({
     height: 1,
     "align-items": "stretch",
     position: "relative",
+    "align-self": "stretch",
+    "content-visibility": "auto",
+    "contain-intrinsic-size": "1px",
   },
   inner: {
     position: "absolute",

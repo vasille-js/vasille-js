@@ -6,8 +6,8 @@ interface Props {
 
 export const DoubleDescription = component(({ description }: Props) => {
   <div class={[styles.container]}>
-    <Slot model={description} classes={[styles.dark]} isDark={false} />
-    <Slot model={description} classes={[styles.light]} isDark={true} />
+    <Slot model={description} classes={[styles.dark]} isDark={true} />
+    <Slot model={description} classes={[styles.light]} isDark={false} />
   </div>;
 });
 
