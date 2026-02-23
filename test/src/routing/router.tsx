@@ -8,8 +8,8 @@ const UserScreen = screen<"/user/(id)">(async ({ params }) => {
   <div>user:{params.id}</div>;
 });
 
-function throwNow (): number {
-  throw new Error("Fail")
+function throwNow(): number {
+  throw new Error("Fail");
 }
 
 const FailScreen = screen<"/fail">(async () => {

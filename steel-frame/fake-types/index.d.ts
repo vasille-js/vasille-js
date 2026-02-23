@@ -213,3 +213,38 @@ export interface PromptProps<T> {
 export declare function prompt<T, Input extends PromptProps<T> = PromptProps<T>>(
     modal: (input: Input) => void,
 ): (input: Omit<Input, keyof PromptProps<unknown>>, timeout?: number) => Promise<T>;
+
+/** Describes an injectable context value */
+export declare class SteelContext<Args extends unknown[], Value> {
+    private fn: (...args: Args) => Value;
+}
+
+/** Create an injectable context */
+export declare function context<Value, Args extends unknown[] = never[]>(fn: (...args: Args) => Value): SteelContext<Args, Value>;
+
+/** Share an context to children components */
+export declare function share<Args extends unknown[], Value>(ctx: SteelContext<Args, Value>, ...args: Args): Value;
+
+/** Share a dependency */
+export declare function share<Class>(className: new (...args: unknown[]) => Class, value: Class): Class;
+
+/** Share a settings */
+export declare function share(key: string, value: string): string;
+
+/** Receive an shared context */
+export declare function receive<Args extends unknown[], Value>(ctx: SteelContext<Args, Value>): Value;
+
+/** Receive a dependency */
+export declare function receive<Class>(className: new (...args: unknown[]) => Class): Class;
+
+/** Receive a settings */
+export declare function receive(key: string): string;
+
+/** Create and share an context when it is missing */
+export declare function impute<Args extends unknown[], Value>(ctx: SteelContext<Args, Value>, ...args: Args): Value;
+
+/** Ensure a dependency presence in context */
+export declare function impute<Class>(className: new (...args: unknown[]) => Class, value: () => Class): Class;
+
+/** Share a setting value when it is missing */
+export declare function impute(key: string, value: string): string;

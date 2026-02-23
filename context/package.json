@@ -1,0 +1,32 @@
+{
+  "name": "vasille-context",
+  "version": "5.0.0",
+  "description": "Provide contextual data between Vasille.JS components",
+  "keywords": [
+    "frontend",
+    "framework",
+    "safe",
+    "fast",
+    "simple"
+  ],
+  "license": "MIT",
+  "author": "lixcode",
+  "type": "module",
+  "main": "lib/index.js",
+  "scripts": {
+    "prepack": "cp -f ../README.md ./README.md",
+    "prettier": "npx prettier src test --write",
+    "prebuild": "rm -rf types lib",
+    "build": "tsc --build tsconfig.json",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test-coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
+  },
+  "devDependencies": {
+    "vasille": "file:../core"
+  },
+  "dependencies": {
+    "jest": "^30.2.0",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3"
+  }
+}
