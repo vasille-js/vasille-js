@@ -8,19 +8,16 @@ export function devScreen<Node, Element, TagOptions extends object, Route extend
     renderer: (node: DevFragment<Node, Element, TagOptions>, input: ScreenProps<Route>) => Promise<void>,
     declaration: StaticPosition,
     name: string,
-): (props: ScreenProps<Route>, ctx?: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>) => Promise<void> {
+): (
+    props: ScreenProps<Route>,
+    ctx?: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+) => Promise<void> {
     return async function (props, node) {
         if (!node) {
             throw new Error("Vasille: Screen context is missing");
         }
 
-        const frag = new DevFragment<Node, Element, TagOptions>(
-            node.runner,
-            declaration,
-            null,
-            name,
-            props,
-        );
+        const frag = new DevFragment<Node, Element, TagOptions>(node.runner, declaration, null, name, props);
 
         node.create(frag);
 
@@ -40,33 +37,33 @@ export class DevRouter<Routes extends string> extends Router<Routes> {
         super(window, location, node, init);
 
         this.inspector = node.runner.inspector;
-        this.inspector.registeredRoutes({paths: [...Object.keys(init.routes)],time: Date.now()});
+        this.inspector.registeredRoutes({ paths: [...Object.keys(init.routes)], time: Date.now() });
 
         this.$currentUrl.on(value => {
-            this.inspector.routerStateChange({name: "currentUrl", value,time: Date.now()});
+            this.inspector.routerStateChange({ name: "currentUrl", value, time: Date.now() });
         });
         this.$loadingUrl.on(value => {
-            this.inspector.routerStateChange({name:"loadingUrl", value,time: Date.now()});
+            this.inspector.routerStateChange({ name: "loadingUrl", value, time: Date.now() });
         });
     }
 
     public goTo(url: string) {
-        this.inspector?.routerActionCall({name:"goTo", path: url,time: Date.now()});
+        this.inspector?.routerActionCall({ name: "goTo", path: url, time: Date.now() });
         super.goTo(url);
     }
 
     public ajax(url: string) {
-        this.inspector?.routerActionCall({name:"ajax", path:url,time: Date.now()});
+        this.inspector?.routerActionCall({ name: "ajax", path: url, time: Date.now() });
         super.ajax(url);
     }
 
     public load(url: string): Promise<void> {
-        this.inspector?.routerActionCall({name:"load", path:url,time: Date.now()});
+        this.inspector?.routerActionCall({ name: "load", path: url, time: Date.now() });
         return super.load(url);
     }
 
     public reload() {
-        this.inspector?.routerActionCall({name:"reload", path:this.$currentUrl.V,time: Date.now()});
+        this.inspector?.routerActionCall({ name: "reload", path: this.$currentUrl.V, time: Date.now() });
         super.reload();
     }
 

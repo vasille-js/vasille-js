@@ -3,7 +3,7 @@
   "description": "The framework designed to build bulletproof frontends (router library).",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
@@ -73,7 +73,7 @@
     "typescript-eslint": "^8.39.0"
   },
   "dependencies": {
-    "vasille": "file:../core",
-    "vasille-jsx": "file:../jsx"
+    "vasille": "^5.0.0",
+    "vasille-jsx": "^5.0.0"
   }
 }

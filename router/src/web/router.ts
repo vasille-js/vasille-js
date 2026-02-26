@@ -4,8 +4,13 @@ import { Router as AbstractRouter, RouteRenderScope, RouterInitialization } from
 import { QueryParams, Answer, ScreenProps } from "../types.js";
 import { mount } from "vasille-jsx";
 
-export interface WebRouterInitialization<Routes extends string>
-    extends RouterInitialization<Node, Element, TagOptions, Routes, {}> {
+export interface WebRouterInitialization<Routes extends string> extends RouterInitialization<
+    Node,
+    Element,
+    TagOptions,
+    Routes,
+    {}
+> {
     loadingScreen?(props: object, node: Fragment<Node, Element, TagOptions>): void;
     loadingOverlay?(props: object, node: Fragment<Node, Element, TagOptions>): void;
 }
