@@ -22,11 +22,14 @@
     "test-coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
   },
   "devDependencies": {
-    "vasille": "file:../core"
-  },
-  "dependencies": {
+    "@types/jest": "^30.0.0",
+    "cross-env": "^10.1.0",
     "jest": "^30.2.0",
     "prettier": "^3.8.1",
+    "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "vasille": "file:../core"
   }
 }

@@ -1,16 +1,18 @@
-import { Reactive } from "vasille";
+import { Fragment, Reactive } from "vasille";
 
 const searchMap = new Map<Reactive, Map<unknown, unknown>>();
 
 function lookUp(node: Reactive, key: unknown): unknown {
-  const it = node;
+  let it: Reactive|null = node;
 
   while (it) {
-    const value = searchMap.get(node)?.get(key);
+    const value = searchMap.get(it)?.get(key);
 
     if (value !== undefined) {
       return value;
     }
+
+    it = it instanceof Fragment ? it.parent : null;
   }
 }
 
@@ -24,6 +26,8 @@ function setUp(node: Reactive, key: unknown, value: unknown) {
   }
 
   map.set(key, value);
+
+  return value;
 }
 
 export class SteelContext<Args extends unknown[], Value> {
@@ -47,7 +51,7 @@ export function share<Args extends unknown[], Value>(
 ): Value;
 export function share<Class>(
   node: Reactive,
-  className: new (...args: unknown[]) => Class,
+  className: abstract new (...args: unknown[]) => Class,
   value: Class,
 ): Class;
 export function share(node: Reactive, key: string, value: string): string;
@@ -55,7 +59,7 @@ export function share(
   node: Reactive,
   target:
     | SteelContext<unknown[], unknown>
-    | (new (...args: unknown[]) => unknown)
+    | (abstract new (...args: unknown[]) => unknown)
     | string,
   ...args: unknown[]
 ): unknown {
@@ -71,7 +75,7 @@ export function receive<Args extends unknown[], Value>(
 ): Value;
 export function receive<Class>(
   node: Reactive,
-  className: new (...args: unknown[]) => Class,
+  className: abstract new (...args: unknown[]) => Class,
 ): Class;
 export function receive(node: Reactive, key: string): string;
 export function receive(node: Reactive, key: unknown): unknown {
@@ -91,7 +95,7 @@ export function impute<Args extends unknown[], Value>(
 ): Value;
 export function impute<Class>(
   node: Reactive,
-  className: new (...args: unknown[]) => Class,
+  className: abstract new (...args: unknown[]) => Class,
   value: () => Class,
 ): Class;
 export function impute(node: Reactive, key: string, value: string): string;

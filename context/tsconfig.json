@@ -1,0 +1,18 @@
+{
+  "include": ["src/**/*", "test/**/*"],
+
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": true,
+    "outDir": "lib",
+    "declarationDir": "types",
+    "target": "ES2022",
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "strictNullChecks": true,
+    "isolatedModules": true,
+    "types": [
+      "jest"
+    ]
+  },
+}
