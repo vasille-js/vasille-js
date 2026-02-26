@@ -1,0 +1,8 @@
+/.idea
+/coverage
+/test
+/jest.config.cjs
+/tsconfig.json
+*.tgz
+*.tsbuildinfo
+/src

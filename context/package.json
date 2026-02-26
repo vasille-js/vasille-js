@@ -30,6 +30,6 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "vasille": "file:../core"
+    "vasille": "^5.0.0"
   }
 }
