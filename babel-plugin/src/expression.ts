@@ -1,7 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { calls, hintFunctions } from "./call.js";
-import { Internal, StackedStates } from "./internal.js";
+import { calls, dependencyInjections, hintFunctions } from "./call.js";
+import { ctx, Internal, StackedStates } from "./internal.js";
 import { checkNonReactiveName, err, Errors, ref } from "./lib";
 import { ignoreParams, meshAllUnknown, meshExpression } from "./mesh";
 import { routerReplace } from "./router";
@@ -302,6 +302,9 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       ) {
         meshExpression(path.get("arguments")[0] as NodePath<types.Expression>, search.external);
         path.replaceWith(path.node.arguments[0]);
+      } else if (!search.external.stateOnly && calls(path, dependencyInjections, search.external)) {
+        meshAllUnknown(path.get("arguments"), search.external);
+        path.node.arguments.unshift(ctx);
       } else {
         if (calls(path, hintFunctions, search.external)) {
           err(Errors.IncompatibleContext, path, "Usage of hints is restricted here", search.external, null);

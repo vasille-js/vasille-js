@@ -40,6 +40,10 @@ it("check node", function () {
   runTest(__dirname, "check-node");
 });
 
+it("dependency", function () {
+  runTest(__dirname, "dependency");
+});
+
 it("restricted hints error", function () {
   throwTest(__dirname, "restricted-hint", "Usage of hints is restricted here");
 });

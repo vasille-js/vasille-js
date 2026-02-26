@@ -113,7 +113,7 @@ it("compose nested destruction error", function () {
 });
 
 it("run on destroy error", function () {
-  throwTest(__dirname, "run-on-destroy", "Stores in Vasille.JS are not destroyable");
+  throwTest(__dirname, "run-on-destroy", "Stores/Models in Vasille.JS are not destroyable");
 });
 
 it("param name starts with $", function () {

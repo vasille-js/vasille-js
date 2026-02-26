@@ -1,6 +1,6 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { calls, composeFunctions, hintFunctions, modelFunctions, refFunctions } from "./call.js";
+import { calls, composeFunctions, dependencyInjections, hintFunctions, modelFunctions, refFunctions } from "./call.js";
 import { checkNode, exprIsSure, idIsIValue, memberIsIValue } from "./expression.js";
 import { ctx, inspector, Internal, VariableState } from "./internal.js";
 import { ConditionCollection, processConditions, transformJsx } from "./jsx.js";
@@ -197,7 +197,16 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
         }
         path.node.arguments.unshift(ctx);
       }
-      // call any other function, invalid if code calls a hint
+      // dependency injection
+      else if (
+        internal.isComposing &&
+        !internal.stateOnly &&
+        calls(path, dependencyInjections, internal) &&
+        path.node.arguments[0] === ctx
+      ) {
+        meshAllUnknown(path.get("arguments"), internal);
+      }
+      // call any other functions invalid if code calls a hint
       else {
         if (calls(path, hintFunctions, internal)) {
           err(Errors.IncompatibleContext, path, `Usage of hints is restricted here`, internal);
@@ -1066,10 +1075,15 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
         }
       } else if (calls(path, ["beforeDestroy"], internal)) {
         if (internal.stateOnly) {
-          err(Errors.IncompatibleContext, path, "Stores in Vasille.JS are not destroyable", internal);
+          err(Errors.IncompatibleContext, path, "Stores/Models in Vasille.JS are not destroyable", internal);
         }
 
         path.get("callee").replaceWith(t.memberExpression(ctx, t.identifier("runOnDestroy")));
+      } else if (calls(path, ["share"], internal)) {
+        if (internal.stateOnly) {
+          err(Errors.IncompatibleContext, path, "Stores/Models in Vasille.JS cannot share dependecies", internal);
+        }
+        path.node.arguments.unshift(ctx);
       }
       break;
     }

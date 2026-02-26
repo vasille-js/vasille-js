@@ -5,4 +5,5 @@ const C = component(Vasille => {
     a: 1
   };
   const $b = VasilleEnsure(o, "$b", [VasilleFilePath, 5, 8, 5, 17], Vasille.runner.inspector);
-}, [VasilleFilePath, 3, 10, 6, 2], "C");
+  const $x = VasilleEnsure(o, "$b", [VasilleFilePath, 6, 8, 6, 20], Vasille.runner.inspector);
+}, [VasilleFilePath, 3, 10, 7, 2], "C");

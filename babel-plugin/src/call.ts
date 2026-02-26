@@ -33,7 +33,10 @@ export type FnNames =
   | "laptop"
   | "prefersDark"
   | "prefersLight"
-  | "styleSheet";
+  | "styleSheet"
+  | "share"
+  | "receive"
+  | "impute";
 
 export const composeFunctions = [
   "compose",
@@ -67,6 +70,8 @@ export const styleOnly = [
   "styleSheet",
 ] as const satisfies FnNames[];
 
+export const dependencyInjections = ["share", "receive", "impute"] as const satisfies FnNames[];
+
 export const hintFunctions: FnNames[] = [
   ...refFunctions,
   ...asyncFunctions,
@@ -75,6 +80,7 @@ export const hintFunctions: FnNames[] = [
   ...modelFunctions,
   ...composeOnly,
   ...styleOnly,
+  ...dependencyInjections,
   "raw",
 ];
 
