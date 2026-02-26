@@ -32,7 +32,7 @@
     "vasille-jsx": "^4.3.1",
     "vasille-router": "^4.0.0",
     "vasille-ssg": "file:../ssg",
-    "vasille-web": "^4.3.1"
+    "vasille-web": "fle:../steel-frame"
   },
   "devDependencies": {
     "vasille-web-cli": "file:../web-cli"

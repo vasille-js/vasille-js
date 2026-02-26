@@ -87,9 +87,11 @@ export declare function Slot<Props extends object>(
 ): void;
 
 /** Renders content conditionally */
+export declare function If<T>(props: { $condition: T; slot: (value: Exclude<T, false | 0 | "" | null | undefined>) => void }): void;
 export declare function If(props: { $condition: unknown; slot?: unknown }): void;
 
 /** Renders content conditionally, use strict after `<If/>` */
+export declare function ElseIf<T>(props: { $condition: T; slot: (value: Exclude<T, false | 0 | "" | null | undefined>) => void }): void;
 export declare function ElseIf(props: { $condition: unknown; slot?: unknown }): void;
 
 /** Renders content conditionally, use strict after `<If/>` or `<ElseIf/>` */

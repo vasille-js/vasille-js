@@ -13,6 +13,13 @@
   "author": "lixcode",
   "type": "module",
   "main": "lib/index.js",
+  "exports": {
+      ".": {
+          "types": "./types/index.d.ts",
+          "import": "./lib/index.js",
+          "browser": "./lib/index.js"
+      }
+  },
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
     "prettier": "npx prettier src test --write",
@@ -20,6 +27,10 @@
     "build": "tsc --build tsconfig.json",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
     "test-coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vasille-js/steel-frame.git"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

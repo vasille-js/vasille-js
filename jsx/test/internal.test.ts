@@ -1,4 +1,4 @@
-import { IValue } from "vasille";
+import { IValue, Reference } from "vasille";
 import { arrayModel, backward, ensure, expr, forward, mapModel, ref, set, setModel, match } from "../src/internal.js";
 import { createNode } from "./page.js";
 
@@ -94,3 +94,19 @@ it("match test", function () {
     expect($b).toBeInstanceOf(IValue);
     expect($b.V).toBe(3);
 });
+
+it("ensure", function () {
+    const o: {x: number; y?: number} = {x: 1};
+
+    const t1 = ensure(null, 'x' as unknown as never);
+    const t2 = ensure(o, 'x');
+    const t3 = ensure(o, 'y');
+
+    expect(t1).toBeInstanceOf(Reference);
+    expect(t1.V).toBeUndefined();
+    expect(o.x).toBe(1);
+    expect(o.y).toBeInstanceOf(Reference);
+    expect(t2).toBe(1);
+    // @ts-expect-error
+    expect(t3.V).toBeUndefined();
+})

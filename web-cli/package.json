@@ -4,6 +4,7 @@
   "description": "The same framework which is designed to build bulletproof frontends (CLI tool for Web)",
   "main": "bin/run.js",
   "bin": {
+    "sf": "bin/run.js",
     "web": "bin/run.js"
   },
   "scripts": {

@@ -1,6 +1,6 @@
 {
   "name": "vasille-jsx",
-  "version": "4.3.3",
+  "version": "5.0.0",
   "description": "The same framework which is designed to build bulletproof frontends (JSX components)",
   "main": "lib/index.js",
   "exports": {
@@ -65,6 +65,6 @@
     "typescript-eslint": "^8.39.1"
   },
   "dependencies": {
-    "vasille": "file:../core"
+    "vasille": "5.0.0"
   }
 }
