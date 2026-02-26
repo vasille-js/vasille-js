@@ -1,5 +1,5 @@
 import { IValue, Reference } from "vasille";
-import { arrayModel, backward, ensure, expr, forward, mapModel, ref, set, setModel, match } from "../src/internal.js";
+import { arrayModel, ensure, mapModel, ref, set, setModel, match } from "../src/internal.js";
 import { createNode } from "./page.js";
 
 it("model functions", function () {
@@ -32,31 +32,6 @@ it("model functions", function () {
     expect(map2.size).toBe(0);
     expect(arr1.length).toBe(2);
     expect(arr2.length).toBe(0);
-});
-
-it("no context helpers", function () {
-    const a = ref<number>(2);
-    const b = forward<number>(a);
-    const ex = expr<number, [number, number]>(undefined, (a, b) => a + b, [a, b]);
-    const rv1 = ensure({ x: 1 }, "x") as unknown as IValue<number | undefined>;
-    const rv2 = backward(a);
-
-    expect(a.V).toBe(2);
-    expect(b.V).toBe(2);
-    expect(ex.V).toBe(4);
-    expect(rv1.V).toBe(undefined);
-    expect(rv2.V).toBe(2);
-
-    b.V = 3;
-    expect(ex.V).toBe(5);
-
-    a.V = 5;
-    expect(a.V).toBe(5);
-    expect(rv2.V).toBe(2);
-
-    rv2.V = 6;
-    expect(a.V).toBe(6);
-    expect(rv2.V).toBe(6);
 });
 
 it("set test", function () {

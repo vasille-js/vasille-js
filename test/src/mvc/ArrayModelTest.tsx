@@ -1,4 +1,4 @@
-import { arrayModel, component, For, view } from "vasille-web";
+import { arrayModel, component, For, view } from "steel-frame";
 
 const model = arrayModel(["x"]);
 

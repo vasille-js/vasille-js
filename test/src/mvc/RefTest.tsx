@@ -1,4 +1,4 @@
-import { component, ref, view } from "vasille-web";
+import { component, ref, view } from "steel-frame";
 
 let $text = ref("test");
 

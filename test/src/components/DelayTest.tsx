@@ -1,4 +1,4 @@
-import { view, Delay, ref, component } from "vasille-web";
+import { view, Delay, ref, component } from "steel-frame";
 
 let $state = ref("test");
 

@@ -1,4 +1,4 @@
-import { routerApp } from "vasille-web";
+import { routerApp } from "steel-frame";
 import { Router } from "vasille-router/web-router";
 import { x } from "../../src/routing/router";
 import { page } from "../page";

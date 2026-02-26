@@ -1,4 +1,4 @@
-import { component, ref, view, watch } from "vasille-web";
+import { component, ref, view, watch } from "steel-frame";
 
 let $name = ref("Vasille");
 let $external = ref("test");

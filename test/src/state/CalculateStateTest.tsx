@@ -1,4 +1,4 @@
-import { calculate, beforeMount, component } from "vasille-web";
+import { calculate, beforeMount, component } from "steel-frame";
 
 export let control: { setValue(value: string): void } | undefined = undefined;
 

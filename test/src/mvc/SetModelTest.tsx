@@ -1,4 +1,4 @@
-import { view, For, setModel, component } from "vasille-web";
+import { view, For, setModel, component } from "steel-frame";
 
 const model = setModel(["m"]);
 

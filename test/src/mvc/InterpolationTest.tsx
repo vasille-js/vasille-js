@@ -1,4 +1,4 @@
-import { beforeMount, component, ref } from "vasille-web";
+import { beforeMount, component, ref } from "steel-frame";
 
 interface EndProps extends Props {
   $model: number;

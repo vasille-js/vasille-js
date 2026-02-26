@@ -1,4 +1,4 @@
-import { page, router } from "vasille-web";
+import { page, router } from "steel-frame";
 
 export default page<"/page/(number)">(async props => {
   <div

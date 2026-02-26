@@ -1,4 +1,4 @@
-import { component, modal } from "vasille-web";
+import { component, modal } from "steel-frame";
 
 interface Props {
   title: string;

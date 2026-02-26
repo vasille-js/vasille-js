@@ -1,4 +1,4 @@
-import { component, ref } from "vasille-web";
+import { component, ref } from "steel-frame";
 
 interface Models {
   model: { $value: number };

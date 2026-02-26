@@ -1,4 +1,4 @@
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { StaticEmbedStateTest } from "../../src/state/StaticEmbedStateTest";
 import { page } from "../page";
 

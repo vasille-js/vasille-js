@@ -1,4 +1,4 @@
-import { view, For, mapModel, component } from "vasille-web";
+import { view, For, mapModel, component } from "steel-frame";
 
 const model = mapModel([[0, "a"]]);
 

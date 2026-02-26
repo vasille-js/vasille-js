@@ -1,4 +1,4 @@
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { StyledComponent } from "../../src/css/StyledComponent";
 import { page } from "../page";
 

@@ -1,5 +1,5 @@
 import { page } from "../page";
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { TestModalApp } from "../../src/modals/TestModalApp";
 
 it("Test Modal", function () {

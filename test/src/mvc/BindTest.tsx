@@ -1,4 +1,4 @@
-import { bind, component, ref, view } from "vasille-web";
+import { bind, component, ref, view } from "steel-frame";
 
 let $r = ref("test");
 const $text = bind("+" + $r);

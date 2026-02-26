@@ -1,4 +1,4 @@
-import { styleSheet, dark, theme, mobile, tablet, laptop, prefersDark, prefersLight, component } from "vasille-web";
+import { styleSheet, dark, theme, mobile, tablet, laptop, prefersDark, prefersLight, component } from "steel-frame";
 
 export const StyledComponent = component(() => {
   <div class={styles.common}></div>;

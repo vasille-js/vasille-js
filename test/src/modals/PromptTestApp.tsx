@@ -1,4 +1,4 @@
-import { beforeMount, component, prompt } from "vasille-web";
+import { beforeMount, component, prompt } from "steel-frame";
 
 let _resolve: ((v: string) => void) | null = null;
 let _reject: ((v: unknown) => void) | null = null;

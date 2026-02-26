@@ -1,4 +1,4 @@
-import { component, view } from "vasille-web";
+import { component, view } from "steel-frame";
 
 const Embed = component(() => {
   <div>Embed</div>;

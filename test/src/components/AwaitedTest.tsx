@@ -1,4 +1,4 @@
-import { awaited, beforeMount, component, view, watch } from "vasille-web";
+import { awaited, beforeMount, component, view, watch } from "steel-frame";
 
 export const reloads: (() => void)[] = [];
 export const c1states: [unknown, unknown][] = [];

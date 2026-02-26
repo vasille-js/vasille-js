@@ -84,13 +84,3 @@ export function set(o: object, key: string | symbol | number, value: unknown, cr
     }
     return value;
 }
-
-export function forward<T>(value: IValue<T>) {
-    return new Expression(v => v, [value]);
-}
-
-export function backward<T>(value: IValue<T>) {
-    const r = new Reference(value.V);
-    r.on(v => (value.V = v));
-    return r;
-}

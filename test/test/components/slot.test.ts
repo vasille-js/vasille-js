@@ -1,4 +1,4 @@
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { SlotTest, control, xes } from "../../src/components/SlotTest";
 import { page } from "../page";
 

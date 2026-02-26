@@ -1,4 +1,4 @@
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { x } from "../../src/store/watch";
 import { page } from "../page";
 

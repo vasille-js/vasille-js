@@ -1,5 +1,5 @@
 import { page } from "../page";
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { PromptTestApp, rejectPrompt, control } from "../../src/modals/PromptTestApp";
 
 it("Prompt test", async function () {

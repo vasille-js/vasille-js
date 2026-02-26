@@ -1,4 +1,4 @@
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { x } from "../../src/store/array-model";
 import { page } from "../page";
 

@@ -1,4 +1,4 @@
-import { component, store, view, watch } from "vasille-web";
+import { component, store, view, watch } from "steel-frame";
 
 const modelStore = store(() => {
   let $name = "Vasille";

@@ -1,4 +1,4 @@
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { control, RefStateTest } from "../../src/state/RefStateTest";
 import { page } from "../page";
 

@@ -1,4 +1,4 @@
-import { beforeMount, component, view, watch } from "vasille-web";
+import { beforeMount, component, view, watch } from "steel-frame";
 
 export let control: { setValue(value: string): void } | undefined = undefined;
 

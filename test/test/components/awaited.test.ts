@@ -1,4 +1,4 @@
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { AwaitedTest, reloads, c2states, c1states } from "../../src/components/AwaitedTest";
 import { page } from "../page";
 

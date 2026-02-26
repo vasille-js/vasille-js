@@ -1,4 +1,4 @@
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { control, ReactiveObjectTest } from "../../src/mvc/ReactiveObjectTest";
 import { page } from "../page";
 

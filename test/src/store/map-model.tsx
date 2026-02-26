@@ -1,4 +1,4 @@
-import { store, view, For, component } from "vasille-web";
+import { store, view, For, component } from "steel-frame";
 
 const modelStore = store(() => {
   const map = new Map([[0, "a"]]);

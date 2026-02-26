@@ -1,4 +1,4 @@
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { IfElseIfTest, control } from "../../src/components/IfElseIfTest";
 import { page } from "../page";
 

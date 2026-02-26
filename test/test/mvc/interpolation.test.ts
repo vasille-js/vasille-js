@@ -1,4 +1,4 @@
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { control, InterpolationTest } from "../../src/mvc/InterpolationTest";
 import { page } from "../page";
 

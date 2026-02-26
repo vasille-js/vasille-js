@@ -1,5 +1,5 @@
 import { setErrorHandler } from "vasille";
-import { routerApp } from "vasille-web";
+import { routerApp } from "steel-frame";
 import { page } from "../page";
 
 it("empty routing test", function (done) {

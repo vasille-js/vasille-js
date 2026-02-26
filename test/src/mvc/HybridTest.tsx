@@ -1,4 +1,4 @@
-import { beforeMount, component, ref } from "vasille-web";
+import { beforeMount, component, ref } from "steel-frame";
 
 interface Models {
   model: { $value: number };

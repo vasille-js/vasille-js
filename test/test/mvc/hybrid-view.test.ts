@@ -1,4 +1,4 @@
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { control, HybridTest } from "../../src/mvc/HybridTest";
 import { page } from "../page";
 

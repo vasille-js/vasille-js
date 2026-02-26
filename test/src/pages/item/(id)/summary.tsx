@@ -1,4 +1,4 @@
-import { router, screen } from "vasille-web";
+import { router, screen } from "steel-frame";
 
 export default screen<"/item/(id)/summary">(async props => {
   <div

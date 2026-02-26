@@ -1,4 +1,4 @@
-import { component, raw, ref, view } from "vasille-web";
+import { component, raw, ref, view } from "steel-frame";
 
 let $r = ref("test");
 const text = raw($r);

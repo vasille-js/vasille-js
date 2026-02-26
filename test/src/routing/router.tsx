@@ -1,4 +1,4 @@
-import { beforeMount, component, screen, view } from "vasille-web";
+import { beforeMount, component, screen, view } from "steel-frame";
 
 const IndexScreen = screen<"/index">(async () => {
   <div>index</div>;

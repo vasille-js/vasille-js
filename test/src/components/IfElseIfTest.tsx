@@ -1,4 +1,4 @@
-import { view, If, ElseIf, Else, ref, component } from "vasille-web";
+import { view, If, ElseIf, Else, ref, component } from "steel-frame";
 
 let $state = ref("test");
 

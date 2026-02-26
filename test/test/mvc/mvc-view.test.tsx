@@ -1,4 +1,4 @@
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { control, MvcViewTest } from "../../src/mvc/MvcViewTest";
 import { page } from "../page";
 

@@ -25,14 +25,15 @@
     "jest": "^30.0.5",
     "jsdom": "^26.1.0",
     "prettier": "^3.6.2",
+    "steel-frame": "^5.0.1",
     "ts-jest": "^29.4.1",
     "typescript": "^5.9.2",
-    "vasille": "^4.3.1",
-    "vasille-css": "^4.1.0",
-    "vasille-jsx": "^4.3.1",
-    "vasille-router": "^4.0.0",
-    "vasille-ssg": "file:../ssg",
-    "vasille-web": "fle:../steel-frame"
+    "vasille": "^5.0.0",
+    "vasille-css": "^5.0.0",
+    "vasille-jsx": "^5.0.0",
+    "vasille-router": "^5.0.0",
+    "vasille-ssg": "^4.1.0",
+    "vasille-web": "^5.0.0"
   },
   "devDependencies": {
     "vasille-web-cli": "file:../web-cli"

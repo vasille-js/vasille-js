@@ -1,4 +1,4 @@
-import { beforeMount, component, ref, view, Watch } from "vasille-web";
+import { beforeMount, component, ref, view, Watch } from "steel-frame";
 
 let $state = ref("test");
 

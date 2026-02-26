@@ -1,4 +1,4 @@
-import { view, For, component, beforeMount } from "vasille-web";
+import { view, For, component, beforeMount } from "steel-frame";
 
 export let control:
   | {

@@ -1,4 +1,4 @@
-import { mount } from "vasille-web";
+import { mount } from "steel-frame";
 import { DelayTest, control } from "../../src/components/DelayTest";
 import { page } from "../page";
 
