@@ -26,7 +26,12 @@ export async function indexPlugin(routerDir: string, pagesDir: string, replaceWe
     };
 }
 
-export async function watchForIndexUpdates(routerDir: string, pagesDir: string, replaceWeb:string, restart: () => void) {
+export async function watchForIndexUpdates(
+    routerDir: string,
+    pagesDir: string,
+    replaceWeb: string,
+    restart: () => void,
+) {
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     function handler() {

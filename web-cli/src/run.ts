@@ -44,7 +44,11 @@ async function run() {
                         external: ["vasille-web"],
                     },
                 },
-                plugins: [await indexPlugin(routerDir, pagesDir, "vasille-web"), ...getVitePlugins("vasille-web"), compress()],
+                plugins: [
+                    await indexPlugin(routerDir, pagesDir, "vasille-web"),
+                    ...getVitePlugins("vasille-web"),
+                    compress(),
+                ],
                 resolve,
             });
 
@@ -167,7 +171,11 @@ async function run() {
             esbuild: false,
             appType: "spa",
             command: "serve",
-            plugins: [await indexPlugin(routerDir, pagesDir, "steel-frame"), ...getVitePlugins("steel-frame"), inspect()],
+            plugins: [
+                await indexPlugin(routerDir, pagesDir, "steel-frame"),
+                ...getVitePlugins("steel-frame"),
+                inspect(),
+            ],
             resolve,
             optimizeDeps: {
                 include: [],

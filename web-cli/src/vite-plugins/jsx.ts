@@ -5,7 +5,6 @@ import babel from "vite-plugin-babel";
 
 export function getVitePlugins(target: "steel-frame" | "vasille-web" | "vasille-ssg") {
     return [
-        // @ts-expect-error
         babel({
             loader: "js",
             filter: /\.[tj]sx?$/,
