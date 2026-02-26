@@ -228,7 +228,7 @@ export declare function context<Value, Args extends unknown[] = never[]>(fn: (..
 export declare function share<Args extends unknown[], Value>(ctx: SteelContext<Args, Value>, ...args: Args): Value;
 
 /** Share a dependency */
-export declare function share<Class>(className: new (...args: unknown[]) => Class, value: Class): Class;
+export declare function share<Class>(className: abstract new (...args: unknown[]) => Class, value: Class): Class;
 
 /** Share a settings */
 export declare function share(key: string, value: string): string;
@@ -237,7 +237,7 @@ export declare function share(key: string, value: string): string;
 export declare function receive<Args extends unknown[], Value>(ctx: SteelContext<Args, Value>): Value;
 
 /** Receive a dependency */
-export declare function receive<Class>(className: new (...args: unknown[]) => Class): Class;
+export declare function receive<Class>(className: abstract new (...args: unknown[]) => Class): Class;
 
 /** Receive a settings */
 export declare function receive(key: string): string;
@@ -246,7 +246,7 @@ export declare function receive(key: string): string;
 export declare function impute<Args extends unknown[], Value>(ctx: SteelContext<Args, Value>, ...args: Args): Value;
 
 /** Ensure a dependency presence in context */
-export declare function impute<Class>(className: new (...args: unknown[]) => Class, value: () => Class): Class;
+export declare function impute<Class>(className: abstract new (...args: unknown[]) => Class, value: () => Class): Class;
 
 /** Share a setting value when it is missing */
 export declare function impute(key: string, value: string): string;

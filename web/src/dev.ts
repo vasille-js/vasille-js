@@ -7,14 +7,14 @@ import { modal, prompt, PromptProps } from "./index.js";
 import { WebRouterInitialization } from "vasille-router/web-router";
 
 function createPortal<Runner extends IDevRunner<Node, Element, TagOptions>>(
-    node: Fragment<Node, Element, TagOptions, Runner>,
+    node: Fragment<Node, Element, TagOptions>,
     declaration: StaticPosition | undefined,
     usage: StaticPosition | undefined,
     name: string | undefined,
 ) {
     const portal = new DevPortal<Node, Element, TagOptions, Runner>(
         { node: document.body },
-        node.runner,
+        node.runner as Runner,
         declaration,
         usage,
         name,
@@ -26,19 +26,12 @@ function createPortal<Runner extends IDevRunner<Node, Element, TagOptions>>(
 }
 
 export function devModal<T extends object>(
-    modalFn: (node: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>, input: T) => void,
+    modalFn: (node: Fragment<Node, Element, TagOptions>, input: T) => void,
     declaration: StaticPosition,
     name: string,
-): (
-    input: T,
-    node: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
-    usage: StaticPosition | undefined,
-) => void {
+): (input: T, node: Fragment<Node, Element, TagOptions>, usage: StaticPosition | undefined) => void {
     return (input, node, usage) => {
-        modal<T, IDevRunner<Node, Element, TagOptions>>(modalFn, node => createPortal(node, declaration, usage, name))(
-            input,
-            node,
-        );
+        modal<T>(modalFn, node => createPortal(node, declaration, usage, name))(input, node);
     };
 }
 
