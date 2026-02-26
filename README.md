@@ -44,10 +44,10 @@ $ npm create steel-frame
 ```
 
 ### Full documentation:
-* [Learn `SteelFrameKit` in 5 minutes](https://github.com/vasille-js/vasille-js/blob/v4/doc/V4-API.md)
-* [Router Documentation](https://github.com/vasille-js/vasille-js/blob/v4/doc/Router-API.md)
-* [Compostion functions](https://github.com/vasille-js/vasille-js/blob/v4/doc/Compositions.md)
-* [Dependency injection](https://github.com/vasille-js/vasille-js/blob/v4/doc/Context.md)
+* [Learn `SteelFrameKit` in 5 minutes](https://github.com/vasille-js/vasille-js/blob/v5/doc/V4-API.md)
+* [Router Documentation](https://github.com/vasille-js/vasille-js/blob/v5/doc/Router-API.md)
+* [Compostion functions](https://github.com/vasille-js/vasille-js/blob/v5/doc/Compositions.md)
+* [Dependency injection](https://github.com/vasille-js/vasille-js/blob/v5/doc/Context.md)
 
 ### Examples
 * [TypeScript Example](https://github.com/vasille-js/example-typescript)
