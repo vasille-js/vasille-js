@@ -54,6 +54,7 @@ export class SetModel<T> extends Set<T> implements ListenableModel<T, T> {
      * @return {boolean} true if a value was deleted, otherwise false
      */
     public override delete(value: T): boolean {
+        /* istanbul ignore else */
         if (super.has(value)) {
             this.listener.emitRemoved(value, value);
         }
