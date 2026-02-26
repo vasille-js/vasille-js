@@ -11,7 +11,7 @@
 - [Steel Frame](#steel-frame)
   - [Table of content](#table-of-content)
   - [Installation](#installation)
-  - [How to use Vasille](#how-to-use-vasille)
+  - [How to use SteelFramekit](#how-to-use-steelframekit)
     - [Full documentation:](#full-documentation)
     - [Examples](#examples)
   - [How SAFE is SteelFrameKit](#how-safe-is-steelframekit)
@@ -32,15 +32,15 @@
 ## Installation
 
 ```
-npm install vasille-web --save
+npm install steel-frame --save
 ```
 
-## How to use Vasille
+## How to use SteelFramekit
 
 Create an app from a template
 
 ```bash
-$ npm create vasille
+$ npm create steel-frame
 ```
 
 ### Full documentation:
