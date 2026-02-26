@@ -1,11 +1,11 @@
 {
-  "name": "create-vasille",
-  "version": "1.0.1",
-  "description": "Scaffolding Your First Vassile App",
+  "name": "create-steel-frame",
+  "version": "5.0.0",
+  "description": "Scaffolding Your First StellFrameKit App",
   "main": "index.js",
   "type": "commonjs",
   "bin": {
-    "create-vasille": "index.js"
+    "create-steel-frame": "index.js"
   },
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
