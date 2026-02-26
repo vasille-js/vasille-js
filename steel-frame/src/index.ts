@@ -41,6 +41,7 @@ export {
 } from "vasille-web";
 export { setLaptopMaxWidth, setTabletMaxWidth, setMobileMaxWidth } from "vasille-css";
 export { devStyleSheet as styleSheet } from "vasille-css/dev";
+export { context, impute, receive, share } from "vasille-context";
 
 export const view = devView;
 export const component = devView;

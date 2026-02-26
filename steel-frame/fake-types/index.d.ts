@@ -87,11 +87,17 @@ export declare function Slot<Props extends object>(
 ): void;
 
 /** Renders content conditionally */
-export declare function If<T>(props: { $condition: T; slot: (value: Exclude<T, false | 0 | "" | null | undefined>) => void }): void;
+export declare function If<T>(props: {
+    $condition: T;
+    slot: (value: Exclude<T, false | 0 | "" | null | undefined>) => void;
+}): void;
 export declare function If(props: { $condition: unknown; slot?: unknown }): void;
 
 /** Renders content conditionally, use strict after `<If/>` */
-export declare function ElseIf<T>(props: { $condition: T; slot: (value: Exclude<T, false | 0 | "" | null | undefined>) => void }): void;
+export declare function ElseIf<T>(props: {
+    $condition: T;
+    slot: (value: Exclude<T, false | 0 | "" | null | undefined>) => void;
+}): void;
 export declare function ElseIf(props: { $condition: unknown; slot?: unknown }): void;
 
 /** Renders content conditionally, use strict after `<If/>` or `<ElseIf/>` */
@@ -222,7 +228,9 @@ export declare class SteelContext<Args extends unknown[], Value> {
 }
 
 /** Create an injectable context */
-export declare function context<Value, Args extends unknown[] = never[]>(fn: (...args: Args) => Value): SteelContext<Args, Value>;
+export declare function context<Value, Args extends unknown[] = never[]>(
+    fn: (...args: Args) => Value,
+): SteelContext<Args, Value>;
 
 /** Share an context to children components */
 export declare function share<Args extends unknown[], Value>(ctx: SteelContext<Args, Value>, ...args: Args): Value;
