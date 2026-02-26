@@ -1,19 +1,30 @@
-# Vasille
+# Steel Frame
 
-![Vasille.js logo](https://raw.githubusercontent.com/vasille-js/vasille-js/refs/heads/v4/doc/img/logo.png)
+![Vasille.js logo](https://raw.githubusercontent.com/vasille-js/vasille-js/refs/heads/v5/doc/img/logo.png)
 
-`Vasille Web` is a front-end framework, which is developed to provide bulletproof frontends.
+`SteelFrameKit` is a front-end development kit, which is developed to provide bulletproof frontends.
 
 [![npm](https://img.shields.io/npm/v/vasille?style=flat-square)](https://www.npmjs.com/package/vasille)
 
 ## Table of content
 
-* [Installation](#installation)
-* [How to use Vasille](#how-to-use-vasille)
-* [How SAFE is Vasille](#how-safe-is-vasille)
-* [How INTUITIVE is Vasille](#how-intuitive-is-vasille)
-* [How POWERFUL is Vasille](#how-powerful-is-vasille)
-* [Road Map](#road-map)
+- [Steel Frame](#steel-frame)
+  - [Table of content](#table-of-content)
+  - [Installation](#installation)
+  - [How to use Vasille](#how-to-use-vasille)
+    - [Full documentation:](#full-documentation)
+    - [Examples](#examples)
+  - [How SAFE is SteelFrameKit](#how-safe-is-steelframekit)
+  - [How INTUITIVE is SteelFrameKit](#how-intuitive-is-steelframekit)
+  - [How POWERFUL is SteelFrameKit](#how-powerful-is-steelframekit)
+  - [Road map](#road-map)
+  - [Change log](#change-log)
+    - [5.0.0](#500)
+    - [4.3.0](#430)
+    - [4.2.0](#420)
+    - [4.1.0](#410)
+    - [4.0.0](#400)
+  - [Questions](#questions)
 
 
 <hr>
@@ -33,9 +44,10 @@ $ npm create vasille
 ```
 
 ### Full documentation:
-* [Learn `Vasille` in 5 minutes](https://github.com/vasille-js/vasille-js/blob/v4/doc/V4-API.md)
-* [Vasille Router Documentation](https://github.com/vasille-js/vasille-js/blob/v4/doc/Router-API.md)
-* [Vasille Compostion function](https://github.com/vasille-js/vasille-js/blob/v4/doc/Compositions.md)
+* [Learn `SteelFrameKit` in 5 minutes](https://github.com/vasille-js/vasille-js/blob/v4/doc/V4-API.md)
+* [Router Documentation](https://github.com/vasille-js/vasille-js/blob/v4/doc/Router-API.md)
+* [Compostion functions](https://github.com/vasille-js/vasille-js/blob/v4/doc/Compositions.md)
+* [Dependency injection](https://github.com/vasille-js/vasille-js/blob/v4/doc/Context.md)
 
 ### Examples
 * [TypeScript Example](https://github.com/vasille-js/example-typescript)
@@ -43,14 +55,14 @@ $ npm create vasille
 
 <hr>
 
-## How SAFE is Vasille
+## How SAFE is SteelFrameKit
 
 The safe of your application is ensured by
 * `100%` coverage of code by unit tests.
   Each function, each branch is working as designed.
 * OOP, DRY, KISS and SOLID principles are applied.
 * `strong typing` makes your javascript/typescript code safe as C++ code.
-All entities of `vasille` core library are strongly typed, including:
+All entities of `SteelFrameKit` core library are strongly typed, including:
   * data fields & properties.
   * computed properties (function parameters and result).
   * methods.
@@ -60,11 +72,11 @@ All entities of `vasille` core library are strongly typed, including:
   * references to children.
 * No asynchronous code, when the line of code is executed, the DOM and reactive things are already synced.
 
-## How INTUITIVE is Vasille
+## How INTUITIVE is SteelFrameKit
 
 There is the "Hello World":
 ```typescript jsx
-import { compose, mount } from "vasille-dx";
+import { compose, mount } from "steel-frame";
 
 const App = compose(() => {
   <p>Hello world</p>;
@@ -73,7 +85,7 @@ const App = compose(() => {
 mount(document.body, App, {});
 ```
 
-## How POWERFUL is Vasille
+## How POWERFUL is SteelFrameKit
 
 All of these are supported:
 * Components.
@@ -85,24 +97,29 @@ All of these are supported:
 * 2-way data binding in components.
 * Logic block (if, else).
 * Loops (array, map, set).
+* Dependency injection.
 
 <hr>
 
 ## Road map
 
-* [x] Update the `Vasille Core` library to version 3.0.
+* [x] Update the `core` library to version 3.0.
 * [x] `100%` Test Coverage for core Library v3.
-* [x] Develop the `Vasille JSX` library.
+* [x] Develop the `JSX` library.
 * [x] `100%` Test Coverage for the JSX library.
-* [x] Develop the `Vasille Babel Plugin`.
+* [x] Develop the `Babel Plugin`.
 * [x] `100%` Test Coverage fot babel plugin.
 * [x] Add CSS support (define styles in components).
 * [x] Add router.
 * [x] Add SSG (static site generation).
+* [ ] Develop tools extension for debugging (WIP).
 * [ ] Add SSR (server side rendering).
-* [ ] Develop tools extension for debugging.
 
 ## Change log
+
+### 5.0.0
+
+Add support for context and dependencies injection.
 
 ### 4.3.0
 
@@ -114,19 +131,14 @@ Add support for inlined conditions in JSX, binary `&&` and ternary `?:` operator
 
 ### 4.1.0
 
-Added SSG (static site generation) as build option `vasille-web build static`.
+Added SSG (static site generation) as build option `sf build static`.
 
 ### 4.0.0
 
-Initial version of the framework with file based routing and building scripts (`vasille-web dev` and `vasille-web build spa`).
+Initial version of the framework with file based routing and building scripts (`sf dev` and `sf build spa`).
 
 ## Questions
 
 If you have questions, feel free to contact the maintainer of the project:
 
 * [Author's Email](mailto:vas.lixcode@gmail.com)
-* [Author's Telegram](https://t.me/lixcode)
-
-<hr>
-
-**Made in Moldova** 🇲🇩
