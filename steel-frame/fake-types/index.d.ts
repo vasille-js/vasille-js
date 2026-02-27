@@ -111,9 +111,6 @@ export declare function For<K, T>(props: { of: ReadonlyMap<K, T>; slot?: (value:
 /** Refresh the content each time then the reactive model is updated */
 export declare function Watch<T>(props: { $model: T; slot?: (value: T) => void }): void;
 
-/** Create a debug comment in DOM */
-export declare function Debug(props: { $model: unknown }): void;
-
 /** Render content after a while */
 export declare function Delay(props: { time?: number; slot?: unknown }): void;
 

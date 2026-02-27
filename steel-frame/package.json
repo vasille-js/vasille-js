@@ -4,9 +4,6 @@
   "description": "SteelFrame: Build Fault-Tolerant Web Applications Effortlessly.",
   "main": "index.js",
   "types": "./index.d.ts",
-  "bin": {
-    "sf": "./lib/run.js"
-  },
   "exports": {
     ".": {
       "types": "./fake-types/index.d.ts",

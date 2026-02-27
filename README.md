@@ -19,11 +19,11 @@
   - [How POWERFUL is SteelFrameKit](#how-powerful-is-steelframekit)
   - [Road map](#road-map)
   - [Change log](#change-log)
-    - [5.0.0](#500)
-    - [4.3.0](#430)
-    - [4.2.0](#420)
-    - [4.1.0](#410)
-    - [4.0.0](#400)
+    - [5.0](#50)
+    - [4.0 - 4.3](#40---43)
+    - [3.0 - 3.2](#30---32)
+    - [2.0 - 2.3](#20---23)
+    - [1.0 - 1.2](#10---12)
   - [Questions](#questions)
 
 
@@ -92,7 +92,7 @@ All of these are supported:
 * Reactive values (observables).
 * Inline computed values.
 * Multiline computed values.
-* HTML & SVG tags.
+* HTML tags.
 * Component custom slots.
 * 2-way data binding in components.
 * Logic block (if, else).
@@ -103,7 +103,6 @@ All of these are supported:
 
 ## Road map
 
-* [x] Update the `core` library to version 3.0.
 * [x] `100%` Test Coverage for core Library v3.
 * [x] Develop the `JSX` library.
 * [x] `100%` Test Coverage for the JSX library.
@@ -117,25 +116,42 @@ All of these are supported:
 
 ## Change log
 
-### 5.0.0
+We respect semantic versioning:
+- Major version is increased when we make incompatible API changes.
+- Minor version is increased when we add functionality.
+- Patch version is increased when we fix bugs.
 
-Add support for context and dependencies injection.
+### 5.0
 
-### 4.3.0
+- Add support for context and dependencies injection.
+- New developement direction: `fault tolerant`.
+- Renamed to `steel-frame`. **[API change]**
+- Removed `forward` and `backward` functions. **[API change]**
+- Removed `Debug` component. **[API change]**
 
-Add new function `safe` which make functions safe, errors are reported automatically.
+### 4.0 - 4.3
 
-### 4.2.0
+- Initial version of the framework with file based routing and building scripts (`web dev` and `web build spa`).
+- Reactive values naming switched to `$` prefix. **[API change]**
+- `4.1` Added SSG (static site generation) as build option `web build static`.
+- `4.2` Add support for inlined conditions in JSX, binary `&&` and ternary `?:` operator.
+- `4.3` Add new function `safe` which make functions safe, errors are reported automatically.
 
-Add support for inlined conditions in JSX, binary `&&` and ternary `?:` operator.
+### 3.0 - 3.2
 
-### 4.1.0
+- Switch to a babel plugin to compile components code. **[API change]**
+- 100% of code has been covered with unit tests.
+- New developement direction: `keep it simple`.
 
-Added SSG (static site generation) as build option `sf build static`.
+### 2.0 - 2.3
 
-### 4.0.0
+- Introduces components compilation via a typescript plugin. **[API change]**
+- New developement direction: `write less, do more`.
 
-Initial version of the framework with file based routing and building scripts (`sf dev` and `sf build spa`).
+### 1.0 - 1.2
+
+- Initial version of core library.
+- Developemnt direction: `performance-first`.
 
 ## Questions
 
