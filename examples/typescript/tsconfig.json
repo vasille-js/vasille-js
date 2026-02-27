@@ -7,7 +7,7 @@
     "noEmit": true,
     "target": "ES2015",
     "module": "ES2015",
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "jsx": "preserve",
     "skipLibCheck": true,
     "strictNullChecks": true,

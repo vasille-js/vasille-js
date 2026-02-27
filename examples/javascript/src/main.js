@@ -1,5 +1,5 @@
-import { mount } from "vasille-web";
-import { App } from "./App.jsx";
+import { mount } from "steel-frame";
+import { App } from "./components/App.jsx";
 import "./style.css";
 
 
