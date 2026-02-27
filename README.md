@@ -2,7 +2,7 @@
 
 ![Vasille.js logo](https://raw.githubusercontent.com/vasille-js/vasille-js/refs/heads/v5/doc/img/logo.png)
 
-`SteelFrameKit` is a front-end development kit, which is developed to provide bulletproof frontends.
+`SteelFrameKit` is a front-end development kit, which is developed to provide fault tolerant web applications.
 
 [![npm](https://img.shields.io/npm/v/steel-frame?style=flat-square)](https://www.npmjs.com/package/steel-frame)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/vasille-js/steel-frame)
