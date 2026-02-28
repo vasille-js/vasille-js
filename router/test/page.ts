@@ -15,14 +15,5 @@ export function page(url?: string) {
 
     global.HTMLElement = page.window.HTMLElement;
 
-    if (process.env.VASILLE_TARGET === "es5") {
-        page.window.onpopstate = function () {};
-        // @ts-ignore
-        delete page.window.URL;
-        Object.defineProperty(page.window, "history", { value: null });
-        // @ts-ignore
-        Object.entries = null;
-    }
-
     return page.window;
 }
