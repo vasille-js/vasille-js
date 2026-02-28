@@ -22,7 +22,7 @@ jobs:
       # Loop through each package and run tests sequentially
       - name: Run tests for all packages sequentially
         run: |
-          for pkg in core jsx css babel-plugin; do
+          for pkg in core jsx css babel-plugin context router; do
             echo "== Testing $pkg =="
             cd $pkg
             export COVERALLS_FLAG_NAME=$pkg
