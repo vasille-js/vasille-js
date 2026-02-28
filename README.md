@@ -6,6 +6,7 @@
 
 [![npm](https://img.shields.io/npm/v/steel-frame?style=flat-square)](https://www.npmjs.com/package/steel-frame)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/vasille-js/steel-frame)
+[![Coverage Status](https://coveralls.io/repos/github/vasille-js/steel-frame/badge.svg?branch=v5)](https://coveralls.io/github/vasille-js/steel-frame?branch=v5)
 
 ## Table of content
 
