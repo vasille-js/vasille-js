@@ -8,26 +8,25 @@ All frameworks are scored in the next way:
 - 1 point for each button present on screen.
 - 1 point for each button if the counter value is displayed.
 - 1 point for each button if the counter value is updated after click.
-- 1 point bonus for excellence if all buttons are working.
 
-| Name    | Version | Button | Counter | Updatable | Bonus | Total | Bandle size |
-|---------|---------|--------|---------|-----------|-------|-------|-------------|
-| Alpine  | 3.15.2  | 3      | 3       | 3         | 1     | 10    | 44.9 kB     |
-| Angular | 20.3.9  | 3      | 0       | 0         | 0     | 3     | 131.2 kB    |
-| Aurelia | 2.0.0b  | 2      | 2       | 2         | 0     | 6     | 252.9 kB    |
-| Ember   | 6.8.0   | 2      | 1       | 0         | 0     | 3     | 1013.8 kB   |
-| Lit     | 3.3.1   | 0      | 0       | 0         | 0     | 0     | 17.2 kB     |
-| Marko   | 6.0.114 | 0      | 0       | 0         | 0     | 0     | 2.4kB       |
-| Mithril | 2.3.7   | 0      | 0       | 0         | 0     | 0     | 20.6 kB     |
-| Preact  | 10.26.9 | 0      | 0       | 0         | 0     | 0     | 13.7 kB     |
-| Stencil | 4.22.2  | 0      | 0       | 0         | 0     | 0     | 21.9 kB     |
-| Qwik    | 1.17.1  | 0      | 0       | 0         | 0     | 0     | 52.9 kB     |
-| React   | 19.2.0  | 0      | 0       | 0         | 0     | 0     | 190.2 kB    |
-| Ripple  | 0.2.176 | 0      | 0       | 0         | 0     | 0     | 14.4kB      |
-| Solid   | 1.9.10  | 0      | 0       | 0         | 0     | 0     | 8.3 kB      |
-| Svelte  | 5.43.2  | 0      | 0       | 0         | 0     | 0     | 25.7 kB     |
-| Vasille | 4.3.1   | 3      | 3       | 3         | 1     | 10    | 8.4 kB      |
-| Vue     | 3.5.22  | 2      | 2       | 2         | 0     | 6     | 59.0 kB     |
+| Name    | Version | Button | Counter | Updatable | Total | Bandle size |
+|---------|---------|--------|---------|-----------|-------|-------------|
+| Alpine  | 3.15.2  | 3      | 3       | 3         | 9     | 44.9 kB     |
+| Angular | 20.3.9  | 3      | 0       | 0         | 3     | 131.2 kB    |
+| Aurelia | 2.0.0b  | 2      | 2       | 2         | 6     | 252.9 kB    |
+| Ember   | 6.8.0   | 2      | 1       | 0         | 3     | 1013.8 kB   |
+| Lit     | 3.3.1   | 0      | 0       | 0         | 0     | 17.2 kB     |
+| Marko   | 6.0.114 | 0      | 0       | 0         | 0     | 2.4kB       |
+| Mithril | 2.3.7   | 0      | 0       | 0         | 0     | 20.6 kB     |
+| Preact  | 10.26.9 | 0      | 0       | 0         | 0     | 13.7 kB     |
+| Stencil | 4.22.2  | 0      | 0       | 0         | 0     | 21.9 kB     |
+| Qwik    | 1.17.1  | 0      | 0       | 0         | 0     | 52.9 kB     |
+| React   | 19.2.0  | 0      | 0       | 0         | 0     | 190.2 kB    |
+| Ripple  | 0.2.176 | 0      | 0       | 0         | 0     | 14.4kB      |
+| Solid   | 1.9.10  | 0      | 0       | 0         | 0     | 8.3 kB      |
+| Svelte  | 5.43.2  | 0      | 0       | 0         | 0     | 25.7 kB     |
+| Steel   | 5.0.1   | 3      | 3       | 3         | 9     | 7.0 kB      |
+| Vue     | 3.5.22  | 2      | 2       | 2         | 6     | 59.0 kB     |
 
 
 ## Alpine
