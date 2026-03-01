@@ -34,8 +34,6 @@ const styles = styleSheet({
     "align-items": "stretch",
     flex: "1",
     width: "100%",
-    "content-visibility": "auto",
-    "contain-intrinsic-size": "200px",
   },
   cell: {
     padding: [60, 0, 20],

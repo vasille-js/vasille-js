@@ -30,12 +30,12 @@ const styles = styleSheet({
     position: "absolute",
     top: ["0", dark("-100%")],
     color: "#858585",
-    transition: "top 1s ease-in-out",
+    transition: "top 1s ease-in-out 0.2s",
   },
   dark: {
     color: "#8E8C8C",
     opacity: ["0", dark("1")],
-    transition: "opacity 1s ease-in-out",
+    transition: "opacity 1s ease-in-out 0.2s",
   },
   text: {
     "font-size": 15,

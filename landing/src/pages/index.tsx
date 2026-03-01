@@ -5,41 +5,78 @@ import { DescriptionView } from "../views/DescriptionView.js";
 import { GetStartedView } from "../views/GetStartedView.js";
 import { GameChangerView } from "../views/GameChangerView.js";
 import { ErrorsStopHereView } from "../views/ErrorsStopHereView.js";
+import { GreatForView } from "../views/GreatForView.js";
+import { VisibilityTracker } from "../components/code-block/VisibilityTracker.js";
 
 export default page(async () => {
+  function trackScroll() {
+    const key = "scroll";
+    const scrollTop = localStorage.getItem(key);
+    const scrolling = document.documentElement;
+
+    window.onscroll = () => {
+      localStorage.setItem(key, scrolling.scrollTop.toString());
+    };
+
+    if (scrollTop) {
+      scrolling.scroll({
+        top: parseInt(scrollTop),
+        behavior: "instant",
+      });
+    }
+  }
+
   <div class={styles.page}>
-    <HeroView />
+    <VisibilityTracker>
+      <HeroView />
+    </VisibilityTracker>
     <div class={styles.bigScreen}>
       {/*<div class={styles.bg} />*/}
-      <Delay time={10}>
-        <div
-          class={styles.content}
-          callback={() => {
-            const key = "scroll";
-            const scrollTop = localStorage.getItem(key);
-            const scrolling = document.documentElement;
-
-            window.onscroll = () => {
-              localStorage.setItem(key, scrolling.scrollTop.toString());
-            };
-
-            if (scrollTop) {
-              scrolling.scroll({
-                top: parseInt(scrollTop),
-                behavior: "instant",
-              });
-            }
-          }}
-        >
-          <DescriptionView />
-          <GetStartedView />
-          <GameChangerView />
-          <ErrorsStopHereView />
+      <Delay time={50}>
+        <div class={styles.content}>
+          <VisibilityTracker>
+            <DescriptionView />
+          </VisibilityTracker>
+          <Delay time={50}>
+            <VisibilityTracker>
+              <GetStartedView />
+            </VisibilityTracker>
+            <Delay time={50}>
+              <VisibilityTracker>
+                <GameChangerView />
+              </VisibilityTracker>
+              <Delay time={50}>
+                <VisibilityTracker>
+                  <ErrorsStopHereView />
+                </VisibilityTracker>
+                <Delay time={50}>
+                  <VisibilityTracker>
+                    <GreatForView />
+                  </VisibilityTracker>
+                  <Delay time={50}>
+                    <Delay time={50}>
+                      <Delay
+                        time={0}
+                        slot={() => {
+                          <div></div>;
+                          afterMount(() => {
+                            trackScroll();
+                          });
+                        }}
+                      />
+                    </Delay>
+                  </Delay>
+                </Delay>
+              </Delay>
+            </Delay>
+          </Delay>
         </div>
       </Delay>
       {/*<div class={styles.bg} />*/}
     </div>
-    <Panel />
+    <Delay time={1}>
+      <Panel />
+    </Delay>
   </div>;
 });
 

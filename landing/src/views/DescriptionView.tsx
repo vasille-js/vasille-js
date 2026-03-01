@@ -47,8 +47,6 @@ const styles = styleSheet({
     display: "flex",
     "flex-direction": "column",
     "align-items": "center",
-    "content-visibility": "auto",
-    "contain-intrinsic-size": "300px",
   },
   line: {
     height: 40,

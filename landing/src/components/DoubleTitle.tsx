@@ -22,11 +22,11 @@ const styles = styleSheet({
     position: "absolute",
     top: ["0", dark("100%")],
     color: "#191919",
-    transition: "top 1s ease-in-out",
+    transition: "top 1s ease-in-out 0.2s",
   },
   dark: {
     color: "#fff",
     opacity: ["0", dark("1")],
-    transition: "opacity 1s ease-in-out",
+    transition: "opacity 1s ease-in-out 0.2s",
   },
 });

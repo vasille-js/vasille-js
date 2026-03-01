@@ -7,9 +7,9 @@ import laptopPng from "../assets/laptop.avif";
 import bugPng from "../assets/bug.avif";
 import timePng from "../assets/time.avif";
 import itemSvg from "../assets/item.svg";
-import { MAX_WIDTH } from "../components/code-block/lib/limits.js";
 import { VLine } from "../components/VLine.js";
 import { HLine } from "../components/HLine.js";
+import { Row } from "../components/code-block/lib/Row.js";
 
 interface CardProps {
   title: string;
@@ -20,7 +20,7 @@ interface CardProps {
 }
 
 const CardView = view<CardProps>(
-  ({ title, image, features, originY, ease }) => {
+  ({ title, image, features, originY, ease }: CardProps) => {
     <div class={styles.card}>
       <div class={styles.doubleContainer}>
         <div class={[styles.title, styles.light]}>{title}</div>
@@ -73,7 +73,7 @@ export const GameChangerView = view(() => {
       feel instant from the very first click, without the bloat.
     </FeatureDescription>
   </FeatureRow>;
-  <div class={styles.cards} style={{ "max-width": MAX_WIDTH }}>
+  <Row>
     <CardView
       title={"Find Code Instantly"}
       image={laptopPng}
@@ -109,16 +109,12 @@ export const GameChangerView = view(() => {
       ease={"ease-out"}
       originY={58}
     />
-  </div>;
+  </Row>;
   <VLine reverse height={40} />;
   <HLine />;
 });
 
 const styles = styleSheet({
-  cards: {
-    display: "flex",
-    width: "100%",
-  },
   card: {
     display: "flex",
     "flex-direction": "column",

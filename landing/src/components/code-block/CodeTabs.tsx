@@ -1,5 +1,6 @@
 import { component, dark, Delay, For, styleSheet, watch } from "steel-frame";
 import { MAX_WIDTH } from "./lib/limits.js";
+import { VisibilityTracker } from "./VisibilityTracker.js";
 
 interface TabItem {
   label: string;
@@ -40,22 +41,45 @@ export const CodeTabs = component<Props>(({ tabs, storageKey }) => {
           of={tabs}
           slot={(item) => {
             const Content = item.content();
+            const $visible = item.class === $currentTab;
+            let $display = "flex";
+            let $opacity = "1";
 
-            <Delay time={100}>
+            watch(() => {
+              if ($visible) {
+                $display = "flex";
+                requestAnimationFrame(() => {
+                  $opacity = "1";
+                });
+              } else {
+                $opacity = "0";
+              }
+            });
+
+            <Delay time={1000}>
               <div
-                class={[
-                  styles.snippet,
-                  item.class === $currentTab && styles.active,
-                ]}
+                class={[styles.snippet, $visible && styles.active]}
+                ontransitionend={() => {
+                  if (!$visible) {
+                    $display = "none";
+                  }
+                }}
+                style={{ display: $display, opacity: $opacity }}
               >
-                <div
-                  style={{ "flex-direction": "column" }}
-                  callback={(div) => {
-                    $minHeight = Math.max(div.offsetHeight, $minHeight);
-                  }}
-                >
-                  <Content />
-                </div>
+                <VisibilityTracker>
+                  <div
+                    style={{
+                      "flex-direction": "column",
+                      "align-self": "stretch",
+                    }}
+                    callback={(div) => {
+                      $minHeight = Math.max(div.offsetHeight, $minHeight);
+                      $display = $visible ? "flex" : "none";
+                    }}
+                  >
+                    <Content />
+                  </div>
+                </VisibilityTracker>
               </div>
             </Delay>;
           }}
@@ -73,8 +97,6 @@ const styles = styleSheet({
     transition: "background 0.2s ease-in-out",
     padding: 16,
     width: "100%",
-    "content-visibility": "auto",
-    "contain-intrinsic-size": "300px",
     "box-sizing": "border-box",
   },
   tabs: {
@@ -114,13 +136,11 @@ const styles = styleSheet({
     inset: 0,
     padding: 10,
     overflow: "auto",
-    opacity: "0",
     transition: "opacity 0.2s ease-in-out",
     "margin-right": 16,
     "z-index": "0",
   },
   active: {
-    opacity: "1",
     "z-index": "1",
   },
 });

@@ -39,14 +39,14 @@ const styles = styleSheet({
     height: "100%",
     top: [0, dark("100%")],
     position: "absolute",
-    transition: "top 2s ease-in-out",
+    transition: "top 2s ease-in-out 0.2s",
   },
   absR: {
     top: ["-100%", dark("0")],
   },
   placeholder: {
     opacity: ["0", dark("1")],
-    transition: "opacity 2s ease-in-out",
+    transition: "opacity 2s ease-in-out 0.2s",
   },
   placeholderR: {
     opacity: ["1", dark("0")],

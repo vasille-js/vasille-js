@@ -54,8 +54,7 @@ const styles = styleSheet({
     "@media screen and (min-height: 800px) and (min-width: 1125px)": {
       "min-height": "600px",
     },
-    "content-visibility": "auto",
-    "contain-intrinsic-size": "600px",
+    "align-self": "stretch",
   },
   metal: {
     position: "absolute",
