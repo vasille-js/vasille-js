@@ -1,4 +1,4 @@
-import { component, styleSheet, view } from "vasille-web";
+import { component, styleSheet, view } from "steel-frame";
 import { FeatureRow } from "../components/feature/FeatureRow.js";
 import { FeatureKey } from "../components/feature/FeatureKey.js";
 import { FeatureTitle } from "../components/feature/FeatureTitle.js";
@@ -11,6 +11,7 @@ import { ReactiveExample } from "../components/code-block/examples/ReactiveExamp
 import { PropertiesExample } from "../components/code-block/examples/PropertiesExample.js";
 import { DomExample } from "../components/code-block/examples/DomExample.js";
 import { SlotsExample } from "../components/code-block/examples/SlotsExample.js";
+import { HLine } from "../components/HLine.js";
 
 export const GetStartedView = view(() => {
   <FeatureRow>
@@ -31,6 +32,7 @@ export const GetStartedView = view(() => {
     ></FeatureDescription>
   </FeatureRow>;
   <CodeTabs
+    storageKey={"get-started"}
     tabs={[
       {
         label: "Declare a component",
@@ -61,6 +63,7 @@ export const GetStartedView = view(() => {
     ]}
   />;
   <VLine reverse height={40} />;
+  <HLine />;
 });
 
 const styles = styleSheet({

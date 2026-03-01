@@ -1,4 +1,4 @@
-import { dark, styleSheet, view } from "vasille-web";
+import { dark, styleSheet, view } from "steel-frame";
 import { VLine } from "../components/VLine.js";
 import { DoubleTitle } from "../components/DoubleTitle.js";
 import { centerText, description, h1 } from "../style/text.js";

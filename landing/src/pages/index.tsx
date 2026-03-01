@@ -1,8 +1,10 @@
-import { Delay, page, styleSheet } from "vasille-web";
+import { afterMount, dark, Delay, page, styleSheet } from "steel-frame";
 import { Panel } from "./../components/Panel.js";
 import { HeroView } from "../views/HeroView.js";
 import { DescriptionView } from "../views/DescriptionView.js";
 import { GetStartedView } from "../views/GetStartedView.js";
+import { GameChangerView } from "../views/GameChangerView.js";
+import { ErrorsStopHereView } from "../views/ErrorsStopHereView.js";
 
 export default page(async () => {
   <div class={styles.page}>
@@ -10,9 +12,29 @@ export default page(async () => {
     <div class={styles.bigScreen}>
       {/*<div class={styles.bg} />*/}
       <Delay time={10}>
-        <div class={styles.content}>
+        <div
+          class={styles.content}
+          callback={() => {
+            const key = "scroll";
+            const scrollTop = localStorage.getItem(key);
+            const scrolling = document.documentElement;
+
+            window.onscroll = () => {
+              localStorage.setItem(key, scrolling.scrollTop.toString());
+            };
+
+            if (scrollTop) {
+              scrolling.scroll({
+                top: parseInt(scrollTop),
+                behavior: "instant",
+              });
+            }
+          }}
+        >
           <DescriptionView />
           <GetStartedView />
+          <GameChangerView />
+          <ErrorsStopHereView />
         </div>
       </Delay>
       {/*<div class={styles.bg} />*/}

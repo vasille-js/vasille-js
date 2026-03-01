@@ -1,4 +1,4 @@
-import { component, dark, styleSheet } from "vasille-web";
+import { component, dark, styleSheet } from "steel-frame";
 
 interface Props {
   text: string;
@@ -31,7 +31,6 @@ const styles = styleSheet({
     transition: "background 0.2s ease-in-out",
     "font-family": "inherit",
     "font-weight": 500,
-    "letter-spacing": "-2%",
     "text-decoration": "none",
   },
   primary: {
@@ -54,6 +53,7 @@ const styles = styleSheet({
     position: "relative",
     top: ["-47px", dark(0)],
     transition: "top 0.2s ease-in-out",
+    "letter-spacing": "-0.32px",
     "align-items": "center",
   },
   item: {

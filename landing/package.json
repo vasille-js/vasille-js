@@ -1,19 +1,18 @@
 {
-    "name": "landing",
-    "private": true,
-    "version": "0.0.0",
-    "type": "module",
-    "scripts": {
-        "dev": "vasille-web dev",
-        "build": "vasille-web build spa"
-    },
-    "devDependencies": {
-        "typescript": "^5.8.3",
-        "vasille-web-cli": "^4.0.1"
-    },
-    "dependencies": {
-        "prettier": "^3.7.4",
-        "vasille-ssg": "^4.1.0",
-        "vasille-web": "^4.0.0"
-    }
+  "name": "landing",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "web dev",
+    "build": "web build spa"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vasille-web-cli": "^5.0.0"
+  },
+  "dependencies": {
+    "prettier": "^3.7.4",
+    "steel-frame": "^5.0.1"
+  }
 }

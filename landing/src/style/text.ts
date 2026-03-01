@@ -1,9 +1,9 @@
-import { styleSheet } from "vasille-web";
+import { styleSheet } from "steel-frame";
 
 const styles = styleSheet({
   h1: {
     "font-size": 35,
-    "letter-spacing": "-3%",
+    "letter-spacing": "-1.05px",
     "line-height": "1.10",
     "text-transform": "uppercase",
     margin: [0, 0, 12],
@@ -11,7 +11,7 @@ const styles = styleSheet({
   description: {
     "font-size": 15,
     "line-height": "120%",
-    "letter-spacing": "-2%",
+    "letter-spacing": "-0.3px",
     "margin-bottom": 18,
   },
   centerText: {

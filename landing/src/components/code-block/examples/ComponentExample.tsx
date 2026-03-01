@@ -1,4 +1,4 @@
-import { component } from "vasille-web";
+import { component } from "steel-frame";
 import { CodeLine } from "../CodeLine.js";
 import { Comment } from "../Comment.js";
 import { Highlight } from "../Highlight.js";

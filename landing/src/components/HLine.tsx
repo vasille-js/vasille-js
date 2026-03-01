@@ -1,4 +1,4 @@
-import { component, dark, styleSheet } from "vasille-web";
+import { component, dark, styleSheet } from "steel-frame";
 
 export const HLine = component(() => {
   <div class={[styles.line]}>

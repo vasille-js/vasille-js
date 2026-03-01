@@ -1,10 +1,9 @@
-import { dark, styleSheet, view } from "vasille-web";
-import { HLine } from "../components/HLine.js";
+import { dark, styleSheet, view } from "steel-frame";
 import { VLine } from "../components/VLine.js";
 import { Button } from "../components/Button.js";
 import { DoubleTitle } from "../components/DoubleTitle.js";
 import { DoubleDescription } from "../components/DoubleDescription.js";
-import metalPng from "../assets/metal.png";
+import metalPng from "../assets/metal.avif";
 import { centerText, description, h1 } from "../style/text.js";
 
 export const HeroView = view(() => {

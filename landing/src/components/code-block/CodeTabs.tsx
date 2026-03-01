@@ -1,4 +1,5 @@
-import { component, dark, Delay, For, styleSheet } from "vasille-web";
+import { component, dark, Delay, For, styleSheet, watch } from "steel-frame";
+import { MAX_WIDTH } from "./lib/limits.js";
 
 interface TabItem {
   label: string;
@@ -8,12 +9,18 @@ interface TabItem {
 
 interface Props {
   tabs: TabItem[];
+  storageKey: string;
 }
 
-export const CodeTabs = component<Props>(({ tabs }) => {
-  let $currentTab = tabs[0].class;
+export const CodeTabs = component<Props>(({ tabs, storageKey }) => {
+  let $currentTab = localStorage.getItem(storageKey) ?? tabs[0].class;
+  let $minHeight = 0;
 
-  <div class={[styles.container]}>
+  watch(() => {
+    localStorage.setItem(storageKey, $currentTab);
+  });
+
+  <div class={[styles.container]} style={{ "max-width": MAX_WIDTH }}>
     <div class={styles.tabs}>
       <For
         of={tabs}
@@ -28,7 +35,7 @@ export const CodeTabs = component<Props>(({ tabs }) => {
       />
     </div>
     <Delay time={100}>
-      <div class={styles.code}>
+      <div class={styles.code} style={{ "min-height": $minHeight + 21 }}>
         <For
           of={tabs}
           slot={(item) => {
@@ -41,7 +48,14 @@ export const CodeTabs = component<Props>(({ tabs }) => {
                   item.class === $currentTab && styles.active,
                 ]}
               >
-                <Content />
+                <div
+                  style={{ "flex-direction": "column" }}
+                  callback={(div) => {
+                    $minHeight = Math.max(div.offsetHeight, $minHeight);
+                  }}
+                >
+                  <Content />
+                </div>
               </div>
             </Delay>;
           }}
@@ -59,7 +73,6 @@ const styles = styleSheet({
     transition: "background 0.2s ease-in-out",
     padding: 16,
     width: "100%",
-    "max-width": 1025,
     "content-visibility": "auto",
     "contain-intrinsic-size": "300px",
     "box-sizing": "border-box",

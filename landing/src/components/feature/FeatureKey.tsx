@@ -1,4 +1,4 @@
-import { component, dark, Slot, styleSheet } from "vasille-web";
+import { component, dark, Slot, styleSheet } from "steel-frame";
 
 interface Props {
   slot(): void;
@@ -29,7 +29,7 @@ const styles = styleSheet({
   text: {
     "font-size": 12,
     height: 13,
-    "letter-spacing": "-2%",
+    "letter-spacing": "-0.24px",
     "text-transform": "uppercase",
     color: ["#191919", dark("#fff")],
     transition: "color 0.2s ease-in-out",

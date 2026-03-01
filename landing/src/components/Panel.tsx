@@ -1,4 +1,4 @@
-import { component, dark, styleSheet } from "vasille-web";
+import { component, dark, styleSheet } from "steel-frame";
 import logoSvg from "../assets/logo.svg";
 import docsSvg from "../assets/docs.svg";
 import githubSvg from "../assets/github.svg";

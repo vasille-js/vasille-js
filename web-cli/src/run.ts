@@ -179,6 +179,7 @@ async function run() {
             resolve,
             optimizeDeps: {
                 include: [],
+                force: true,
             },
         });
 

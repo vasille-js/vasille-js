@@ -73,8 +73,8 @@ export class Tag<Options extends TagOptions, RunnerT extends Runner<Options>> ex
         this.node = node;
         this.applyOptions(this.options);
         this.parent.appendNode(node);
-        this.options.k?.(this.node);
         this.options.l?.(this);
+        this.options.k?.(this.node);
     }
 
     public override destroy() {

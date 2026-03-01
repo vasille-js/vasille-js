@@ -1,4 +1,4 @@
-import { component, dark, Slot, styleSheet } from "vasille-web";
+import { component, dark, Slot, styleSheet } from "steel-frame";
 
 interface Props {
   title?(props: { classes: string[]; isDark: boolean }): void;
@@ -22,11 +22,11 @@ const styles = styleSheet({
     position: "absolute",
     top: ["0", dark("100%")],
     color: "#191919",
-    transition: "top 0.2s ease-in-out",
+    transition: "top 1s ease-in-out",
   },
   dark: {
     color: "#fff",
     opacity: ["0", dark("1")],
-    transition: "opacity 0.2s ease-in-out",
+    transition: "opacity 1s ease-in-out",
   },
 });

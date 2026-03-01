@@ -1,4 +1,4 @@
-import { component, Slot } from "vasille-web";
+import { component, Slot } from "steel-frame";
 
 interface Props {
   isDark: boolean;
