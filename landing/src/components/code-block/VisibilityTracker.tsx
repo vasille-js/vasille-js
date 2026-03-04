@@ -6,22 +6,24 @@ interface Props {
 
 export const VisibilityTracker = component<Props>(({ slot }) => {
   let $visible = true;
-  let innerDiv: HTMLDivElement | null = null;
-  let observer: IntersectionObserver | null = null;
   let $height = 0;
 
-  watch(() => {
-    if (!$visible && innerDiv) {
-      $height = innerDiv.offsetHeight;
+  let observer: IntersectionObserver | null = new IntersectionObserver(
+    (entries) => {
+      $visible = entries[0].isIntersecting;
+    },
+  );
+  let resizeObserver: ResizeObserver = new ResizeObserver((entries) => {
+    const height = entries[0].contentRect.height;
+
+    if (height) {
+      $height = height;
     }
   });
 
   <div
     class={styles.div}
     callback={(div) => {
-      observer = new IntersectionObserver((entries) => {
-        $visible = entries[0].isIntersecting;
-      });
       observer.observe(div);
     }}
     style={{ "min-height": $height }}
@@ -31,7 +33,7 @@ export const VisibilityTracker = component<Props>(({ slot }) => {
       style={{ display: $visible ? "flex" : "none" }}
       callback={(div) => {
         $height = div.offsetHeight;
-        innerDiv = div;
+        resizeObserver.observe(div);
       }}
     >
       <Slot model={slot} />
@@ -39,7 +41,8 @@ export const VisibilityTracker = component<Props>(({ slot }) => {
   </div>;
 
   beforeDestroy(() => {
-    observer?.disconnect();
+    observer.disconnect();
+    resizeObserver.disconnect();
   });
 });
 

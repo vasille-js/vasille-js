@@ -165,7 +165,10 @@ export const Accordion = component<Props>(({ items, id }) => {
           const isLast = items.at(-1) === item;
           let $bodyHeight = 0;
           const resizeObserver = new ResizeObserver((entries) => {
-            $bodyHeight = entries[0].contentRect.height;
+            const height = entries[0].contentRect.height;
+            if (height > 0) {
+              $bodyHeight = height;
+            }
           });
           let $descriptionDisplay = "flex";
           let $descriptionTransform = "translateX(0)";
@@ -187,13 +190,17 @@ export const Accordion = component<Props>(({ items, id }) => {
 
           <div class={styles.item}>
             <div
-              class={styles.itemTitle}
+              class={[styles.itemTitle, $isCurrent && styles.active]}
               onclick={() => ($current = item.id)}
               style={{ cursor: $isCurrent ? "default" : "pointer" }}
             >
               <div style={{ flex: "1" }}>// {item.title}</div>
               <div
-                class={[styles.round, styles.roundBg]}
+                class={[
+                  styles.round,
+                  styles.roundBg,
+                  $isCurrent && styles.activeBg,
+                ]}
                 style={{
                   transform: $isCurrent ? "rotate(45deg)" : "rotate(-45deg)",
                 }}
@@ -219,11 +226,7 @@ export const Accordion = component<Props>(({ items, id }) => {
             <div
               style={{
                 height:
-                  $current === item.id
-                    ? $bodyHeight > 0 || $inited
-                      ? $bodyHeight
-                      : "auto"
-                    : 0,
+                  $current === item.id ? ($inited ? $bodyHeight : "auto") : 0,
                 overflow: "hidden",
                 transition: "height 1s ease",
               }}
@@ -258,7 +261,7 @@ export const Accordion = component<Props>(({ items, id }) => {
                     transform: $buttonTransform,
                   }}
                 >
-                  <Button text={"Learn More"} />
+                  <Button text={"Learn More"} primary />
                 </div>
                 <div class={styles.itemDesc}>
                   <div class={styles.itemDescTitle}>
@@ -451,5 +454,11 @@ const styles = styleSheet({
   blockDarkEven: {
     transform: ["translateX(-400%)", dark("translateX(0%)")],
     opacity: ["0", dark("1")],
+  },
+  active: {
+    color: ["#FD4B05", dark("#ff946a")],
+  },
+  activeBg: {
+    "background-color": ["#FD4B05", dark("#ff946a")],
   },
 });

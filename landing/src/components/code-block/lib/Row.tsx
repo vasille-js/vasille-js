@@ -17,5 +17,6 @@ const styles = styleSheet({
     "background-color": [dark("#212121"), "#fdfdfd"],
     "border-radius": 16,
     transition: "background-color 0.2s ease-in-out",
+    "box-sizing": "border-box",
   },
 });
