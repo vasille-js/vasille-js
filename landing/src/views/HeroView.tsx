@@ -23,6 +23,29 @@ export const HeroView = view(() => {
         </h1>;
       }}
     />
+    <div style={{ display: "flex" }}>
+      <a class={styles.a} href="https://www.npmjs.com/package/steel-frame">
+        <img
+          alt="npm"
+          src="https://img.shields.io/npm/v/steel-frame?style=flat-square"
+        />
+      </a>
+      <a class={styles.a} href="https://deepwiki.com/vasille-js/steel-frame">
+        <img alt="Ask DeepWiki" src="https://deepwiki.com/badge.svg" />
+      </a>
+      <a class={styles.a} href="https://coveralls.io/github/vasille-js/steel-frame?branch=v5">
+        <img
+          alt="Coverage Status"
+          src="https://coveralls.io/repos/github/vasille-js/steel-frame/badge.svg?branch=v5"
+        />
+      </a>
+      <a class={styles.a} href="https://github.com/vasille-js/steel-frame">
+        <img
+          alt="GitHub"
+          src="https://img.shields.io/github/last-commit/vasille-js/steel-frame"
+        />
+      </a>
+    </div>
     <DoubleDescription
       description={({ classes }) => {
         <div
@@ -97,4 +120,7 @@ const styles = styleSheet({
     display: "flex",
     "margin-bottom": 40,
   },
+  a: {
+    margin: 4,
+  }
 });
