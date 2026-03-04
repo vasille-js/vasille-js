@@ -1,8 +1,8 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { calls, composeFunctions, dependencyInjections, hintFunctions, modelFunctions, refFunctions } from "./call.js";
-import { checkNode, exprIsSure, idIsIValue, memberIsIValue } from "./expression.js";
-import { ctx, inspector, Internal, VariableState } from "./internal.js";
+import { checkNode, exprIsSure, idIsIValue, memberIsIValue, nodeIsMeshed } from "./expression.js";
+import { ctx, inspector, Internal, V, VariableState } from "./internal.js";
 import { ConditionCollection, processConditions, transformJsx } from "./jsx.js";
 import {
   arrayModel,
@@ -114,8 +114,8 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       break;
     }
     case "Identifier": {
-      if (idIsIValue(nodePath as NodePath<types.Identifier>)) {
-        nodePath.replaceWith(t.memberExpression(expr, t.identifier("V")));
+      if (idIsIValue(nodePath as NodePath<types.Identifier>) && !nodeIsMeshed(nodePath)) {
+        nodePath.replaceWith(t.memberExpression(expr, V));
       }
       break;
     }
@@ -283,11 +283,11 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
         meshOrIgnoreExpression<types.PrivateName>(path.get("property"), internal);
       }
 
-      if (memberIsIValue(node)) {
+      if (memberIsIValue(node) && !nodeIsMeshed(path)) {
         if (exprIsSure(path, internal)) {
-          path.replaceWith(t.memberExpression(path.node, t.identifier("V")));
+          path.replaceWith(t.memberExpression(path.node, V));
         } else {
-          path.replaceWith(t.optionalMemberExpression(path.node, t.identifier("V"), false, true));
+          path.replaceWith(t.optionalMemberExpression(path.node, V, false, true));
         }
       }
 

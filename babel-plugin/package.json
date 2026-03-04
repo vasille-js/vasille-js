@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-vasille",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "description": "Convert Vasille Meta Language code to pure JavaScript",
   "main": "lib/index.js",
   "type": "commonjs",

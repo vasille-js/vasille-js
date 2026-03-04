@@ -147,3 +147,7 @@ it("class expression name starts with $", function () {
 it("prompt called outside of context", function () {
   throwTest(__dirname, "prompt", "Prompts can be constructed only from components");
 });
+
+it("double mesh bug", function () {
+  runJsxTest(__dirname, "double-mesh-bug");
+});

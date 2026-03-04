@@ -109,3 +109,4 @@ export interface Internal {
 export const ctx = t.identifier("Vasille");
 export const runner = t.memberExpression(ctx, t.identifier("runner"));
 export const inspector = t.memberExpression(runner, t.identifier("inspector"));
+export const V = t.identifier("V");

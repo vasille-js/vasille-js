@@ -1,7 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { calls, dependencyInjections, hintFunctions } from "./call.js";
-import { ctx, Internal, StackedStates } from "./internal.js";
+import { ctx, Internal, StackedStates, V } from "./internal.js";
 import { checkNonReactiveName, err, Errors, ref } from "./lib";
 import { ignoreParams, meshAllUnknown, meshExpression } from "./mesh";
 import { routerReplace } from "./router";
@@ -58,9 +58,15 @@ function addExpression(path: NodePath<types.Expression>, search: Search) {
   }
 }
 
+export function nodeIsMeshed(path: NodePath<types.Node | null | undefined>) {
+  const parent = path.parent;
+
+  return (t.isMemberExpression(parent) || t.isOptionalMemberExpression(parent)) && parent.property === V;
+}
+
 function meshIdentifier(path: NodePath<types.Identifier>) {
-  if (idIsIValue(path)) {
-    path.replaceWith(t.memberExpression(path.node, t.identifier("V")));
+  if (idIsIValue(path) && !nodeIsMeshed(path)) {
+    path.replaceWith(t.memberExpression(path.node, V));
   }
 }
 
@@ -132,8 +138,8 @@ export function exprIsSure(path: NodePath<types.Expression | null | undefined>, 
 }
 
 function meshMember(path: NodePath<types.MemberExpression | types.OptionalMemberExpression>) {
-  if (memberIsIValue(path.node)) {
-    path.replaceWith(t.memberExpression(path.node, t.identifier("V"), false, true));
+  if (memberIsIValue(path.node) && !nodeIsMeshed(path)) {
+    path.replaceWith(t.memberExpression(path.node, V, false, true));
   }
 }
 
