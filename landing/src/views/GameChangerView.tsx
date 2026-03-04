@@ -103,7 +103,7 @@ export const GameChangerView = view(() => {
       image={timePng}
       features={[
         "Surgical updates via reactivity",
-        "Under 3kB for ultra-fast loads",
+        "Non blocking rendering",
         "Your app responds instantly",
       ]}
       ease={"ease-out"}
@@ -130,7 +130,7 @@ const styles = styleSheet({
     "letter-spacing": "-0.6px",
     "text-transform": "uppercase",
     padding: [0, 6, 24],
-    "min-height": 40,
+    "min-height": 51,
   },
   image: {
     width: 150,

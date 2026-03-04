@@ -7,6 +7,7 @@ import { GameChangerView } from "../views/GameChangerView.js";
 import { ErrorsStopHereView } from "../views/ErrorsStopHereView.js";
 import { GreatForView } from "../views/GreatForView.js";
 import { VisibilityTracker } from "../components/code-block/VisibilityTracker.js";
+import { ExperienceView } from "../views/ExperienceView.js";
 
 export default page(async () => {
   function trackScroll() {
@@ -54,6 +55,7 @@ export default page(async () => {
                     <GreatForView />
                   </VisibilityTracker>
                   <Delay time={50}>
+                    <ExperienceView />
                     <Delay time={50}>
                       <Delay
                         time={0}

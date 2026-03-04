@@ -26,6 +26,7 @@ const HalfView = view<HalfProps>(
   ({ why, list, color, imageClass, images, border, bg, number }: HalfProps) => {
     <div class={styles.half}>
       <div class={[styles.number, color]}>{number}</div>
+      <div class={styles.hr} />
       <div class={styles.why}>{why}</div>
       <div class={[styles.container, border]}>
         <div class={[styles.innerContainer, border]}>
@@ -95,7 +96,7 @@ export const GreatForView = view(() => {
       imageClass={styles.imageRight}
     />
   </Row>;
-  <div style={{ height: 50 }} />;
+  <VLine reverse height={50} />;
   <HLine />;
 });
 
@@ -103,7 +104,7 @@ const styles = styleSheet({
   half: {
     flex: "1",
     "border-radius": 16,
-    padding: [24, 14, 32],
+    padding: [24, 14, 14],
     "background-color": ["#F9F9F9", dark("#2A2A2A")],
     transition: "background-color 0.2s ease-in-out",
   },
