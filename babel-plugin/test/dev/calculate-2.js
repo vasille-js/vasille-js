@@ -7,4 +7,4 @@ const {
   return {
     $b: Vasille_0 + 1
   };
-}, [$a], [$a], [VasilleFilePath, 4, 6, 6, 2], VasilleInspector);
+}, [$a], ["$a"], [VasilleFilePath, 4, 6, 6, 2], VasilleInspector);

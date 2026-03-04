@@ -72,7 +72,7 @@ export function processCalculateCall(
 
     if (internal.devLayer) {
       path.node.arguments.push(
-        t.arrayExpression([...exprData.found.keys()].map(name => t.identifier(name))),
+        t.arrayExpression([...exprData.found.keys()].map(name => t.stringLiteral(name))),
         nodeToStaticPosition(area),
         inspectorOf(internal),
       );
