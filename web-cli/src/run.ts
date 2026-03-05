@@ -14,7 +14,7 @@ import { checkFile } from "./lib/fs.js";
 import { readdir } from "node:fs/promises";
 import { vasilleWebPlugin } from "./vite-plugins/vasille-web.js";
 import { startProxyServer } from "./proxy/dev-proxy.js";
-import { compileLib } from "./lib/compile-lib.js";
+import { compileLib, watchLib } from "./lib/compile-lib.js";
 
 async function run() {
     const { routerDir, pagesDir, srcDir } = workingDirs();
@@ -129,37 +129,45 @@ async function run() {
     }
     if (dev) {
         if (help) {
-            console.log("\nCommand shortcut is web dev\n");
+            if (lib) {
+                console.log("\nCommand shortcut is web dev+lib\n");
+            } else {
+                console.log("\nCommand shortcut is web dev\n");
+            }
         }
 
-        const server = await createServer({
-            configFile: false,
-            root: cwd(),
-            esbuild: false,
-            appType: "spa",
-            command: "serve",
-            plugins: [
-                await indexPlugin(routerDir, pagesDir, "steel-frame"),
-                ...getVitePlugins("steel-frame"),
-                inspect(),
-            ],
-            resolve,
-            optimizeDeps: {
-                include: [],
-                force: true,
-            },
-        });
+        if (lib) {
+            await watchLib(srcDir, path.join(srcDir, "../dist/lib"), "steel-frame");
+        } else {
+            const server = await createServer({
+                configFile: false,
+                root: cwd(),
+                esbuild: false,
+                appType: "spa",
+                command: "serve",
+                plugins: [
+                    await indexPlugin(routerDir, pagesDir, "steel-frame"),
+                    ...getVitePlugins("steel-frame"),
+                    inspect(),
+                ],
+                resolve,
+                optimizeDeps: {
+                    include: [],
+                    force: true,
+                },
+            });
 
-        await server.listen();
+            await server.listen();
 
-        await watchForIndexUpdates(routerDir, pagesDir, "steel-frame", () => {
-            server.restart();
-        });
+            await watchForIndexUpdates(routerDir, pagesDir, "steel-frame", () => {
+                server.restart();
+            });
 
-        server.printUrls();
-        server.bindCLIShortcuts({ print: true });
+            server.printUrls();
+            server.bindCLIShortcuts({ print: true });
 
-        startProxyServer();
+            startProxyServer();
+        }
     }
     if (!dev) {
         exit(0);

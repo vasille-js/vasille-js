@@ -1,7 +1,7 @@
 import { checkDir } from "./fs.js";
 import fs from "fs/promises";
 
-export async function watchFolder(path: string, handler: () => void) {
+export async function watchFolder(path: string, handler: (filename: string | null) => void) {
     if (await checkDir(path)) {
         (async () => {
             const it = fs.watch(path, {
@@ -13,7 +13,7 @@ export async function watchFolder(path: string, handler: () => void) {
             });
 
             for await (const change of it) {
-                handler();
+                handler(change.filename);
             }
         })().catch(e => {
             console.error("Watch failed", e);

@@ -11,10 +11,16 @@ export async function processArgs() {
     let spa = checkArg("spa");
     let ssg = checkArg("static");
     let lib = checkArg("lib");
+    let devLib = checkArg("dev+lib") || checkArg("lib+dev");
     let help = false;
 
+    if (devLib) {
+        dev = true;
+        lib = true;
+    }
+
     if (!dev && !build) {
-        const mode = await select<"dev" | "build" | "proxy">({
+        const mode = await select<"dev" | "build" | "dev+lib">({
             message: "Select action",
             choices: [
                 {
@@ -27,11 +33,17 @@ export async function processArgs() {
                     name: "Build your application",
                     description: "Select this option to compile your code for production",
                 },
+                {
+                    value: "dev+lib",
+                    name: "Start a development server for library",
+                    description: "Select this option to start a hot reload development server for library",
+                },
             ],
         });
 
-        dev = mode === "dev";
+        dev = mode === "dev" || mode === "dev+lib";
         build = mode === "build";
+        lib = mode === "dev+lib";
         help = true;
     }
     if (build && !(spa || ssg || lib)) {
