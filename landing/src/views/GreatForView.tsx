@@ -120,6 +120,7 @@ const styles = styleSheet({
   hr: {
     height: 2,
     "background-color": [dark("#373737"), "#EFEFEF"],
+    transition: "background-color 0.2s ease-in-out",
   },
   why: {
     "font-size": 20,

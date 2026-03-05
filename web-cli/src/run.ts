@@ -14,6 +14,7 @@ import { checkFile } from "./lib/fs.js";
 import { readdir } from "node:fs/promises";
 import { vasilleWebPlugin } from "./vite-plugins/vasille-web.js";
 import { startProxyServer } from "./proxy/dev-proxy.js";
+import { compileLib } from "./lib/compile-lib.js";
 
 async function run() {
     const { routerDir, pagesDir, srcDir } = workingDirs();
@@ -29,7 +30,7 @@ async function run() {
             const assetsDir = path.join(cwd(), "/dist/spa/assets");
 
             if (help) {
-                console.log("\nCommand shortcut is vasille-web build spa\n");
+                console.log("\nCommand shortcut is web build spa\n");
             }
 
             await viteBuild({
@@ -94,53 +95,19 @@ async function run() {
         }
         if (lib) {
             if (help) {
-                console.log("\nCommand shortcut is vasille-web build lib\n");
+                console.log("\nCommand shortcut is web build lib\n");
             }
 
-            let file: string | undefined = undefined;
-
-            for (const name of ["index.ts", "index.js"]) {
-                if (await checkFile(path.join(srcDir, name))) {
-                    file = name;
-                }
+            if (!(await compileLib(srcDir, path.join(srcDir, "../dist/lib"), "vasille-web"))) {
+                console.log("Failed to compile library");
+                exit(1);
+            } else {
+                console.log("Library compiled successfully");
             }
-
-            if (!file) {
-                throw new Error(
-                    [
-                        "Library index.ts or index.js file not found",
-                        `index.ts expected path is "${path.join(srcDir, "index.ts")}"`,
-                        `index.js expected path is "${path.join(srcDir, "index.js")}"`,
-                    ].join("\n"),
-                );
-            }
-
-            await viteBuild({
-                configFile: false,
-                root: cwd(),
-                esbuild: false,
-                build: {
-                    lib: {
-                        entry: `./src/${file}`,
-                        formats: ["es"],
-                    },
-                    emptyOutDir: true,
-                    outDir: "dist/lib",
-                    rollupOptions: {
-                        treeshake: false,
-                        external: (source: string) => {
-                            return source[0] !== "." && !/\.[tj]sx?$/.test(source);
-                        },
-                    },
-                    sourcemap: true,
-                },
-                plugins: getVitePlugins("vasille-web"),
-                resolve,
-            });
         }
         if (ssg) {
             if (help) {
-                console.log("\nCommand shortcut is vasille-web build static\n");
+                console.log("\nCommand shortcut is web build static\n");
             }
 
             register("file:" + path.join(import.meta.dirname, "./node-hooks/index.vasille.js"));
@@ -162,7 +129,7 @@ async function run() {
     }
     if (dev) {
         if (help) {
-            console.log("\nCommand shortcut is vasille-web dev\n");
+            console.log("\nCommand shortcut is web dev\n");
         }
 
         const server = await createServer({
