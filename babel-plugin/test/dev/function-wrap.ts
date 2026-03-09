@@ -37,4 +37,7 @@ class Test {
     return a + b;
   }
   public constructor(public a: number) {}
+  public get b() {
+    return "b";
+  }
 }

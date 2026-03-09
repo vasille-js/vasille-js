@@ -308,13 +308,15 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
           t.returnStatement(
             call("runFn", [
               t.arrowFunctionExpression(params, body, fn.async),
-              args,
+              fn.params.length > 0 ? args : t.arrayExpression(),
               nodeToStaticPosition(fn),
               getInspector(),
             ]),
           ),
         ]);
-        fn.params = [t.restElement(args)];
+        if (fn.params.length > 0) {
+          fn.params = [t.restElement(args)];
+        }
       }
     },
     wrapFunction(fn: types.FunctionExpression | types.ArrowFunctionExpression): types.Node {

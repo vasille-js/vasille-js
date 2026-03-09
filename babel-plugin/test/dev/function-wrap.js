@@ -1,19 +1,19 @@
 const VasilleFilePath = "babel-plugin-vasille/test/dev/function-wrap.ts";
 import { earlyInspector as VasilleInspector, runFn as VasilleRun, wrapFn as VasilleWrap } from "steel-frame";
-function f1(...VasilleArgs) {
+function f1() {
   return VasilleRun(() => {
     console.log(1);
-  }, VasilleArgs, [VasilleFilePath, 1, 0, 3, 1], VasilleInspector);
+  }, [], [VasilleFilePath, 1, 0, 3, 1], VasilleInspector);
 }
 function f2(...VasilleArgs) {
   return VasilleRun((a, b) => {
     return a + b;
   }, VasilleArgs, [VasilleFilePath, 5, 0, 7, 1], VasilleInspector);
 }
-async function f3(...VasilleArgs) {
+async function f3() {
   return VasilleRun(async () => {
     await new Promise(VasilleWrap(resolve => setTimeout(resolve, 1000), [VasilleFilePath, 10, 20, 10, 56], VasilleInspector));
-  }, VasilleArgs, [VasilleFilePath, 9, 0, 11, 1], VasilleInspector);
+  }, [], [VasilleFilePath, 9, 0, 11, 1], VasilleInspector);
 }
 const f4 = VasilleWrap(function (a, b) {
   return a + b;
@@ -46,6 +46,11 @@ class Test {
   }
   constructor(...VasilleArgs) {
     return VasilleRun(a => {}, VasilleArgs, [VasilleFilePath, 39, 2, 39, 41], VasilleInspector);
+  }
+  get b() {
+    return VasilleRun(() => {
+      return "b";
+    }, [], [VasilleFilePath, 40, 2, 42, 3], VasilleInspector);
   }
 }
 export {};
