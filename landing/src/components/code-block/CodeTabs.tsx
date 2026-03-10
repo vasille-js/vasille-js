@@ -1,4 +1,13 @@
-import { component, dark, Delay, For, styleSheet, watch } from "steel-frame";
+import {
+  component,
+  dark,
+  Delay,
+  For,
+  mobile,
+  styleSheet,
+  tablet,
+  watch,
+} from "steel-frame";
 import { MAX_WIDTH } from "./lib/limits.js";
 import { VisibilityTracker } from "./VisibilityTracker.js";
 
@@ -21,71 +30,81 @@ export const CodeTabs = component<Props>(({ tabs, storageKey }) => {
     localStorage.setItem(storageKey, $currentTab);
   });
 
-  <div class={[styles.container]} style={{ "max-width": MAX_WIDTH }}>
-    <div class={styles.tabs}>
-      <For
-        of={tabs}
-        slot={(item) => {
-          <div
-            class={[styles.tab, item.class === $currentTab && styles.activeTab]}
-            onclick={() => ($currentTab = item.class)}
-          >
-            {item.label}
-          </div>;
-        }}
-      />
-    </div>
-    <Delay time={100}>
-      <div class={styles.code} style={{ "min-height": $minHeight + 21 }}>
-        <For
-          of={tabs}
-          slot={(item) => {
-            const Content = item.content();
-            const $visible = item.class === $currentTab;
-            let $display = "flex";
-            let $opacity = "1";
-
-            watch(() => {
-              if ($visible) {
-                $display = "flex";
-                requestAnimationFrame(() => {
-                  $opacity = "1";
-                });
-              } else {
-                $opacity = "0";
-              }
-            });
-
-            <Delay time={1000}>
+  <div class={styles.padding}>
+    <div class={[styles.container]} style={{ "max-width": MAX_WIDTH }}>
+      <div class={styles.tabsContainer}>
+        <div class={styles.tabs}>
+          <For
+            of={tabs}
+            slot={(item) => {
               <div
-                class={[styles.snippet, $visible && styles.active]}
-                ontransitionend={() => {
-                  if (!$visible) {
-                    $display = "none";
-                  }
-                }}
-                style={{ display: $display, opacity: $opacity }}
+                class={[
+                  styles.tab,
+                  item.class === $currentTab && styles.activeTab,
+                ]}
+                onclick={() => ($currentTab = item.class)}
               >
-                <VisibilityTracker>
-                  <div
-                    style={{
-                      "flex-direction": "column",
-                      "align-self": "stretch",
-                    }}
-                    callback={(div) => {
-                      $minHeight = Math.max(div.offsetHeight, $minHeight);
-                      $display = $visible ? "flex" : "none";
-                    }}
-                  >
-                    <Content />
-                  </div>
-                </VisibilityTracker>
-              </div>
-            </Delay>;
-          }}
-        />
+                {item.label}
+              </div>;
+            }}
+          />
+        </div>
       </div>
-    </Delay>
+      <Delay time={100}>
+        <div
+          class={styles.code}
+          style={{ "min-height": $minHeight > 0 ? $minHeight : 304 }}
+        >
+          <For
+            of={tabs}
+            slot={(item) => {
+              const Content = item.content();
+              const $visible = item.class === $currentTab;
+              let $display = "flex";
+              let $opacity = "1";
+
+              watch(() => {
+                if ($visible) {
+                  $display = "flex";
+                  requestAnimationFrame(() => {
+                    $opacity = "1";
+                  });
+                } else {
+                  $opacity = "0";
+                }
+              });
+
+              <Delay time={1000}>
+                <div
+                  class={[styles.snippet, $visible && styles.active]}
+                  ontransitionend={() => {
+                    if (!$visible) {
+                      $display = "none";
+                    }
+                  }}
+                  style={{ display: $display, opacity: $opacity }}
+                >
+                  <VisibilityTracker>
+                    <div
+                      style={{
+                        "flex-direction": "column",
+                        "align-self": "stretch",
+                      }}
+                      callback={(div) => {
+                        $minHeight = Math.max(div.offsetHeight, $minHeight);
+                        $display = $visible ? "flex" : "none";
+                      }}
+                    >
+                      <Content />
+                    </div>
+                  </VisibilityTracker>
+                </div>
+              </Delay>;
+            }}
+          />
+        </div>
+      </Delay>
+    </div>
   </div>;
 });
 
@@ -96,13 +115,26 @@ const styles = styleSheet({
     background: ["#F9F9F9", dark("#2A2A2A")],
     transition: "background 0.2s ease-in-out",
     padding: 16,
-    width: "100%",
+    width: ["calc(100dvw - 157px)", mobile("calc(100dvw - 40px)")],
     "box-sizing": "border-box",
+    "flex-direction": ["row", tablet(mobile("column"))],
+    margin: "0 auto",
+  },
+  padding: {
+    padding: [[0, 20], mobile([0, 10])],
+    "align-self": "stretch",
+    "max-width": ["calc(100dvw - 97px)", mobile("100%")],
+    "box-sizing": "border-box",
+  },
+  tabsContainer: {
+    overflow: "auto",
   },
   tabs: {
     display: "flex",
-    "flex-direction": "column",
+    "flex-direction": ["column", tablet(mobile("row"))],
     flex: "1",
+    width: "max-content",
+    overflow: "auto",
   },
   tab: {
     "font-size": 18,
@@ -137,7 +169,6 @@ const styles = styleSheet({
     padding: 10,
     overflow: "auto",
     transition: "opacity 0.2s ease-in-out",
-    "margin-right": 16,
     "z-index": "0",
   },
   active: {

@@ -47,6 +47,8 @@ const styles = styleSheet({
   placeholder: {
     opacity: ["0", dark("1")],
     transition: "opacity 2s ease-in-out 0.2s",
+    width: "max-content",
+    "padding-right": 10,
   },
   placeholderR: {
     opacity: ["1", dark("0")],

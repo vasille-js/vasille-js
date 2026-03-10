@@ -1,4 +1,4 @@
-import { dark, For, styleSheet, view } from "steel-frame";
+import { dark, For, mobile, styleSheet, tablet, view } from "steel-frame";
 import { FeatureRow } from "../components/feature/FeatureRow.js";
 import { FeatureKey } from "../components/feature/FeatureKey.js";
 import { FeatureTitle } from "../components/feature/FeatureTitle.js";
@@ -17,11 +17,12 @@ interface CardProps {
   features: string[];
   ease: string;
   originY: number;
+  adoptionClass?: string;
 }
 
 const CardView = view<CardProps>(
-  ({ title, image, features, originY, ease }: CardProps) => {
-    <div class={styles.card}>
+  ({ title, image, features, originY, ease, adoptionClass }: CardProps) => {
+    <div class={[styles.card, adoptionClass ?? "nope"]}>
       <div class={styles.doubleContainer}>
         <div class={[styles.title, styles.light]}>{title}</div>
         <div class={[styles.title, styles.dark]}>{title}</div>
@@ -44,7 +45,7 @@ const CardView = view<CardProps>(
                 class={[styles.listItemIcon]}
                 style={{ "mask-image": `url("${itemSvg}")` }}
               />
-              <div>{feature}</div>
+              <div class={styles.listItemText}>{feature}</div>
             </div>;
           }}
         />
@@ -73,7 +74,7 @@ export const GameChangerView = view(() => {
       feel instant from the very first click, without the bloat.
     </FeatureDescription>
   </FeatureRow>;
-  <Row>
+  <Row class={styles.columnOnMobile}>
     <CardView
       title={"Find Code Instantly"}
       image={laptopPng}
@@ -97,8 +98,9 @@ export const GameChangerView = view(() => {
       ease={"ease-in-out"}
       originY={40}
     />
-    <div class={styles.separator} />
+    <div class={[styles.separator, styles.noOnTablet]} />
     <CardView
+      adoptionClass={styles.noOnTablet}
       title={"Build Blazing-Fast Experiences"}
       image={timePng}
       features={[
@@ -124,6 +126,9 @@ const styles = styleSheet({
     padding: [32, 14],
     position: "relative",
     transition: "background-color 0.2s ease-in-out",
+    "max-width": 305,
+    "align-self": "center",
+    width: "100%",
   },
   title: {
     "font-size": 20,
@@ -148,7 +153,7 @@ const styles = styleSheet({
   },
   listItem: {
     display: "flex",
-    "align-items": "center",
+    "align-items": "flex-start",
     "font-size": 15,
     "letter-spacing": "-0.3px",
     color: ["#6F6F6F", dark("#858585")],
@@ -161,8 +166,13 @@ const styles = styleSheet({
     "background-color": ["#191919", dark("#EDEDED")],
     transition: "background-color 5s ease-in-out",
   },
+  listItemText: {
+    "line-height": 18,
+    padding: [3, 0, 3, 3],
+  },
   separator: {
     width: 12,
+    height: 12,
   },
   overlay: {
     position: "absolute",
@@ -211,5 +221,13 @@ const styles = styleSheet({
     color: "#fff",
     opacity: ["0", dark("1")],
     transition: "opacity 0.2s ease-in-out",
+  },
+  columnOnMobile: {
+    "@media screen and (max-width: 600px)": {
+      "flex-direction": "column",
+    },
+  },
+  noOnTablet: {
+    display: tablet("none"),
   },
 });

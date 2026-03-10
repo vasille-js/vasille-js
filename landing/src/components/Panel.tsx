@@ -1,4 +1,4 @@
-import { component, dark, styleSheet } from "steel-frame";
+import { component, dark, mobile, styleSheet } from "steel-frame";
 import logoSvg from "../assets/logo.svg";
 import docsSvg from "../assets/docs.svg";
 import githubSvg from "../assets/github.svg";
@@ -119,10 +119,10 @@ const styles = styleSheet({
     "z-index": ["var(--light-z)", dark("var(--dark-z)")],
   },
   darkPanel: {
-    left: ["-97px", dark(0)],
+    left: ["-97px", dark(0), mobile(dark("-97px"))],
   },
   lightPanel: {
-    left: [0, dark("-97px")],
+    left: [0, dark("-97px"), mobile("-97px")],
   },
   logo: {
     width: 56,

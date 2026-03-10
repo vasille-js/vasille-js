@@ -55,6 +55,8 @@ const styles = styleSheet({
   },
   row: {
     display: "flex",
+    "flex-wrap": "wrap",
+    "justify-content": "center",
   },
   img: {
     position: "absolute",
@@ -63,16 +65,25 @@ const styles = styleSheet({
     "background-color": ["#FD4B05", dark("#ff946a")],
     "mask-size": [316, 316],
     transition: "background-color 0.2s ease-in-out",
+    "@media screen and (max-width: 800px)": {
+      display: "none",
+    },
   },
   img1: {
     left: "-26px",
     bottom: "-39px",
     transform: "rotate(12deg)",
+    "@media screen and (max-width: 1200px)": {
+      left: "-185px",
+    },
   },
   img2: {
     position: "absolute",
     top: "-120px",
     right: "-20px",
     transform: "rotate(-12deg)",
+    "@media screen and (max-width: 1200px)": {
+      right: "-160px",
+    },
   },
 });

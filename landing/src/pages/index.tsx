@@ -1,4 +1,4 @@
-import { afterMount, dark, Delay, page, styleSheet } from "steel-frame";
+import { afterMount, dark, Delay, mobile, page, styleSheet } from "steel-frame";
 import { Panel } from "./../components/Panel.js";
 import { HeroView } from "../views/HeroView.js";
 import { DescriptionView } from "../views/DescriptionView.js";
@@ -90,7 +90,7 @@ const styles = styleSheet({
     display: "flex",
     "align-items": "stretch",
     "flex-direction": "column",
-    "padding-left": 97,
+    "padding-left": [97, mobile(0)],
   },
   bigScreen: {
     display: "flex",
@@ -102,6 +102,7 @@ const styles = styleSheet({
   content: {
     flex: "9999",
     // "max-width": 1025,
+    "max-width": ["calc(100dvw - 97px)", mobile("100%")],
     display: "flex",
     "flex-direction": "column",
     "align-items": "center",

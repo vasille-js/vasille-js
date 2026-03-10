@@ -23,7 +23,13 @@ export const HeroView = view(() => {
         </h1>;
       }}
     />
-    <div style={{ display: "flex" }}>
+    <div
+      style={{
+        display: "flex",
+        "flex-wrap": "wrap",
+        "justify-content": "center",
+      }}
+    >
       <a class={styles.a} href="https://www.npmjs.com/package/steel-frame">
         <img
           alt="npm"
@@ -33,7 +39,10 @@ export const HeroView = view(() => {
       <a class={styles.a} href="https://deepwiki.com/vasille-js/steel-frame">
         <img alt="Ask DeepWiki" src="https://deepwiki.com/badge.svg" />
       </a>
-      <a class={styles.a} href="https://coveralls.io/github/vasille-js/steel-frame?branch=v5">
+      <a
+        class={styles.a}
+        href="https://coveralls.io/github/vasille-js/steel-frame?branch=v5"
+      >
         <img
           alt="Coverage Status"
           src="https://coveralls.io/repos/github/vasille-js/steel-frame/badge.svg?branch=v5"
@@ -78,6 +87,7 @@ const styles = styleSheet({
       "min-height": "600px",
     },
     "align-self": "stretch",
+    padding: [0, 50],
   },
   metal: {
     position: "absolute",
@@ -86,14 +96,24 @@ const styles = styleSheet({
     "transition-duration": "0.5s",
     "transform-origin": "90% 60%",
     "z-index": "-1",
+    "@media(max-width: 1000px) and (max-height: 800px)": {
+      display: "none",
+    },
   },
   topRight: {
     transform: ["rotate(147.31deg)"],
     width: 456,
     height: 512,
-    top: ["-129px"],
-    right: [178],
+    top: "-129px",
+    right: 178,
     "transition-property": "opacity",
+    "@media(max-width: 850px)": {
+      top: "-200px",
+      right: 140,
+    },
+    "@media(max-width: 650px)": {
+      display: "none",
+    },
   },
   leftBottom: {
     transform: ["rotate(-49.65deg)"],
@@ -102,6 +122,12 @@ const styles = styleSheet({
     bottom: [0],
     left: ["-100px"],
     "transition-property": "opacity",
+    "@media(max-width: 850px)": {
+      bottom: "-30px",
+    },
+    "@media(max-width: 650px)": {
+      display: "none",
+    },
   },
   title: {
     margin: [40, 0, 32],
@@ -119,8 +145,10 @@ const styles = styleSheet({
   cta: {
     display: "flex",
     "margin-bottom": 40,
+    "flex-wrap": "wrap",
+    "justify-content": "center",
   },
   a: {
     margin: 4,
-  }
+  },
 });

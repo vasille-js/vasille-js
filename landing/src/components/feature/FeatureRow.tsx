@@ -1,4 +1,4 @@
-import { component, Slot, styleSheet } from "steel-frame";
+import { component, mobile, Slot, styleSheet, tablet } from "steel-frame";
 import { VLine } from "../VLine.js";
 import { MAX_WIDTH } from "../code-block/lib/limits.js";
 
@@ -12,19 +12,26 @@ export const FeatureRow = component<Props>(({ reverse, slot }) => {
     class={styles.row}
     style={{
       "flex-direction": reverse ? "row-reverse" : "row",
-      "max-width": MAX_WIDTH,
+      "max-width": MAX_WIDTH + 20,
     }}
   >
     <div
       class={[styles.cell, styles.left]}
-      style={{ "padding-left": reverse ? 16 : 0 }}
+      style={{
+        "padding-left": reverse ? 16 : 10,
+      }}
     >
       <Slot model={slot} />
     </div>
     <div class={styles.delimiter}>
       <VLine />
     </div>
-    <div class={[styles.cell, styles.right]} />
+    <div
+      class={[styles.cell, styles.right]}
+      style={{
+        "padding-left": reverse ? 16 : 10,
+      }}
+    />
   </div>;
 });
 
@@ -34,22 +41,25 @@ const styles = styleSheet({
     "align-items": "stretch",
     flex: "1",
     width: "100%",
+    "box-sizing": "border-box",
+    padding: [0, tablet([0, 20]), mobile([0, 10])],
   },
   cell: {
-    padding: [60, 0, 20],
-    "max-width": 512,
+    padding: [60, 10, 20],
+    "max-width": [522, tablet(mobile(1024))],
     "box-sizing": "border-box",
     flex: "1",
   },
   delimiter: {
-    display: "flex",
     "flex-direction": "row",
     width: 1,
+    display: ["flex", tablet(mobile("none"))],
   },
   left: {
     "padding-right": 10,
   },
   right: {
     "padding-left": 10,
+    display: ["block", tablet(mobile("none"))],
   },
 });

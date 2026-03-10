@@ -65,7 +65,7 @@ export const GreatForView = view(() => {
       Great for Developers
     </FeatureTitle>
   </FeatureRow>;
-  <Row>
+  <Row class={styles.columnOnTablet}>
     <HalfView
       number={"01"}
       why={"Why It Matters for Your Business"}
@@ -107,6 +107,10 @@ const styles = styleSheet({
     padding: [24, 14, 14],
     "background-color": ["#F9F9F9", dark("#2A2A2A")],
     transition: "background-color 0.2s ease-in-out",
+    "max-width": "506px",
+    "align-self": "center",
+    width: "100%",
+    "box-sizing": "border-box",
   },
   number: {
     "font-size": 35,
@@ -158,7 +162,7 @@ const styles = styleSheet({
   },
   listItem: {
     display: "flex",
-    "align-items": "center",
+    "align-items": "flex-start",
   },
   itemIcon: {
     width: 24,
@@ -172,6 +176,8 @@ const styles = styleSheet({
     color: [dark("#C5C5C5"), "#605F5F"],
     transition: "color 0.2s ease-in-out",
     "margin-left": 2,
+    "line-height": 18,
+    padding: [3, 0, 3, 3],
   },
   yellowColor: {
     color: ["#FD4B05", dark("#ff946a")],
@@ -208,5 +214,10 @@ const styles = styleSheet({
   delimiter: {
     width: 12,
     height: 12,
+  },
+  columnOnTablet: {
+    "@media screen and (max-width: 800px)": {
+      "flex-direction": "column",
+    },
   },
 });

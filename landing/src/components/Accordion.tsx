@@ -4,6 +4,7 @@ import {
   dark,
   For,
   styleSheet,
+  tablet,
   watch,
 } from "steel-frame";
 import { Row } from "./code-block/lib/Row.js";
@@ -320,6 +321,12 @@ const styles = styleSheet({
     "align-items": "center",
     "justify-content": "center",
     overflow: "hidden",
+    "@media screen and (max-width: 1000px)": {
+      "max-width": 256,
+    },
+    "@media screen and (max-width: 800px)": {
+      display: "none",
+    },
   },
   items: {
     flex: "1",
@@ -385,6 +392,7 @@ const styles = styleSheet({
     overflow: "hidden",
     "background-color": ["#191919", dark("#FFFFFF")],
     transition: "background-color 2s ease-in-out, transform 1s ease-in-out",
+    "margin-left": 10,
   },
   roundFg: {
     transition: "background-color 0.2s ease-in-out",
