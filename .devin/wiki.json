@@ -143,6 +143,16 @@
       ]
     },
     {
+      "title": "Dependeency injection",
+      "purpose": "Document depencency injection using share function to set a contextual value, receive function to get a contextual value, impute funtion to provide default values. A contextual values can be a string, a class object (support inherence) or a context created via context function.",
+      "parent": "State Management",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
       "title": "Routing",
       "purpose": "Cover router setup via src/pages folder presence and src/index.vasille.js as project entry point, screen/page components, navigation methods, loading states, and error/fallback handling",
       "page_notes": [
