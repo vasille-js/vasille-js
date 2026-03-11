@@ -48,27 +48,29 @@ function handleImportDeclaration(
   internal.prefix = name;
 
   for (const specifier of statement.specifiers) {
-    /* istanbul ignore else */
     if (t.isImportNamespaceSpecifier(specifier)) {
       internal.global = specifier.local.name;
       internal.stylesConnected = true;
-    } else if (t.isImportSpecifier(specifier)) {
-      const imported = extractText(specifier.imported);
-      const local = specifier.local.name;
+    } else {
+      /* istanbul ignore else */
+      if (t.isImportSpecifier(specifier)) {
+        const imported = extractText(specifier.imported);
+        const local = specifier.local.name;
 
-      if (imported === "bind" || imported === "calculate" || imported === "watch") {
-        ids.expr = local;
-      }
-      if (imported in ids) {
-        ids[imported] = local;
-      }
+        if (imported === "bind" || imported === "calculate" || imported === "watch") {
+          ids.expr = local;
+        }
+        if (imported in ids) {
+          ids[imported] = local;
+        }
 
-      internal.mapping.set(local, imported);
-      if (imported === "styleSheet") {
-        internal.stylesConnected = true;
-      }
+        internal.mapping.set(local, imported);
+        if (imported === "styleSheet") {
+          internal.stylesConnected = true;
+        }
 
-      internal.importStatement = statementPath;
+        internal.importStatement = statementPath;
+      }
     }
   }
   statement.specifiers = statement.specifiers.filter(spec => {
@@ -271,10 +273,10 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     },
     match(name, arg, area) {
       if (opts.devLayer) {
-        return call("match", [name, arg ?? t.buildUndefinedNode(), nodeToStaticPosition(area), getInspector()]);
+        return call("match", [name, arg, nodeToStaticPosition(area), getInspector()]);
       }
 
-      return call("match", arg ? [name, arg] : [name]);
+      return call("match", [name, arg]);
     },
     set(obj, field, value, area) {
       if (opts.devLayer) {

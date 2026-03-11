@@ -147,7 +147,6 @@ function meshLValue(
   path: NodePath<types.LVal | types.OptionalMemberExpression | null | undefined>,
   internal: Internal,
 ) {
-  /* istanbul ignore else */
   if (path.isIdentifier()) {
     meshIdentifier(path);
   } else if (path.isMemberExpression() || path.isOptionalMemberExpression()) {
@@ -155,6 +154,7 @@ function meshLValue(
 
     meshMember(path);
 
+    /* istanbul ignore else */
     if (object.isLVal()) {
       meshLValue(object, internal);
     }
@@ -165,8 +165,11 @@ function meshLValue(
         meshLValue(item, internal);
       }
     }
-  } else if (path.isRestElement()) {
-    meshLValue(path.get("argument"), internal);
+  } else {
+    /* istanbul ignore else */
+    if (path.isRestElement()) {
+      meshLValue(path.get("argument"), internal);
+    }
   }
 }
 
@@ -241,11 +244,13 @@ export function checkAllUnknown(
   internal: Search,
 ) {
   for (const path of paths) {
-    /* istanbul ignore else */
     if (path.isSpreadElement()) {
       checkExpression(path.get("argument"), internal);
-    } else if (path.isExpression()) {
-      checkExpression(path, internal);
+    } else {
+      /* istanbul ignore else */
+      if (path.isExpression()) {
+        checkExpression(path, internal);
+      }
     }
   }
 }

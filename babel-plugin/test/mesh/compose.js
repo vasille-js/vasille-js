@@ -1,7 +1,7 @@
-import { compose, For, ref as VasilleRef, match as VasilleMatch, arrayModel as VasilleArrayModel, safe as VasilleSafe, expr as VasilleExpr } from "vasille-web";
+import { compose, For, ref as VasilleRef, arrayModel as VasilleArrayModel, safe as VasilleSafe, expr as VasilleExpr } from "vasille-web";
 const C = compose(function C(Vasille, {
   $name = VasilleRef("name"),
-  ["$data"]: $d = VasilleMatch("$d"),
+  ["$data"]: $d = VasilleRef(),
   ...rest
 }) {
   const model = VasilleArrayModel(Vasille, [{

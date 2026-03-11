@@ -64,11 +64,13 @@ export function meshAllUnknown(
   internal: Internal,
 ) {
   for (const path of paths) {
-    /* istanbul ignore else */
     if (path.isSpreadElement()) {
       meshExpression(path.get("argument"), internal);
-    } else if (path.isExpression()) {
-      meshExpression(path, internal);
+    } else {
+      /* istanbul ignore else */
+      if (path.isExpression()) {
+        meshExpression(path, internal);
+      }
     }
   }
 }
@@ -165,13 +167,15 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
 
         const loc = path.node.loc;
 
-        /* istanbul ignore else */
         if (calls(path, ["arrayModel"], internal)) {
           path.replaceWith(internal.arrayModel(argPath?.node, path.node, undefined));
         } else if (calls(path, ["mapModel"], internal)) {
           path.replaceWith(internal.mapModel(argPath?.node, path.node, undefined));
-        } else if (calls(path, ["setModel"], internal)) {
-          path.replaceWith(internal.setModel(argPath?.node, path.node, undefined));
+        } else {
+          /* istanbul ignore else */
+          if (calls(path, ["setModel"], internal)) {
+            path.replaceWith(internal.setModel(argPath?.node, path.node, undefined));
+          }
         }
 
         path.node.loc = loc;
@@ -283,12 +287,16 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
         meshOrIgnoreExpression<types.PrivateName>(path.get("property"), internal);
       }
 
-      if (memberIsIValue(node) && !nodeIsMeshed(path)) {
-        if (exprIsSure(path, internal)) {
-          path.replaceWith(t.memberExpression(path.node, V));
-        } else {
-          path.replaceWith(t.optionalMemberExpression(path.node, V, false, true));
+      if (memberIsIValue(node)) {
+        if (!nodeIsMeshed(path)) {
+          if (exprIsSure(path, internal)) {
+            path.replaceWith(t.memberExpression(path.node, V));
+          } else {
+            path.replaceWith(t.optionalMemberExpression(path.node, V, false, true));
+          }
         }
+      } else if (node.computed && t.isIdentifier(property)) {
+        path.replaceWith(internal.match(t.stringLiteral(""), node, node));
       }
 
       break;
@@ -420,7 +428,6 @@ export function ignoreParams(
   internal: Internal,
   allowReactiveId: false | ("id" | "array")[],
 ) {
-  /* istanbul ignore else */
   // param with default value
   if (path.isAssignmentPattern()) {
     const left = path.get("left");
@@ -447,6 +454,7 @@ export function ignoreParams(
   // param is array destruction
   else if (path.isArrayPattern()) {
     for (const element of path.get("elements")) {
+      /* istanbul ignore else */
       if (element) {
         ignoreParams(element, internal, allowReactiveId && allowReactiveId.includes("array") && ["id", "array"]);
         if ((!allowReactiveId || !allowReactiveId.includes("array")) && element.isIdentifier()) {
@@ -488,7 +496,6 @@ function ignoreObjectPattern(pattern: NodePath<types.ObjectPattern>, internal: I
 
       const valuePath = path.get("value");
 
-      /* istanbul ignore else */
       if (valuePath.isObjectPattern()) {
         /* istanbul ignore else */
         if (originName && originName.startsWith("$")) {
@@ -502,25 +509,25 @@ function ignoreObjectPattern(pattern: NodePath<types.ObjectPattern>, internal: I
         ignoreParams(valuePath.get("left"), internal, ["id"]);
         meshExpression(right, internal);
 
-        if (property.computed && t.isIdentifier(property.key)) {
-          right.replaceWith(internal.match(t.stringLiteral(property.key.name), right.node, property));
-        } else if (
+        if (
           (t.isIdentifier(property.key) && property.key.name.startsWith("$")) ||
           (t.isStringLiteral(property.key) && property.key.value.startsWith("$"))
         ) {
           right.replaceWith(internal.ref(right.node, property, undefined));
+        } else {
+          /* istanbul ignore else */
+          if (property.computed && !t.isStringLiteral(property.key)) {
+            err(Errors.RulesOfVasille, valuePath, "Computed property can not be used in destruction", internal);
+          }
         }
-      } else if (t.isIdentifier(property.value)) {
-        internal.stack.set(property.value.name, {});
+      } else {
+        /* istanbul ignore else */
+        if (t.isIdentifier(property.value)) {
+          internal.stack.set(property.value.name, {});
 
-        if (property.computed) {
-          path
-            .get("value")
-            .replaceWith(
-              t.assignmentPattern(property.value, internal.match(t.stringLiteral(property.value.name), null, property)),
-            );
-        } else if (property.value.name.startsWith("$")) {
-          path.get("value").replaceWith(t.assignmentPattern(property.value, internal.ref(null, property, undefined)));
+          if (property.value.name.startsWith("$")) {
+            path.get("value").replaceWith(t.assignmentPattern(property.value, internal.ref(null, property, undefined)));
+          }
         }
       }
     }
@@ -536,12 +543,14 @@ export function reactiveArrayPattern(
 ) {
   if (path.isArrayPattern()) {
     path.get("elements").forEach((element, index) => {
-      /* istanbul ignore else */
       if (index < 2) {
         checkReactiveName(element, internal);
-      } else if (element.isIdentifier()) {
-        checkNonReactiveName(element, internal);
-        internal.stack.set(element.node.name, {});
+      } else {
+        /* istanbul ignore else */
+        if (element.isIdentifier()) {
+          checkNonReactiveName(element, internal);
+          internal.stack.set(element.node.name, {});
+        }
       }
     });
   } else {
@@ -582,7 +591,6 @@ function meshForHeader(path: NodePath<types.ForStatement>, internal: Internal) {
 
 function meshClassBody(path: NodePath<types.ClassBody>, internal: Internal) {
   for (const item of path.get("body")) {
-    /* istanbul ignore else */
     if (item.isClassMethod() || item.isClassPrivateMethod()) {
       meshFunction(item, internal);
     } else if (item.isClassProperty()) {
@@ -610,10 +618,11 @@ function meshClassBody(path: NodePath<types.ClassBody>, internal: Internal) {
         }
         meshExpression(item.get("value"), internal);
       }
-    } else if (item.isClassAccessorProperty()) {
-      meshExpression(item.get("value"), internal);
-    } else if (item.isClassPrivateProperty()) {
-      meshExpression(item.get("value"), internal);
+    } else {
+      /* istanbul ignore else */
+      if (item.isClassPrivateProperty()) {
+        meshExpression(item.get("value"), internal);
+      }
     }
   }
 }
@@ -626,7 +635,6 @@ function procedureProcessObjectExpression(
   for (const prop of path.get("properties")) {
     const keyPath = prop.get("key");
     const valuePath = prop.get("value");
-    /* istanbul ignore else */
     if (prop.isObjectProperty()) {
       // the property name is known in compile time
       if ((!prop.node.computed || keyPath.isStringLiteral()) && valuePath.isExpression()) {
@@ -685,13 +693,16 @@ function procedureProcessObjectExpression(
       }
       meshStatement(prop.get("body"), internal);
       internal.wrapFunctionBody(prop.node);
-    } else if (prop.isSpreadElement()) {
-      const argumentPath = prop.get("argument");
+    } else {
+      /* istanbul ignore else */
+      if (prop.isSpreadElement()) {
+        const argumentPath = prop.get("argument");
 
-      if (argumentPath.isObjectExpression()) {
-        procedureProcessObjectExpression(argumentPath, internal, state);
-      } else {
-        meshExpression(argumentPath, internal);
+        if (argumentPath.isObjectExpression()) {
+          procedureProcessObjectExpression(argumentPath, internal, state);
+        } else {
+          meshExpression(argumentPath, internal);
+        }
       }
     }
   }
@@ -978,7 +989,6 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
     case "ExportDefaultDeclaration": {
       const declarationPath = (path as NodePath<types.ExportDefaultDeclaration>).get("declaration");
 
-      /* istanbul ignore else */
       // export default 23;
       if (declarationPath.isExpression()) {
         meshExpression(declarationPath, internal);
@@ -988,8 +998,11 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
         meshFunction(declarationPath, internal);
       }
       // export default class ..
-      else if (declarationPath.isClassDeclaration()) {
-        meshClassBody(declarationPath.get("body"), internal);
+      else {
+        /* istanbul ignore else */
+        if (declarationPath.isClassDeclaration()) {
+          meshClassBody(declarationPath.get("body"), internal);
+        }
       }
     }
   }
@@ -1028,11 +1041,13 @@ export function meshFunction(
 
   const bodyPath = path.get("body");
 
-  /* istanbul ignore else */
   if (bodyPath.isExpression()) {
     meshExpression(bodyPath, internal);
-  } else if (bodyPath.isBlockStatement()) {
-    meshStatement(bodyPath, internal);
+  } else {
+    /* istanbul ignore else */
+    if (bodyPath.isBlockStatement()) {
+      meshStatement(bodyPath, internal);
+    }
   }
 
   if (path.isFunctionExpression() || path.isArrowFunctionExpression()) {
@@ -1052,7 +1067,6 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
   switch (expr && expr.type) {
     case "CallExpression":
     case "OptionalCallExpression": {
-      /* istanbul ignore else */
       if (calls(path, ["watch"], internal)) {
         parseCalculateCall(path, internal, path.node, undefined);
 
@@ -1079,11 +1093,14 @@ export function composeExpression(path: NodePath<types.Expression | null | undef
         }
 
         path.get("callee").replaceWith(t.memberExpression(ctx, t.identifier("runOnDestroy")));
-      } else if (calls(path, ["share"], internal)) {
-        if (internal.stateOnly) {
-          err(Errors.IncompatibleContext, path, "Stores/Models in Vasille.JS cannot share dependecies", internal);
+      } else {
+        /* istanbul ignore else */
+        if (calls(path, ["share"], internal)) {
+          if (internal.stateOnly) {
+            err(Errors.IncompatibleContext, path, "Stores/Models in Vasille.JS cannot share dependencies", internal);
+          }
+          path.node.arguments.unshift(ctx);
         }
-        path.node.arguments.unshift(ctx);
       }
       break;
     }
@@ -1164,7 +1181,6 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
 
         ignoreParams(declaration.get("id"), internal, ["id", "array"]);
 
-        /* istanbul ignore else */
         if (calls(declaration.get("init"), ["awaited"], internal)) {
           const callPath = declaration.get("init") as NodePath<types.CallExpression>;
 
@@ -1251,7 +1267,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             checkNonReactiveName(idPath, internal);
           }
           // const x = { .. }
-          else if (t.isObjectExpression(init)) {
+          else if (t.isObjectExpression(init) && !(kind === "let" && id.name.startsWith("$"))) {
             internal.stack.set(
               id.name,
               processObjectExpression(initPath as NodePath<types.ObjectExpression>, internal),
@@ -1260,7 +1276,7 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             checkNonReactiveName(idPath, internal);
           }
           // const a = []
-          else if (initPath.isArrayExpression()) {
+          else if (initPath.isArrayExpression() && !(kind === "let" && id.name.startsWith("$"))) {
             if (kind !== "const") {
               err(Errors.RulesOfVasille, declaration, "Arrays must be must be declared as constants", internal);
             }
@@ -1275,7 +1291,8 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
           else if (
             initPath.isNewExpression() &&
             t.isIdentifier(initPath.node.callee) &&
-            ["Set", "Map"].includes(initPath.node.callee.name)
+            ["Set", "Map"].includes(initPath.node.callee.name) &&
+            !(kind === "let" && id.name.startsWith("$"))
           ) {
             processModelCall(
               initPath,
@@ -1287,7 +1304,30 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             );
             meshInit = false;
             checkNonReactiveName(idPath, internal);
-          } else if (kind === "let") {
+          }
+          // const x = y[z]
+          else if (
+            kind === "const" &&
+            (initPath.isOptionalMemberExpression() || initPath.isMemberExpression()) &&
+            initPath.node.computed &&
+            t.isIdentifier(initPath.node.property)
+          ) {
+            const path = initPath as NodePath<t.MemberExpression | t.OptionalMemberExpression>;
+            const property = path.get("property");
+
+            meshExpression(path.get("object"), internal);
+            /* istanbul ignore else */
+            if (property.isExpression()) {
+              meshExpression(property, internal);
+            }
+
+            meshInit = false;
+            path.replaceWith(
+              internal.match(t.stringLiteral(id.name.startsWith("$") ? "$" : ""), path.node, declaration.node),
+            );
+          }
+          // let x = ..
+          else if (kind === "let") {
             meshExpression(declaration.get("init"), internal);
 
             if (idPath.isIdentifier() && idPath.node.name.startsWith("$")) {
@@ -1296,7 +1336,9 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
               switchToConst = false;
             }
             meshInit = false;
-          } else {
+          }
+          // const x = ..
+          else {
             const isReactive = exprCall(
               declaration.get("init"),
               declaration.node.init,
@@ -1315,8 +1357,6 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             }
             meshInit = !isReactive;
           }
-        } else if (t.isObjectPattern(id)) {
-          ignoreObjectPattern(declaration.get("id") as NodePath<types.ObjectPattern>, internal);
         }
         if (meshInit) {
           meshExpression(declaration.get("init"), internal);
@@ -1360,12 +1400,14 @@ export function compose(
     internal.isComposing = true;
   }
 
-  /* istanbul ignore else */
   if (body.isExpression()) {
     composeExpression(body, internal);
-  } else if (body.isBlockStatement()) {
-    checkOrder(body.get("body"), internal);
-    composeStatement(body, internal);
+  } else {
+    /* istanbul ignore else */
+    if (body.isBlockStatement()) {
+      checkOrder(body.get("body"), internal);
+      composeStatement(body, internal);
+    }
   }
 
   if (!isSlot) {

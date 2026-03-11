@@ -68,6 +68,10 @@ it("store not reactive value name error", function () {
   throwTest(__dirname, "store-not-reactive-value", "Method name can not start with $");
 });
 
+it("store not reactive value name error 2", function () {
+  throwTest(__dirname, "store-not-reactive-value-2", "Method name can not start with $");
+});
+
 it("jsx fragment error", function () {
   throwTest(__dirname, "jsx-fragment", "JSX fragment is not allowed here", true);
 });
@@ -150,4 +154,24 @@ it("prompt called outside of context", function () {
 
 it("double mesh bug", function () {
   runJsxTest(__dirname, "double-mesh-bug");
+});
+
+it("object reference", function () {
+  runTest(__dirname, "object-reference");
+});
+
+it("object computed property", function () {
+  runTest(__dirname, "object-computed-property");
+});
+
+it("object read property", function () {
+  runTest(__dirname, "object-read-property");
+});
+
+it("computed properties in destruction", function () {
+  throwTest(__dirname, "computed-property-in-destruction", "Computed property can not be used in destruction");
+});
+
+it("store share dependency", function () {
+  throwTest(__dirname, "store-share-dependency", "Stores/Models in Vasille.JS cannot share dependencies");
 });

@@ -245,7 +245,10 @@ export function processModelCall(
 }
 
 export function checkReactiveName(idPath: NodePath<unknown>, internal: Internal) {
-  if (!(idPath.isIdentifier() && idPath.node.name.startsWith("$"))) {
+  if (
+    !(idPath.isIdentifier() && idPath.node.name.startsWith("$")) &&
+    !(idPath.isStringLiteral() && idPath.node.value.startsWith("$"))
+  ) {
     err(Errors.RulesOfVasille, idPath, "Reactive variable name must start with $", internal);
   }
 }

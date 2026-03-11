@@ -53,4 +53,5 @@ const cx = class {
   }
 };
 
-const obj = { a: 1, b: { c: 2 }, ...{ d: 4 } };
+const o1 = { e: 1 };
+const obj = { a: 1, b: { c: 2 }, ...{ d: 4 }, ...o1 };

@@ -1,8 +1,8 @@
 const VasilleFilePath = "babel-plugin-vasille/test/dev/match.ts";
-import { component, earlyInspector as VasilleInspector, match as VasilleMatch } from "steel-frame";
+import { component, earlyInspector as VasilleInspector, ref as VasilleRef, match as VasilleMatch } from "steel-frame";
 const k = "key";
 const C = component((Vasille, {
-  ["$data"]: $d = VasilleMatch("$d", void 0, [VasilleFilePath, 11, 23, 11, 36], VasilleInspector)
+  ["$data"]: $d = VasilleRef(void 0, [VasilleFilePath, 11, 23, 11, 36], VasilleInspector)
 }) => {
   const key = "a";
   const o = {

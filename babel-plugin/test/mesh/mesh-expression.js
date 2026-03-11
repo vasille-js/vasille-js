@@ -41,6 +41,9 @@ const cx = class {
     compose(Vasille => {});
   }
 };
+const o1 = {
+  e: 1
+};
 const obj = {
   a: 1,
   b: {
@@ -48,5 +51,6 @@ const obj = {
   },
   ...{
     d: 4
-  }
+  },
+  ...o1
 };

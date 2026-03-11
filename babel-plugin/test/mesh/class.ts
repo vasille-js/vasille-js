@@ -4,6 +4,8 @@ export class Test1 {
   public $1 = ref(1);
   public $2: number;
   public $3: number;
+  // @ts-expect-error
+  public ["$4"] = ref();
 
   public constructor(data: { $3: number }) {
     this.$2 = 2;

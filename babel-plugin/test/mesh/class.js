@@ -1,6 +1,8 @@
 import { component, ref, set as VasilleSet, safe as VasilleSafe } from "vasille-web";
 export class Test1 {
   $1 = ref(1);
+  // @ts-expect-error
+  ["$4"] = ref();
   constructor(data) {
     VasilleSet(this, "$2", 2);
     this.$3 = data.$3;

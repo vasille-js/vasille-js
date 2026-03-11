@@ -347,7 +347,6 @@ function transformJsxElement(
             }
           } else if (name.name === "class") {
             // class={[..]}
-            /* istanbul ignore else */
             if (valuePath.isJSXExpressionContainer() && t.isArrayExpression(valuePath.node.expression)) {
               const arrayExprPath = valuePath.get("expression") as NodePath<types.ArrayExpression>;
 
@@ -421,18 +420,15 @@ function transformJsxElement(
 
               attrs.push(t.objectProperty(t.identifier("class"), expressionPath.node));
             }
-            // class={name}
-            else if (expressionPath && expressionPath.isExpression()) {
-              exprCall(expressionPath, expressionPath.node, internal, {}, expressionPath.node);
-              attrs.push(t.objectProperty(t.identifier("class"), expressionPath.node));
-            }
             // class="a b"
-            else if (valuePath.isStringLiteral()) {
-              classStatic.push(valuePath.node);
+            else {
+              /* istanbul ignore else */
+              if (valuePath.isStringLiteral()) {
+                classStatic.push(valuePath.node);
+              }
             }
           } else if (name.name === "style") {
             // style={{..}}
-            /* istanbul ignore else */
             if (expressionPath && expressionPath.isObjectExpression()) {
               for (const propPath of expressionPath.get("properties")) {
                 // style={{a: b}}
@@ -501,18 +497,20 @@ function transformJsxElement(
               attrs.push(t.objectProperty(t.identifier("style"), expressionPath.node));
             }
             // style={`a: ${b}px`}
-            else if (expressionPath && expressionPath.isExpression()) {
-              if (exprCall(expressionPath, expressionPath.node, internal, { strong: true }, expressionPath.node)) {
-                console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
-              }
+            else {
+              /* istanbul ignore else */
+              if (expressionPath && expressionPath.isExpression()) {
+                if (exprCall(expressionPath, expressionPath.node, internal, { strong: true }, expressionPath.node)) {
+                  console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
+                }
 
-              attrs.push(t.objectProperty(t.identifier("style"), expressionPath.node));
+                attrs.push(t.objectProperty(t.identifier("style"), expressionPath.node));
+              }
             }
           } else if (name.name === "callback" && expressionPath && expressionPath.isExpression()) {
             meshExpression(expressionPath, internal);
             callback = expressionPath.node;
           } else {
-            /* istanbul ignore else */
             if (expressionPath && expressionPath.isExpression()) {
               exprCall(expressionPath, expressionPath.node, internal, {}, expressionPath.node);
               attrs.push(idToProp(name, expressionPath.node));
@@ -527,7 +525,6 @@ function transformJsxElement(
           if (name.namespace.name === "bind") {
             let pushed = false;
 
-            /* istanbul ignore else */
             if (expressionPath) {
               /* istanbul ignore else */
               if (expressionPath.isExpression()) {
@@ -535,9 +532,12 @@ function transformJsxElement(
                 bind.push(idToProp(name.name, expressionPath.node));
                 pushed = true;
               }
-            } else if (t.isStringLiteral(attr.value)) {
-              bind.push(idToProp(name.name, attr.value));
-              pushed = true;
+            } else {
+              /* istanbul ignore else */
+              if (t.isStringLiteral(attr.value)) {
+                bind.push(idToProp(name.name, attr.value));
+                pushed = true;
+              }
             }
             if (!pushed) {
               bind.push(idToProp(name.name, t.booleanLiteral(true)));
@@ -613,7 +613,6 @@ function transformJsxElement(
         const valuePath = attrPath.isJSXAttribute() && attrPath.get("value");
         const needReactive = attr.name.name.startsWith("$");
         // <A prop=".."/>
-        /* istanbul ignore else */
         if (t.isStringLiteral(attr.value)) {
           props.push(idToProp(attr.name, needReactive ? internal.ref(attr.value, attr, undefined) : attr.value));
         }
@@ -631,13 +630,16 @@ function transformJsxElement(
           );
 
           props.push(idToProp(attr.name, value));
-        } else if (!attr.value) {
-          props.push(
-            idToProp(
-              attr.name,
-              needReactive ? internal.ref(t.booleanLiteral(true), attr, undefined) : t.booleanLiteral(true),
-            ),
-          );
+        } else {
+          /* istanbul ignore else */
+          if (!attr.value) {
+            props.push(
+              idToProp(
+                attr.name,
+                needReactive ? internal.ref(t.booleanLiteral(true), attr, undefined) : t.booleanLiteral(true),
+              ),
+            );
+          }
         }
       }
       // <A {...arg}/>
