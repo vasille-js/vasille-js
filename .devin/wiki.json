@@ -94,7 +94,7 @@
     },
     {
       "title": "Reactive Variables",
-      "purpose": "Explain $-prefixed variables, ref() for explicit creating References, bind() for expressions, calculate() for computed functions, watch() for side effects",
+      "purpose": "Explain $-prefixed variables and object properties, ref() for explicit creating References, bind() for expressions, calculate() for computed functions, watch() for side effects",
       "parent": "State Management",
       "page_notes": [
         {
