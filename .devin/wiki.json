@@ -1,0 +1,292 @@
+{
+  "repo_notes": [
+    {
+      "content": ""
+    }
+  ],
+  "pages": [
+    {
+      "title": "Well come to Steel Frame",
+      "purpose": "Introduce steel-frame, explaining the framework's purpose as a fault tolerant frontend kit and key differentiators (synchronous updates, strong typing, predectibility, developer experience)",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Getting Started",
+      "purpose": "Quick start guide for creating a steel-frame application using npm create steel-frame, basic project structure, and first component",
+      "parent": "Overview",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Components and UI",
+      "purpose": "Cover component definition patterns, JSX syntax, elements attributtes and strong HTML standards used: class, not className, onclick, not onClick etc., the developer can paste any valid HTML to component and it will be accepted",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Defining Components",
+      "purpose": "Show how to define components using view(), component() for components, page() for file-based routing, and the differences between them",
+      "parent": "Components and UI",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "JSX and Templates",
+      "purpose": "Explain JSX syntax, how attributes/events/bindings work, class and style handling (static vs dynamic)",
+      "parent": "Components and UI",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Built-in Components",
+      "purpose": "Document If/ElseIf/Else for conditional rendering, For for lists, Watch for reactive observation, Delay for deferred rendering, Slot for content projection",
+      "parent": "Components and UI",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Props and Slots",
+      "purpose": "Explain prop passing via input parameter, slot pattern for content projection, model vs slot props in Slot component, and callback pattern",
+      "parent": "Components and UI",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Lifecycle Hooks",
+      "purpose": "Document beforeMount() (sync), afterMount() (sync/async), beforeDestroy() hooks, and their use cases including safe() wrapping",
+      "parent": "Components and UI",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "State Management",
+      "purpose": "Cover reactive variables and object properties with $ prefix, global stores, component models, reactive collections, computed values, and async data handling",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Reactive Variables",
+      "purpose": "Explain $-prefixed variables, ref() for explicit creating References, bind() for expressions, calculate() for computed functions, watch() for side effects",
+      "parent": "State Management",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Stores and Models",
+      "purpose": "Document store() for global persistent state, model() for component-scoped state with automatic clean up",
+      "parent": "State Management",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Reactive Collections",
+      "purpose": "Document arrayModel(), mapModel(), setModel() for reactive data structures, their are used automatically when the developer declare a const initialized with an Array, Map or Set value in a component",
+      "parent": "State Management",
+      "page_notes": [
+        {
+          "content": "Array model is not working corectly with pimitive values like booleans, numbers and strings"
+        }
+      ]
+    },
+    {
+      "title": "Computed Values",
+      "purpose": "Explain bind() for reactive expressions (transforms expressions to track dependencies), calculate() for reactive functions, and that an reactive expression are created automatically when a constant is declared in component and its value contain reactive values (variable or object properties which name start with $)",
+      "parent": "State Management",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Async Data",
+      "purpose": "Document awaited() utility for handling promises in sync components, returning [error, data, retry] tuple for reactive loading state management",
+      "parent": "State Management",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Routing",
+      "purpose": "Cover router setup via src/pages folder presence and src/index.vasille.js as project entry point, screen/page components, navigation methods, loading states, and error/fallback handling",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Defining Routes and Screens",
+      "purpose": "Document route patterns (static /path, dynamic /(param)), screen() wrapper, ScreenProps interface with route parameters and query params",
+      "parent": "Routing",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Router Settings",
+      "purpose": "Explain usage of src/router/checkAccess.ts module as route access function, src/router/fallbackScreen.tsx module for handling of unexisting and restricted routes, src/router/errorScreen.tsx for error screen when the navigation is accepted but fails, src/router/loadingScreen.tsx for a loading screen showed before first page render, src/router/loadingOverlay.tsx for a overlay between pages on navigation",
+      "parent": "Routing",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Navigation Methods",
+      "purpose": "Document goTo() (full-page loading), ajax() (overlay loading), load() (silent preload), reload(), and NavigationMode enum",
+      "parent": "Routing",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Loading States",
+      "purpose": "Explain loadingScreen (full-page), loadingOverlay (AJAX-style), $currentUrl and $loadingUrl reactive references",
+      "parent": "Routing",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Modals and Prompts",
+      "purpose": "Document modal() HOF for creating modal components, prompt() for Promise-based user interaction, Portal abstraction, and timeout handling",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Styling",
+      "purpose": "Document styleSheet() for scoped CSS, theme() and dark() utilities for theming, mobile()/tablet()/laptop() for responsive design, and dynamic class generation",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Style Sheets",
+      "purpose": "Explain styleSheet() function, array-based media query syntax, dynamic class name generation, and CSSStyleSheet insertion mechanism",
+      "parent": "Styling",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Theming and Dark Mode",
+      "purpose": "Document dark() utility for theme-aware styles, body.dark class pattern, dual-rendering technique for theme transitions, and theme switching implementation",
+      "parent": "Styling",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Responsive Design",
+      "purpose": "Document mobile(), tablet(), laptop() utilities, breakpoint configuration via setMobileMaxWidth/setTabletMaxWidth/setLaptopMaxWidth, and media query generation",
+      "parent": "Styling",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Package Architecture",
+      "purpose": "Explain the modular architecture with steel-frame as a facade over vasille-* packages (vasille, vasille-jsx, vasille-web, vasille-router, vasille-css, vasille-context, vasille-ssg)",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Core Concepts",
+      "purpose": "Introduce fundamental concepts: reactive system (IValue, Reference, Expression), component model (compose, view), and the synchronous update guarantee",
+      "parent": "Package Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Reactive System",
+      "purpose": "Explain IValue interface, Reference (mutable state), Expression (computed values), and the on/off event system for reactive propagation",
+      "parent": "Package Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Component Model",
+      "purpose": "Explain compose(), view(), component(), screen(), page() functions, Fragment context, and the component-as-function paradigm",
+      "parent": "Package Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Synchronous Updates",
+      "purpose": "Explain the synchronous DOM update guarantee ('when the line of code is executed, the DOM and reactive things are already synced') and how it differs from async frameworks",
+      "parent": "Package Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    }
+  ]
+}
