@@ -1,4 +1,4 @@
-import { dark, styleSheet, view } from "steel-frame";
+import { dark, mobile, styleSheet, view } from "steel-frame";
 import { VLine } from "../components/VLine.js";
 import { Button } from "../components/Button.js";
 import { DoubleTitle } from "../components/DoubleTitle.js";
@@ -16,6 +16,7 @@ export const HeroView = view(() => {
     />
     <VLine />
     <span class={styles.title}>SteelFrameKit</span>
+    <div style={{ height: 32 }} />
     <DoubleTitle
       title={({ classes }) => {
         <h1 class={[h1, centerText, ...classes]} style={{ "max-width": 427 }}>
@@ -130,14 +131,18 @@ const styles = styleSheet({
     },
   },
   title: {
-    margin: [40, 0, 32],
+    margin: [40, 0, 0],
     padding: [5, 10],
     "border-width": 2,
     "border-style": "solid",
     "border-color": ["#191919", dark("#fff")],
-    "border-radius": 17,
+    "border-radius": 25,
     color: ["#191919", dark("#fff")],
     transition: "color 1s ease-in-out, border-color 1s ease-in-out",
+    "font-size": 20,
+    "letter-spacing": "-0.54px",
+    "font-weight": "500",
+    display: [mobile("none")],
   },
   flex1: {
     flex: 1,

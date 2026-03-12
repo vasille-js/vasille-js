@@ -1,10 +1,11 @@
-import { component, dark, mobile, styleSheet } from "steel-frame";
+import { component, dark, mobile, styleSheet, watch } from "steel-frame";
 import logoSvg from "../assets/logo.svg";
 import docsSvg from "../assets/docs.svg";
 import githubSvg from "../assets/github.svg";
 import playgroundSvg from "../assets/playground.svg";
 import lightSvg from "../assets/light.svg";
 import darkSvg from "../assets/dark.svg";
+import menuSvg from "../assets/menu.svg";
 
 interface ItemProps {
   src: string;
@@ -23,7 +24,13 @@ const Item = component(({ src, text, href }: ItemProps) => {
 });
 
 const Switcher = component(() => {
-  <div class={[styles.switcher, "theme-switcher"]}>
+  <button
+    type={"button"}
+    class={[styles.switcher]}
+    onclick={() => {
+      document.body.classList.toggle("dark");
+    }}
+  >
     <div class={styles.switcherTrack}>
       <div class={styles.switcherKnob} />
     </div>
@@ -39,7 +46,7 @@ const Switcher = component(() => {
         alt={"dark"}
       />
     </div>
-  </div>;
+  </button>;
 });
 
 interface InternalPanelProps {
@@ -48,8 +55,10 @@ interface InternalPanelProps {
   border: string;
   accent: string;
   className: string;
+  activeClassName: string;
   lightZ: number;
   darkZ: number;
+  $active: boolean;
 }
 
 const InternalPanel = component(
@@ -61,9 +70,11 @@ const InternalPanel = component(
     className,
     lightZ,
     darkZ,
+    $active,
+    activeClassName,
   }: InternalPanelProps) => {
     <div
-      class={[styles.panel, className]}
+      class={[styles.panel, className, $active && activeClassName]}
       style={{
         "--fg": fg,
         "--bg": bg,
@@ -82,12 +93,54 @@ const InternalPanel = component(
 );
 
 export const Panel = component(() => {
+  let $active = false;
+  let $overlayDisplay = false;
+  let $overlayActive = false;
+
+  watch(() => {
+    if ($active) {
+      $overlayDisplay = true;
+      requestAnimationFrame(() => {
+        $overlayActive = true;
+      });
+    } else {
+      $overlayActive = false;
+    }
+  });
+
+  <button
+    type="button"
+    class={[
+      styles.overlay,
+      $overlayActive && styles.overlayActive,
+      $overlayDisplay && styles.overlayDisplay,
+    ]}
+    onclick={() => ($active = false)}
+    ontransitionend={() => {
+      if (!$active) {
+        $overlayDisplay = false;
+      }
+    }}
+  />;
+  <button
+    type="button"
+    class={styles.burgerButton}
+    onclick={() => ($active = true)}
+  >
+    <div
+      class={styles.burgerButtonIcon}
+      style={{ "mask-image": `url("${menuSvg}")` }}
+    />
+    SteelFrameKit
+  </button>;
   <InternalPanel
     fg={"#191919"}
     border={"#B2B2B2"}
     bg={"#FFFFFFED"}
     accent={"#0302DF"}
+    $active={$active}
     className={styles.lightPanel}
+    activeClassName={styles.lightPanelActive}
     lightZ={998}
     darkZ={999}
   />;
@@ -96,7 +149,9 @@ export const Panel = component(() => {
     bg={"#191919"}
     border={"#4D4D4DED"}
     accent={"#ff946a"}
+    $active={$active}
     className={styles.darkPanel}
+    activeClassName={styles.darkPanelActive}
     lightZ={999}
     darkZ={998}
   />;
@@ -121,8 +176,14 @@ const styles = styleSheet({
   darkPanel: {
     left: ["-97px", dark(0), mobile(dark("-97px"))],
   },
+  darkPanelActive: {
+    left: ["-97px", dark(0), mobile(dark(0))],
+  },
   lightPanel: {
     left: [0, dark("-97px"), mobile("-97px")],
+  },
+  lightPanelActive: {
+    left: [0, dark("-97px"), mobile(0)],
   },
   logo: {
     width: 56,
@@ -173,9 +234,13 @@ const styles = styleSheet({
     "z-index": "1000",
   },
   switcher: {
-    margin: 10,
+    padding: 10,
     display: "flex",
     cursor: "pointer",
+    background: [mobile("#FFFFFF"), dark(mobile("#191919")), "#80808000"],
+    transition: "background 0.2s ease-in-out",
+    "border-radius": 16,
+    border: "none",
   },
   switcherTrack: {
     width: 32,
@@ -203,6 +268,8 @@ const styles = styleSheet({
   },
   switcherIconSvg: {
     position: "absolute",
+    left: 0,
+    top: 0,
     transition: "opacity 0.2s ease-in-out, transform 0.2s ease-in-out",
   },
   switcherIconDark: {
@@ -212,5 +279,54 @@ const styles = styleSheet({
   switcherIconLight: {
     opacity: [1, dark(0)],
     transform: ["rotate(0deg)", dark("rotate(720deg)")],
+  },
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    "z-index": "997",
+    "background-color": ["#ffffff70", dark("#00000070")],
+    opacity: "0",
+    border: "none",
+    transition: "opacity 0.2s ease-in-out",
+    display: "none",
+  },
+  overlayActive: {
+    opacity: "1",
+  },
+  overlayDisplay: {
+    display: [mobile("block")],
+  },
+  burgerButton: {
+    height: 40,
+    "border-radius": 25,
+    "backdrop-filter": "blur(10px)",
+    background: ["#FFFFFFd0", dark("#191919d0")],
+    position: "fixed",
+    top: 24,
+    left: 12,
+    overflow: "hidden",
+    "z-index": "996",
+    "box-sizing": "border-box",
+    display: ["none", mobile("flex")],
+    cursor: "pointer",
+    border: "none",
+    padding: 0,
+    "align-items": "center",
+    color: ["#191919", dark("#fff")],
+    transition: "color 1s ease-in-out",
+    "font-size": 20,
+    "letter-spacing": "-0.54px",
+    "font-weight": "500",
+    "padding-right": 15,
+  },
+  burgerButtonIcon: {
+    background: ["#191919", dark("#FFFFFF")],
+    transition: "background 0.2s ease-in-out",
+    "mask-size": [24, 24],
+    "mask-position": "center",
+    "mask-repeat": "no-repeat",
+    height: 24,
+    width: 24,
+    margin: 8,
   },
 });
