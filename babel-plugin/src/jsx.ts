@@ -2,7 +2,7 @@ import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { ctx, inspector, Internal } from "./internal.js";
 import { bodyHasJsx } from "./jsx-detect.js";
-import { err, Errors, exprCall } from "./lib.js";
+import { err, Errors, exprCall, toKebabCase } from "./lib.js";
 import { compose, meshExpression } from "./mesh.js";
 import { nodeToStaticPosition } from "./transformer";
 
@@ -742,6 +742,33 @@ function transformJsxElement(
       }
 
       return ret;
+    }
+    if (internal.shadow && mapped === "Slot") {
+      const model = props.find(
+        item => t.isObjectProperty(item) && t.isIdentifier(item.key) && item.key.name === "model",
+      );
+      const modelName =
+        t.isObjectProperty(model) &&
+        ((t.isIdentifier(model.value) && model.value.name) ||
+          ((t.isMemberExpression(model.value) || t.isOptionalMemberExpression(model.value)) &&
+            t.isIdentifier(model.value.property) &&
+            model.value.property.name));
+      const call = t.callExpression(t.memberExpression(ctx, t.identifier("tag")), [
+        t.stringLiteral("slot"),
+        t.objectExpression(
+          modelName && modelName !== "slot"
+            ? [
+                t.objectProperty(
+                  t.identifier("a"),
+                  t.objectExpression([t.objectProperty(t.identifier("name"), t.stringLiteral(modelName))]),
+                ),
+              ]
+            : [],
+        ),
+        ...(run ? [run] : []),
+      ]);
+
+      run = t.arrowFunctionExpression([ctx], call);
     }
 
     const call = t.callExpression(t.identifier(name.name), [

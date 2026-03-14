@@ -133,6 +133,7 @@ export interface TransformerOptions {
   replaceWeb?: string;
   headTag?: boolean;
   bodyTag?: boolean;
+  shadow?: boolean;
 }
 
 export function nodeToStaticPosition(node: types.Node) {
@@ -190,6 +191,7 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
   const internal: Internal = {
     stack: new StackedStates(),
     mapping: new Map<string, string>(),
+    interfaces: new Map(),
     global: "",
     prefix: "Vasille_",
     importStatement: null,
@@ -202,6 +204,7 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     replaceWeb: opts.replaceWeb ?? (opts.devLayer ? "steel-frame" : "vasille-web"),
     headTag: opts.headTag,
     bodyTag: opts.bodyTag,
+    shadow: opts.shadow,
     ref(arg, area, name) {
       if (opts.devLayer) {
         return named(

@@ -164,6 +164,9 @@ export class Tag<Options extends TagOptions, RunnerT extends Runner<Options>> ex
                 }
             }
         }
+
+        // @ts-expect-error
+        node.$vasille = this;
     }
 }
 

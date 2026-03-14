@@ -30,6 +30,8 @@ interface TagAttrs {
     itemtype: string;
     lang: string;
     nonce: string;
+    part: string;
+    slot: string;
     spellcheck: "true" | "false" | "" | boolean;
     tabindex: number;
     title: string;
@@ -111,6 +113,7 @@ interface AAttrs extends TagAttrs {
     hreflang: string;
     type: string;
     referrerpolicy: string;
+    rel: string;
 }
 
 interface QAttrs extends TagAttrs {

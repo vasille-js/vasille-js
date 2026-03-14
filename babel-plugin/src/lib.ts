@@ -258,3 +258,20 @@ export function checkNonReactiveName(idPath: NodePath<Identifier>, internal: Int
     err(Errors.RulesOfVasille, idPath, "Non-reactive variable name must not start with $", internal);
   }
 }
+
+export function toKebabCase(name: string) {
+  let index = 0;
+  let fixed = name[index].toLowerCase();
+
+  for (index++; index < name.length; index++) {
+    const curr = name[index];
+
+    if (curr === curr.toUpperCase()) {
+      fixed += "-";
+    }
+
+    fixed += curr.toLowerCase();
+  }
+
+  return fixed;
+}

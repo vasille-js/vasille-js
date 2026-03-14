@@ -15,11 +15,13 @@ import {
   processCalculateCall,
   processModelCall,
   ref,
+  toKebabCase,
 } from "./lib.js";
 import { checkOrder } from "./order-check";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
 import { nodeToStaticPosition } from "./transformer";
+import { processReference, processTypeLiteral, registerInterface } from "./process-types";
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
   nodePaths: NodePath<types.Expression | null | T>[],
@@ -39,13 +41,25 @@ export function meshAllExpressions(nodePaths: NodePath<types.Expression | null>[
   }
 }
 
+const restrictedNames = [
+  "annotation-xml",
+  "color-profile",
+  "font-face",
+  "font-face-src",
+  "font-face-uri",
+  "font-face-format",
+  "font-face-name",
+  "missing-glyph",
+];
+
 export function meshComposeCall(
   name: string | null | undefined,
   path: NodePath<types.Node | null | undefined>,
   internal: Internal,
+  isExported = false,
 ) {
   const args = path.isCallExpression() && path.get("arguments");
-  const arg = args && (args[0].isFunctionExpression() || args[0].isArrowFunctionExpression()) && args[0];
+  const arg = args && args[0] && (args[0].isFunctionExpression() || args[0].isArrowFunctionExpression()) && args[0];
 
   if (!args || !arg || args.length !== 1) {
     return err(Errors.IncorrectArguments, path, "Invalid arguments number", internal);
@@ -56,6 +70,37 @@ export function meshComposeCall(
 
   if (internal.devLayer && path.isCallExpression()) {
     path.node.arguments.push(nodeToStaticPosition(path.node), t.stringLiteral(name ? name : "#"));
+  }
+  if (internal.shadow && isExported && name && path.isCallExpression()) {
+    const call = path.node;
+    const generics = call.typeParameters?.params;
+    const args = call.arguments;
+    const params = (t.isFunctionExpression(args[0]) || t.isArrowFunctionExpression(args[0])) && args[0].params;
+    const annotation =
+      (generics && generics[0]) ||
+      (params && params[1] && !t.isVoidPattern(params[1]) && params[1].typeAnnotation) ||
+      null;
+    const type =
+      (t.isTSTypeAnnotation(annotation) && annotation.typeAnnotation) || (t.isTSType(annotation) && annotation) || null;
+    const kebabName = toKebabCase(name);
+    let fields: types.ObjectExpression | undefined;
+
+    if (t.isTSTypeLiteral(type)) {
+      fields = processTypeLiteral(type);
+    }
+    if (t.isTSTypeReference(type)) {
+      fields = processReference(type, internal);
+    }
+
+    if (kebabName.indexOf("-") === -1 || restrictedNames.indexOf(kebabName) !== -1) {
+      err(Errors.ParserError, path, `The name '${kebabName}' is not allowed by WHATWG`, internal);
+    }
+
+    if (fields) {
+      path.node.arguments.push(t.stringLiteral(kebabName), fields);
+    } else {
+      err(Errors.RulesOfVasille, path, "Missing type for web component composition", internal);
+    }
   }
 }
 
@@ -918,7 +963,7 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
               report(`File name is not correct, expected ${name}.ts, ${name}.tsx, ${name}.js or ${name}.jsx`);
             }
           }
-          meshComposeCall(id.name, initPath, internal);
+          meshComposeCall(id.name, initPath, internal, isExported);
         }
         // calculate call
         else if (
@@ -1004,6 +1049,21 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
           meshClassBody(declarationPath.get("body"), internal);
         }
       }
+      break;
+    }
+    case "TSInterfaceDeclaration": {
+      const declaration = path.node as types.TSInterfaceDeclaration;
+
+      registerInterface(declaration.id.name, declaration.body.body, internal);
+      break;
+    }
+    case "TSTypeAliasDeclaration": {
+      const alias = path.node as types.TSTypeAliasDeclaration;
+
+      if (t.isTSTypeLiteral(alias.typeAnnotation)) {
+        registerInterface(alias.id.name, alias.typeAnnotation.members, internal);
+      }
+      break;
     }
   }
 }

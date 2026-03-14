@@ -1,5 +1,6 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
+import { TSTypeElement } from "@babel/types";
 
 export type VariableState = Record<string, 1>;
 
@@ -40,6 +41,7 @@ export class StackedStates {
 export interface Internal {
   // settings
   mapping: Map<string, string>;
+  interfaces: Map<string, TSTypeElement[]>;
   stack: StackedStates;
   global: string;
   prefix: string;
@@ -56,6 +58,7 @@ export interface Internal {
   replaceWeb: string;
   headTag?: boolean;
   bodyTag?: boolean;
+  shadow?: boolean;
 
   // reactivity
   ref(arg: types.Expression | null, area: types.Node, name: string | undefined): types.Expression;

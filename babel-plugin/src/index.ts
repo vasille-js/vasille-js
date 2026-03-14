@@ -9,6 +9,7 @@ export default function (): Babel.PluginObj<{
     replaceWeb: unknown;
     headTag: unknown;
     bodyTag: unknown;
+    shadow: unknown;
   };
 }> {
   return {
@@ -21,6 +22,7 @@ export default function (): Babel.PluginObj<{
           replaceWeb: typeof params.opts.replaceWeb === "string" ? params.opts.replaceWeb : undefined,
           headTag: !!params.opts.headTag,
           bodyTag: !!params.opts.bodyTag,
+          shadow: !!params.opts.shadow,
         });
       },
     },

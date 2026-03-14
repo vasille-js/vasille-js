@@ -15,14 +15,21 @@ export function runTest(dir: string, name: string, devMode = false, strictFolder
   expect(result?.code).toBe(expected.replace(/\n$/, ""));
 }
 
-export function throwTest(dir: string, name: string, err: string, isTsx?: boolean, strictFolders?: boolean) {
+export function throwTest(
+  dir: string,
+  name: string,
+  err: string,
+  isTsx?: boolean,
+  strictFolders?: boolean,
+  extra: object = {},
+) {
   const fileName = path.join(dir, `err-${name}.${isTsx ? "tsx" : "ts"}`);
   const input = fs.readFileSync(fileName, { encoding: "utf8" });
 
   expect(() => {
     babel.transformSync(input, {
       plugins: [
-        [vasillePlugin, { strictFolders: strictFolders ?? false }],
+        [vasillePlugin, { strictFolders: strictFolders ?? false, ...extra }],
         ["@babel/plugin-transform-typescript", { isTSX: isTsx }],
       ],
       filename: fileName,

@@ -1,0 +1,58 @@
+{
+  "name": "vasille-shadow",
+  "version": "5.0.0",
+  "description": "Pack fault tolerant steel-frame components to custom web components.",
+  "main": "index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./lib/index.js",
+      "browser": "./lib/index.js",
+      "node": "./lib/index.js"
+    }
+  },
+  "scripts": {
+    "prepack": "cp -f ../README.md ./README.md",
+    "prettier": "prettier src --write",
+    "prebuild": "rm -rf lib types",
+    "build": "tsc --build tsconfig.json",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test-coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vasille-js/vasille-js.git"
+  },
+  "keywords": [
+    "frontend",
+    "dx",
+    "fast",
+    "simple",
+    "secure"
+  ],
+  "author": "lixcode",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vasille-js/steel-frame/issues"
+  },
+  "homepage": "https://github.com/vasille-js/steel-frame#readme",
+  "dependencies": {
+    "vasille": "^5.0.0",
+    "vasille-jsx": "^5.0.0",
+    "vasille-web": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.3.0",
+    "@types/web": "^0.0.256",
+    "cross-env": "^10.1.0",
+    "jest": "^30.3.0",
+    "jsdom": "^26.1.0",
+    "prettier": "^3.6.2",
+    "steel-frame": "^5.0.1",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.8.3"
+  }
+}
