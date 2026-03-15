@@ -44,11 +44,11 @@ it("shadow", () => {
     let hiddenEvent = false,
         hiddenProp = false;
 
-    tag.addEventListener("hide", () => {
-        hiddenEvent = true;
+    tag.addEventListener("item-hide", ev => {
+        hiddenEvent = ev.detail;
     });
-    tag.onHide = () => {
-        hiddenProp = true;
+    tag.onItemHide = isHide => {
+        hiddenProp = isHide;
     };
 
     tag.removeAttribute("visible");
@@ -65,6 +65,13 @@ it("shadow", () => {
     expect(shadow.children[0].innerHTML).toBe("2+4");
     tag.removeAttribute("id-number");
     expect(shadow.children[0].innerHTML).toBe("0+4");
+
+    tag.setId(4);
+    expect(shadow.children[0].innerHTML).toBe("4+4");
+    expect(tag.altName).toBe(undefined);
+    tag.altName = "test-3";
+    expect(tag.altName).toBe("test-3");
+    expect(shadow.children[1].innerHTML).toBe("test-3");
 
     tag.remove();
     expect(body.children.length).toBe(0);

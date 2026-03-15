@@ -65,7 +65,7 @@ function matchAndSet(o: object, key: string, value: unknown) {
 }
 
 export function shadow(
-    renderer: (node: Fragment<Node, Element, TagOptions>, input: object) => void,
+    renderer: (node: Fragment<Node, Element, TagOptions>, input: object) => unknown,
     name: string,
     props: PropsDeclaration,
 ): void {
@@ -127,7 +127,13 @@ export function shadow(
             }
 
             public connectedCallback() {
-                renderer(new ShadowFragment(this.root, this.$vasille), this.props);
+                const result = renderer(new ShadowFragment(this.root, this.$vasille), this.props);
+
+                /* istanbul ignore else */
+                if (result && typeof result === "object" && result.constructor === Object) {
+                    // Object.assign does not copy getters and setters
+                    Object.defineProperties(this, Object.getOwnPropertyDescriptors(result));
+                }
             }
 
             public disconnectedCallback() {

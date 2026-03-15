@@ -6,11 +6,11 @@ export interface Tag<Attrs, Events, Props> {
     props: Props;
 }
 
-type TagEvents<Target> = {
+export type TagEvents<Target> = {
     [K in keyof HTMLElementEventMap]: EventHandler<HTMLElementEventMap[K], Target> | undefined;
 };
 
-interface TagAttrs {
+export interface TagAttrs {
     id: string;
     accesskey: string;
     autocapitalize: "off" | "none" | "on" | "sentences" | "words" | "characters";
@@ -574,7 +574,7 @@ export interface TagEventsProps<T extends Element> {
     onwheel?: ((this: T, ev: WheelEvent) => any) | null;
 }
 
-interface TagProps<T extends Element> extends TagEventsProps<T> {
+export interface TagProps<T extends Element> extends TagEventsProps<T> {
     autofocus?: boolean;
     className?: string;
     nonce?: string | undefined;

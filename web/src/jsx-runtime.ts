@@ -1,10 +1,12 @@
 import type { RawStyleProps } from "./spec/css.ts";
 import type { HtmlTagMap } from "./spec/html.ts";
 
-type prefixedObject<T, P extends string> = {
+export type { TagEvents, TagAttrs, TagProps } from "./spec/html.ts";
+
+export type prefixedObject<T, P extends string> = {
     [K in keyof T as K extends string ? `${P}${K}` : never]?: T[K];
 };
-type EventHandlers<T> = {
+export type EventHandlers<T> = {
     [K in keyof T]: T[K] | [T[K], boolean | AddEventListenerOptions];
 };
 

@@ -1,25 +1,27 @@
 import { shadow } from "../../src/lib.js";
-import { expr, Switch } from "vasille-jsx";
+import { expr, ref, Switch } from "vasille-jsx";
 import { IValue } from "vasille";
 import { watch } from "vasille-web";
 
 interface Props {
     $idNumber: IValue<number>;
-    $name: string;
+    $name: IValue<string>;
     $visible: IValue<boolean>;
     $prop: IValue<number>;
-    onHide: () => void;
+    onItemHide: (isHide: boolean) => void;
     onvisible: () => void;
 }
 
 export function register() {
     shadow(
         (node, input: Props) => {
+            let altName = ref<string | undefined>(undefined);
+
             watch(
                 node,
                 visible => {
                     if (!visible) {
-                        input.onHide();
+                        input.onItemHide(true);
                     } else {
                         input.onvisible();
                     }
@@ -31,7 +33,7 @@ export function register() {
                 div.text(expr(div, (n1, n2) => `${n1}+${n2}`, [input.$idNumber, input.$prop]));
             });
             node.tag("div", {}, div => {
-                div.text(input.$name);
+                div.text(expr(div, (n1, n2) => n1 ?? n2, [altName, input.$name]));
             });
             Switch(
                 {
@@ -46,6 +48,18 @@ export function register() {
                 },
                 node,
             );
+
+            return {
+                setId(id: number) {
+                    input.$idNumber.V = id;
+                },
+                get altName(): string | undefined {
+                    return altName.V;
+                },
+                set altName(name: string | undefined) {
+                    altName.V = name;
+                },
+            };
         },
         "shadow-node",
         {
@@ -53,7 +67,7 @@ export function register() {
             $prop: 2,
             $name: 1,
             $visible: 3,
-            onHide: 0,
+            onItemHide: 0,
             onvisible: 0,
         },
     );
