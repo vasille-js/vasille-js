@@ -2,12 +2,16 @@ import {
   beforeDestroy,
   component,
   dark,
+  Delay,
+  Else,
   For,
+  If,
+  raw,
   styleSheet,
   tablet,
   watch,
 } from "steel-frame";
-import { Row } from "./code-block/lib/Row.js";
+import { Row as ViewRow } from "./code-block/lib/Row.js";
 import { Button } from "./Button.js";
 import itemSvg from "../assets/item.svg";
 import devStepsSvg from "../assets/devSteps.svg";
@@ -18,16 +22,21 @@ interface GridProps {
   maskPosY: number;
 }
 
-interface CellProps extends GridProps {
+interface RowProps extends GridProps {
   row: number;
-  col: number;
+  color: string;
+  classes: [string, string];
   ontransitionend(): void;
 }
 
+interface CellProps extends Omit<RowProps, "classes"> {
+  col: number;
+}
+
 const Cell = component<CellProps>(
-  ({ row, col, $active, maskPosX, maskPosY, ontransitionend }) => {
+  ({ row, col, $active, maskPosX, maskPosY, ontransitionend, color }) => {
     const inactiveClass =
-      col % 2 === 0 ? styles.blockInactiveEven : styles.blockInactiveOdd;
+      col % 2 === 0 ? styles.cellInactiveEven : styles.cellInactiveOdd;
     let $class = $active ? "active" : inactiveClass;
 
     watch(() => {
@@ -35,56 +44,47 @@ const Cell = component<CellProps>(
     });
 
     <div
-      class={styles.cell}
+      class={[styles.cell, $class]}
       style={{
-        top: `${(row / 4) * 100}%`,
+        top: 0,
         left: `${(col / 4) * 100}%`,
+        "background-color": color,
+        "mask-position": [-(maskPosX + 64 * col), -(maskPosY + 64 * row)],
+        "mask-image": `url("${devStepsSvg}")`,
+        "transition-delay": `${0.2 + row * 0.5}s`,
       }}
-    >
-      <div
-        class={[styles.block, $class]}
-        style={{
-          "transition-delay": `${0.2 + row * 0.25}s`,
-        }}
-        ontransitionend={() => {
-          if (row === 3 && col === 3) {
-            ontransitionend();
-          }
-        }}
-      >
-        <div
-          class={[
-            styles.block,
-            row % 2 === 0 ? styles.blockDarkEven : styles.blockDarkOdd,
-          ]}
-          style={{
-            "background-color": "#ffffff",
-            "mask-position": [-(maskPosX + 64 * col), -(maskPosY + 64 * row)],
-            "mask-image": `url("${devStepsSvg}")`,
-            "transition-delay": `${0.2 + row * 0.5}s`,
-          }}
-        />
-        <div
-          class={[
-            styles.block,
-            row % 2 === 0 ? styles.blockLightEven : styles.blockLightOdd,
-          ]}
-          style={{
-            "background-color": "#191919",
-            "mask-position": [-(maskPosX + 64 * col), -(maskPosY + 64 * row)],
-            "mask-image": `url("${devStepsSvg}")`,
-            "transition-delay": `${0.2 + row * 0.5}s`,
-          }}
-        />
-      </div>
-    </div>;
+      ontransitionend={() => {
+        if (col === 3 && row === 3) {
+          ontransitionend();
+        }
+      }}
+    ></div>;
   },
 );
 
-const indices = [0, 1, 2, 3].map((row) =>
-  [0, 1, 2, 3].map((col) => ({ row, col })),
+const Row = component<RowProps>(
+  ({ row, $active, maskPosX, maskPosY, ontransitionend, color, classes }) => {
+    <div
+      style={{ top: `${row * 25}%`, "transition-delay": `${row * 0.5}s` }}
+      class={[styles.line, classes[row % 2]]}
+    >
+      <For
+        of={[0, 1, 2, 3]}
+        slot={(col) => {
+          <Cell
+            color={color}
+            row={row}
+            col={col}
+            $active={$active}
+            maskPosX={maskPosX}
+            maskPosY={maskPosY}
+            ontransitionend={ontransitionend}
+          />;
+        }}
+      />
+    </div>;
+  },
 );
-const flatIndices = indices.flat();
 
 const Grid = component<GridProps>(({ $active, maskPosX, maskPosY }) => {
   let $localActive = $active;
@@ -101,22 +101,37 @@ const Grid = component<GridProps>(({ $active, maskPosX, maskPosY }) => {
     }
   });
 
+  function onTransitionEnd() {
+    if (!$active) {
+      $display = "none";
+    }
+  }
+
   <div class={styles.grid} style={{ display: $display }}>
     <For
-      of={flatIndices}
-      slot={(props) => (
-        <Cell
-          {...props}
-          $active={$localActive}
-          maskPosX={maskPosX}
-          maskPosY={maskPosY}
-          ontransitionend={() => {
-            if (!$active) {
-              $display = "none";
-            }
-          }}
-        />
-      )}
+      of={[0, 1, 2, 3]}
+      slot={(row) => {
+        <Delay time={5}>
+          <Row
+            row={row}
+            color={"#191919"}
+            $active={$localActive}
+            maskPosX={maskPosX}
+            maskPosY={maskPosY}
+            ontransitionend={onTransitionEnd}
+            classes={[styles.rowLightOdd, styles.rowLightEven]}
+          />
+          <Row
+            row={row}
+            color={"#ffffff"}
+            $active={$localActive}
+            maskPosX={maskPosX}
+            maskPosY={maskPosY}
+            ontransitionend={onTransitionEnd}
+            classes={[styles.rowDarkOdd, styles.rowDarkEven]}
+          />
+        </Delay>;
+      }}
     />
   </div>;
 });
@@ -136,6 +151,96 @@ interface Props {
   id: string;
 }
 
+interface ItemContentProps {
+  item: Item;
+  $current: string;
+  $isCurrent: boolean;
+  $bodyHeight: number;
+  $inited: boolean;
+  $descriptionDisplay: string;
+  $descriptionTransform: string;
+  $buttonTransform: string;
+  resizeObserver: ResizeObserver;
+}
+
+const ItemContent = component<ItemContentProps>(
+  ({
+    item,
+    $inited,
+    $bodyHeight,
+    $buttonTransform,
+    $descriptionTransform,
+    $descriptionDisplay,
+    $current,
+    $isCurrent,
+    resizeObserver,
+  }) => {
+    <div
+      style={{
+        height: $current === item.id ? ($inited ? $bodyHeight : "auto") : 0,
+        overflow: "hidden",
+        transition: "height 1s ease",
+      }}
+    >
+      <div
+        callback={(div) => {
+          resizeObserver.observe(div);
+          $bodyHeight = div.offsetHeight;
+          $inited = true;
+          if (!$isCurrent) {
+            $descriptionDisplay = "none";
+          }
+        }}
+        ontransitionend={() => {
+          if (!$isCurrent) {
+            $descriptionDisplay = "none";
+          }
+        }}
+        style={{
+          transform: $descriptionTransform,
+          transition: "transform 1s ease",
+          display: $descriptionDisplay,
+          "flex-direction": "column-reverse",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            padding: [6, 0, 20],
+            transition: "transform 0.5s ease",
+            "transition-delay": $isCurrent ? "0.5s" : "0s",
+            transform: $buttonTransform,
+          }}
+        >
+          <Button text={"Learn More"} primary />
+        </div>
+        <div class={styles.itemDesc}>
+          <div class={styles.itemDescTitle}>
+            <div class={styles.double}>
+              <div class={styles.half} style={{ color: "#FFFFFF" }}>
+                {item.descTitle}
+              </div>
+              <div class={styles.half} style={{ color: "#191919" }}>
+                {item.descTitle}
+              </div>
+            </div>
+          </div>
+          <div class={styles.itemDescBody}>
+            <div class={styles.double} style={{ "transition-delay": "0.5s" }}>
+              <div class={styles.half} style={{ color: "#C5C5C5" }}>
+                {item.descBody}
+              </div>
+              <div class={styles.half} style={{ color: "#605F5F" }}>
+                {item.descBody}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>;
+  },
+);
+
 export const Accordion = component<Props>(({ items, id }) => {
   let $current = localStorage.getItem(id) ?? items[0].id;
 
@@ -143,7 +248,7 @@ export const Accordion = component<Props>(({ items, id }) => {
     localStorage.setItem(id, $current);
   });
 
-  <Row class={styles.bg}>
+  <ViewRow class={styles.bg}>
     <div class={styles.image}>
       <div class={styles.gridsContainer}>
         <For
@@ -175,6 +280,7 @@ export const Accordion = component<Props>(({ items, id }) => {
           let $descriptionTransform = "translateX(0)";
           let $buttonTransform = "translateY(0)";
           let $inited = false;
+          const isCurrent = raw($isCurrent);
 
           watch(() => {
             if ($isCurrent) {
@@ -224,73 +330,34 @@ export const Accordion = component<Props>(({ items, id }) => {
                 </div>
               </div>
             </div>
-            <div
-              style={{
-                height:
-                  $current === item.id ? ($inited ? $bodyHeight : "auto") : 0,
-                overflow: "hidden",
-                transition: "height 1s ease",
-              }}
-            >
-              <div
-                callback={(div) => {
-                  resizeObserver.observe(div);
-                  $bodyHeight = div.offsetHeight;
-                  $inited = true;
-                  if (!$isCurrent) {
-                    $descriptionDisplay = "none";
-                  }
-                }}
-                ontransitionend={() => {
-                  if (!$isCurrent) {
-                    $descriptionDisplay = "none";
-                  }
-                }}
-                style={{
-                  transform: $descriptionTransform,
-                  transition: "transform 1s ease",
-                  display: $descriptionDisplay,
-                  "flex-direction": "column-reverse",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    padding: [6, 0, 20],
-                    transition: "transform 0.5s ease",
-                    "transition-delay": $isCurrent ? "0.5s" : "0s",
-                    transform: $buttonTransform,
-                  }}
-                >
-                  <Button text={"Learn More"} primary />
-                </div>
-                <div class={styles.itemDesc}>
-                  <div class={styles.itemDescTitle}>
-                    <div class={styles.double}>
-                      <div class={styles.half} style={{ color: "#FFFFFF" }}>
-                        {item.descTitle}
-                      </div>
-                      <div class={styles.half} style={{ color: "#191919" }}>
-                        {item.descTitle}
-                      </div>
-                    </div>
-                  </div>
-                  <div class={styles.itemDescBody}>
-                    <div
-                      class={styles.double}
-                      style={{ "transition-delay": "0.5s" }}
-                    >
-                      <div class={styles.half} style={{ color: "#C5C5C5" }}>
-                        {item.descBody}
-                      </div>
-                      <div class={styles.half} style={{ color: "#605F5F" }}>
-                        {item.descBody}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <If $condition={isCurrent}>
+              <ItemContent
+                item={item}
+                $current={$current}
+                $isCurrent={$isCurrent}
+                $bodyHeight={$bodyHeight}
+                $inited={$inited}
+                $descriptionDisplay={$descriptionDisplay}
+                $descriptionTransform={$descriptionTransform}
+                $buttonTransform={$buttonTransform}
+                resizeObserver={resizeObserver}
+              />
+            </If>
+            <Else>
+              <Delay time={0}>
+                <ItemContent
+                  item={item}
+                  $current={$current}
+                  $isCurrent={$isCurrent}
+                  $bodyHeight={$bodyHeight}
+                  $inited={$inited}
+                  $descriptionDisplay={$descriptionDisplay}
+                  $descriptionTransform={$descriptionTransform}
+                  $buttonTransform={$buttonTransform}
+                  resizeObserver={resizeObserver}
+                />
+              </Delay>
+            </Else>
             <div
               class={styles.hr}
               style={{ width: $isCurrent || isLast ? 0 : "100%" }}
@@ -303,7 +370,7 @@ export const Accordion = component<Props>(({ items, id }) => {
         }}
       />
     </div>
-  </Row>;
+  </ViewRow>;
 });
 
 const styles = styleSheet({
@@ -423,44 +490,42 @@ const styles = styleSheet({
     height: "100%",
     position: "absolute",
   },
+  line: {
+    position: "absolute",
+    width: "100%",
+    height: "25%",
+    transition: "transform 2s ease, opacity 2s ease",
+  },
   cell: {
     display: "block",
     width: "25%",
-    height: "25%",
-    position: "absolute",
-  },
-  block: {
-    display: "block",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
     height: "100%",
+    position: "absolute",
     "mask-size": [512, 512],
     transition: "transform 2s ease, opacity 2s ease",
   },
-  blockInactiveOdd: {
+  cellInactiveOdd: {
     transform: "translateY(-400%)",
     opacity: "0",
   },
-  blockInactiveEven: {
+  cellInactiveEven: {
     transform: "translateY(400%)",
     opacity: "0",
   },
-  blockLightOdd: {
-    transform: ["translateX(0)", dark("translateX(-400%)")],
+  rowLightOdd: {
+    transform: ["translateX(0)", dark("translateX(-100%)")],
     opacity: ["1", dark("0")],
   },
-  blockLightEven: {
-    transform: ["translateX(0)", dark("translateX(400%)")],
+  rowLightEven: {
+    transform: ["translateX(0)", dark("translateX(100%)")],
     opacity: ["1", dark("0")],
   },
-  blockDarkOdd: {
-    transform: ["translateX(400%)", dark("translateX(0%)")],
+  rowDarkOdd: {
+    transform: ["translateX(100%)", dark("translateX(0%)")],
     opacity: ["0", dark("1")],
   },
-  blockDarkEven: {
-    transform: ["translateX(-400%)", dark("translateX(0%)")],
+  rowDarkEven: {
+    transform: ["translateX(-100%)", dark("translateX(0%)")],
     opacity: ["0", dark("1")],
   },
   active: {

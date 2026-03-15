@@ -30,7 +30,7 @@ const CardView = view<CardProps>(
       <div
         class={styles.image}
         style={{
-          transition: `background-color 3.5s ${ease}, transform 2s ${ease}`,
+          transition: `background-color 3.5s ${ease}, transform 2s ${ease}, border-color 1s ${ease}`,
           "transform-origin": `50% ${originY}%`,
         }}
       >
@@ -140,13 +140,15 @@ const styles = styleSheet({
   image: {
     width: 150,
     height: 150,
-    "border-radius": 75,
+    "border-radius": 80,
     "background-color": ["#EDEDED", dark("#383737")],
     display: "flex",
     "align-items": "center",
     "justify-content": "center",
     "align-self": "center",
     transform: ["rotate(360deg)", dark("rotate(0)")],
+    border: "2px solid",
+    "border-color": ["#0302DF", dark("#8ba1ff")],
   },
   list: {
     "padding-top": 20,

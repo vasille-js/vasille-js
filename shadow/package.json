@@ -41,7 +41,7 @@
   "dependencies": {
     "vasille": "^5.0.0",
     "vasille-jsx": "^5.0.0",
-    "vasille-web": "file:../web"
+    "vasille-web": "^5.0.1"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

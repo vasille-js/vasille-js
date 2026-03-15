@@ -5,3 +5,5 @@
 *.tsbuildinfo
 /.*
 qodana.yaml
+/test
+/coverage
