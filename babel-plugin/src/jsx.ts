@@ -771,12 +771,19 @@ function transformJsxElement(
       run = t.arrowFunctionExpression([ctx], call);
     }
 
-    const call = t.callExpression(t.identifier(name.name), [
-      t.objectExpression(props),
-      ctx,
-      ...(run ? [run] : internal.devLayer ? [t.buildUndefinedNode()] : []),
-      ...(internal.devLayer ? [nodeToStaticPosition(path.node)] : []),
-    ]);
+    const localComponentName = internal.shadow && internal.componentsImports.get(name.name);
+    const call = localComponentName
+      ? t.callExpression(t.memberExpression(ctx, t.identifier("tag")), [
+          t.stringLiteral(toKebabCase(localComponentName)),
+          t.objectExpression([t.objectProperty(t.identifier("b"), t.objectExpression(props))]),
+          ...(run ? [run] : []),
+        ])
+      : t.callExpression(t.identifier(name.name), [
+          t.objectExpression(props),
+          ctx,
+          ...(run ? [run] : internal.devLayer ? [t.buildUndefinedNode()] : []),
+          ...(internal.devLayer ? [nodeToStaticPosition(path.node)] : []),
+        ]);
 
     call.loc = path.node.loc;
 

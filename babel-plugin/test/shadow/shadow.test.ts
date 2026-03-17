@@ -51,6 +51,10 @@ it("slots", function () {
   tsx("SlotTest");
 });
 
+it("local components", function () {
+  tsx("LocalComponent");
+});
+
 it("no - error", function () {
   throwTest("Error", "The name 'error' is not allowed by WHATWG");
 });

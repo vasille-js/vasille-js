@@ -32,6 +32,40 @@ function extractText(node: types.Identifier | types.StringLiteral) {
   return (node as types.Identifier).name;
 }
 
+function extractComponentImport(node: types.ImportDeclaration, internal: Internal) {
+  const name = node.source.value;
+  const match = /^(@\/components|\.)\/([^\/.]+)\.[tj]sx?$/.exec(name);
+
+  if (!match) {
+    return;
+  }
+
+  const filename = match[2];
+  const toRemove: (types.ImportSpecifier | types.ImportDefaultSpecifier | types.ImportNamespaceSpecifier)[] = [];
+
+  for (const specifier of node.specifiers) {
+    if (t.isImportDefaultSpecifier(specifier)) {
+      toRemove.push(specifier);
+      internal.componentsImports.set(specifier.local.name, filename);
+    }
+    if (t.isImportSpecifier(specifier)) {
+      const imported = extractText(specifier.imported);
+
+      // the exported component name must match the file name
+      /* istanbul ignore else */
+      if (imported === filename) {
+        toRemove.push(specifier);
+        internal.componentsImports.set(specifier.local.name, filename);
+      }
+    }
+  }
+
+  /* istanbul ignore else */
+  if (toRemove.length) {
+    node.specifiers = node.specifiers.filter(item => !toRemove.includes(item));
+  }
+}
+
 // Handles import declarations and updates internal state
 function handleImportDeclaration(
   statementPath: NodePath<types.ImportDeclaration>,
@@ -41,7 +75,12 @@ function handleImportDeclaration(
   const statement = statementPath.node;
   const name = imports.get(statement.source.value);
 
-  if (!name) return;
+  if (!name) {
+    if (internal.shadow) {
+      extractComponentImport(statement, internal);
+    }
+    return;
+  }
 
   statement.source.value = internal.replaceWeb;
 
@@ -192,6 +231,7 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     stack: new StackedStates(),
     mapping: new Map<string, string>(),
     interfaces: new Map(),
+    componentsImports: new Map(),
     global: "",
     prefix: "Vasille_",
     importStatement: null,

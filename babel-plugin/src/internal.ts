@@ -42,6 +42,7 @@ export interface Internal {
   // settings
   mapping: Map<string, string>;
   interfaces: Map<string, TSTypeElement[]>;
+  componentsImports: Map<string, string>;
   stack: StackedStates;
   global: string;
   prefix: string;
