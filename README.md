@@ -4,7 +4,7 @@
 
 `SteelFrameKit` is a front-end development kit, which is developed to provide fault tolerant web applications.
 
-[![npm](https://img.shields.io/npm/v/steel-frame?style=flat-square)](https://www.npmjs.com/package/steel-frame)
+[![npm](https://img.shields.io/npm/v/steel-frame?style=round-square)](https://www.npmjs.com/package/steel-frame)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/vasille-js/steel-frame)
 [![Coverage Status](https://coveralls.io/repos/github/vasille-js/steel-frame/badge.svg?branch=v5)](https://coveralls.io/github/vasille-js/steel-frame?branch=v5)
 
@@ -21,6 +21,7 @@
   - [How POWERFUL is SteelFrameKit](#how-powerful-is-steelframekit)
   - [Road map](#road-map)
   - [Change log](#change-log)
+    - [5.1](#51)
     - [5.0](#50)
     - [4.0 - 4.3](#40---43)
     - [3.0 - 3.2](#30---32)
@@ -119,9 +120,14 @@ All of these are supported:
 ## Change log
 
 We respect semantic versioning:
-- Major version is increased when we make incompatible API changes.
-- Minor version is increased when we add functionality.
+- A major version is increased when we make incompatible API changes.
+- A minor version is increased when we add functionality.
 - Patch version is increased when we fix bugs.
+
+### 5.1
+
+Add support for web components compile target `web build components`.
+_Web components as custom tags are supported in any version._
 
 ### 5.0
 
@@ -142,7 +148,7 @@ We respect semantic versioning:
 ### 3.0 - 3.2
 
 - Switch to a babel plugin to compile components code. **[API change]**
-- 100% of code has been covered with unit tests.
+- 100% of the code has been covered with unit tests.
 - New developement direction: `keep it simple`.
 
 ### 2.0 - 2.3
@@ -152,7 +158,7 @@ We respect semantic versioning:
 
 ### 1.0 - 1.2
 
-- Initial version of core library.
+- Initial version of a core library.
 - Developemnt direction: `performance-first`.
 
 ## Questions

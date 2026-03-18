@@ -7,6 +7,51 @@ import vasillePlugin from "babel-plugin-vasille";
 import typeScriptPlugin from "@babel/plugin-transform-typescript";
 import { watchFolder } from "./watch-folder.js";
 
+export async function compileComponentsLib(srcDir: string, outputDir: string): Promise<boolean> {
+    await mkdir(outputDir, { recursive: true });
+
+    const components: string[] = [];
+    const componentsDir = await opendir(path.join(srcDir, "components"));
+    let it: Dirent | null = null;
+
+    while ((it = await componentsDir.read()) !== null) {
+        if (it.isFile() && (it.name.endsWith(".tsx") || it.name.endsWith(".jsx"))) {
+            components.push(it.name.replace(/\.[jt]sx?$/, ".js"));
+        }
+    }
+
+    await writeFile(
+        path.join(outputDir, "index.js"),
+        components.map(item => `import "./components/${item}";`).join("\n"),
+        { encoding: "utf-8" },
+    );
+
+    return await compileComponentsDir(srcDir, srcDir, outputDir);
+}
+
+async function compileComponentsDir(srcDir: string, source: string, output: string): Promise<boolean> {
+    const relative = source.slice(srcDir.length);
+    const libName = relative === "/components" ? "vasille-shadow" : "vasille-web";
+    const dir = await opendir(source);
+    let it: Dirent | null = null;
+    let ret = true;
+
+    while ((it = await dir.read()) !== null) {
+        const sourcePath = path.join(source, it.name);
+        const outputPath = path.join(output, it.name);
+
+        if (it.isDirectory()) {
+            await mkdir(outputPath, { recursive: true });
+            ret &&= await compileComponentsDir(srcDir, sourcePath, outputPath);
+        } else if (it.isFile()) {
+            ret &&= await compileFile(sourcePath, it.name, output, libName);
+        }
+    }
+    await dir.close();
+
+    return ret;
+}
+
 export async function compileLib(inputDir: string, outputDir: string, libName: string): Promise<boolean> {
     await mkdir(outputDir, { recursive: true });
 
@@ -66,6 +111,7 @@ async function compileDir(source: string, output: string, libName: string): Prom
             ret &&= await compileFile(sourcePath, it.name, output, libName);
         }
     }
+    await dir.close();
 
     return ret;
 }
@@ -86,7 +132,14 @@ async function compileFile(sourcePath: string, name: string, outputDirPath: stri
             const result = await transformAsync(sourceCode, {
                 plugins: [
                     ...(isJsx ? [pluginJsxSyntax] : []),
-                    [vasillePlugin, { replaceWeb: libName, devLayer: libName === "steel-frame" }],
+                    [
+                        vasillePlugin,
+                        {
+                            replaceWeb: libName,
+                            devLayer: libName === "steel-frame",
+                            shadow: libName === "vasille-shadow",
+                        },
+                    ],
                     ...(isTsx || isTs ? [[typeScriptPlugin, { isTSX: isTsx }]] : []),
                 ],
                 filename: sourcePath,

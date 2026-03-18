@@ -11,6 +11,7 @@ export async function processArgs() {
     let spa = checkArg("spa");
     let ssg = checkArg("static");
     let lib = checkArg("lib");
+    let components = checkArg("components");
     let devLib = checkArg("dev+lib") || checkArg("lib+dev");
     let help = false;
 
@@ -46,8 +47,8 @@ export async function processArgs() {
         lib = mode === "dev+lib";
         help = true;
     }
-    if (build && !(spa || ssg || lib)) {
-        const target = await select<"spa" | "ssg" | "lib">({
+    if (build && !(spa || ssg || lib || components)) {
+        const target = await select<"spa" | "ssg" | "lib" | "components">({
             message: "Select build type",
             choices: [
                 {
@@ -65,6 +66,11 @@ export async function processArgs() {
                     name: "Build a component library",
                     description: "Select this option to build a library, which can be used in SPA or SSG.",
                 },
+                {
+                    value: "components",
+                    name: "Build a web components library",
+                    description: "Select this option to build a library, which can be used in any frontend framework.",
+                },
             ],
         });
 
@@ -73,5 +79,5 @@ export async function processArgs() {
         help = true;
     }
 
-    return { dev, build, spa, ssg, help, lib };
+    return { dev, build, spa, ssg, help, lib, components };
 }

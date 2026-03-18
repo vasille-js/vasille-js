@@ -14,11 +14,11 @@ import { checkFile } from "./lib/fs.js";
 import { readdir } from "node:fs/promises";
 import { vasilleWebPlugin } from "./vite-plugins/vasille-web.js";
 import { startProxyServer } from "./proxy/dev-proxy.js";
-import { compileLib, watchLib } from "./lib/compile-lib.js";
+import { compileComponentsLib, compileLib, watchLib } from "./lib/compile-lib.js";
 
 async function run() {
     const { routerDir, pagesDir, srcDir } = workingDirs();
-    const { build, dev, spa, ssg, help, lib } = await processArgs();
+    const { build, dev, spa, ssg, help, lib, components } = await processArgs();
     const resolve = {
         alias: {
             "@": srcDir,
@@ -105,6 +105,18 @@ async function run() {
                 console.log("Library compiled successfully");
             }
         }
+        if (components) {
+            if (help) {
+                console.log("\nCommand shortcut is web build components\n");
+            }
+
+            if (!(await compileComponentsLib(srcDir, path.join(srcDir, "../dist/components")))) {
+                console.log("Failed to compile web components library");
+                exit(1);
+            } else {
+                console.log("Web Components Library compiled successfully");
+            }
+        }
         if (ssg) {
             if (help) {
                 console.log("\nCommand shortcut is web build static\n");
@@ -115,7 +127,7 @@ async function run() {
 
             // @ts-expect-error
             const routes: Record<string, string> = await (await import("index.vasille.js")).router.render();
-            const outPath = path.join(cwd(), "out/static");
+            const outPath = path.join(cwd(), "dist/static");
 
             for (const key in routes) {
                 const filePath = path.join(outPath, key);

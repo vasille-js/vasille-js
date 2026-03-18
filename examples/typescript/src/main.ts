@@ -1,7 +1,7 @@
 import { mount } from "steel-frame";
-import { App } from "./components/App.jsx";
+import { ExampleApp } from "./components/ExampleApp.js";
 import "./style.css";
 
 
 
-mount(document.body, App, {});
+mount(document.body, ExampleApp, {});
