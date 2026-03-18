@@ -3,7 +3,7 @@
   "description": "The same framework which is designed to build bulletproof frontends (core library).",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "5.0.1",
+  "version": "5.1.0",
   "exports": {
     ".": {
       "types": "./types/index.d.ts",

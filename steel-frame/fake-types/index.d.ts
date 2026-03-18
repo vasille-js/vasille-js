@@ -255,3 +255,12 @@ export declare function impute<Class>(className: abstract new (...args: unknown[
 
 /** Share a setting value when it is missing */
 export declare function impute(key: string, value: string): string;
+
+export {
+    type WebComponent,
+    type WebComponentAdapter,
+    type WebComponentAttributes,
+    type WebComponentEventHandler,
+    type WebComponentProps,
+    type WebComponentEvents,
+} from "vasille-shadow";
