@@ -9,6 +9,8 @@
     "target": "ES2020",
     "module": "Node16",
     "moduleResolution": "node16",
+    "jsx": "preserve",
+    "jsxImportSource": "steel-frame",
     "skipLibCheck": true,
     "strictNullChecks": true,
     "esModuleInterop": true,

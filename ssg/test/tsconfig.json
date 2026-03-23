@@ -5,7 +5,7 @@
     "declaration": false,
     "noEmit": true,
     "jsx": "preserve",
-    "jsxImportSource": "vasille-web",
+    "jsxImportSource": "steel-frame",
     "target": "ES2024",
     "lib": ["es2022"],
     "module": "Node16",
@@ -14,6 +14,7 @@
     "strictNullChecks": true,
     "esModuleInterop": true,
     "isolatedModules": true,
+    "allowImportingTsExtensions": true,
     "types": ["node", "jest"]
   }
 }

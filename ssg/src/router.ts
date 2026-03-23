@@ -11,18 +11,25 @@ import { App, Fragment } from "vasille";
 import { waitForAsyncData } from "./awaited.js";
 import { mountStyles } from "./css.js";
 
+export type Mode = "html" | "markdown" | "git-doc";
+
 export class Router extends AbstractRouter<Node, Element, TagOptions, string, {}, []> {
     protected readonly runner: Runner;
     protected readonly node: Fragment<Node, Element, TagOptions>;
+    public readonly html: boolean;
+    public readonly markdown: boolean;
 
     public constructor(
         runner: Runner,
         node: Fragment<Node, Element, TagOptions>,
         init: RouterInitialization<Node, Element, TagOptions, string, {}>,
+        mode: Mode,
     ) {
         super(init);
         this.runner = runner;
         this.node = node;
+        this.html = mode === "html" || mode === "git-doc";
+        this.markdown = mode === "markdown" || mode === "git-doc";
     }
 
     public async render() {
@@ -53,6 +60,10 @@ export class Router extends AbstractRouter<Node, Element, TagOptions, string, {}
         console.log(`Rendering ${url}...`);
 
         await this.prepareNavigation(url, true, true);
+
+        if (this.markdown) {
+            return this.runner.body.toMarkDown(this.html);
+        }
 
         return (
             ["<!doctype html>", "<html>", this.runner.head.toHTML(1), this.runner.body.toHTML(1), "</html>"].join(
@@ -87,13 +98,13 @@ export class Router extends AbstractRouter<Node, Element, TagOptions, string, {}
     }
 }
 
-export function routerApp(init: RouterInitialization<Node, Element, TagOptions, string, {}>) {
+export function routerApp(init: RouterInitialization<Node, Element, TagOptions, string, {}>, mode: Mode = "html") {
     const head = new Element("head", {});
     const body = new Element("body", {});
     const runner = new Runner(head, body);
     const app = new App(body, runner);
-    const fragment = new Fragment(runner);
+    const fragment = new Fragment<Node, Element, TagOptions>(runner);
 
     app.create(fragment);
-    return new Router(runner, fragment, init);
+    return new Router(runner, fragment, init, mode);
 }

@@ -1,7 +1,7 @@
 import view, { runViewDirectly, controller } from "./view.js";
 import modal, { runModalDirectly } from "./modal.js";
 import { runTest } from "../run-test.js";
-import { mount, prompt } from "../../src/index.js";
+import { mount, prompt } from "vasille-ssg";
 
 it("view component", async function () {
     await runTest(view, "compose/view");

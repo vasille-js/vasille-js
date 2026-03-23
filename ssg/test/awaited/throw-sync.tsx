@@ -1,4 +1,4 @@
-import { awaited, beforeMount, Debug, If, page } from "vasille-web";
+import { awaited, beforeMount, If, page } from "steel-frame";
 
 export default page(async () => {
     const [$err, $data, reload] = awaited(() => {
@@ -9,10 +9,6 @@ export default page(async () => {
         reload();
     });
 
-    <If $condition={$err}>
-        <Debug $model={$err} />
-        {$err}
-    </If>;
+    <If $condition={$err}>{$err}</If>;
     <>{$data}</>;
-    <Debug $model={$data} />;
 });

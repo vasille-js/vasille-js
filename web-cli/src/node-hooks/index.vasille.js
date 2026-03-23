@@ -15,14 +15,14 @@ export async function resolve(specifier, context, nextResolve) {
     return nextResolve(specifier, context);
 }
 
-export async function load(url, context, nextLoad) {
+export async function load(url, context, nextLoad, mode = "html") {
     if (url === VASILLE_URL) {
         const { pagesDir, routerDir } = workingDirs();
 
         return {
             format: "module",
             shortCircuit: true,
-            source: await createSsgIndex(routerDir, pagesDir),
+            source: await createSsgIndex(routerDir, pagesDir, mode),
         };
     }
 

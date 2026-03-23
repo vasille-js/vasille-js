@@ -1,4 +1,4 @@
-import { beforeMount, page, prompt, Slot, view } from "vasille-web";
+import { beforeMount, page, prompt, Slot, view } from "steel-frame";
 
 interface Props {
     slot(): void;

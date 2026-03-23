@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "typescript": "^5.9.3",
+    "vasille-ssg": "file:../../ssg",
     "vasille-web": "file:../../web",
     "vasille-web-cli": "file:../../web-cli"
   },

@@ -1,4 +1,4 @@
-import { modal, page, Slot } from "vasille-web";
+import { modal, page, Slot } from "steel-frame";
 
 interface Props {
     slot?(): void;

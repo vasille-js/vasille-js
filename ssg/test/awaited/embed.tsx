@@ -1,4 +1,4 @@
-import { awaited, If, page } from "vasille-web";
+import { awaited, If, page } from "steel-frame";
 
 export default page(async () => {
     const [$err, $data] = awaited(() => new Promise(resolve => resolve(1)));

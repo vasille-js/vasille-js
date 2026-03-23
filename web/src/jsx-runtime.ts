@@ -16,7 +16,7 @@ type HtmlInput<K extends keyof HTMLElementTagNameMap & keyof HtmlTagMap> = {
     callback?: (node: HTMLElementTagNameMap[K]) => unknown;
     class?: ClassItem[] | string;
     style?: RawStyleProps | string;
-    slot?: unknown;
+    slot?: unknown | never | never[];
 } & Partial<HtmlTagMap[K]["attrs"]> &
     prefixedObject<EventHandlers<HtmlTagMap[K]["events"]>, "on"> &
     Partial<prefixedObject<HtmlTagMap[K]["props"], "bind:">>;
@@ -28,7 +28,7 @@ export declare namespace JSX {
     type ElementClass = never;
 
     interface ElementChildrenAttribute {
-        slot: unknown;
+        slot: unknown | never | never[];
     }
 
     interface IntrinsicElements {

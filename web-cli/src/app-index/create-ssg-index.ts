@@ -1,6 +1,7 @@
 import { findRoutes } from "./find-routes.js";
+import { Mode } from "vasille-ssg";
 
-export async function createSsgIndex(routerDir: string, pagesDir: string): Promise<string> {
+export async function createSsgIndex(routerDir: string, pagesDir: string, mode: Mode): Promise<string> {
     const indexJs: string[] = [];
     const { paths } = await findRoutes(routerDir, pagesDir);
 
@@ -16,7 +17,7 @@ export async function createSsgIndex(routerDir: string, pagesDir: string): Promi
         indexJs.push(`    "${path.urlPath}": {screen: page${index}},`);
     });
 
-    indexJs.push("  }", "});");
+    indexJs.push("  }", `}, "${mode}");`);
 
     return indexJs.join("\n");
 }

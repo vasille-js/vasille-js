@@ -1,5 +1,15 @@
-import { laptop, mobile, page, prefersDark, prefersLight, styleSheet, tablet } from "vasille-web";
-import { setLaptopMaxWidth, setMobileMaxWidth, setTabletMaxWidth } from "../../src/index.js";
+import {
+    laptop,
+    mobile,
+    page,
+    prefersDark,
+    prefersLight,
+    styleSheet,
+    tablet,
+    setLaptopMaxWidth,
+    setMobileMaxWidth,
+    setTabletMaxWidth,
+} from "steel-frame";
 
 setMobileMaxWidth(200);
 setTabletMaxWidth(400);

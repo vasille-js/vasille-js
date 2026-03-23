@@ -18,7 +18,7 @@ import { compileComponentsLib, compileLib, watchLib } from "./lib/compile-lib.js
 
 async function run() {
     const { routerDir, pagesDir, srcDir } = workingDirs();
-    const { build, dev, spa, ssg, help, lib, components } = await processArgs();
+    const { build, dev, spa, ssg, help, lib, components, md, mdHtml } = await processArgs();
     const resolve = {
         alias: {
             "@": srcDir,
@@ -117,24 +117,49 @@ async function run() {
                 console.log("Web Components Library compiled successfully");
             }
         }
+
+        async function renderStatics(dir: string, suffix = "") {
+            // @ts-expect-error
+            const routes: Record<string, string> = await (await import("index.vasille.js")).router.render();
+            const outPath = path.join(cwd(), `dist/${dir}`);
+
+            for (const key in routes) {
+                const filePath = path.join(outPath, key) + suffix;
+
+                await fs.mkdir(path.dirname(filePath), { recursive: true });
+                await fs.writeFile(filePath, routes[key], "utf8");
+            }
+        }
+
         if (ssg) {
             if (help) {
-                console.log("\nCommand shortcut is web build static\n");
+                console.log("\nCommand shortcut is web build html\n");
             }
 
             register("file:" + path.join(import.meta.dirname, "./node-hooks/index.vasille.js"));
             register("file:" + path.join(import.meta.dirname, "./node-hooks/jsx.vasille.js"));
 
-            // @ts-expect-error
-            const routes: Record<string, string> = await (await import("index.vasille.js")).router.render();
-            const outPath = path.join(cwd(), "dist/static");
-
-            for (const key in routes) {
-                const filePath = path.join(outPath, key);
-
-                await fs.mkdir(path.dirname(filePath), { recursive: true });
-                await fs.writeFile(filePath, routes[key], "utf8");
+            await renderStatics("html");
+        }
+        if (md) {
+            if (help) {
+                console.log("\nCommand shortcut is web build md\n");
             }
+
+            register("file:" + path.join(import.meta.dirname, "./node-hooks/index.md.vasille.js"));
+            register("file:" + path.join(import.meta.dirname, "./node-hooks/jsx.vasille.js"));
+
+            await renderStatics("md", ".md");
+        }
+        if (mdHtml) {
+            if (help) {
+                console.log("\nCommand shortcut is web build md+html\n");
+            }
+
+            register("file:" + path.join(import.meta.dirname, "./node-hooks/index.doc.vasille.js"));
+            register("file:" + path.join(import.meta.dirname, "./node-hooks/jsx.vasille.js"));
+
+            await renderStatics("doc", ".md");
         }
 
         exit(0);

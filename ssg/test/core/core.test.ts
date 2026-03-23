@@ -2,6 +2,7 @@ import div from "./div.js";
 import divWithClass from "./div-with-class.js";
 import divWithText from "./div-with-text.js";
 import text from "./text.js";
+import textJoin from "./text-join.tsx";
 import divEmbed from "./div-embed.js";
 import { runTest } from "../run-test.js";
 
@@ -19,6 +20,10 @@ it("div with text test", async () => {
 
 it("text test", async () => {
     await runTest(text, "core/text");
+});
+
+it("text join test", async () => {
+    await runTest(textJoin, "core/text-join");
 });
 
 it("embed test", async () => {

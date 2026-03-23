@@ -1,11 +1,5 @@
 import type { TagOptions as WebTagOptions } from "vasille/web-runner";
-import {
-    TextNode as AbstractTextNode,
-    DebugNode as AbstractDebugNode,
-    Tag as AbstractTag,
-    Runner as IRunner,
-    IValue,
-} from "vasille";
+import { TextNode as AbstractTextNode, Tag as AbstractTag, Runner as IRunner, IValue } from "vasille";
 import escapeHTML from "escape-html";
 
 export type TagOptions = Omit<WebTagOptions, "slot" | "events" | "callback"> & {
@@ -31,12 +25,14 @@ export abstract class Node {
     }
 
     public abstract toHTML(level: number): string;
+    public abstract toMarkDown(supportHtml: boolean): string;
 
     protected level(level: number) {
         return "\t".repeat(level);
     }
 }
 
+// @ts-expect-error
 export class RawContentNode extends Node {
     public readonly lines: string[];
 
@@ -64,25 +60,16 @@ export class Text extends Node {
         return !this.text || (this.text instanceof IValue && !this.text.V);
     }
 
+    public toText() {
+        return (this.text instanceof IValue ? this.text.V : this.text) ?? "";
+    }
     public toHTML(level: number): string {
-        const text = (this.text instanceof IValue ? this.text.V : this.text) ?? "";
+        const text = this.toText();
 
         return escapeHTML(`${this.level(level)}${text}`);
     }
-}
-
-export class Comment extends Node {
-    public readonly model: IValue<unknown>;
-
-    public constructor(model: IValue<unknown>) {
-        super();
-        this.model = model;
-    }
-
-    public toHTML(level: number): string {
-        const text = `${this.model.V ?? ""}`.replace("-->", "- ->").replace("<!--", "<!- -");
-
-        return `${this.level(level)}<!-- ${text} -->`;
+    public toMarkDown(supportHtml: boolean): string {
+        return this.toText();
     }
 }
 
@@ -96,11 +83,11 @@ export class Element extends Node {
         this.options = options;
     }
 
-    public toHTML(level: number): string {
+    public processAttrs() {
         const attrs: Record<string, string | number> = {};
 
-        if (this.options.attr) {
-            for (const [name, value] of Object.entries(this.options.attr)) {
+        if (this.options.a) {
+            for (const [name, value] of Object.entries(this.options.a)) {
                 const extracted = value instanceof IValue ? value.V : value;
 
                 if (typeof extracted === "string" || typeof extracted === "number") {
@@ -110,15 +97,48 @@ export class Element extends Node {
                 }
             }
         }
-        if (this.options.class) {
+
+        return attrs;
+    }
+
+    public processStyles() {
+        const styles: string[] = [];
+        const attrValue = this.options.a?.style;
+
+        /* istanbul ignore else */
+        if (typeof attrValue === "string") {
+            styles.push(attrValue);
+        }
+
+        if (this.options.s) {
+            for (const [name, value] of Object.entries(this.options.s)) {
+                const extracted = value instanceof IValue ? value.V : value;
+
+                if (extracted instanceof Array) {
+                    styles.push(`${name}: ${extracted.map(n => `${n}px`).join(" ")}`);
+                } else if (typeof extracted === "number") {
+                    styles.push(`${name}: ${extracted}px`);
+                } else {
+                    styles.push(`${name}: ${extracted}`);
+                }
+            }
+        }
+
+        return styles.join("; ");
+    }
+
+    public toHTML(level: number): string {
+        const attrs: Record<string, string | number> = this.processAttrs();
+
+        if (this.options.c) {
             const classes: string[] = [];
-            const attrValue = this.options.attr?.class;
+            const attrValue = this.options.a?.class;
 
             if (typeof attrValue === "string") {
                 classes.push(attrValue);
             }
 
-            for (const item of this.options.class) {
+            for (const item of this.options.c) {
                 if (item instanceof IValue) {
                     classes.push(item.V);
                 } else if (typeof item === "string") {
@@ -136,48 +156,24 @@ export class Element extends Node {
 
             attrs.class = classes.join(" ");
         }
-        if (this.options.style) {
-            const styles: string[] = [];
-            const attrValue = this.options.attr?.style;
-
-            /* istanbul ignore else */
-            if (typeof attrValue === "string") {
-                styles.push(attrValue);
-            }
-
-            for (const [name, value] of Object.entries(this.options.style)) {
-                const extracted = value instanceof IValue ? value.V : value;
-
-                if (extracted instanceof Array) {
-                    styles.push(`${name}: ${extracted.map(n => `${n}px`).join(" ")}`);
-                } else if (typeof extracted === "number") {
-                    styles.push(`${name}: ${extracted}px`);
-                } else {
-                    styles.push(`${name}: ${extracted}`);
-                }
-            }
-
-            attrs.style = styles.join("; ");
+        if (this.options.s) {
+            attrs.style = this.processStyles();
         }
 
-        const attrStr = Object.entries(attrs)
-            .map(([name, attr]) => {
-                return attr === "" ? name : `${name}="${escapeHTML(`${attr}`)}"`;
-            })
-            .join(" ");
+        const attrStr = this.attrString(attrs);
 
         if (this.children.length === 0) {
-            return `${this.level(level)}<${this.name}${attrStr ? " " + attrStr : ""}/>`;
+            return `${this.level(level)}<${this.name}${attrStr}/>`;
         }
 
         let prevWasText = false;
-        let result: string[] = [`${this.level(level)}<${this.name}${attrStr ? " " + attrStr : ""}>\n`];
+        let result: string[] = [`${this.level(level)}<${this.name}${attrStr}>\n`];
 
         this.children.forEach(item => {
             const currentIsText = item instanceof Text;
             const content = currentIsText
                 ? item.toHTML(!prevWasText ? level + 1 : 0)
-                : (prevWasText && !currentIsText ? "\n" : "") + item.toHTML(level + 1) + "\n";
+                : (prevWasText ? "\n" : "") + item.toHTML(level + 1) + "\n";
 
             if (!(item instanceof Text && item.isEmpty())) {
                 prevWasText = currentIsText;
@@ -191,6 +187,162 @@ export class Element extends Node {
 
         return result.join("");
     }
+    public toMarkDown(supportHtml: boolean): string {
+        const children = (fn = (v: string, _index: number) => v) => {
+            return this.children.map((item, index) => fn(item.toMarkDown(supportHtml), index)).join("");
+        };
+        const attrs = this.options.a ?? {};
+        const headingId = () => {
+            if (attrs.id) {
+                return ` {#${attrs.id}}`;
+            }
+            return "";
+        };
+
+        switch (this.name.toLowerCase()) {
+            case "h1":
+                console.log(children(), headingId());
+                return `\n# ${children()}${headingId()}\n`;
+
+            case "h2":
+                return `\n## ${children()}${headingId()}\n`;
+
+            case "h3":
+                return `\n### ${children()}${headingId()}\n`;
+
+            case "b":
+                return `**${children()}**`;
+
+            case "i":
+                return `*${children()}*`;
+
+            case "blockquote":
+                return `\n> ${children().replace("\n", "\n> ")}\n`;
+
+            case "pre":
+                return `\n\`\`\`\n${children()}\n\`\`\``;
+
+            case "code":
+                return `\`${children()}\``;
+
+            case "ol":
+                return `\n${children((v, index) => `\n${index + 1}. ${v}`)}`;
+
+            case "ul":
+                return `\n${children((v, index) => `\n- ${v}`)}`;
+
+            case "hr":
+                return `\n---\n`;
+
+            case "a":
+                return `[${children()}](${attrs.href})`;
+
+            case "img":
+                return `![${attrs.alt}](${attrs.src})`;
+
+            case "dt":
+                return `\n\n${children()}`;
+
+            case "dd":
+                return `\n: ${children()}`;
+
+            case "del":
+                return `~~${children()}~~`;
+
+            case "mark":
+                return `==${children()}==`;
+
+            case "sub":
+                return `~${children()}~`;
+
+            case "sup":
+                return `^${children()}^`;
+
+            case "input":
+                if (attrs.type === "checkbox") {
+                    return `[${attrs.checked ? "x" : " "}] `;
+                }
+                break;
+
+            case "p":
+            case "article":
+            case "aside":
+            case "details":
+            case "header":
+            case "footer":
+            case "main":
+            case "nav":
+            case "section":
+            case "summary":
+                return `\n\n${children()}\n\n`;
+
+            case "table": {
+                let head = this.children.find(child => {
+                    return child instanceof Element && child.name.toLowerCase() === "thead";
+                });
+                let body = this.children.find(child => {
+                    return child instanceof Element && child.name.toLowerCase() === "tbody";
+                });
+                let firstChild = head?.children[0] ?? this.children[0];
+                const firstChildIsTr = firstChild instanceof Element && firstChild.name.toLowerCase() === "tr";
+
+                if (firstChildIsTr) {
+                    const number = firstChild.children.length;
+                    const headRows = head?.toMarkDown(supportHtml);
+                    const bodyRows = body
+                        ? body.toMarkDown(supportHtml)
+                        : this.children
+                              .slice(1)
+                              .map(item => item.toMarkDown(supportHtml))
+                              .join("");
+                    const separator = "\n" + "| - ".repeat(number) + "|";
+
+                    return `\n${headRows ?? separator}${separator}${bodyRows}`;
+                }
+                break;
+            }
+
+            case "thead":
+            case "tbody":
+                return children();
+
+            case "tr":
+                return `\n| ${children().trim()}`;
+
+            case "th":
+            case "td":
+                return `${children()} | `;
+
+            case "br":
+                return "\n\n";
+
+            case "body":
+                return children();
+        }
+
+        if (supportHtml) {
+            const attrs = this.processAttrs();
+            const styles = this.processStyles();
+
+            if (styles) {
+                attrs.style = styles;
+            }
+
+            return `<${this.name}${this.attrString(attrs)}>${children()}</${this.name}>`;
+        }
+
+        return children();
+    }
+
+    protected attrString(attrs: Record<string, string | number>) {
+        const string = Object.entries(attrs)
+            .map(([name, attr]) => {
+                return attr === "" ? name : `${name}="${escapeHTML(`${attr}`).replace(/"/g, "&quot;")}"`;
+            })
+            .join(" ");
+
+        return string ? " " + string : string;
+    }
 }
 
 export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
@@ -202,19 +354,6 @@ export class TextNode extends AbstractTextNode<Node, Element, TagOptions> {
     }
 
     protected findFirstChild(): Node {
-        return this.node;
-    }
-}
-
-export class DebugNode extends AbstractDebugNode<Node, Element, TagOptions> {
-    protected node: Comment;
-
-    public compose() {
-        this.node = new Comment(this.data);
-        this.parent.appendNode(this.node);
-    }
-
-    protected findFirstChild(): Node | Element | undefined {
         return this.node;
     }
 }
@@ -278,10 +417,6 @@ export class Runner implements IRunner<Node, Element, TagOptions> {
 
     textNode(text: unknown): AbstractTextNode<Node, Element, TagOptions> {
         return new TextNode({ text }, this);
-    }
-
-    debugNode(text: IValue<unknown>): AbstractDebugNode<Node, Element, TagOptions> {
-        return new DebugNode({ text }, this);
     }
 
     tag(

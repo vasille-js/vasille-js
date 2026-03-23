@@ -9,7 +9,9 @@ export async function processArgs() {
     let dev = checkArg("dev");
     let build = checkArg("build");
     let spa = checkArg("spa");
-    let ssg = checkArg("static");
+    let ssg = checkArg("html") || checkArg("static");
+    let md = checkArg("md");
+    let mdHtml = checkArg("md+html");
     let lib = checkArg("lib");
     let components = checkArg("components");
     let devLib = checkArg("dev+lib") || checkArg("lib+dev");
@@ -47,19 +49,14 @@ export async function processArgs() {
         lib = mode === "dev+lib";
         help = true;
     }
-    if (build && !(spa || ssg || lib || components)) {
-        const target = await select<"spa" | "ssg" | "lib" | "components">({
+    if (build && !(spa || ssg || lib || components || md || mdHtml)) {
+        const target = await select<"spa" | "ssg" | "lib" | "components" | "md" | "md+html">({
             message: "Select build type",
             choices: [
                 {
                     value: "spa",
                     name: "Build a SPA",
                     description: "Select this option to build a Single Page Application with build-in router",
-                },
-                {
-                    value: "ssg",
-                    name: "Build a static site",
-                    description: "Select this option to build static pages of application as HTML files.",
                 },
                 {
                     value: "lib",
@@ -71,13 +68,32 @@ export async function processArgs() {
                     name: "Build a web components library",
                     description: "Select this option to build a library, which can be used in any frontend framework.",
                 },
+                {
+                    value: "ssg",
+                    name: "Build a static html site",
+                    description: "Select this option to build static pages as HTML files.",
+                },
+                {
+                    value: "md",
+                    name: "Build a static markdown site (LLM Dedicated)",
+                    description: "Select this option to build static pages as MarkDown files.",
+                },
+                {
+                    value: "md+html",
+                    name: "Build a documentation for git (Markdown files with inline HTML)",
+                    description: "Select this option to build static pages as MarkDown files with html.",
+                },
             ],
         });
 
         spa = target === "spa";
         ssg = target === "ssg";
+        lib = target === "lib";
+        components = target === "components";
+        md = target === "md";
+        mdHtml = target === "md+html";
         help = true;
     }
 
-    return { dev, build, spa, ssg, help, lib, components };
+    return { dev, build, spa, ssg, help, lib, components, md, mdHtml };
 }

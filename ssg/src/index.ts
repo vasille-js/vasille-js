@@ -1,9 +1,8 @@
 import { Fragment, Portal } from "vasille";
 import { Runner, Node, Element, type TagOptions } from "./runner.js";
 
+export { safe } from "vasille";
 export {
-    forward,
-    backward,
     ensure,
     ref,
     expr,
@@ -11,7 +10,6 @@ export {
     expr as calculate,
     expr as watch,
     set,
-    Debug,
     Delay,
     For,
     Slot,
@@ -29,6 +27,8 @@ export {
 export { styleSheet } from "./css.js";
 export { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "./css.js";
 
+export { context, impute, receive, share } from "vasille-context";
+
 export {
     type QueryParams,
     type ScreenProps,
@@ -40,7 +40,7 @@ export {
 } from "vasille-router";
 
 export { awaited } from "./awaited.js";
-export { routerApp } from "./router.js";
+export { routerApp, type Mode } from "./router.js";
 
 interface CompositionProps {
     slot?: (...args: any[]) => void;

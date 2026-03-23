@@ -48,7 +48,14 @@ export async function load(url, context, nextLoad) {
             plugins.push(pluginJsxSyntax);
         }
 
-        plugins.push(vasillePlugin);
+        plugins.push([
+            vasillePlugin,
+            {
+                replaceWeb: "vasille-ssg",
+                headTag: true,
+                bodyTag: true,
+            },
+        ]);
 
         if (url.endsWith(".tsx") || url.endsWith(".ts")) {
             plugins.push([pluginTypescript, { isTSX: url.endsWith("x") }]);

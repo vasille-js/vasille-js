@@ -71,8 +71,9 @@ export function mountStyles(head: Element) {
     for (const item of styles) {
         if (item.rules.length > 0) {
             const media = item.media();
-            const style = new Element("style", { attr: { media: media ? media : undefined } });
+            const style = new Element("style", { a: { media: media ? media : undefined } });
 
+            console.log("mount", style);
             style.appendChild(new RawContentNode(item.rules));
             head.appendChild(style);
             item.rules = [];
