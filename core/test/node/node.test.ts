@@ -63,7 +63,10 @@ it("if", function () {
         new SwitchedNode<Node, Element, TagOptions>(root.runner, [
             {
                 $case: new Reference(true),
-                slot: () => (check1 = true),
+                slot: (node, value) => {
+                    check1 = true;
+                    expect(value).toBe(true);
+                },
             },
         ]),
     );

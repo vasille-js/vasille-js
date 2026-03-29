@@ -314,7 +314,7 @@ export interface SwitchedNodeCase<
     Runner extends IRunner<Node, Element, TagOptions>,
 > {
     $case: unknown;
-    slot: (node: Fragment<Node, Element, TagOptions, Runner>) => void;
+    slot: (node: Fragment<Node, Element, TagOptions, Runner>, value?: unknown) => void;
 }
 
 /**
@@ -374,13 +374,14 @@ export class SwitchedNode<
 
             if (i !== -1) {
                 const node = this.newChild(i);
+                const value = this.cases[i].$case;
 
                 node.parent = this;
                 this.lastChild = node;
                 this.children.add(node);
 
                 this.index = i;
-                safe(this.cases[i].slot)(node);
+                safe(this.cases[i].slot)(node, value instanceof IValue ? value.V : value);
             } else {
                 this.index = -1;
             }
