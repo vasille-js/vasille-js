@@ -12,11 +12,20 @@ export type EventHandlers<T> = {
 
 export type ClassItem = string | Record<string, boolean> | false;
 
+const internal = Symbol("internal");
+
+export interface VasilleElement {
+    [internal]: typeof internal;
+}
+
+export type VasilleChild = VasilleElement | string | number | boolean | null | undefined;
+export type VasilleSlot = VasilleChild | VasilleChild[];
+
 type HtmlInput<K extends keyof HTMLElementTagNameMap & keyof HtmlTagMap> = {
     callback?: (node: HTMLElementTagNameMap[K]) => unknown;
     class?: ClassItem[] | string;
     style?: RawStyleProps | string;
-    slot?: unknown | never | never[];
+    "vasille:slot"?: VasilleSlot;
 } & Partial<HtmlTagMap[K]["attrs"]> &
     prefixedObject<EventHandlers<HtmlTagMap[K]["events"]>, "on"> &
     Partial<prefixedObject<HtmlTagMap[K]["props"], "bind:">>;
@@ -24,11 +33,11 @@ type HtmlInput<K extends keyof HTMLElementTagNameMap & keyof HtmlTagMap> = {
 export declare namespace JSX {
     // Valid JSX tags: all the valid lowercase tags and function components
     type ElementType = keyof IntrinsicElements | ((props: any) => void);
-    type Element = never;
-    type ElementClass = never;
+    type Element = VasilleElement;
+    type ElementClass = VasilleElement;
 
     interface ElementChildrenAttribute {
-        slot: unknown | never | never[];
+        "vasille:slot": VasilleSlot;
     }
 
     interface IntrinsicElements {

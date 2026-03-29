@@ -1,6 +1,6 @@
 {
   "name": "steel-frame",
-  "version": "5.1.1",
+  "version": "5.1.2",
   "description": "SteelFrame: Build Fault-Tolerant Web Applications Effortlessly.",
   "main": "index.js",
   "types": "./index.d.ts",
@@ -50,7 +50,7 @@
     "vasille-jsx": "^5.0.0",
     "vasille-router": "^5.0.0",
     "vasille-shadow": "^5.0.0",
-    "vasille-web": "^5.0.0"
+    "vasille-web": "^5.0.1"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

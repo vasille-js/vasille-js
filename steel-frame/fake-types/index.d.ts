@@ -3,6 +3,7 @@ import type { TagOptions } from "vasille/web-runner";
 import type { StyleSheetProps as StyleProps } from "vasille-web";
 import type { ScreenProps } from "vasille-router";
 import type { Router } from "vasille-router/web-router";
+import type { VasilleSlot } from "vasille-web/jsx-runtime";
 
 export type { StyleProps } from "vasille-web";
 export type ClassItem = string | Record<string, boolean> | false;
@@ -18,12 +19,12 @@ declare interface Params {
 }
 
 declare type Composed<In extends object, Out> = (
-    $: (Required<In> extends Params ? Omit<In, "slot"> & { slot?: unknown } : In) & {
+    $: (Required<In> extends Params ? In & { "vasille:slot"?: VasilleSlot } : In) & {
         callback?(data: Out): void;
     },
 ) => void;
 declare type ComposedNoCallback<In extends object, Out> = (
-    $: Required<In> extends Params ? Omit<In, "slot"> & { slot?: unknown } : In,
+    $: Required<In> extends Params ? Omit<In, "slot"> & { "vasille:slot"?: VasilleSlot } : In,
 ) => void;
 
 /** Composes a component (v3), which can receive external reactive values via props */
@@ -89,30 +90,44 @@ export declare function Slot<Props extends object>(
 /** Renders content conditionally */
 export declare function If<T>(props: {
     $condition: T;
-    slot: (value: Exclude<T, false | 0 | "" | null | undefined>) => void;
+    slot?: (value: Exclude<T, false | 0 | "" | null | undefined>) => void;
+    "vasille:slot"?: VasilleSlot;
 }): void;
-export declare function If(props: { $condition: unknown; slot?: unknown }): void;
+export declare function If(props: { $condition: unknown; "vasille:slot"?: VasilleSlot }): void;
 
 /** Renders content conditionally, use strict after `<If/>` */
 export declare function ElseIf<T>(props: {
     $condition: T;
-    slot: (value: Exclude<T, false | 0 | "" | null | undefined>) => void;
+    slot?: (value: Exclude<T, false | 0 | "" | null | undefined>) => void;
+    "vasille:slot"?: VasilleSlot;
 }): void;
-export declare function ElseIf(props: { $condition: unknown; slot?: unknown }): void;
+export declare function ElseIf(props: { $condition: unknown; "vasille:slot"?: VasilleSlot }): void;
 
 /** Renders content conditionally, use strict after `<If/>` or `<ElseIf/>` */
-export declare function Else(props: { slot?: unknown }): void;
+export declare function Else(props: { slot?: () => void; "vasille:slot"?: VasilleSlot }): void;
 
 /** Renders content several times using a model (array, map or set) */
-export declare function For<T>(props: { of: ReadonlyArray<T>; slot?: (value: T) => void }): void;
-export declare function For<T>(props: { of: ReadonlySet<T>; slot?: (value: T) => void }): void;
-export declare function For<K, T>(props: { of: ReadonlyMap<K, T>; slot?: (value: T, index: K) => void }): void;
+export declare function For<T>(props: {
+    of: ReadonlyArray<T>;
+    slot?: (value: T) => void;
+    "vasille:slot"?: VasilleSlot;
+}): void;
+export declare function For<T>(props: {
+    of: ReadonlySet<T>;
+    slot?: (value: T) => void;
+    "vasille:slot"?: VasilleSlot;
+}): void;
+export declare function For<K, T>(props: {
+    of: ReadonlyMap<K, T>;
+    slot?: (value: T, index: K) => void;
+    "vasille:slot"?: VasilleSlot;
+}): void;
 
 /** Refresh the content each time then the reactive model is updated */
-export declare function Watch<T>(props: { $model: T; slot?: (value: T) => void }): void;
+export declare function Watch<T>(props: { $model: T; slot?: (value: T) => void; "vasille:slot"?: VasilleSlot }): void;
 
 /** Render content after a while */
-export declare function Delay(props: { time?: number; slot?: unknown }): void;
+export declare function Delay(props: { time?: number; slot?: () => void; "vasille:slot"?: VasilleSlot }): void;
 
 type ReadonlyState<T> =
     T extends Map<infer K, infer V>
