@@ -38,7 +38,7 @@ export function DevSlot<Node, Element, TagOptions extends object, T extends obje
     } catch (e) {
         ctx.runner.inspector.reportComponentSlotError({
             targetId: "id" in ctx && typeof ctx.id === "number" ? ctx.id : 0,
-            error: e,
+            error: e instanceof Error ? `${e.message}\n${e.stack}` : `${e}`,
             usage: usage,
             time: Date.now(),
         });

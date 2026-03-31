@@ -71,11 +71,11 @@ it("match test", function () {
 });
 
 it("ensure", function () {
-    const o: {x: number; y?: number} = {x: 1};
+    const o: { x: number; y?: number } = { x: 1 };
 
-    const t1 = ensure(null, 'x' as unknown as never);
-    const t2 = ensure(o, 'x');
-    const t3 = ensure(o, 'y');
+    const t1 = ensure(null, "x" as unknown as never);
+    const t2 = ensure(o, "x");
+    const t3 = ensure(o, "y");
 
     expect(t1).toBeInstanceOf(Reference);
     expect(t1.V).toBeUndefined();
@@ -84,4 +84,4 @@ it("ensure", function () {
     expect(t2).toBe(1);
     // @ts-expect-error
     expect(t3.V).toBeUndefined();
-})
+});

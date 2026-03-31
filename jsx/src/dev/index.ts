@@ -10,9 +10,10 @@ export { AbstractInspector, EarlyInspector, earlyInspector } from "./early-inspe
 function devErrorHandler(e: unknown) {
     earlyInspector.reportError({
         targetId: 0,
-        error: e instanceof Error ? (e.stack ?? e.message) : `${e}`,
+        error: e instanceof Error ? `${e.message}\n${e.stack}` : `${e}`,
         time: Date.now(),
     });
+    console.error(e);
 }
 
 coreSetErrorHandler(devErrorHandler);

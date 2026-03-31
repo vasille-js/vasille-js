@@ -39,7 +39,7 @@ export function devView<Node, Element, TagOptions extends object, In extends Com
         } catch (e) {
             node.runner.inspector.reportComponentError({
                 targetId: frag.id,
-                error: e,
+                error: e instanceof Error ? `${e.message}\n${e.stack}` : `${e}`,
                 time: Date.now(),
             });
             reportError(e);

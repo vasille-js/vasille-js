@@ -1,6 +1,6 @@
 {
   "name": "vasille-jsx",
-  "version": "5.0.1",
+  "version": "5.1.0",
   "description": "The same framework which is designed to build bulletproof frontends (JSX components)",
   "main": "lib/index.js",
   "exports": {

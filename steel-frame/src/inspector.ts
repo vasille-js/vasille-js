@@ -29,7 +29,7 @@ class AppHandler implements AppSide {
             },
             s: {
                 "pointer-events": expr(app, active => (active ? "auto" : "none"), [this.active]),
-                position: "absolute",
+                position: "fixed",
                 inset: "0",
                 "z-index": "9999909",
             },

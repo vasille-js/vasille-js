@@ -83,6 +83,7 @@ export class RepeatNode<
 
     public override destroy(): void {
         this.nodes.clear();
+        super.destroy();
     }
 
     protected newChild(_id: IdT, _item: T): Fragment<Node, Element, TagOptions, Runner> {
