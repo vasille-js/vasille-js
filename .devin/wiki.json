@@ -10,7 +10,7 @@
       "purpose": "Introduce steel-frame, explaining the framework's purpose as a fault tolerant frontend kit and key differentiators (synchronous updates, strong typing, predectibility, developer experience)",
       "page_notes": [
         {
-          "content": ""
+          "content": "Do not include data about package architecture, th docs must be end-user destinated, not for contributing."
         }
       ]
     },
@@ -39,7 +39,7 @@
       "parent": "Components and UI",
       "page_notes": [
         {
-          "content": ""
+          "content": "The end user will not use the V property of IValue explicitly, it is automatically added by compiler."
         }
       ]
     },
@@ -49,7 +49,7 @@
       "parent": "Components and UI",
       "page_notes": [
         {
-          "content": ""
+          "content": "bind:* attributtes does one way binding, from component to DOM."
         }
       ]
     },
@@ -59,7 +59,7 @@
       "parent": "Components and UI",
       "page_notes": [
         {
-          "content": ""
+          "content": "We recomand to use If/Else build-in component, && logical expression and ternary expression are designed to match the typescript types."
         }
       ]
     },
@@ -206,7 +206,7 @@
       "purpose": "Document modal() HOF for creating modal components, prompt() for Promise-based user interaction, Portal abstraction, and timeout handling",
       "page_notes": [
         {
-          "content": ""
+          "content": "The function prompt and model are used exactly like component/compose function, they are replacements."
         }
       ]
     },
@@ -215,7 +215,7 @@
       "purpose": "Document styleSheet() for scoped CSS, theme() and dark() utilities for theming, mobile()/tablet()/laptop() for responsive design, and dynamic class generation",
       "page_notes": [
         {
-          "content": ""
+          "content": "The dark function used for programming theme switching, adding a dark class to body element. But prefersLight and prefersDark use CSS prefers-color-scheme media query."
         }
       ]
     },

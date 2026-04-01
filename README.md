@@ -29,7 +29,6 @@
     - [1.0 - 1.2](#10---12)
   - [Questions](#questions)
 
-
 <hr>
 
 ## Installation
@@ -47,37 +46,41 @@ $ npm create steel-frame
 ```
 
 ### Full documentation:
-* [Learn `SteelFrameKit` in 5 minutes](https://github.com/vasille-js/vasille-js/blob/v5/doc/V4-API.md)
-* [Router Documentation](https://github.com/vasille-js/vasille-js/blob/v5/doc/Router-API.md)
-* [Compostion functions](https://github.com/vasille-js/vasille-js/blob/v5/doc/Compositions.md)
-* [Dependency injection](https://github.com/vasille-js/vasille-js/blob/v5/doc/Context.md)
+
+- [Learn `SteelFrameKit` in 5 minutes](https://github.com/vasille-js/vasille-js/blob/v5/doc/V4-API.md)
+- [Router Documentation](https://github.com/vasille-js/vasille-js/blob/v5/doc/Router-API.md)
+- [Compostion functions](https://github.com/vasille-js/vasille-js/blob/v5/doc/Compositions.md)
+- [Dependency injection](https://github.com/vasille-js/vasille-js/blob/v5/doc/Context.md)
 
 ### Examples
-* [TypeScript Example](https://github.com/vasille-js/example-typescript)
-* [JavaScript Example](https://github.com/vasille-js/example-javascript)
+
+- [TypeScript Example](https://github.com/vasille-js/example-typescript)
+- [JavaScript Example](https://github.com/vasille-js/example-javascript)
 
 <hr>
 
 ## How SAFE is SteelFrameKit
 
 The safe of your application is ensured by
-* `100%` coverage of code by unit tests.
+
+- `100%` coverage of code by unit tests.
   Each function, each branch is working as designed.
-* OOP, DRY, KISS and SOLID principles are applied.
-* `strong typing` makes your javascript/typescript code safe as C++ code.
-All entities of `SteelFrameKit` core library are strongly typed, including:
-  * data fields & properties.
-  * computed properties (function parameters and result).
-  * methods.
-  * events (defined handlers & event emit).
-  * DOM events & DOM operation (attributing, styling, etc.).
-  * slots of components.
-  * references to children.
-* No asynchronous code, when the line of code is executed, the DOM and reactive things are already synced.
+- OOP, DRY, KISS and SOLID principles are applied.
+- `strong typing` makes your code safe.
+  All entities of `SteelFrameKit` core library are strongly typed, including:
+  - data fields & properties.
+  - computed properties (function parameters and result).
+  - methods.
+  - events (defined handlers & event emit).
+  - DOM events & DOM operation (attributing, styling, etc.).
+  - slots of components.
+  - references to children.
+- No asynchronous code, when the line of code is executed, the DOM and reactive things are already synced.
 
 ## How INTUITIVE is SteelFrameKit
 
 There is the "Hello World":
+
 ```typescript jsx
 import { compose, mount } from "steel-frame";
 
@@ -91,35 +94,37 @@ mount(document.body, App, {});
 ## How POWERFUL is SteelFrameKit
 
 All of these are supported:
-* Components.
-* Reactive values (observables).
-* Inline computed values.
-* Multiline computed values.
-* HTML tags.
-* Component custom slots.
-* 2-way data binding in components.
-* Logic block (if, else).
-* Loops (array, map, set).
-* Dependency injection.
+
+- Components.
+- Reactive values (observables).
+- Inline computed values.
+- Multiline computed values.
+- HTML tags.
+- Component custom slots.
+- 2-way data binding in components.
+- Logic block (if, else).
+- Loops (array, map, set).
+- Dependency injection.
 
 <hr>
 
 ## Road map
 
-* [x] `100%` Test Coverage for core Library v3.
-* [x] Develop the `JSX` library.
-* [x] `100%` Test Coverage for the JSX library.
-* [x] Develop the `Babel Plugin`.
-* [x] `100%` Test Coverage fot babel plugin.
-* [x] Add CSS support (define styles in components).
-* [x] Add router.
-* [x] Add SSG (static site generation).
-* [ ] Develop tools extension for debugging (WIP).
-* [ ] Add SSR (server side rendering).
+- [x] `100%` Test Coverage for core Library v3.
+- [x] Develop the `JSX` library.
+- [x] `100%` Test Coverage for the JSX library.
+- [x] Develop the `Babel Plugin`.
+- [x] `100%` Test Coverage fot babel plugin.
+- [x] Add CSS support (define styles in components).
+- [x] Add router.
+- [x] Add SSG (static site generation).
+- [ ] Develop tools extension for debugging (WIP).
+- [ ] Add SSR (server side rendering).
 
 ## Change log
 
 We respect semantic versioning:
+
 - A major version is increased when we make incompatible API changes.
 - A minor version is increased when we add functionality.
 - Patch version is increased when we fix bugs.
@@ -165,4 +170,4 @@ _Web components as custom tags are supported in any version._
 
 If you have questions, feel free to contact the maintainer of the project:
 
-* [Author's Email](mailto:vas.lixcode@gmail.com)
+- [Author's Email](mailto:vas.lixcode@gmail.com)
