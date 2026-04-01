@@ -1,4 +1,5 @@
 import { setErrorHandler as coreSetErrorHandler } from "vasille";
+import { errorToString } from "vasille/dev";
 import { earlyInspector } from "./early-inspector.js";
 
 export { DevDelay, DevWatch, DevFor, DevSwitch, DevSlot } from "./components.js";
@@ -10,7 +11,7 @@ export { AbstractInspector, EarlyInspector, earlyInspector } from "./early-inspe
 function devErrorHandler(e: unknown) {
     earlyInspector.reportError({
         targetId: 0,
-        error: e instanceof Error ? `${e.message}\n${e.stack}` : `${e}`,
+        error: errorToString(e),
         time: Date.now(),
     });
     console.error(e);

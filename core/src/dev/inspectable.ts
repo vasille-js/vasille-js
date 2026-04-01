@@ -31,6 +31,12 @@ export function executionPosition(
     return id;
 }
 
+export function errorToString(e: unknown) {
+    return e instanceof Error
+        ? `${e.name}:${e.message}\n${e.stack}`
+        : `${e && typeof e === "object" ? e.constructor.name : typeof e}:${e}`;
+}
+
 export interface Inspectable {
     id: number;
 }
@@ -356,7 +362,7 @@ export function runFn<Args extends unknown[], Result extends object>(
                 result.catch(e => {
                     inspector.functionThrows({
                         targetId: id,
-                        error: e instanceof Error ? (e.stack ?? e.message) : `${e}`,
+                        error: errorToString(e),
                         async: false,
                         time: Date.now(),
                     });
@@ -376,7 +382,7 @@ export function runFn<Args extends unknown[], Result extends object>(
     } catch (e) {
         inspector.functionThrows({
             targetId: id,
-            error: e instanceof Error ? (e.stack ?? e.message) : `${e}`,
+            error: errorToString(e),
             async: false,
             time: Date.now(),
         });

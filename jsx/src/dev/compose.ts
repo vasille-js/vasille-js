@@ -1,5 +1,5 @@
 import { App, Fragment, Reactive } from "vasille";
-import { DevReactive, remapObject, StaticPosition, toDevIdOrValue } from "vasille/dev";
+import { DevReactive, errorToString, remapObject, StaticPosition, toDevIdOrValue } from "vasille/dev";
 import { IDevRunner } from "vasille/dev";
 import { CompositionProps } from "../compose.js";
 import { DevApp, DevFragment, DevRunner, DevTagOptions, Inspector, ModelId } from "vasille/dev";
@@ -39,7 +39,7 @@ export function devView<Node, Element, TagOptions extends object, In extends Com
         } catch (e) {
             node.runner.inspector.reportComponentError({
                 targetId: frag.id,
-                error: e instanceof Error ? `${e.message}\n${e.stack}` : `${e}`,
+                error: errorToString(e),
                 time: Date.now(),
             });
             reportError(e);

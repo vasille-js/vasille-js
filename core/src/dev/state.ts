@@ -3,6 +3,7 @@ import { Destroyable } from "../core/destroyable.js";
 import { IValue } from "../core/ivalue.js";
 import {
     Dependency,
+    errorToString,
     ExecutionPosition,
     InspectableReference,
     Inspector,
@@ -106,7 +107,7 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
         this.inspector?.reportReferenceError({
             targetId: this.id,
             time: Date.now(),
-            error: error instanceof Error ? `${error.message}\n${error.stack}` : `${error}`,
+            error: errorToString(error),
             position: position,
         });
     }
@@ -131,7 +132,7 @@ export class ExpressionDevReference<T> extends BaseDevReference<T> implements In
         this.inspector?.reportReferenceError({
             targetId: this.id,
             time: Date.now(),
-            error: error instanceof Error ? `${error.message}\n${error.stack}` : `${error}`,
+            error: errorToString(error),
             position: position,
         });
     }
@@ -182,7 +183,7 @@ export class DevExpression<T, Args extends unknown[]>
                 inspector?.reportExpressionCalculationError({
                     targetId: id,
                     time: Date.now(),
-                    error: e instanceof Error ? `${e.message}\n${e.stack}` : `${e}`,
+                    error: errorToString(e),
                     position: position,
                     deps: this.valuesCache.map(toDevValue),
                 });

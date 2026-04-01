@@ -50,6 +50,7 @@ export {
     toDevIdOrValue,
     toDevObject,
     toDevValue,
+    errorToString,
 } from "./inspectable.js";
 export { DevArrayModel, DevMapModel, DevSetModel } from "./models.js";
 export { DevFragment, ModelId, shareStateById } from "./node.js";
