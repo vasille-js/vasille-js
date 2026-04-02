@@ -24,7 +24,7 @@ declare type Composed<In extends object, Out> = (
     },
 ) => void;
 declare type ComposedNoCallback<In extends object, Out> = (
-    $: Required<In> extends Params ? Omit<In, "slot"> & { "vasille:slot"?: VasilleSlot } : In,
+    $: Required<In> extends Params ? In & { "vasille:slot"?: VasilleSlot } : In,
 ) => void;
 
 /** Composes a component (v3), which can receive external reactive values via props */

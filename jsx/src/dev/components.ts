@@ -43,7 +43,7 @@ export function DevSlot<Node, Element, TagOptions extends object, T extends obje
             usage: usage,
             time: Date.now(),
         });
-        reportError(e);
+        console.error(e);
     }
 }
 
