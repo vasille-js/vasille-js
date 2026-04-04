@@ -222,9 +222,14 @@ export interface ProtocolFunctionCall {
 }
 
 export interface ProtocolEventTrigger {
-    tagId: number;
+    target: number;
     eventName: string;
     time: number;
+    position?: StaticPosition;
+    result?: {
+        value?: DevValue;
+        error?: string;
+    };
 }
 
 export interface ProtocolFunctionResult {
@@ -318,16 +323,31 @@ export function registerReference<T>(
     return value;
 }
 
+const positionKey = Symbol("vasille-position");
 let executionId = 0;
+
+export function setupPosition<T extends object>(obj: T, declaration: StaticPosition): T {
+    Object.defineProperty(obj, positionKey, {
+        value: declaration,
+        enumerable: false,
+        configurable: false,
+        writable: false,
+    });
+    return obj;
+}
+
+export function getPosition(obj: object): StaticPosition | undefined {
+    return obj[positionKey] as StaticPosition | undefined;
+}
 
 export function wrapFn<Args extends unknown[], Result extends object>(
     fn: (...args: Args) => Result,
     declaration: StaticPosition,
     inspector: Inspector,
 ): (...args: Args) => Result {
-    return (...args: Args) => {
+    return setupPosition((...args: Args) => {
         return runFn(fn, args, declaration, inspector);
-    };
+    }, declaration);
 }
 
 export function runFn<Args extends unknown[], Result extends object>(

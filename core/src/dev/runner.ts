@@ -2,6 +2,7 @@ import { IValue } from "../core/ivalue.js";
 import { TextProps } from "../node/node.js";
 import { Runner, Tag, TagOptions, TextNode } from "../runner/web/runner.js";
 import {
+    getPosition,
     IDevRunner,
     Inspector,
     provideId,
@@ -130,18 +131,20 @@ export class DevTag extends Tag<DevTagOptions, DevRunner> {
 
                     handler[0] = ev => {
                         this.runner.inspector.eventTrigger({
-                            tagId: this.id,
+                            target: this.id,
                             eventName: key,
                             time: Date.now(),
+                            position: getPosition(handler[0]),
                         });
                         userHandler(ev);
                     };
                 } else {
-                    options[key] = ev => {
+                    options.e[key] = ev => {
                         this.runner.inspector.eventTrigger({
-                            tagId: this.id,
+                            target: this.id,
                             eventName: key,
                             time: Date.now(),
+                            position: getPosition(handler),
                         });
                         handler(ev);
                     };

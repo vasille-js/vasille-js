@@ -192,6 +192,12 @@ async function run() {
                     include: [],
                     force: true,
                 },
+                server: {
+                    cors: true,
+                },
+                build: {
+                    sourcemap: true,
+                }
             });
 
             await server.listen();

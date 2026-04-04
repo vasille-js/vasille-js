@@ -1,6 +1,6 @@
 import { App, Fragment, Portal, reportError, Runner as IRunner } from "vasille";
 import { Runner, TagOptions } from "vasille/web-runner";
-import { mount as coreMount } from "vasille-jsx";
+import { CompositionProps, mount as coreMount } from "vasille-jsx";
 import { routeApp as coreRouteApp, WebRouterInitialization } from "vasille-router/web-router";
 
 export { styleSheet } from "vasille-css";
@@ -58,15 +58,19 @@ function createPortal(node: Fragment<Node, Element, TagOptions>) {
     return portal;
 }
 
-export function modal<T extends object>(
+export function modal<T extends CompositionProps>(
     modal: (node: Fragment<Node, Element, TagOptions>, input: T) => void,
     create: (node: Fragment<Node, Element, TagOptions>) => Portal<Node, Element, TagOptions> = createPortal,
-): (input: T, node: Fragment<Node, Element, TagOptions>) => void {
-    return function (props, node) {
+): (input: T, node: Fragment<Node, Element, TagOptions>, slot?: T["slot"]) => void {
+    return function (props, node, slot) {
         if (!node) {
             throw new Error("Vasille: Modal context is missing");
         }
         const portal = create(node);
+
+        if (!props.slot && slot) {
+            props.slot = slot;
+        }
 
         try {
             modal(portal, props);
@@ -84,8 +88,13 @@ export interface PromptProps {
 export function prompt<T extends PromptProps>(
     modal: (node: Fragment<Node, Element, TagOptions>, input: T) => void,
     create: (node: Fragment<Node, Element, TagOptions>) => Portal<Node, Element, TagOptions> = createPortal,
-): (node: Fragment<Node, Element, TagOptions>, input: T, timeout?: number) => Promise<unknown> {
-    return function (node, input, timeout) {
+): (
+    node: Fragment<Node, Element, TagOptions>,
+    input: T,
+    timeout?: number,
+    debugProps?: PromptProps,
+) => Promise<unknown> {
+    return function (node, input, timeout, debugProps) {
         return new Promise((resolve, reject) => {
             const portal = create(node);
             const timer =
@@ -105,10 +114,12 @@ export function prompt<T extends PromptProps>(
                     ...input,
                     resolve(value) {
                         destroy();
+                        debugProps?.resolve(value);
                         resolve(value);
                     },
                     reject(error) {
                         destroy();
+                        debugProps?.reject(error);
                         reject(error);
                     },
                 });

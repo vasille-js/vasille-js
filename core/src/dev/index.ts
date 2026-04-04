@@ -43,6 +43,8 @@ export {
     type DestroyData,
     executionPosition,
     provideId,
+    setupPosition,
+    getPosition,
     runFn,
     wrapFn,
     registerReference,
