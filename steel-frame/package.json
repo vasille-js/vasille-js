@@ -1,6 +1,6 @@
 {
   "name": "steel-frame",
-  "version": "5.1.13",
+  "version": "5.1.14",
   "description": "SteelFrame: Build Fault-Tolerant Web Applications Effortlessly.",
   "main": "index.js",
   "types": "./index.d.ts",

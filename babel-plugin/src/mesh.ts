@@ -11,6 +11,7 @@ import {
   err,
   Errors,
   exprCall,
+  nameIsRestricted,
   parseCalculateCall,
   processCalculateCall,
   processModelCall,
@@ -245,6 +246,13 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
           err(Errors.IncompatibleContext, path, "Prompts can be constructed only from components", internal);
         }
         path.node.arguments.unshift(ctx);
+
+        if (internal.devLayer) {
+          while (path.node.arguments.length < 3) {
+            path.node.arguments.push(t.buildUndefinedNode());
+          }
+          path.node.arguments.push(nodeToStaticPosition(path.node));
+        }
       }
       // dependency injection
       else if (
@@ -490,6 +498,9 @@ export function ignoreParams(
     internal.stack.set(path.node.name, {});
     if (!allowReactiveId || !allowReactiveId.includes("id")) {
       checkNonReactiveName(path, internal);
+    }
+    if (nameIsRestricted(path.node.name)) {
+      err(Errors.RulesOfVasille, path, "This name is restricted (start with `prompt` or ends with `Model`)", internal);
     }
   }
   // param is object destruction
@@ -1086,6 +1097,9 @@ export function meshFunction(
     if (idPath.isIdentifier()) {
       internal.stack.set(path.node.id.name, {});
       checkNonReactiveName(idPath, internal);
+      if (internal.devLayer) {
+        path.insertAfter(internal.setupPosition(idPath.node, path.node));
+      }
     }
   }
 

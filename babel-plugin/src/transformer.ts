@@ -210,6 +210,7 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     executionPosition: "VasilleExePos",
     runFn: "VasilleRun",
     wrapFn: "VasilleWrap",
+    setupPosition: "VasilleSetupPosition",
     shareStateById: "VasilleState",
     positionedText: "VasillePosText",
     earlyInspector: "VasilleInspector",
@@ -342,13 +343,13 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     wrapFunctionBody(
       fn: types.FunctionDeclaration | types.ObjectMethod | types.ClassMethod | types.ClassPrivateMethod,
     ): void {
-      const params = fn.params.map((item: types.FunctionParameter | types.TSParameterProperty) => {
-        return t.isFunctionParameter(item) ? item : item.parameter;
-      });
-      const body = fn.body;
-      const args = t.identifier("VasilleArgs");
-
       if (opts.devLayer) {
+        const params = fn.params.map((item: types.FunctionParameter | types.TSParameterProperty) => {
+          return t.isFunctionParameter(item) ? item : item.parameter;
+        });
+        const body = fn.body;
+        const args = t.identifier("VasilleArgs");
+
         fn.body = t.blockStatement([
           t.returnStatement(
             call("runFn", [
@@ -370,6 +371,9 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
       }
 
       return fn;
+    },
+    setupPosition(target: types.Expression, area: types.Node): types.Expression {
+      return call("setupPosition", [target, nodeToStaticPosition(area)]);
     },
     shareStateById(value: types.Expression, name: string): types.Expression {
       return shareStateById(value, name);

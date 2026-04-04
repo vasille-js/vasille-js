@@ -275,3 +275,7 @@ export function toKebabCase(name: string) {
 
   return fixed;
 }
+
+export function nameIsRestricted(name: string) {
+  return name.endsWith("Model") || name.startsWith("prompt");
+}

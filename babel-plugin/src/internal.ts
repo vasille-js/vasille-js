@@ -104,6 +104,7 @@ export interface Internal {
   wrapFunctionBody(
     fn: types.FunctionDeclaration | types.ObjectMethod | types.ClassMethod | types.ClassPrivateMethod,
   ): void;
+  setupPosition(target: types.Expression, area: types.Node): types.Expression;
   wrapFunction(fn: types.FunctionExpression | types.ArrowFunctionExpression): types.Node;
   shareStateById(value: types.Expression, name: string): types.Expression;
   positionedText(text: types.Expression, area: types.Node): types.Expression;

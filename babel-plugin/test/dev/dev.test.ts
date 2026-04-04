@@ -95,3 +95,7 @@ it("page", function () {
 it("module level reactivity", function () {
   runTest(__dirname, "module-level-reactivity", true);
 });
+
+it("prompt", function () {
+  runJsxTest(__dirname, "prompt", true);
+});

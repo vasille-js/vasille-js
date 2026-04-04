@@ -1,20 +1,23 @@
 const VasilleFilePath = "babel-plugin-vasille/test/dev/function-wrap.ts";
-import { earlyInspector as VasilleInspector, runFn as VasilleRun, wrapFn as VasilleWrap } from "steel-frame";
+import { setupPosition as VasilleSetupPosition, earlyInspector as VasilleInspector, runFn as VasilleRun, wrapFn as VasilleWrap } from "steel-frame";
 function f1() {
   return VasilleRun(() => {
     console.log(1);
   }, [], [VasilleFilePath, 1, 0, 3, 1], VasilleInspector);
 }
+VasilleSetupPosition(f1, [VasilleFilePath, 1, 0, 3, 1])
 function f2(...VasilleArgs) {
   return VasilleRun((a, b) => {
     return a + b;
   }, VasilleArgs, [VasilleFilePath, 5, 0, 7, 1], VasilleInspector);
 }
+VasilleSetupPosition(f2, [VasilleFilePath, 5, 0, 7, 1])
 async function f3() {
   return VasilleRun(async () => {
     await new Promise(VasilleWrap(resolve => setTimeout(resolve, 1000), [VasilleFilePath, 10, 20, 10, 56], VasilleInspector));
   }, [], [VasilleFilePath, 9, 0, 11, 1], VasilleInspector);
 }
+VasilleSetupPosition(f3, [VasilleFilePath, 9, 0, 11, 1])
 const f4 = VasilleWrap(function (a, b) {
   return a + b;
 }, [VasilleFilePath, 13, 11, 15, 1], VasilleInspector);
