@@ -24,5 +24,7 @@ export function startProxyServer() {
         });
     });
 
+    return { ideServer, appServer };
+
     console.log("Proxy server activated");
 }

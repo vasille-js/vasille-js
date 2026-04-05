@@ -44,6 +44,7 @@ async function run() {
                     rollupOptions: {
                         external: ["vasille-web"],
                     },
+                    sourcemap: true,
                 },
                 plugins: [
                     await indexPlugin(routerDir, pagesDir, "vasille-web"),
@@ -176,6 +177,7 @@ async function run() {
         if (lib) {
             await watchLib(srcDir, path.join(srcDir, "../dist/lib"), "steel-frame");
         } else {
+            const { ideServer } = startProxyServer();
             const server = await createServer({
                 configFile: false,
                 root: cwd(),
@@ -184,7 +186,13 @@ async function run() {
                 command: "serve",
                 plugins: [
                     await indexPlugin(routerDir, pagesDir, "steel-frame"),
-                    ...getVitePlugins("steel-frame"),
+                    ...getVitePlugins("steel-frame", reports => {
+                        ideServer.clients.forEach(client => {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify(["reportErrors", reports]));
+                            }
+                        });
+                    }),
                     inspect(),
                 ],
                 resolve,
@@ -197,7 +205,7 @@ async function run() {
                 },
                 build: {
                     sourcemap: true,
-                }
+                },
             });
 
             await server.listen();
@@ -208,8 +216,6 @@ async function run() {
 
             server.printUrls();
             server.bindCLIShortcuts({ print: true });
-
-            startProxyServer();
         }
     }
     if (!dev) {

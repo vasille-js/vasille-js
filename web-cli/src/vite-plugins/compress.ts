@@ -7,7 +7,7 @@ export function compress() {
             order: "post",
             async handler(code: string, chunk: any, outputOptions: any) {
                 if (outputOptions.format === "es" && chunk.fileName.endsWith(".js")) {
-                    return await transform(code, { minify: true });
+                    return await transform(code, { minify: true, sourcemap: "external" });
                 }
                 return code;
             },
