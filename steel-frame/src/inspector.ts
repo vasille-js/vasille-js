@@ -105,8 +105,9 @@ class AppHandler implements AppSide {
         }
 
         const tags = new Set<DevTag>();
+        const texts = new Set<DevTextNode>();
 
-        this.iterateFragment(this.app as unknown as Fragment<Node, Element, TagOptions>, new Set(ids), tags);
+        this.iterateFragment(this.app as unknown as Fragment<Node, Element, TagOptions>, new Set(ids), tags, texts);
 
         const canvas = this.canvas;
         const ctx = canvas?.getContext("2d");
@@ -119,6 +120,19 @@ class AppHandler implements AppSide {
                 const rect = tag.getNode().getBoundingClientRect();
 
                 ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+            }
+        }
+
+        const sel = window.getSelection();
+
+        if (sel) {
+            sel.removeAllRanges();
+
+            for (const text of texts) {
+                const range = document.createRange();
+                // @ts-expect-error node field is protected
+                range.selectNodeContents(text.node);
+                sel.addRange(range);
             }
         }
     }
@@ -137,12 +151,17 @@ class AppHandler implements AppSide {
         }
     }
 
-    protected iterateFragment(node: Fragment<Node, Element, TagOptions>, ids: Set<number>, set: Set<DevTag>) {
+    protected iterateFragment(
+        node: Fragment<Node, Element, TagOptions>,
+        ids: Set<number>,
+        set: Set<DevTag>,
+        texts: Set<DevTextNode>,
+    ) {
         for (const child of node.children) {
             if ("id" in child && ids.has(child.id as number)) {
-                this.addReactive(child, set);
+                this.addReactive(child, set, texts);
             } else if (child instanceof Fragment) {
-                this.iterateFragment(child, ids, set);
+                this.iterateFragment(child, ids, set, texts);
             }
         }
     }
@@ -163,19 +182,20 @@ class AppHandler implements AppSide {
         }
     }
 
-    protected addFragment(node: DevFragment<Node, Element, TagOptions>, set: Set<DevTag>) {
+    protected addFragment(node: DevFragment<Node, Element, TagOptions>, set: Set<DevTag>, texts: Set<DevTextNode>) {
         for (const child of node.children) {
-            this.addReactive(child, set);
+            this.addReactive(child, set, texts);
         }
     }
 
-    protected addReactive(node: Reactive, set: Set<DevTag>) {
+    protected addReactive(node: Reactive, set: Set<DevTag>, texts: Set<DevTextNode>) {
         if (node instanceof DevTag) {
             this.addTag(node, set);
         } else if (node instanceof DevTextNode) {
             this.addText(node, set);
+            texts.add(node);
         } else if (node instanceof DevFragment) {
-            this.addFragment(node, set);
+            this.addFragment(node, set, texts);
         }
     }
 }
