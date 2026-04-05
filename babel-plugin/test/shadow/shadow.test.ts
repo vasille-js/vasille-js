@@ -19,7 +19,7 @@ export function throwTest(name: string, err: string) {
   expect(() => {
     babel.transformSync(input, {
       plugins: [
-        [vasillePlugin, { strictFolders: false, ...extra }],
+        [vasillePlugin, { strictFolders: false, throwAtFirstError: true, ...extra }],
         ["@babel/plugin-transform-typescript", { isTSX: true }],
       ],
       filename: fileName,

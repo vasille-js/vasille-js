@@ -1306,10 +1306,6 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             );
 
             meshInit = !isReactive;
-
-            if (!isReactive) {
-              declaration.get("init").replaceWith(ref(argument, internal, declaration.node, idName()));
-            }
             checkReactiveName(idPath, internal);
           }
           // let y = ref(2)

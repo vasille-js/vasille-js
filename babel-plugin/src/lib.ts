@@ -27,10 +27,7 @@ export function err<T>(e: Errors, node: NodePath<unknown>, content: string, inte
 
   Error.stackTraceLimit = limit;
 
-  if (!internal.firstError) {
-    internal.firstError = error;
-  }
-  console.log(error);
+  internal.reportError(`${Errors[e]}: ${content}`, node.node as types.Node, error);
 
   return ret;
 }

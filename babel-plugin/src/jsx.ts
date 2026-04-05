@@ -343,7 +343,7 @@ function transformJsxElement(
                 events.push(idToProp(name, expressionPath.node, 2));
               }
             } else {
-              err(Errors.TokenNotSupported, valuePath, "Expected event handler", internal);
+              err(Errors.TokenNotSupported, attrPath, "Expected event handler", internal);
             }
           } else if (name.name === "class") {
             // class={[..]}
@@ -415,7 +415,7 @@ function transformJsxElement(
             // class={`a ${b}`}
             else if (expressionPath && expressionPath.isExpression()) {
               if (exprCall(expressionPath, expressionPath.node, internal, { strong: true }, expressionPath.node)) {
-                console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
+                internal.reportError("This will slow down your application", attrPath.node);
               }
 
               attrs.push(t.objectProperty(t.identifier("class"), expressionPath.node));
@@ -501,7 +501,7 @@ function transformJsxElement(
               /* istanbul ignore else */
               if (expressionPath && expressionPath.isExpression()) {
                 if (exprCall(expressionPath, expressionPath.node, internal, { strong: true }, expressionPath.node)) {
-                  console.warn(attrPath.buildCodeFrameError("Vasille: This will slow down your application"));
+                  internal.reportError("This will slow down your application", attrPath.node);
                 }
 
                 attrs.push(t.objectProperty(t.identifier("style"), expressionPath.node));
@@ -723,6 +723,7 @@ function transformJsxElement(
         err(Errors.RulesOfVasille, path, "Malformed JSX If tag is missing", internal);
       }
       if (mapped === "If" || mapped === "ElseIf") {
+        /* istanbul ignore else */
         if (t.isExpression(condition) && (t.isFunctionExpression(slot) || t.isArrowFunctionExpression(slot))) {
           if (!conditions.cases) {
             conditions.cases = [{ condition, slot }];

@@ -1,6 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { TSTypeElement } from "@babel/types";
+import { CompilationErrorReporter } from "./communication";
 
 export type VariableState = Record<string, 1>;
 
@@ -50,7 +51,6 @@ export interface Internal {
   stateOnly: boolean;
   isComposing?: boolean;
   isFunctionParsing?: boolean;
-  firstError?: Error;
   filename: string;
   steelFilePath: string;
   devLayer: boolean;
@@ -60,6 +60,7 @@ export interface Internal {
   headTag?: boolean;
   bodyTag?: boolean;
   shadow?: boolean;
+  reportError(message: string, node: types.Node, e?: Error): void;
 
   // reactivity
   ref(arg: types.Expression | null, area: types.Node, name: string | undefined): types.Expression;

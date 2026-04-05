@@ -3,7 +3,8 @@
 
   "compilerOptions": {
     "allowJs": true,
-    "declaration": false,
+    "declaration": true,
+    "declarationDir": "./types",
     "outDir": "./lib",
     "target": "ES2024",
     "module": "Node16",

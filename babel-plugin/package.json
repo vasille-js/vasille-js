@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-vasille",
-  "version": "5.1.1",
+  "version": "5.1.2",
   "description": "Convert Vasille Meta Language code to pure JavaScript",
   "main": "lib/index.js",
   "type": "commonjs",
@@ -8,11 +8,13 @@
     "import": "./lib/index.js",
     "browser": "./lib/index.js",
     "node": "./lib/index.js",
-    "require": "./lib/index.js"
+    "require": "./lib/index.js",
+    "types": "./types/index.d.ts"
   },
   "scripts": {
     "prepack": "cp -f ../README.md ./README.md",
     "prettier": "prettier src test/**/*.ts* test/*.ts --write",
+    "prebuild": "rm -rf lib types",
     "build": "tsc --build tsconfig-build.json",
     "tsc-tests": "tsc --build test/tsconfig.json",
     "test": "jest",
@@ -26,7 +28,7 @@
     "babel"
   ],
   "author": "lixcode",
-  "license": "MIT",
+  "license": "LGPL-2.1-only",
   "bugs": {
     "url": "https://github.com/vasille-js/vasille-js/issues"
   },

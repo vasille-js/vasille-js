@@ -1,5 +1,6 @@
 import * as Babel from "@babel/core";
 import { transformProgram } from "./transformer.js";
+import { CompilationErrorReporter } from "./communication";
 
 export default function (): Babel.PluginObj<{
   file: { opts: { filename: string } };
@@ -10,6 +11,8 @@ export default function (): Babel.PluginObj<{
     headTag: unknown;
     bodyTag: unknown;
     shadow: unknown;
+    throwAtFirstError: unknown;
+    reporter: unknown;
   };
 }> {
   return {
@@ -23,8 +26,13 @@ export default function (): Babel.PluginObj<{
           headTag: !!params.opts.headTag,
           bodyTag: !!params.opts.bodyTag,
           shadow: !!params.opts.shadow,
+          throwAtFirstError: !!params.opts.throwAtFirstError,
+          reporter:
+            typeof params.opts.reporter === "function" ? (params.opts.reporter as CompilationErrorReporter) : undefined,
         });
       },
     },
   };
 }
+
+export type { CompilationErrorReporter, CompilationErrorReport, CompilationErrorReports } from "./communication";

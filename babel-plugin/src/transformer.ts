@@ -5,6 +5,7 @@ import { meshStatement } from "./mesh.js";
 import { findStyleInNode } from "./css-transformer.js";
 import * as fs from "node:fs";
 import path from "path";
+import { CompilationErrorReport, CompilationErrorReporter } from "./communication";
 
 const imports = new Map([["steel-frame", "VasilleWeb"]]);
 const ignoreMembers = new Set([
@@ -166,13 +167,16 @@ function updateImports(
   }
 }
 
+// lixcode: use required field here, they will generate compilation errors when logic is missing
 export interface TransformerOptions {
   devLayer: boolean;
   strictFolders: boolean;
-  replaceWeb?: string;
-  headTag?: boolean;
-  bodyTag?: boolean;
-  shadow?: boolean;
+  replaceWeb: string | undefined;
+  headTag: boolean;
+  bodyTag: boolean;
+  shadow: boolean;
+  reporter: CompilationErrorReporter | undefined;
+  throwAtFirstError: boolean;
 }
 
 export function nodeToStaticPosition(node: types.Node) {
@@ -228,6 +232,7 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     return t.callExpression(t.identifier(ids[key]), args);
   }
 
+  const reports: CompilationErrorReport[] = [];
   const internal: Internal = {
     stack: new StackedStates(),
     mapping: new Map<string, string>(),
@@ -385,6 +390,28 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
       used.add("earlyInspector");
       return t.identifier(ids["earlyInspector"]);
     },
+    reportError(message: string, node: types.Node, e?: Error) {
+      const pos = node.loc;
+
+      /* istanbul ignore else */
+      if (pos) {
+        reports.push({
+          message: message,
+          from: [pos.start.line, pos.start.column],
+          to: [pos.end.line, pos.end.column],
+          class: e ? "error" : "warning",
+        });
+      }
+
+      if (e) {
+        if (opts.throwAtFirstError) {
+          throw e;
+        }
+        console.error(e);
+      } else {
+        console.warn(message);
+      }
+    },
   };
 
   function getCtx() {
@@ -432,7 +459,14 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
 
   updateImports(path, internal, ids, used);
 
-  if (internal.firstError) throw internal.firstError;
+  opts.reporter?.({
+    filePath: filename,
+    reports: reports,
+  });
+
+  if (reports.some(item => item.class === "error")) {
+    throw new Error("Compilation failed");
+  }
 
   if (opts.devLayer) {
     path.node.body.unshift(
