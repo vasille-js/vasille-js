@@ -23,6 +23,7 @@ import { routerReplace } from "./router";
 import { stringify } from "./utils";
 import { nodeToStaticPosition } from "./transformer";
 import { processReference, processTypeLiteral, registerInterface } from "./process-types";
+import { assignmentToBinaryOperator, assignmentToLogicalOperator, meshAssigment } from "./operators";
 
 export function meshOrIgnoreAllExpressions<T extends types.Node>(
   nodePaths: NodePath<types.Expression | null | T>[],
@@ -302,20 +303,7 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
             ((right.isIdentifier() && idIsIValue(right)) || (right.isMemberExpression() && memberIsIValue(right.node)))
           )
         ) {
-          meshExpression(left.get("object"), internal);
-          meshExpression(right, internal);
-
-          /* istanbul ignore else */
-          if (!t.isPrivateName(property)) {
-            path.replaceWith(
-              internal.set(
-                left.node.object,
-                !left.node.computed && t.isIdentifier(property) ? t.stringLiteral(property.name) : property,
-                right.node,
-                path.node,
-              ),
-            );
-          }
+          meshAssigment(path, left, right, property, internal);
         }
       } else if (
         internal.devLayer &&

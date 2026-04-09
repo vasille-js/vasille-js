@@ -6,6 +6,7 @@ import { checkNonReactiveName, err, Errors, ref } from "./lib";
 import { ignoreParams, meshAllUnknown, meshExpression } from "./mesh";
 import { routerReplace } from "./router";
 import { stringify } from "./utils";
+import { assignmentToBinaryOperator, assignmentToLogicalOperator, meshAssigment } from "./operators";
 
 export interface Dependency {
   node: types.Expression;
@@ -339,22 +340,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
       const right = path.get("right");
 
       if (left.isMemberExpression() && !exprIsSure(left, search.external)) {
-        const property = left.node.property;
-
-        meshExpression(left.get("object"), search.external);
-        checkExpression(right, search);
-
-        /* istanbul ignore else */
-        if (!t.isPrivateName(property)) {
-          path.replaceWith(
-            search.external.set(
-              left.node.object,
-              !left.node.computed && t.isIdentifier(property) ? t.stringLiteral(property.name) : property,
-              right.node,
-              path.node,
-            ),
-          );
-        }
+        meshAssigment(path, left, right, left.node.property, search.external);
       } else {
         meshLValue(left, search.external);
         checkExpression(right, search);

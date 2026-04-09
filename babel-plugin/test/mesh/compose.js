@@ -18,6 +18,7 @@ const C = compose(function C(Vasille, {
     Vasille.text(VasilleExpr(Vasille, Vasille_0 => Vasille_0.id, [$d]));
     Vasille.text(":");
     Vasille.text($name);
+    Vasille.text(" ");
     Vasille.text(VasilleExpr(Vasille, Vasille_0 => Vasille_0.width, [$d]));
     Vasille.text("/");
     Vasille.text(VasilleExpr(Vasille, Vasille_0 => Vasille_0.height, [$d]));
@@ -35,6 +36,7 @@ const C = compose(function C(Vasille, {
         Vasille.text(VasilleExpr(Vasille, Vasille_0 => Vasille_0.id, [$data]));
         Vasille.text(":");
         Vasille.text($name);
+        Vasille.text(" ");
         Vasille.text(VasilleExpr(Vasille, Vasille_0 => Vasille_0.width, [$data]));
         Vasille.text("/");
         Vasille.text(VasilleExpr(Vasille, Vasille_0 => Vasille_0.height, [$data]));

@@ -44,7 +44,6 @@ async function run() {
                     rollupOptions: {
                         external: ["vasille-web"],
                     },
-                    sourcemap: true,
                 },
                 plugins: [
                     await indexPlugin(routerDir, pagesDir, "vasille-web"),

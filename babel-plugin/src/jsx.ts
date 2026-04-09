@@ -22,6 +22,10 @@ export function transformJsx(
   return transformJsxArray(path.get("children"), internal);
 }
 
+function textIsSpacesOnly(node: types.Node) {
+  return t.isJSXText(node) && /^\s+$/.test(node.value) && node.value !== " ";
+}
+
 export function transformJsxArray(
   paths: NodePath<
     types.JSXText | types.JSXExpressionContainer | types.JSXSpreadChild | types.JSXElement | types.JSXFragment
@@ -32,14 +36,14 @@ export function transformJsxArray(
   const conditions: ConditionCollection = { cases: null };
 
   paths.forEach(path => {
-    if (!path.isJSXElement() && !(path.isJSXText() && /^\s+$/.test(path.node.value))) {
+    if (!path.isJSXElement() && !textIsSpacesOnly(path.node)) {
       result.push(...processConditions(conditions, internal));
     }
 
     if (path.isJSXElement() || path.isJSXFragment()) {
       result.push(...transformJsx(path, conditions, internal));
     } else if (path.isJSXText()) {
-      if (!/^\s+$/.test(path.node.value)) {
+      if (!textIsSpacesOnly(path.node)) {
         const fixed = path.node.value
           .replace(/\n\s+$/m, "")
           .replace(/^\s*\n\s+/m, "")
@@ -667,7 +671,7 @@ function transformJsxElement(
         return true;
       }
 
-      return !!item.value.trim();
+      return !textIsSpacesOnly(item);
     });
     const isInternal = internal.mapping.has(name.name);
 
