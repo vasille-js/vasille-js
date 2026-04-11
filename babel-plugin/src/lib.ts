@@ -1,7 +1,7 @@
 import { NodePath, types } from "@babel/core";
 import { Identifier } from "@babel/types";
 import * as t from "@babel/types";
-import { checkNode, Dependency, exprIsSure } from "./expression.js";
+import { checkExpression, checkNode, Dependency, exprIsSure } from "./expression.js";
 import { Internal, ctx, inspector } from "./internal.js";
 import { calls } from "./call.js";
 import { meshAllUnknown } from "./mesh";
@@ -128,6 +128,9 @@ export function exprCall(
   },
   area: types.Node,
 ): boolean {
+  if (path.isTSAsExpression() || path.isTSSatisfiesExpression()) {
+    return exprCall(path.get("expression") as NodePath<types.Expression>, path.node.expression, internal, opts, area);
+  }
   if (parseCalculateCall(path, internal, area, opts.name)) {
     return true;
   }

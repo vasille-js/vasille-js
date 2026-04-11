@@ -4,4 +4,4 @@ interface Props {
   [key]: number;
 }
 
-function err({ [key]: $add = 23 }: Props) {}
+function err123({ [key]: $add = 23 }: Props) {}

@@ -1,1 +1,1 @@
-function err(...$param: string[]) {}
+function err523(...$param: string[]) {}

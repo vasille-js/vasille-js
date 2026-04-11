@@ -675,34 +675,16 @@ function transformJsxElement(
     });
     const isInternal = internal.mapping.has(name.name);
 
-    // The child is a slot value
-    if (
-      filteredChildren.length === 1 &&
-      t.isJSXExpressionContainer(filteredChildren[0]) &&
-      (t.isFunctionExpression(filteredChildren[0].expression) ||
-        t.isArrowFunctionExpression(filteredChildren[0].expression))
-    ) {
-      transformJsxExpressionContainer(
-        path.get("children")[element.children.indexOf(filteredChildren[0])] as NodePath<types.JSXExpressionContainer>,
-        internal,
-        true,
-        isInternal,
-        false,
-        true,
-      );
-      run = filteredChildren[0].expression;
-    } else {
-      const statements = transformJsxArray(path.get("children"), internal);
+    const statements = transformJsxArray(path.get("children"), internal);
 
-      if (statements.length > 0) {
-        const params: types.Identifier[] = [ctx];
+    if (statements.length > 0) {
+      const params: types.Identifier[] = [ctx];
 
-        if (!isInternal) {
-          params.unshift(t.identifier(`_${internal.prefix}`));
-        }
-
-        run = t.arrowFunctionExpression(params, t.blockStatement(statements));
+      if (!isInternal) {
+        params.unshift(t.identifier(`_${internal.prefix}`));
       }
+
+      run = t.arrowFunctionExpression(params, t.blockStatement(statements));
     }
 
     const ret: types.Statement[] = [];

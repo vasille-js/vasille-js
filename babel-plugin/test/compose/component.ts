@@ -18,5 +18,5 @@ C({
 
 C2({
   $a: ref(1),
-  slot: 2,
+  slot: 2 as any,
 });

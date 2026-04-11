@@ -18,12 +18,10 @@ const C2 = compose(() => {
 
   <div>
     <C1 $bool $a={1} $b={2} $c="text" str="str">
-      {() => {
-        <C1 {...{ $a: 1 }} $b={$a + 1} $bool={true}>
-          <div />
-          <span>1</span>
-        </C1>;
-      }}
+      <C1 {...{ $a: 1 }} $b={$a + 1} $bool={true}>
+        <div />
+        <span>1</span>
+      </C1>
     </C1>
   </div>;
   <C1

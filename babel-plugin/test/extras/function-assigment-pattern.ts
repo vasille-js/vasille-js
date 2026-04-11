@@ -1,4 +1,4 @@
-function x(
+function x1(
   y = 1,
   [z] = [1],
   {

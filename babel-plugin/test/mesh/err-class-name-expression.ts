@@ -1,1 +1,1 @@
-const x = class $err {};
+const xsdf = class $err {};

@@ -14,6 +14,7 @@
     "strictNullChecks": true,
     "esModuleInterop": true,
     "isolatedModules": true,
+    "lib": ["ES2024", "DOM"],
     "types": ["jest", "node"]
   }
 }

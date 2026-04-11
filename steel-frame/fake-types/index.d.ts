@@ -84,6 +84,7 @@ export declare function Slot<Props extends object>(
     options: {
         model?: (props: Props) => void;
         slot?: () => void;
+        "vasille:slot"?: VasilleSlot;
     } & Props,
 ): void;
 
@@ -152,9 +153,9 @@ export declare function model<Input extends object, Return extends object>(
 export { QueryParams, ScreenProps, RouteParameters } from "vasille-router";
 export { type Router, NavigationMode } from "vasille-router/web-router";
 
-/** Applies the value to theme `name` */
+/** Applies the value to the theme `name` */
 export declare function theme<T>(name: string, value: T): T;
-/** Applies the value to dark theme */
+/** Applies the value to the dark theme */
 export declare function dark<T>($: T): T;
 /** Applies the value to mobile devices */
 export declare function mobile<T>($: T): T;
@@ -162,9 +163,9 @@ export declare function mobile<T>($: T): T;
 export declare function tablet<T>($: T): T;
 /** Applies the value to laptop devices */
 export declare function laptop<T>($: T): T;
-/** Applies the value when user prefers dark theme */
+/** Applies the value when the user prefers the dark theme */
 export declare function prefersDark<T>($: T): T;
-/** Applies the value when user prefers light theme */
+/** Applies the value when the user prefers the light theme */
 export declare function prefersLight<T>($: T): T;
 
 export { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "vasille-css";
@@ -183,7 +184,7 @@ export declare const styleSheet: <
     input: T,
 ) => { [K in keyof T]: string };
 
-/** Mounts a Vasille.JS component to page */
+/** Mounts a Vasille.JS component to a page */
 export declare function mount<T>(element: Element, component: ($: T) => void, $: T): App<Node, Element, TagOptions>;
 
 interface RouterInitialization<Routes extends string> {
@@ -206,15 +207,15 @@ export declare function routerApp<Routes extends string>(
     element?: Element,
 ): App<Node, Element, TagOptions>;
 
-/** Run a function before component mount */
+/** Run a function before the component mount */
 export declare function beforeMount(fn: () => void): void;
 export declare function beforeMount(fn: () => Promise<void>): void;
 
-/** Run a function after component mount */
+/** Run a function after the component mount */
 export declare function afterMount(fn: () => void): void;
 export declare function afterMount(fn: () => Promise<void>): void;
 
-/** Run a function before component destroy */
+/** Run a function before the component destruction */
 export declare function beforeDestroy(fn: () => void): void;
 
 /** Returns the current used router */
@@ -244,25 +245,25 @@ export declare function context<Value, Args extends unknown[] = never[]>(
     fn: (...args: Args) => Value,
 ): SteelContext<Args, Value>;
 
-/** Share an context to children components */
+/** Share a context to children components */
 export declare function share<Args extends unknown[], Value>(ctx: SteelContext<Args, Value>, ...args: Args): Value;
 
 /** Share a dependency */
 export declare function share<Class>(className: abstract new (...args: unknown[]) => Class, value: Class): Class;
 
-/** Share a settings */
+/** Share a setting */
 export declare function share(key: string, value: string): string;
 
-/** Receive an shared context */
+/** Receive a shared context */
 export declare function receive<Args extends unknown[], Value>(ctx: SteelContext<Args, Value>): Value;
 
 /** Receive a dependency */
 export declare function receive<Class>(className: abstract new (...args: unknown[]) => Class): Class;
 
-/** Receive a settings */
+/** Receive a setting */
 export declare function receive(key: string): string;
 
-/** Create and share an context when it is missing */
+/** Create and share a context when it is missing */
 export declare function impute<Args extends unknown[], Value>(ctx: SteelContext<Args, Value>, ...args: Args): Value;
 
 /** Ensure a dependency presence in context */

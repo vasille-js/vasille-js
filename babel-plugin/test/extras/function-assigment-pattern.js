@@ -1,4 +1,4 @@
-function x(y = 1, [z] = [1], {
+function x1(y = 1, [z] = [1], {
   a: {
     b: {
       c

@@ -209,6 +209,9 @@ export function checkNode(
     path.replaceWith(ref(refValue, internal, area, name));
     search.self = path.node;
   }
+  if (path.isTSAsExpression() || path.isTSSatisfiesExpression()) {
+    return checkNode(path.get("expression") as NodePath<types.Expression>, internal, area, name);
+  }
 
   if (search.self) {
     return search;

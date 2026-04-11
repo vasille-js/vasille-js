@@ -1,4 +1,4 @@
-import { For, compose, Debug } from "steel-frame";
+import { For, compose } from "steel-frame";
 
 const C = compose(() => {
   const a = [1, 2, 3];
@@ -7,7 +7,7 @@ const C = compose(() => {
   <For
     of={a}
     slot={value => {
-      <Debug $model={value} />;
+      <>{value}</>;
     }}
   />;
   <For

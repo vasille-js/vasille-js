@@ -34,6 +34,7 @@ export function throwTest(
       ],
       filename: fileName,
     });
+    // @ts-ignore
   }).toThrow(new RegExp(`Vasille\\\[\\d+]\{\\w+}: ${RegExp.escape(err)}`));
 }
 

@@ -70,13 +70,13 @@ const Component = compose(() => {
     {c.$b}
     {c.$c}
     {c.$d}
-    {c.e}
-    {c.f}
-    {c.g}
-    {c.$$h.a}
-    {c.$i}
-    {c.j}
-    {c.$k}
-    {c.$o.a.b}
+    {c.e as any}
+    {c.f as any}
+    {c.g as any}
+    {c.$$h.a as any}
+    {c.$i as any}
+    {c.j as any}
+    {bind(c.$k as any) as any}
+    {c.$o.a.b as any}
   </div>;
 });

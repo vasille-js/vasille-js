@@ -1,5 +1,5 @@
 import { NodePath, types } from "@babel/core";
-import { Internal } from "./internal";
+import { Internal, V } from "./internal";
 import { meshExpression } from "./mesh";
 import * as t from "@babel/types";
 
@@ -57,7 +57,7 @@ export function meshAssigment(
     let replaceWith = right.node;
 
     if (logical || binary) {
-      const meshedLeft = t.optionalMemberExpression(left.node, t.identifier("V"), false, true);
+      const meshedLeft = t.optionalMemberExpression(left.node, V, false, true);
 
       if (binary) {
         replaceWith = t.binaryExpression(binary, meshedLeft, right.node);
