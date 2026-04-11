@@ -7,3 +7,11 @@ it("assign operator", function () {
 it("spaces in jsx", function () {
   runJsxTest(__dirname, "spaces-in-jsx");
 });
+
+it("array index", function () {
+  runTest(__dirname, "array-index");
+});
+
+it("context", function () {
+  runTest(__dirname, "context");
+});

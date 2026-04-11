@@ -41,8 +41,9 @@ function addExpression(path: NodePath<types.Expression>, search: Search) {
 
     while (t.isMemberExpression(it) || t.isIdentifier(it)) {
       const name = stringify(t.isMemberExpression(it) ? it.property : it);
+      const computed = t.isMemberExpression(it) ? it.computed : false;
 
-      if (it !== path.node && name.startsWith("$")) {
+      if (it !== path.node && name.startsWith("$") && !computed) {
         err(Errors.RulesOfVasille, path, "The reactive/observable value is nested", search.external, null);
       }
       it = t.isMemberExpression(it) ? it.object : null;
@@ -74,12 +75,15 @@ function meshIdentifier(path: NodePath<types.Identifier>) {
 export function idIsIValue(path: NodePath<types.Identifier>): boolean {
   const node = path.node;
 
-  return node.name.startsWith("$") && (!t.isMemberExpression(path.parent) || path.parent.object === node);
+  return (
+    node.name.startsWith("$") &&
+    (!(t.isMemberExpression(path.parent) && !path.parent.computed) || path.parent.object === node)
+  );
 }
 
 export function memberIsIValue(node: types.MemberExpression | types.OptionalMemberExpression) {
   return (
-    (t.isIdentifier(node.property) && node.property.name.startsWith("$")) ||
+    (t.isIdentifier(node.property) && node.property.name.startsWith("$") && !node.computed) ||
     (t.isStringLiteral(node.property) && node.property.value.startsWith("$"))
   );
 }

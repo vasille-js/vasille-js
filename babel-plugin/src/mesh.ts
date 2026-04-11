@@ -322,10 +322,11 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
       const path = nodePath as NodePath<types.MemberExpression | types.OptionalMemberExpression>;
       const node = path.node;
       const property = path.node.property;
+      const propertyPath = path.get("property");
 
       meshExpression(path.get("object"), internal);
-      if (t.isExpression(property) && !t.isIdentifier(property)) {
-        meshOrIgnoreExpression<types.PrivateName>(path.get("property"), internal);
+      if (t.isExpression(property) && (!propertyPath.isIdentifier() || (node.computed && idIsIValue(propertyPath)))) {
+        meshOrIgnoreExpression<types.PrivateName>(propertyPath, internal);
       }
 
       if (memberIsIValue(node)) {
@@ -1267,6 +1268,15 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             );
           }
           meshInit = false;
+        } else if (calls(declaration.get("init"), dependencyInjections, internal)) {
+          const callPath = declaration.get("init") as NodePath<types.CallExpression>;
+
+          callPath.node.arguments.unshift(ctx);
+          meshAllUnknown(callPath.get("arguments"), internal);
+          meshInit = false;
+          if (t.isIdentifier(id)) {
+            checkNonReactiveName(declaration.get("id") as NodePath<types.Identifier>, internal);
+          }
         } else if (t.isIdentifier(id)) {
           const idPath = declaration.get("id") as NodePath<types.Identifier>;
 
@@ -1368,7 +1378,8 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             kind === "const" &&
             (initPath.isOptionalMemberExpression() || initPath.isMemberExpression()) &&
             initPath.node.computed &&
-            t.isIdentifier(initPath.node.property)
+            t.isIdentifier(initPath.node.property) &&
+            !idIsIValue(initPath.get("property") as NodePath<types.Identifier>)
           ) {
             const path = initPath as NodePath<t.MemberExpression | t.OptionalMemberExpression>;
             const property = path.get("property");
