@@ -1,5 +1,20 @@
-import { Fragment, IValue, Reference, setErrorHandler } from "vasille";
-import { arrayModel, Delay, For, mapModel, setModel, Slot, Switch, Watch } from "../src/index.js";
+import { ArrayModel, Fragment, IValue, MapModel, Reference, setErrorHandler, SetModel } from "vasille";
+import {
+    arrayModel,
+    ArrayModelView,
+    ArrayView,
+    Delay,
+    For,
+    mapModel,
+    MapModelView,
+    QueuedRender,
+    ref,
+    setModel,
+    SetModelView,
+    Slot,
+    Switch,
+    Watch,
+} from "../src/index.js";
 import { createNode } from "./page.js";
 
 it("Slot", function () {
@@ -137,7 +152,7 @@ it("Watch", function () {
 });
 
 it("Delay", function (done) {
-    const [node] = createNode();
+    const [node, window] = createNode();
     let element!: HTMLElement;
 
     node.tag("div", { k: n => (element = n as HTMLElement) }, function (f) {
@@ -154,7 +169,8 @@ it("Delay", function (done) {
         expect(element.children.length).toBe(1);
         node.destroy();
         setTimeout(() => {
-            expect(element.children.length).toBe(0);
+            expect(element.children.length).toBe(1);
+            expect(window.document.body.children.length).toBe(0);
             done();
         }, 20);
     }, 10);
@@ -191,4 +207,146 @@ it("Switch", function () {
     expect((element.childNodes[0] as Text).textContent).toBe("true");
     ref.V = false;
     expect((element.childNodes[0] as Text).textContent).toBe("false");
+});
+
+it("ArrayView", function () {
+    const [node, window] = createNode();
+    const body = window.document.body;
+
+    ArrayView(
+        {
+            of: ref([{ id: 0, value: 1 }]),
+            key: i => i.id,
+            slot(f: Fragment<Node, Element, object>, value) {
+                f.text(value.V.value);
+            },
+        },
+        node,
+    );
+
+    expect(body.innerHTML.trim()).toBe("1");
+
+    node.destroy();
+    expect(body.innerHTML.trim()).toBe("");
+});
+
+it("ArrayModelView", function () {
+    const [node, window] = createNode();
+    const body = window.document.body;
+
+    ArrayModelView(
+        {
+            of: new ArrayModel([{ id: 0, value: 1 }]),
+            slot(f: Fragment<Node, Element, object>, value) {
+                f.text(value.value);
+            },
+        },
+        node,
+    );
+
+    expect(body.innerHTML.trim()).toBe("1");
+
+    node.destroy();
+    expect(body.innerHTML.trim()).toBe("");
+});
+
+it("SetModelView", function () {
+    const [node, window] = createNode();
+    const body = window.document.body;
+
+    SetModelView(
+        {
+            of: new SetModel([{ id: 0, value: 1 }]),
+            slot(f: Fragment<Node, Element, object>, value) {
+                f.text(value.value);
+            },
+        },
+        node,
+    );
+
+    expect(body.innerHTML.trim()).toBe("1");
+
+    node.destroy();
+    expect(body.innerHTML.trim()).toBe("");
+});
+
+it("MapModelView", function () {
+    const [node, window] = createNode();
+    const body = window.document.body;
+
+    MapModelView(
+        {
+            of: new MapModel([[0, { value: 1 }]]),
+            slot(f: Fragment<Node, Element, object>, value) {
+                f.text(value.V.value);
+            },
+        },
+        node,
+    );
+
+    expect(body.innerHTML.trim()).toBe("1");
+
+    node.destroy();
+    expect(body.innerHTML.trim()).toBe("");
+});
+
+it("QueuedRender", function (done) {
+    const [node, window] = createNode();
+    const body = window.document.body;
+
+    QueuedRender({ priority: "low" }, node, (f: Fragment<Node, Element, object>) => {
+        f.text("1");
+    });
+    QueuedRender({ priority: "high" }, node, (f: Fragment<Node, Element, object>) => {
+        f.text("2");
+    });
+
+    setTimeout(() => {
+        expect(body.innerHTML.trim()).toBe("12");
+        node.destroy();
+        done();
+    }, 10);
+});
+
+it("QueuedRender cancel", function (done) {
+    const [node, window] = createNode();
+    const body = window.document.body;
+
+    QueuedRender({ priority: "low" }, node, (f: Fragment<Node, Element, object>) => {
+        f.text("1");
+    });
+    QueuedRender({ priority: "high" }, node, (f: Fragment<Node, Element, object>) => {
+        f.text("2");
+    });
+    node.destroy();
+
+    setTimeout(() => {
+        expect(body.children.length).toBe(0);
+        done();
+    }, 10);
+});
+
+it("QueuedRender split test", function (done) {
+    const [node, window] = createNode();
+    const body = window.document.body;
+
+    QueuedRender({ priority: "low" }, node, (f: Fragment<Node, Element, object>) => {
+        f.text("1");
+    });
+    QueuedRender({ priority: "high" }, node, (f: Fragment<Node, Element, object>) => {
+        const time = Date.now();
+        while (Date.now() - time < 12) {
+            // just burn CPU 12ms
+        }
+        f.text("2");
+    });
+
+    setTimeout(() => {
+        expect(body.innerHTML.trim()).toBe("2");
+        setTimeout(() => {
+            expect(body.innerHTML.trim()).toBe("12");
+            node.destroy();
+            done();
+        }, 10);
+    }, 10);
 });

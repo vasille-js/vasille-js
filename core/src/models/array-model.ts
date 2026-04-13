@@ -1,5 +1,6 @@
 import { Reactive } from "../core/core.js";
 import { IValue } from "../core/ivalue.js";
+import { safe } from "../functional/safety.js";
 import { Fragment } from "../node/node.js";
 import { IRunner } from "../node/runner.js";
 import { Listener } from "./listener.js";
@@ -164,19 +165,17 @@ export class ArrayView<
     Runner extends IRunner<Node, Element, TagOptions>,
 > extends BaseArrayView<Node, Element, TagOptions, Runner, CacheItem<Node, Element, TagOptions, Runner>> {
     private apply: ((...args: Arguments<T>) => void) | undefined;
+    private readonly slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: T, index: IValue<number>) => void;
 
     public constructor(
         runner: Runner,
         private readonly model: ArrayModel<T>,
-        private readonly slot: (
-            ctx: Fragment<Node, Element, TagOptions, Runner>,
-            value: T,
-            index: IValue<number>,
-        ) => void,
+        slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: T, index: IValue<number>) => void,
         private readonly ref: <T>(v: T) => IValue<T>,
         private readonly frag: (runner: Runner) => Fragment<Node, Element, TagOptions, Runner>,
     ) {
         super(runner);
+        this.slot = safe(slot);
     }
 
     public override compose() {
@@ -255,21 +254,19 @@ export class DiffingArrayView<
     Runner extends IRunner<Node, Element, TagOptions>,
 > extends BaseArrayView<Node, Element, TagOptions, Runner, KeyedCacheItem<T, Node, Element, TagOptions, Runner>> {
     protected match: ((model: T[]) => void) | undefined;
+    protected slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: IValue<T>, index: IValue<number>) => void;
 
     public constructor(
         runner: Runner,
         protected readonly model: IValue<T[]>,
         protected readonly key: (item: T) => number | string,
-        protected readonly slot: (
-            ctx: Fragment<Node, Element, TagOptions, Runner>,
-            value: IValue<T>,
-            index: IValue<number>,
-        ) => void,
+        slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: IValue<T>, index: IValue<number>) => void,
         protected readonly vRef: <T>(v: T) => IValue<T>,
         protected readonly iRef: <T>(v: T) => IValue<T>,
         protected readonly frag: (runner: Runner) => Fragment<Node, Element, TagOptions, Runner>,
     ) {
         super(runner);
+        this.slot = safe(slot);
     }
 
     protected addChild(

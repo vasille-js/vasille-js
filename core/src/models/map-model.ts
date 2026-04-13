@@ -1,5 +1,6 @@
 import { Reactive } from "../core/core.js";
 import { IValue } from "../core/ivalue.js";
+import { safe } from "../functional/safety.js";
 import { Fragment } from "../node/node.js";
 import { IRunner } from "../node/runner.js";
 import { Listener, removeFragmentFromTree } from "./listener.js";
@@ -85,15 +86,17 @@ export class MapView<
         }
     >();
     private acceptUpdate: ((...args: Arguments<K, T>) => void) | undefined;
+    private readonly slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: IValue<T>, key: K) => void;
 
     public constructor(
         runner: Runner,
         private readonly model: MapModel<K, T>,
-        private readonly slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: IValue<T>, key: K) => void,
+        slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: IValue<T>, key: K) => void,
         private readonly ref: <T>(v: T) => IValue<T>,
         private readonly frag: (runner: Runner) => Fragment<Node, Element, TagOptions, Runner>,
     ) {
         super(runner);
+        this.slot = safe(slot);
     }
 
     public override compose() {

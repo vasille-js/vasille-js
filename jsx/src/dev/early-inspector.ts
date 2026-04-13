@@ -28,6 +28,7 @@ import {
     ProtocolComposeTime,
     ProtocolError,
     DestroyData,
+    EraseData,
 } from "vasille/dev";
 
 export abstract class AbstractInspector implements Inspector {
@@ -65,6 +66,10 @@ export abstract class AbstractInspector implements Inspector {
 
     public destroy(data: DestroyData): void {
         this.send(this.destroy.name, data);
+    }
+
+    public erase(data: EraseData) {
+        this.send(this.erase.name, data);
     }
 
     public eventTrigger(call: ProtocolEventTrigger) {

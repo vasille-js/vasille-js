@@ -1,13 +1,14 @@
-import { Fragment, reportError, safe, userError } from "vasille";
+import { Fragment, IValue, safe, userError } from "vasille";
 import {
     DevArrayModel,
-    DevArrayView,
+    DevArrayView as DevCoreArrayView,
     DevFragment,
     DevIValue,
     DevMapModel,
     DevMapView,
     DevSetModel,
     DevSetView,
+    DevSinglePassArrayView,
     DevSwitchedNode,
     DevWatch as DevCoreWatch,
     errorToString,
@@ -65,13 +66,9 @@ export function DevSwitch<Node, Element, TagOptions extends object>(
     ctx.create(new DevSwitchedNode(usage, ctx.runner, options.cases, options.default));
 }
 
-interface DevForOptions<Node, Element, TagOptions extends object, T, K, V> {
+interface DevForOptions<Node, Element, TagOptions extends object, T, Args extends unknown[]> {
     of: T;
-    slot?: (
-        ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
-        value: T,
-        index: K,
-    ) => void;
+    slot?: (ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>, ...args: Args) => void;
 }
 
 export function DevFor<
@@ -82,7 +79,7 @@ export function DevFor<
     K = T extends unknown[] ? number : T extends Set<infer R> ? R : T extends Map<infer R, unknown> ? R : never,
     V = T extends (infer R)[] ? R : T extends Set<infer R> ? R : T extends Map<unknown, infer R> ? R : never,
 >(
-    { of: model, slot: _slot }: DevForOptions<Node, Element, TagOptions, T, K, V>,
+    { of: model, slot: _slot }: DevForOptions<Node, Element, TagOptions, T, [V, K]>,
     ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
     defaultSlot:
         | ((ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>) => void)
@@ -91,48 +88,58 @@ export function DevFor<
 ) {
     const slot = _slot ?? defaultSlot;
 
+    console.warn(
+        "Vasille <For of/> IS DEPRECATED. " +
+            "Please use ArrayView/ArrayModelView/SetModelView/MapModelView/Iterate/ForEach.",
+    );
+
     if (!slot) {
         return;
     }
 
     if (model instanceof DevArrayModel) {
         ctx.create(
-            new DevArrayView(
-                {
-                    model,
-                    slot: slot as unknown as (
-                        ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
-                        value: V,
-                        index: V,
-                    ) => void,
-                },
+            new DevCoreArrayView<Node, Element, TagOptions, V>(
                 ctx.runner,
+                model,
+                (ctx, value, index) => {
+                    slot(
+                        ctx as Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+                        value,
+                        index.V as K,
+                    );
+                },
                 usage,
             ),
         );
     } else if (model instanceof DevMapModel) {
         ctx.create(
             new DevMapView(
-                {
-                    model,
-                    slot,
-                },
                 ctx.runner,
+                model,
+                (ctx, value, key) => {
+                    slot(
+                        ctx as Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+                        value.V,
+                        key,
+                    );
+                },
                 usage,
+                undefined,
             ),
         );
     } else if (model instanceof DevSetModel) {
         ctx.create(
             new DevSetView(
-                {
-                    model,
-                    slot: slot as unknown as (
-                        ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
-                        value: T,
-                        index: T,
-                    ) => void,
-                },
                 ctx.runner,
+                model,
+                (ctx, value) => {
+                    slot(
+                        ctx as Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+                        value,
+                        value as unknown as K,
+                    );
+                },
                 usage,
             ),
         );
@@ -141,24 +148,81 @@ export function DevFor<
     else {
         const safeSlot = safe(slot);
 
-        console.warn("Vasille <For of/> fallback detected. Please provide reactive data.");
+        console.warn("Vasille <For of/> fallback detected. Please use Iterate or ForEach.");
 
         if (model instanceof Array) {
             model.forEach((value: V) => {
-                safeSlot(ctx, value as unknown as T, value as unknown as K);
+                safeSlot(ctx, value, value as unknown as K);
             });
         } else if (model instanceof Map) {
             model.forEach((value: V, key: K) => {
-                safeSlot(ctx, value as unknown as T, key);
+                safeSlot(ctx, value, key);
             });
         } else if (model instanceof Set) {
-            model.forEach(value => {
-                safeSlot(ctx, value as unknown as T, value as unknown as K);
+            model.forEach((value: V) => {
+                safeSlot(ctx, value, value as unknown as K);
             });
         } else {
             throw userError("wrong use of `<For of/>` component", "wrong-model");
         }
     }
+}
+
+export function DevArrayView<
+    Node,
+    Element,
+    TagOptions extends object,
+    T extends unknown[],
+    V = T extends (infer R)[] ? R : never,
+>(
+    props: Required<DevForOptions<Node, Element, TagOptions, IValue<V[]>, [IValue<V>, IValue<number>]>> & {
+        key: (value: V) => number | string;
+    },
+    ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+    usage: StaticPosition,
+    _defaultSlot: never,
+    value: StaticPosition | undefined,
+    index: StaticPosition | undefined,
+) {
+    ctx.create(
+        new DevSinglePassArrayView<Node, Element, TagOptions, V>(
+            ctx.runner,
+            props.of,
+            props.key,
+            props.slot,
+            usage,
+            value,
+            index,
+        ),
+    );
+}
+
+export function DevArrayModelView<Node, Element, TagOptions extends object, V>(
+    props: Required<DevForOptions<Node, Element, TagOptions, DevArrayModel<V>, [V, IValue<number>]>>,
+    ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+    _defaultSlot: never,
+    usage: StaticPosition,
+    index: StaticPosition | undefined,
+) {
+    ctx.create(new DevCoreArrayView<Node, Element, TagOptions, V>(ctx.runner, props.of, props.slot, usage, index));
+}
+
+export function DevMapModelView<Node, Element, TagOptions extends object, K, V>(
+    props: Required<DevForOptions<Node, Element, TagOptions, DevMapModel<K, V>, [IValue<V>, K]>>,
+    ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+    _defaultSlot: never,
+    usage: StaticPosition,
+    value: StaticPosition | undefined,
+) {
+    ctx.create(new DevMapView<Node, Element, TagOptions, K, V>(ctx.runner, props.of, props.slot, usage, value));
+}
+
+export function DevSetModelView<Node, Element, TagOptions extends object, V>(
+    props: Required<DevForOptions<Node, Element, TagOptions, DevSetModel<V>, [V]>>,
+    ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+    usage: StaticPosition,
+) {
+    ctx.create(new DevSetView<Node, Element, TagOptions, V>(ctx.runner, props.of, props.slot, usage));
 }
 
 interface DevWatchOptions<Node, Element, TagOptions extends object, T> {

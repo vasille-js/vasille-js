@@ -45,7 +45,7 @@ export class DevArrayView<Node, Element, TagOptions extends object, T> extends A
 
         runner.inspector.createComponent({
             id: this.id,
-            name: "ArrayView",
+            name: "ArrayModelView",
             props: toDevObject({ model }),
             usage: usage,
             time: Date.now(),
@@ -68,16 +68,16 @@ export class DevSinglePassArrayView<Node, Element, TagOptions extends object, T>
         key: (item: T) => number | string,
         slot: (ctx: Fragment<Node, Element, TagOptions>, value: IValue<T>, index: IValue<number>) => void,
         usage: StaticPosition,
-        valueDeclaration: StaticPosition,
-        indexDeclaration: StaticPosition,
+        valueDeclaration: StaticPosition | undefined,
+        indexDeclaration: StaticPosition | undefined,
     ) {
         super(
             runner,
             model,
             key,
             slot,
-            v => new DevReference(v, valueDeclaration, runner.inspector),
-            v => new DevReference(v, indexDeclaration, runner.inspector),
+            v => (valueDeclaration ? new DevReference(v, valueDeclaration, runner.inspector) : new Reference(v)),
+            v => (indexDeclaration ? new DevReference(v, indexDeclaration, runner.inspector) : new Reference(v)),
             runner => createDevFragment(runner, this),
         );
 
@@ -85,48 +85,8 @@ export class DevSinglePassArrayView<Node, Element, TagOptions extends object, T>
 
         runner.inspector.createComponent({
             id: this.id,
-            name: "SinglePassArrayView",
-            props: toDevObject({ model }),
-            usage: usage,
-            time: Date.now(),
-        });
-    }
-}
-
-export class DevMultiPassArrayView<Node, Element, TagOptions extends object, T> extends SinglePassArrayView<
-    T,
-    Node,
-    Element,
-    TagOptions,
-    IDevRunner<Node, Element, TagOptions>
-> {
-    public readonly id: number;
-
-    public constructor(
-        runner: IDevRunner<Node, Element, TagOptions>,
-        model: IValue<T[]>,
-        key: (item: T) => number | string,
-        slot: (ctx: Fragment<Node, Element, TagOptions>, value: IValue<T>, index: IValue<number>) => void,
-        usage: StaticPosition,
-        valueDeclaration: StaticPosition,
-        indexDeclaration: StaticPosition,
-    ) {
-        super(
-            runner,
-            model,
-            key,
-            slot,
-            v => new DevReference(v, valueDeclaration, runner.inspector),
-            v => new DevReference(v, indexDeclaration, runner.inspector),
-            runner => createDevFragment(runner, this),
-        );
-
-        this.id = provideId();
-
-        runner.inspector.createComponent({
-            id: this.id,
-            name: "MultiPassArrayView",
-            props: toDevObject({ model }),
+            name: "ArrayView",
+            props: toDevObject({ model, slot }),
             usage: usage,
             time: Date.now(),
         });
@@ -154,7 +114,7 @@ export class DevSetView<Node, Element, TagOptions extends object, T> extends Set
         runner.inspector.createComponent({
             id: this.id,
             name: "SetView",
-            props: toDevObject({ model }),
+            props: toDevObject({ model, slot }),
             usage: usage,
             time: Date.now(),
         });
@@ -190,7 +150,7 @@ export class DevMapView<Node, Element, TagOptions extends object, K, T> extends 
         runner.inspector.createComponent({
             id: this.id,
             name: "MapView",
-            props: toDevObject({ model }),
+            props: toDevObject({ model, slot }),
             usage: usage,
             time: Date.now(),
         });

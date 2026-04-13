@@ -2,8 +2,18 @@ import { setErrorHandler as coreSetErrorHandler } from "vasille";
 import { errorToString } from "vasille/dev";
 import { earlyInspector } from "./early-inspector.js";
 
-export { DevDelay, DevWatch, DevFor, DevSwitch, DevSlot } from "./components.js";
-export { devStore, type DevComposed, devModel, devMount, devView } from "./compose.js";
+export {
+    DevDelay,
+    DevWatch,
+    DevFor,
+    DevSwitch,
+    DevSlot,
+    DevSetModelView,
+    DevMapModelView,
+    DevArrayModelView,
+    DevArrayView,
+} from "./components.js";
+export { devStore, type DevComposed, devModel, devMount, devView, devDynamicalModule } from "./compose.js";
 export { devArrayModel, devMapModel, devEnsure, devExpr, devMatch, devSetModel, devRef, devSet } from "./internal.js";
 export { devAwaited } from "./library.js";
 export { AbstractInspector, EarlyInspector, earlyInspector } from "./early-inspector.js";

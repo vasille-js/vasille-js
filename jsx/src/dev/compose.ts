@@ -12,23 +12,61 @@ export type DevComposed<Node, Element, TagOptions extends object, In extends Com
     usage?: StaticPosition,
 ) => void;
 
+export type DevInput<In, Out> = In & { callback?(data: Out | undefined): void };
+
+export type DevFragmentMap<Node, Element, TagOptions extends object, In> = Map<
+    Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+    {
+        props: In;
+        node: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>;
+        usage: StaticPosition | undefined;
+    }
+>;
+
+export function devDynamicalModule<T, Node, Element, TagOptions extends object, Props>(
+    composed: T,
+    fragments: DevFragmentMap<Node, Element, TagOptions, Props>,
+    safeRun: (
+        parent: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+        props: Props,
+        usage: StaticPosition | undefined,
+    ) => void,
+): T {
+    Object.defineProperties(composed, {
+        fragments: {
+            value: fragments,
+        },
+        recompose: {
+            value: function (previous: DevFragmentMap<Node, Element, TagOptions, Props>) {
+                // inspector erase declaration
+                previous.forEach(({ props, node, usage }, key) => {
+                    node.children.forEach(child => child.destroy());
+                    node.children.splice(0);
+                    safeRun(node, props, usage);
+                    fragments.set(key, { props, node, usage });
+                });
+            },
+        },
+    });
+
+    return composed;
+}
+
 export function devView<Node, Element, TagOptions extends object, In extends CompositionProps, Out>(
     renderer: (node: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>, input: In) => Out,
     declaration: StaticPosition,
     name: string,
 ): DevComposed<Node, Element, TagOptions, In, Out> {
-    return function (props, node, slot, usage) {
+    let fragments: DevFragmentMap<Node, Element, TagOptions, DevInput<In, Out>> = new Map();
+    const safeRun = function (
+        parent: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+        props: DevInput<In, Out>,
+        usage: StaticPosition | undefined,
+    ) {
         const { callback } = props;
+        const frag = new DevFragment<Node, Element, TagOptions>(parent.runner, declaration, usage ?? null, name, props);
 
-        if (!node) {
-            throw new Error("Vasille: Component context is missing");
-        }
-        const frag = new DevFragment<Node, Element, TagOptions>(node.runner, declaration, usage ?? null, name, props);
-
-        if (slot) {
-            props.slot = slot;
-        }
-        node.create(frag);
+        parent.create(frag);
 
         try {
             const result = renderer(frag, props);
@@ -37,19 +75,36 @@ export function devView<Node, Element, TagOptions extends object, In extends Com
                 callback(result);
             }
         } catch (e) {
-            node.runner.inspector.reportComponentError({
+            parent.runner.inspector.reportComponentError({
                 targetId: frag.id,
                 error: errorToString(e),
                 time: Date.now(),
             });
             reportError(e);
         } finally {
-            node.runner.inspector.composeTime({
+            parent.runner.inspector.composeTime({
                 id: frag.id,
                 time: Date.now(),
             });
         }
     };
+    const composed: DevComposed<Node, Element, TagOptions, In, Out> = function (props, node, slot, usage) {
+        if (!node) {
+            throw new Error("Vasille: Component context is missing");
+        }
+        const frag = new Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>(node.runner);
+
+        if (slot) {
+            props.slot = slot;
+        }
+
+        node.create(frag);
+        fragments.set(frag, { props, node, usage });
+        frag.runOnDestroy(() => fragments.delete(frag));
+        safeRun(frag, props, usage);
+    };
+
+    return devDynamicalModule(composed, fragments, safeRun);
 }
 
 export function devStore<Out extends object>(

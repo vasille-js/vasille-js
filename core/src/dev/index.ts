@@ -74,4 +74,4 @@ export {
     ExpressionDevReference,
     type KindOfDevIValue,
 } from "./state.js";
-export { DevArrayView, DevMapView, DevSetView } from "./views.js";
+export { DevArrayView, DevMapView, DevSetView, DevSinglePassArrayView } from "./views.js";

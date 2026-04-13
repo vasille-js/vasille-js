@@ -59,7 +59,7 @@ async function run() {
 
             for (const file of files) {
                 const content = await fs.readFile(path.join(assetsDir, file), "utf-8");
-                const match = /import\{(.*?)}from"vasille-web"/.exec(content);
+                const match = /import\{([^{}]*)}from"vasille-web"/.exec(content);
 
                 if (match) {
                     const items = match[1].split(",");

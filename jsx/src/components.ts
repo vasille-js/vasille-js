@@ -1,22 +1,32 @@
 import {
     ArrayModel,
-    ArrayView,
+    ArrayView as CoreArrayView,
+    SinglePassArrayView,
     Fragment,
     IValue,
     MapModel,
-    MapView,
+    MapView as CoreMapView,
     reportError,
+    Runner,
     safe,
     SetModel,
-    SetView,
+    SetView as CoreSetView,
     SwitchedNode,
     userError,
     Watch as CoreWatch,
 } from "vasille";
+import { TagOptions } from "vasille/web-runner";
+import { ref } from "./internal.js";
 
 interface SlotOptions<Node, Element, TagOptions extends object, T extends object> {
     model?: (input: T, ctx: Fragment<Node, Element, TagOptions>) => void;
     slot?: (input: object, ctx: Fragment<Node, Element, TagOptions>) => void;
+}
+
+function frag<Node, Element, TagOptions extends object, TRunner extends Runner<Node, Element, TagOptions>>(
+    runner: TRunner,
+) {
+    return new Fragment<Node, Element, TagOptions>(runner);
 }
 
 export function Slot<Node, Element, TagOptions extends object, T extends object = {}>(
@@ -53,9 +63,9 @@ export function Switch<Node, Element, TagOptions extends object>(
     ctx.create(new SwitchedNode(ctx.runner, options.cases, options.default));
 }
 
-interface ForOptions<Node, Element, TagOptions extends object, T, K, V> {
+interface ForOptions<Node, Element, TagOptions extends object, T, Args extends unknown[]> {
     of: T;
-    slot?: (ctx: Fragment<Node, Element, TagOptions>, value: T, index: K) => void;
+    slot?: (ctx: Fragment<Node, Element, TagOptions>, ...args: Args) => void;
 }
 
 export function For<
@@ -66,7 +76,7 @@ export function For<
     K = T extends unknown[] ? number : T extends Set<infer R> ? R : T extends Map<infer R, unknown> ? R : never,
     V = T extends (infer R)[] ? R : T extends Set<infer R> ? R : T extends Map<unknown, infer R> ? R : never,
 >(
-    { of: model, slot: _slot }: ForOptions<Node, Element, TagOptions, T, K, V>,
+    { of: model, slot: _slot }: ForOptions<Node, Element, TagOptions, T, [V, K]>,
     ctx: Fragment<Node, Element, TagOptions>,
     defaultSlot?: (ctx: Fragment<Node, Element, TagOptions>) => void,
 ) {
@@ -78,32 +88,37 @@ export function For<
 
     if (model instanceof ArrayModel) {
         ctx.create(
-            new ArrayView(
-                {
-                    model,
-                    slot: slot as unknown as (ctx: Fragment<Node, Element, TagOptions>, value: V, index: V) => void,
-                },
+            new CoreArrayView<V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
                 ctx.runner,
+                model,
+                (ctx, value, index) => {
+                    slot(ctx, value, index.V as K);
+                },
+                ref,
+                frag,
             ),
         );
     } else if (model instanceof MapModel) {
         ctx.create(
-            new MapView(
-                {
-                    model,
-                    slot,
-                },
+            new CoreMapView<K, V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
                 ctx.runner,
+                model,
+                (ctx, value, key) => {
+                    slot(ctx, value.V, key);
+                },
+                ref,
+                frag,
             ),
         );
     } else if (model instanceof SetModel) {
         ctx.create(
-            new SetView(
-                {
-                    model,
-                    slot: slot as unknown as (ctx: Fragment<Node, Element, TagOptions>, value: T, index: T) => void,
-                },
+            new CoreSetView<V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
                 ctx.runner,
+                model,
+                (ctx, value) => {
+                    slot(ctx, value, value as unknown as K);
+                },
+                frag,
             ),
         );
     }
@@ -111,24 +126,91 @@ export function For<
     else {
         const safeSlot = safe(slot);
 
-        console.warn("Vasille <For of/> fallback detected. Please provide reactive data.");
-
         if (model instanceof Array) {
             model.forEach((value: V) => {
-                safeSlot(ctx, value as unknown as T, value as unknown as K);
+                safeSlot(ctx, value, value as unknown as K);
             });
         } else if (model instanceof Map) {
             model.forEach((value: V, key: K) => {
-                safeSlot(ctx, value as unknown as T, key);
+                safeSlot(ctx, value, key);
             });
         } else if (model instanceof Set) {
-            model.forEach(value => {
-                safeSlot(ctx, value as unknown as T, value as unknown as K);
+            model.forEach((value: V) => {
+                safeSlot(ctx, value, value as unknown as K);
             });
         } else {
             throw userError("wrong use of `<For of/>` component", "wrong-model");
         }
     }
+}
+
+export function ArrayView<
+    Node,
+    Element,
+    TagOptions extends object,
+    T extends unknown[],
+    V = T extends (infer R)[] ? R : never,
+>(
+    props: Required<ForOptions<Node, Element, TagOptions, IValue<V[]>, [IValue<V>, IValue<number>]>> & {
+        key: (value: V) => number | string;
+    },
+    ctx: Fragment<Node, Element, TagOptions>,
+) {
+    ctx.create(
+        new SinglePassArrayView<V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
+            ctx.runner,
+            props.of,
+            props.key,
+            props.slot,
+            ref,
+            ref,
+            frag,
+        ),
+    );
+}
+
+export function ArrayModelView<Node, Element, TagOptions extends object, V>(
+    props: Required<ForOptions<Node, Element, TagOptions, ArrayModel<V>, [V, IValue<number>]>>,
+    ctx: Fragment<Node, Element, TagOptions>,
+) {
+    ctx.create(
+        new CoreArrayView<V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
+            ctx.runner,
+            props.of,
+            props.slot,
+            ref,
+            frag,
+        ),
+    );
+}
+
+export function MapModelView<Node, Element, TagOptions extends object, K, V>(
+    props: Required<ForOptions<Node, Element, TagOptions, MapModel<K, V>, [IValue<V>, K]>>,
+    ctx: Fragment<Node, Element, TagOptions>,
+) {
+    ctx.create(
+        new CoreMapView<K, V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
+            ctx.runner,
+            props.of,
+            props.slot,
+            ref,
+            frag,
+        ),
+    );
+}
+
+export function SetModelView<Node, Element, TagOptions extends object, V>(
+    props: Required<ForOptions<Node, Element, TagOptions, SetModel<V>, [V]>>,
+    ctx: Fragment<Node, Element, TagOptions>,
+) {
+    ctx.create(
+        new CoreSetView<V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
+            ctx.runner,
+            props.of,
+            props.slot,
+            frag,
+        ),
+    );
 }
 
 interface WatchOptions<Node, Element, TagOptions extends object, T> {

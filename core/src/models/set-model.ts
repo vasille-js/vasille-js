@@ -1,4 +1,5 @@
 import { Reactive } from "../core/core.js";
+import { safe } from "../functional/safety.js";
 import { Fragment } from "../node/node.js";
 import { IRunner } from "../node/runner.js";
 import { Listener, removeFragmentFromTree } from "./listener.js";
@@ -74,14 +75,16 @@ export class SetView<
 > extends Fragment<Node, Element, TagOptions, Runner> {
     private map = new Map<T, Fragment<Node, Element, TagOptions, Runner>>();
     private acceptUpdate: ((...args: Arguments<T>) => void) | undefined;
+    private readonly slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: T) => void;
 
     public constructor(
         runner: Runner,
         private readonly model: SetModel<T>,
-        private readonly slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: T) => void,
+        slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: T) => void,
         private readonly frag: (runner: Runner) => Fragment<Node, Element, TagOptions, Runner>,
     ) {
         super(runner);
+        this.slot = safe(slot);
     }
 
     public override compose() {
