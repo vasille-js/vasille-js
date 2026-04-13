@@ -1,4 +1,4 @@
-import { Fragment, Reactive } from "vasille";
+import { Reactive } from "vasille";
 
 const searchMap = new Map<Reactive, Map<unknown, unknown>>();
 
@@ -12,7 +12,7 @@ function lookUp(node: Reactive, key: unknown): unknown {
       return value;
     }
 
-    it = it instanceof Fragment ? it.parent : null;
+    it = "parent" in it ? it.parent as Reactive : null;
   }
 }
 
@@ -86,6 +86,19 @@ export function receive(node: Reactive, key: unknown): unknown {
   }
 
   return value;
+}
+
+export function receiveOptional<Args extends unknown[], Value>(
+    node: Reactive,
+    ctx: SteelContext<Args, Value>,
+): Value|undefined;
+export function receiveOptional<Class>(
+    node: Reactive,
+    className: abstract new (...args: unknown[]) => Class,
+): Class|undefined;
+export function receiveOptional(node: Reactive, key: string): string|undefined;
+export function receiveOptional(node: Reactive, key: unknown): unknown {
+  return lookUp(node, key);
 }
 
 export function impute<Args extends unknown[], Value>(

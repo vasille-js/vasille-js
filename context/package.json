@@ -1,6 +1,6 @@
 {
   "name": "vasille-context",
-  "version": "5.0.0",
+  "version": "6.0.0-rc",
   "description": "Provide contextual data between Vasille.JS components",
   "keywords": [
     "frontend",
@@ -41,6 +41,6 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "vasille": "^5.0.0"
+    "vasille": "^6.0.0-rc.4"
   }
 }

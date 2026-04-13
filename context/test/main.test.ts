@@ -1,5 +1,5 @@
 import { App, Fragment, Reactive, Runner, Tag, TextNode } from "vasille"
-import { context, impute, receive, share } from "../src/index.js";
+import {context, impute, receive, receiveOptional, share} from "../src/index.js";
 
 class FakeRunner implements Runner<unknown, unknown, object> {
     insertBefore(node: unknown, before: unknown): void {
@@ -52,12 +52,15 @@ it("Main test", function () {
 
     // testing ctx
 
+    expect(receiveOptional(child3, ctx)).toBeUndefined();
+
     share(child1, ctx, 1);
     share(child3, ctx, 3);
 
     expect(receive(child1, ctx)).toBe(1);
     expect(receive(child2, ctx)).toBe(1);
     expect(receive(child3, ctx)).toBe(3);
+    expect(receiveOptional(child3, ctx)).toBe(3);
 
     expect(impute(root, ctx, 2)).toBe(2);
     expect(impute(child2, ctx, 2)).toBe(1);
