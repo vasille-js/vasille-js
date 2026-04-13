@@ -42,7 +42,7 @@ export class Watch<
                 this.children.forEach(child => {
                     child.destroy();
                 });
-                this.children.clear();
+                this.children.splice(0);
                 this.lastChild = undefined;
                 slot(this, value);
             });

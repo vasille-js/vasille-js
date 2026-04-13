@@ -248,6 +248,10 @@ export interface DestroyData {
     time: number;
 }
 
+export interface EraseData {
+    position: StaticPosition;
+}
+
 export interface Inspector {
     registerExecutionPosition(pos: ProtocolExecutionPosition): void;
     reportError(err: ProtocolError): void;
@@ -292,6 +296,7 @@ export interface Inspector {
 
     // any
     destroy(data: DestroyData): void;
+    erase(data: EraseData): void;
 }
 
 let id = 0;

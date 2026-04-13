@@ -1,5 +1,5 @@
 import { Binding } from "./binding.js";
-import type { INode } from "../../../node/node.js";
+import type { Tag } from "../../../node/node.js";
 import type { IValue } from "../../../core/ivalue.js";
 
 /**
@@ -15,21 +15,21 @@ export class AttributeBinding extends Binding<string | number | boolean | null |
      * @param value {IValue} value to bind
      */
     public constructor(
-        node: INode<Node, Element, object>,
+        node: Tag<Node, Element, object>,
         name: string,
         value: IValue<string | number | boolean | null | undefined>,
     ) {
         super(value);
 
         this.init((value: string | number | boolean | null | undefined) => {
-            if (value) {
+            if (value || value === 0) {
                 if (typeof value === "boolean") {
-                    node.element.setAttribute(name, "");
+                    node.node!.setAttribute(name, "");
                 } else {
-                    node.element.setAttribute(name, `${value}`);
+                    node.node!.setAttribute(name, `${value}`);
                 }
             } else {
-                node.element.removeAttribute(name);
+                node.node!.removeAttribute(name);
             }
         });
     }

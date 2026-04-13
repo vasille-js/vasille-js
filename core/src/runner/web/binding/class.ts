@@ -1,19 +1,19 @@
 import { Binding } from "./binding.js";
-import type { INode } from "../../../node/node.js";
+import type { Tag } from "../../../node/node.js";
 import type { IValue } from "../../../core/ivalue.js";
 
-export function addClass(node: INode<Node, Element, object>, cl: string) {
-    node.element.classList.add(cl);
+export function addClass(node: Tag<Node, Element, object>, cl: string) {
+    node.node?.classList.add(cl);
 }
 
-export function removeClass(node: INode<Node, Element, object>, cl: string) {
-    node.element.classList.remove(cl);
+export function removeClass(node: Tag<Node, Element, object>, cl: string) {
+    node.node?.classList.remove(cl);
 }
 
 export class StaticClassBinding extends Binding<boolean> {
     private current = false;
 
-    constructor(node: INode<Node, Element, object>, name: string, value: IValue<boolean>) {
+    constructor(node: Tag<Node, Element, object>, name: string, value: IValue<boolean>) {
         super(value);
         this.init((value: boolean) => {
             if (value !== this.current) {
@@ -31,7 +31,7 @@ export class StaticClassBinding extends Binding<boolean> {
 export class DynamicalClassBinding extends Binding<string> {
     private current = "";
 
-    constructor(node: INode<Node, Element, object>, value: IValue<string>) {
+    constructor(node: Tag<Node, Element, object>, value: IValue<string>) {
         super(value);
         this.init((value: string) => {
             /* istanbul ignore else */

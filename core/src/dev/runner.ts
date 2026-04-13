@@ -47,12 +47,12 @@ export class DevTextNode extends TextNode<DevTagOptions, DevRunner> {
         });
     }
 
-    public destroy(): void {
+    public override destroy(keepNodes?: boolean): void {
         this.runner.inspector.destroy({ id: this.id, time: Date.now() });
-        super.destroy();
+        super.destroy(keepNodes);
     }
 
-    public compose(): void {
+    public override compose(): void {
         super.compose();
         Object.defineProperty(this.node, "vasille", { value: this.id, configurable: false, enumerable: false });
     }
@@ -65,7 +65,7 @@ export function remapObject<Before, After>(
     const r: { [k: string]: After } = {};
 
     for (const key in obj) {
-        r[key] = transform(obj[key]);
+        r[key] = transform(obj[key]!);
     }
 
     return r;
@@ -123,7 +123,7 @@ export class DevTag extends Tag<DevTagOptions, DevRunner> {
         });
     }
 
-    public applyOptions(options: DevTagOptions): void {
+    public override applyOptions(options: DevTagOptions): void {
         if (options.e) {
             for (const [key, handler] of Object.entries(options.e)) {
                 if (handler instanceof Array) {
@@ -154,18 +154,14 @@ export class DevTag extends Tag<DevTagOptions, DevRunner> {
         super.applyOptions(options);
     }
 
-    public getNode(): Element {
-        return this.node;
-    }
-
-    public destroy(): void {
+    public override destroy(keepNodes?: boolean): void {
         this.runner.inspector.destroy({ id: this.id, time: Date.now() });
-        super.destroy();
+        super.destroy(keepNodes);
     }
 
-    public compose(): void {
+    public override compose(): void {
         super.compose();
-        Object.defineProperty(this.element, "vasille", { value: this.id, configurable: false, enumerable: false });
+        Object.defineProperty(this.node, "vasille", { value: this.id, configurable: false, enumerable: false });
     }
 }
 
@@ -177,7 +173,7 @@ export class DevRunner extends Runner<DevTagOptions> implements IDevRunner<Node,
         this.inspector = inspector;
     }
 
-    public textNode(text: unknown): TextNode<DevTagOptions, DevRunner> {
+    public override textNode(text: unknown): TextNode<DevTagOptions, DevRunner> {
         if (text instanceof PositionedText) {
             return new DevTextNode({ text: text.text }, this, text.position, this.inspector);
         }
@@ -185,7 +181,7 @@ export class DevRunner extends Runner<DevTagOptions> implements IDevRunner<Node,
         return new TextNode({ text: text }, this);
     }
 
-    public tag(tagName: string, input: DevTagOptions, cb?: ((ctx: DevTag) => void) | undefined): DevTag {
+    public override tag(tagName: string, input: DevTagOptions, cb?: ((ctx: DevTag) => void) | undefined): DevTag {
         if (cb) {
             input.l = cb;
         }

@@ -1,15 +1,24 @@
 import { Reactive } from "../core/core.js";
-import { Listener } from "./listener.js";
-import { ListenableModel } from "./model.js";
+import { IValue } from "../core/ivalue.js";
+import { Fragment } from "../node/node.js";
+import { IRunner } from "../node/runner.js";
+import { Listener, removeFragmentFromTree } from "./listener.js";
+
+const enum Ops {
+    Clear,
+    Add,
+    Remove,
+}
+
+type Arguments<K, T> = [Ops.Clear] | [Ops.Remove, K] | [Ops.Add, K, T];
 
 /**
  * A `Map` based memory
  * @class MapModel
  * @extends Map
- * @implements ListenableModel
  */
-export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
-    public listener: Listener<T, K>;
+export class MapModel<K, T> extends Map<K, T> {
+    public listener: Listener<Arguments<K, T>>;
 
     /**
      * Constructs a map model
@@ -30,9 +39,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
      * Calls `Map.clear` and notify about changes
      */
     public override clear() {
-        this.forEach((value, key) => {
-            this.listener.emitRemoved(key, value);
-        });
+        this.listener.emit(Ops.Clear);
         super.clear();
     }
 
@@ -42,11 +49,7 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
      * @return {boolean} true if removed something, otherwise false
      */
     public override delete(key: K): boolean {
-        const tmp = super.get(key);
-        /* istanbul ignore else */
-        if (tmp) {
-            this.listener.emitRemoved(key, tmp);
-        }
+        this.listener.emit(Ops.Remove, key);
         return super.delete(key);
     }
 
@@ -57,18 +60,99 @@ export class MapModel<K, T> extends Map<K, T> implements ListenableModel<K, T> {
      * @return {MapModel} a pointer to this
      */
     public override set(key: K, value: T): this {
-        const tmp = super.get(key);
-        if (tmp) {
-            this.listener.emitRemoved(key, tmp);
-        }
-
-        super.set(key, value);
-        this.listener.emitAdded(key, value);
-
-        return this;
+        this.listener.emit(Ops.Add, key, value);
+        return super.set(key, value);
     }
 
     destroy(): void {
         this.clear();
+    }
+}
+
+export class MapView<
+    K,
+    T,
+    Node,
+    Element,
+    TagOptions extends object,
+    Runner extends IRunner<Node, Element, TagOptions>,
+> extends Fragment<Node, Element, TagOptions, Runner> {
+    private map = new Map<
+        K,
+        {
+            frag: Fragment<Node, Element, TagOptions, Runner>;
+            value: IValue<T>;
+        }
+    >();
+    private acceptUpdate: ((...args: Arguments<K, T>) => void) | undefined;
+
+    public constructor(
+        runner: Runner,
+        private readonly model: MapModel<K, T>,
+        private readonly slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: IValue<T>, key: K) => void,
+        private readonly ref: <T>(v: T) => IValue<T>,
+        private readonly frag: (runner: Runner) => Fragment<Node, Element, TagOptions, Runner>,
+    ) {
+        super(runner);
+    }
+
+    public override compose() {
+        const view = this;
+
+        function create(key: K, value: T) {
+            const frag = view.frag(view.runner);
+            const ref = view.ref(value);
+
+            frag.link(view, view.lastChild, undefined);
+            view.slot(frag, ref, key);
+            view.map.set(key, { frag, value: ref });
+            view.lastChild = frag;
+        }
+        function acceptUpdate(op: Ops, key?: K, value?: T) {
+            if (op === Ops.Add) {
+                const existing = view.map.get(key!);
+
+                if (existing) {
+                    existing.value.V = value!;
+                } else {
+                    create(key!, value!);
+                }
+            } else if (op === Ops.Remove) {
+                const item = view.map.get(key!);
+
+                /* istanbul ignore else */
+                if (item) {
+                    removeFragmentFromTree(item.frag);
+                    item.frag.destroy();
+                    view.map.delete(key!);
+                }
+            } else {
+                view.map.forEach(({ frag }) => frag.destroy());
+                view.map.clear();
+                view.lastChild = undefined;
+            }
+        }
+
+        this.model.forEach((value, key) => create(key, value));
+        this.model.listener.on(acceptUpdate);
+        this.acceptUpdate = acceptUpdate;
+    }
+
+    public override unmount(keepStructure: boolean) {
+        super.unmount(keepStructure);
+        this.map.forEach(item => item.frag.unmount(true));
+    }
+    public override remount() {
+        [...this.map.values()].reverse().forEach(item => item.frag.remount());
+    }
+
+    public override destroy(keepNodes?: boolean): void {
+        /* istanbul ignore else */
+        if (this.acceptUpdate) {
+            this.model.listener.off(this.acceptUpdate);
+        }
+        this.map.forEach(({ frag }) => frag.destroy());
+        this.map.clear();
+        super.destroy(keepNodes);
     }
 }

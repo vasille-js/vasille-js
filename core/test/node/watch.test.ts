@@ -28,10 +28,10 @@ it("Watch Test", function () {
     root.create(new Watch<Node, Element, TagOptions, boolean>({ model }, runner));
 
     expect(body.children.length).toBe(1);
-    expect(body.children[0].innerHTML).toBe("false");
+    expect(body.children[0]!.innerHTML).toBe("false");
     model.V = true;
-    expect(body.children[0].innerHTML).toBe("true");
-    expect(root.children.size).toBe(2);
+    expect(body.children[0]!.innerHTML).toBe("true");
+    expect(root.children.length).toBe(2);
 
     root.destroy();
 

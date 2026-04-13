@@ -83,7 +83,7 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> implements 
 
     public destroy(): void {
         for (let i = 0; i < this.values.length; i++) {
-            this.values[i]?.off(this.linkedFunc[i]);
+            this.values[i]?.off(this.linkedFunc[i]!);
         }
         this.values.splice(0);
         this.valuesCache.splice(0);

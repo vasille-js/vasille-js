@@ -1,6 +1,7 @@
 import { Reactive } from "../core/core.js";
 import { Destroyable } from "../core/destroyable.js";
 import { IValue } from "../core/ivalue.js";
+import { reportError } from "../functional/safety.js";
 import {
     Dependency,
     errorToString,
@@ -94,7 +95,7 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
         this.shareDestroy();
     }
 
-    protected shareUpdate(position?: ExecutionPosition) {
+    protected override shareUpdate(position?: ExecutionPosition) {
         this.inspector?.updateReference({
             id: this.id,
             time: Date.now(),
@@ -103,7 +104,7 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
         });
     }
 
-    protected shareError(error: unknown, position?: ExecutionPosition) {
+    protected override shareError(error: unknown, position?: ExecutionPosition) {
         this.inspector?.reportReferenceError({
             targetId: this.id,
             time: Date.now(),
@@ -128,7 +129,7 @@ export class ExpressionDevReference<T> extends BaseDevReference<T> implements In
         this.inspector = inspector;
     }
 
-    protected shareError(error: unknown, position: ExecutionPosition) {
+    protected override shareError(error: unknown, position: ExecutionPosition) {
         this.inspector?.reportReferenceError({
             targetId: this.id,
             time: Date.now(),
@@ -217,13 +218,13 @@ export class DevExpression<T, Args extends unknown[]>
             deps: values.map((dep, index) => {
                 if (dep instanceof DevReference || dep instanceof DevExpression) {
                     return {
-                        code: depsCode[index],
+                        code: depsCode[index]!,
                         id: dep.id,
                         value: toDevValue(dep.V),
                     } satisfies Dependency;
                 }
 
-                return depsCode[index];
+                return depsCode[index]!;
             }),
             time: Date.now(),
         });
@@ -252,7 +253,7 @@ export class DevExpression<T, Args extends unknown[]>
     public destroy(): void {
         this.inspector?.destroy({ id: this.id, time: Date.now() });
         for (let i = 0; i < this.values.length; i++) {
-            this.values[i]?.off(this.linkedFunc[i]);
+            this.values[i]?.off(this.linkedFunc[i]!);
         }
         this.values.splice(0);
         this.valuesCache.splice(0);

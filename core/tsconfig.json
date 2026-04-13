@@ -11,6 +11,8 @@
     "moduleResolution": "Node16",
     "strictNullChecks": true,
     "isolatedModules": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
     "types": [
       "debug",
       "node",

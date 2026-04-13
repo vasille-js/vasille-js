@@ -20,5 +20,5 @@ it("App", function () {
 
     app.compose();
     expect(app.div.childElementCount).toBe(1);
-    expect(app.children.size).toBe(2);
+    expect(app.children.length).toBe(2);
 });

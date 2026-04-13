@@ -1,36 +1,21 @@
 import { ArrayModel, Listener, MapModel, SetModel } from "../../src/index.js";
 
 it("listener", function () {
-    const listener = new Listener<number, number>();
-    let addCounter = 0,
-        removeCounter = 0;
+    const listener = new Listener<[number, number]>();
+    let addCounter = 0;
     const addHandler = (i: number, v: number) => {
         addCounter = i + v;
     };
-    const removeHandler = (i: number, v: number) => {
-        removeCounter = i + v;
-    };
 
-    listener.onAdd(addHandler);
-    listener.onRemove(removeHandler);
+    listener.on(addHandler);
 
-    listener.emitAdded(1, 1);
+    listener.emit(1, 1);
     expect(addCounter).toBe(2);
 
-    listener.emitRemoved(2, 3);
-    expect(removeCounter).toBe(5);
+    listener.off(addHandler);
+    listener.emit(1, 2);
 
     expect(addCounter).toBe(2);
-    expect(removeCounter).toBe(5);
-
-    listener.offAdd(addHandler);
-    listener.offRemove(removeHandler);
-
-    listener.emitAdded(1, 1);
-    listener.emitRemoved(1, 1);
-
-    expect(addCounter).toBe(2);
-    expect(removeCounter).toBe(5);
 });
 
 it("array model", function () {

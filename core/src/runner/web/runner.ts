@@ -47,9 +47,23 @@ export class TextNode<Options extends TagOptions, RunnerT extends Runner<Options
         this.parent.appendNode(this.node);
     }
 
-    public override destroy() {
+    public override destroy(keepNodes?: boolean) {
+        if (!keepNodes) {
+            this.node.remove();
+        }
+        super.destroy(keepNodes);
+    }
+
+    public override unmount(): void {
         this.node.remove();
-        super.destroy();
+    }
+
+    public override remount(): void {
+        if (this.next) {
+            this.next.insertAdjacent(this.node);
+        } else {
+            this.parent.appendNode(this.node);
+        }
     }
 
     protected findFirstChild(): Node {
@@ -77,15 +91,34 @@ export class Tag<Options extends TagOptions, RunnerT extends Runner<Options>> ex
         this.options.k?.(this.node);
     }
 
-    public override destroy() {
-        this.node.remove();
-        super.destroy();
+    public override destroy(keepNodes?: boolean) {
+        super.destroy(true);
+        if (!keepNodes) {
+            this.node?.remove();
+        }
+    }
+
+    public override unmount(): void {
+        this.node?.remove();
+    }
+
+    public override remount(): void {
+        const { node } = this;
+
+        /* istanbul ignore else */
+        if (node) {
+            if (this.next) {
+                this.next.insertAdjacent(node);
+            } else {
+                this.parent.appendNode(node);
+            }
+        }
     }
 
     protected applyOptions(options: TagOptions): void {
         const { node } = this;
 
-        if (options.a) {
+        if (options.a && node) {
             for (const name in options.a) {
                 const value = options.a[name];
 
@@ -129,7 +162,7 @@ export class Tag<Options extends TagOptions, RunnerT extends Runner<Options>> ex
 
         if (options.s && node instanceof HTMLElement) {
             for (const name in options.s) {
-                const value = options.s[name];
+                const value = options.s[name] as StyleType<string>;
 
                 if (value instanceof IValue) {
                     this.bind(new StyleBinding(this, name, value));
@@ -139,14 +172,14 @@ export class Tag<Options extends TagOptions, RunnerT extends Runner<Options>> ex
             }
         }
 
-        if (options.e) {
+        if (options.e && node) {
             for (const name in options.e) {
                 const event = options.e[name];
                 const handler = event instanceof Array ? event : ([event, {}] as const);
 
                 node.addEventListener(
                     name,
-                    safe(ev => handler[0](ev, node)),
+                    safe(ev => (handler[0] as (...args: unknown[]) => unknown)(ev, node)),
                     handler[1],
                 );
             }
@@ -164,9 +197,6 @@ export class Tag<Options extends TagOptions, RunnerT extends Runner<Options>> ex
                 }
             }
         }
-
-        // @ts-expect-error
-        node.$vasille = this;
     }
 }
 

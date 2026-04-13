@@ -124,12 +124,14 @@ export class DevSwitchedNode<Node, Element, TagOptions extends object> extends S
         });
     }
 
-    public destroy(): void {
+    public override destroy(keepNodes?: boolean): void {
         this.runner.inspector.destroy({ id: this.id, time: Date.now() });
-        super.destroy();
+        super.destroy(keepNodes);
     }
 
-    protected newChild(index: number): Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>> {
+    protected override newChild(
+        index: number,
+    ): Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>> {
         const frag = new DevFragment(this.runner, null, null, "Case", { index });
 
         this.runner.inspector.setElementParent({ parent: this.id, child: frag.id });

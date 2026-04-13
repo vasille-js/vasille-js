@@ -6,7 +6,7 @@ import { page } from "../page.js";
 let compose = false;
 
 class FragmentTest extends Fragment<Node, Element, object> {
-    compose() {
+    override compose() {
         super.compose();
         compose = true;
     }
@@ -18,7 +18,7 @@ it("Fragment", function () {
     const root = new App<Node, Element, TagOptions>(window.document.body, runner);
 
     root.create(new FragmentTest(runner));
-    expect(root.children.size).toBe(1);
+    expect(root.children.length).toBe(1);
     expect(compose).toBe(true);
 
     root.destroy();
@@ -31,23 +31,23 @@ it("Tag", function () {
 
     root.tag("div", {}, function (div) {
         div.text(text);
-        expect(div.element.childNodes.length).toBe(1);
-        expect(div.element.innerHTML.trim()).toBe("test");
+        expect(div.node!.childNodes.length).toBe(1);
+        expect(div.node!.innerHTML.trim()).toBe("test");
         text.V = "new";
-        expect(div.element.innerHTML.trim()).toBe("new");
+        expect(div.node!.innerHTML.trim()).toBe("new");
 
         div.text("test");
-        expect(div.element.childNodes[1] instanceof window.Text).toBe(true);
-        expect(div.element.childNodes[1].textContent).toBe("test");
+        expect(div.node!.childNodes[1] instanceof window.Text).toBe(true);
+        expect(div.node!.childNodes[1]!.textContent).toBe("test");
 
         const textRef = new Reference<string | null>(null);
         div.text(textRef);
-        expect(div.element.childNodes[2] instanceof window.Text).toBe(true);
-        expect(div.element.childNodes[2].textContent).toBe("");
+        expect(div.node!.childNodes[2] instanceof window.Text).toBe(true);
+        expect(div.node!.childNodes[2]!.textContent).toBe("");
         textRef.V = "ok";
-        expect(div.element.childNodes[2].textContent).toBe("ok");
+        expect(div.node!.childNodes[2]!.textContent).toBe("ok");
         textRef.V = null;
-        expect(div.element.childNodes[2].textContent).toBe("");
+        expect(div.node!.childNodes[2]!.textContent).toBe("");
     });
 
     root.destroy();
@@ -379,24 +379,24 @@ it("Class add/removing test", function () {
             ],
         },
         function (f) {
-            expect(f.element.className).toBe("keep add");
+            expect(f.node!.className).toBe("keep add");
         },
     );
 });
 
 function checkSpanAfterDiv(node: Tag<Node, Element, object>, bool: IValue<boolean>, window: DOMWindow) {
-    expect(node.element.childNodes.length).toBe(2);
-    expect(node.element.childNodes[0]).toBeInstanceOf(window.HTMLDivElement);
-    expect(node.element.childNodes[1]).toBeInstanceOf(window.HTMLSpanElement);
+    expect(node.node!.childNodes.length).toBe(2);
+    expect(node.node!.childNodes[0]).toBeInstanceOf(window.HTMLDivElement);
+    expect(node.node!.childNodes[1]).toBeInstanceOf(window.HTMLSpanElement);
 
     bool.V = false;
-    expect(node.element.childNodes.length).toBe(1);
-    expect(node.element.childNodes[0]).toBeInstanceOf(window.HTMLSpanElement);
+    expect(node.node!.childNodes.length).toBe(1);
+    expect(node.node!.childNodes[0]).toBeInstanceOf(window.HTMLSpanElement);
 
     bool.V = true;
-    expect(node.element.childNodes.length).toBe(2);
-    expect(node.element.childNodes[0]).toBeInstanceOf(window.HTMLDivElement);
-    expect(node.element.childNodes[1]).toBeInstanceOf(window.HTMLSpanElement);
+    expect(node.node!.childNodes.length).toBe(2);
+    expect(node.node!.childNodes[0]).toBeInstanceOf(window.HTMLDivElement);
+    expect(node.node!.childNodes[1]).toBeInstanceOf(window.HTMLSpanElement);
 }
 
 it("Insert adjacent", function () {
@@ -444,5 +444,25 @@ it("Find first child of tag", function () {
         });
 
         checkSpanAfterDiv(node, bool, window);
+    });
+});
+
+it("text", function () {
+    const window = page();
+    const runner = new Runner(window.document);
+    const root = new App<Node, Element, TagOptions>(window.document.body, runner);
+
+    root.tag("div", {}, function (node) {
+        node.text("test");
+        node.sText(() => "test 2");
+        node.sText(() => {
+            throw new Error("test");
+        });
+
+        expect(node.node!.childNodes.length).toBe(2);
+        expect(node.node!.childNodes[0] instanceof window.Text).toBe(true);
+        expect(node.node!.childNodes[0]!.textContent).toBe("test");
+        expect(node.node!.childNodes[1] instanceof window.Text).toBe(true);
+        expect(node.node!.childNodes[1]!.textContent).toBe("test 2");
     });
 });

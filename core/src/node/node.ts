@@ -1,6 +1,6 @@
 import { Reactive } from "../core/core.js";
 import { IValue } from "../core/ivalue.js";
-import { safe } from "../functional/safety.js";
+import { reportError, safe } from "../functional/safety.js";
 import { Reference } from "../value/reference.js";
 import { IRunner } from "./runner.js";
 
@@ -18,7 +18,7 @@ export abstract class Root<
      * The children list
      * @type Array
      */
-    public readonly children: Set<Fragment<Node, Element, TagOptions>>;
+    public readonly children: Fragment<Node, Element, TagOptions>[] = [];
     public readonly runner: Runner;
 
     public lastChild: Fragment<Node, Element, TagOptions> | undefined = undefined;
@@ -26,18 +26,17 @@ export abstract class Root<
     protected constructor(runner: Runner) {
         super();
         this.runner = runner;
-        this.children = new Set();
     }
 
     /**
      * Pushes a node to children immediately
-     * @param node {Fragment} A node to push
+     * @param fragment {Fragment} A node to push
      * @protected
      */
-    protected pushNode(node: Fragment<Node, Element, TagOptions>): void {
-        node.parent = this;
-        this.lastChild = node;
-        this.children.add(node);
+    protected push(fragment: Fragment<Node, Element, TagOptions>): void {
+        fragment.parent = this;
+        this.lastChild = fragment;
+        this.children.push(fragment);
     }
 
     /**
@@ -68,8 +67,20 @@ export abstract class Root<
     public text(text: unknown): void {
         const node = this.runner.textNode(text);
 
-        this.pushNode(node);
+        this.push(node);
         node.compose();
+    }
+
+    /**
+     * Defines a safe text fragment
+     * @param fn a function that returns a text fragment string
+     */
+    public sText(fn: () => unknown): void {
+        try {
+            this.text(fn());
+        } catch (e) {
+            reportError(e);
+        }
     }
 
     /**
@@ -81,7 +92,7 @@ export abstract class Root<
     public tag(tagName: string, input: TagOptions, cb?: (ctx: Tag<Node, Element, TagOptions>) => void): void {
         const tag = this.runner.tag(tagName, input, cb);
 
-        this.pushNode(tag);
+        this.push(tag);
         tag.compose();
     }
 
@@ -91,15 +102,15 @@ export abstract class Root<
      * @param callback {function($ : *)}
      */
     public create<T extends Fragment<Node, Element, TagOptions>>(node: T, callback?: (ctx: T) => void): void {
-        this.pushNode(node);
+        this.push(node);
         node.compose();
         callback?.(node);
     }
 
-    public override destroy() {
-        this.children.forEach(child => child.destroy());
+    public override destroy(keepNodes?: boolean) {
+        this.children.forEach(child => child.destroy(keepNodes));
 
-        this.children.clear();
+        this.children.splice(0);
         this.lastChild = undefined;
         super.destroy();
     }
@@ -116,30 +127,31 @@ export class Fragment<
     public constructor(runner: Runner) {
         super(runner);
     }
+
     /**
      * Next node
      * @type {?Fragment}
      */
-    protected next?: Fragment<Node, Element, TagOptions>;
+    public next?: Fragment<Node, Element, TagOptions>;
 
     /**
      * Previous node
      * @type {?Fragment}
      */
-    protected prev?: Fragment<Node, Element, TagOptions>;
+    public prev?: Fragment<Node, Element, TagOptions>;
 
     /**
      * Pushes a node to children immediately
-     * @param node {Fragment} A node to push
+     * @param fragment {Fragment} A node to push
      * @protected
      */
-    protected override pushNode(node: Fragment<Node, Element, TagOptions>): void {
+    protected override push(fragment: Fragment<Node, Element, TagOptions>): void {
         if (this.lastChild) {
-            this.lastChild.next = node;
+            this.lastChild.next = fragment;
         }
-        node.prev = this.lastChild;
+        fragment.prev = this.lastChild;
 
-        super.pushNode(node);
+        super.push(fragment);
     }
 
     /**
@@ -170,43 +182,49 @@ export class Fragment<
         }
     }
 
+    public link(
+        parent: Fragment<Node, Element, TagOptions>,
+        prev: Fragment<Node, Element, TagOptions> | undefined,
+        next: Fragment<Node, Element, TagOptions> | undefined,
+    ) {
+        this.parent = parent;
+        this.prev = prev;
+        this.next = next;
+        if (prev) {
+            prev.next = this;
+        }
+        if (next) {
+            next.prev = this;
+        }
+    }
+
+    public unlink() {
+        const { prev, next } = this;
+
+        if (prev) {
+            prev.next = next;
+        }
+        if (next) {
+            next.prev = prev;
+        }
+    }
+
+    public unmount(keepStructure: boolean): void {
+        if (!keepStructure) {
+            this.unlink();
+        }
+        this.children.forEach(child => child.unmount(true));
+    }
+    public remount(): void {
+        const children = this.children;
+        for (let i = children.length - 1; i >= 0; i--) {
+            children[i]!.remount();
+        }
+    }
+
     public compose() {
         // do nothing
         // to override it
-    }
-
-    insertBefore(node: Fragment<Node, Element, TagOptions>) {
-        node.prev = this.prev;
-        node.next = this;
-
-        if (this.prev) {
-            this.prev.next = node;
-        }
-        this.prev = node;
-    }
-
-    insertAfter(node: Fragment<Node, Element, TagOptions>) {
-        node.prev = this;
-        node.next = this.next;
-
-        this.next = node;
-    }
-
-    remove() {
-        if (this.next) {
-            this.next.prev = this.prev;
-        }
-        if (this.prev) {
-            this.prev.next = this.next;
-        }
-        this.parent.children.delete(this);
-    }
-
-    public override destroy() {
-        if (this.parent.lastChild === this) {
-            this.parent.lastChild = this.prev;
-        }
-        super.destroy();
     }
 }
 
@@ -237,43 +255,15 @@ export abstract class TextNode<
 
     protected abstract override findFirstChild(): Node;
 
-    public override destroy(): void {
+    public override destroy(keepNodes?: boolean): void {
         const text = this.data;
 
         if (text instanceof IValue && this.handler) {
             text.off(this.handler);
         }
 
-        super.destroy();
+        super.destroy(keepNodes);
     }
-}
-
-/**
- * Vasille node which can manipulate an element node
- * @class INode
- * @extends Fragment
- */
-export abstract class INode<
-    Node,
-    Element,
-    TagOptions extends object,
-    Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
-> extends Fragment<Node, Element, TagOptions, Runner> {
-    /**
-     * The element of vasille node
-     * @type Element
-     */
-    protected node!: Element;
-
-    public get element(): Element {
-        return this.node;
-    }
-
-    public override insertAdjacent(node: Node): void {
-        this.runner.insertBefore(node, this.node);
-    }
-
-    protected abstract applyOptions(options: TagOptions): void;
 }
 
 /**
@@ -286,9 +276,15 @@ export abstract class Tag<
     Element,
     TagOptions extends object,
     Runner extends IRunner<Node, Element, TagOptions> = IRunner<Node, Element, TagOptions>,
-> extends INode<Node, Element, TagOptions, Runner> {
+> extends Fragment<Node, Element, TagOptions, Runner> {
     public readonly name: string;
     public readonly options: TagOptions;
+
+    /**
+     * The element of vasille node
+     * @type Element
+     */
+    public node: Element | undefined;
 
     public constructor(options: TagOptions, runner: Runner, tagName: string) {
         super(runner);
@@ -298,12 +294,16 @@ export abstract class Tag<
 
     public abstract override compose(): void;
 
+    public override insertAdjacent(node: Node): void {
+        this.runner.insertBefore(node, this.node!);
+    }
+
     protected override findFirstChild(): Node | Element | undefined {
         return this.node;
     }
 
     public override appendNode(node: Node): void {
-        this.runner.appendChild(this.node, node);
+        this.runner.appendChild(this.node!, node);
     }
 }
 
@@ -368,23 +368,21 @@ export class SwitchedNode<
 
             if (this.lastChild) {
                 this.lastChild.destroy();
-                this.children.clear();
+                this.children.splice(0);
                 this.lastChild = undefined;
             }
 
             if (i !== -1) {
                 const node = this.newChild(i);
-                const value = this.cases[i].$case;
+                const value = this.cases[i]!.$case;
 
                 node.parent = this;
                 this.lastChild = node;
-                this.children.add(node);
+                this.children.push(node);
 
-                this.index = i;
-                safe(this.cases[i].slot)(node, value instanceof IValue ? value.V : value);
-            } else {
-                this.index = -1;
+                safe(this.cases[i]!.slot)(node, value instanceof IValue ? value.V : value);
             }
+            this.index = i;
         };
 
         cases.forEach(_case => {
@@ -399,7 +397,7 @@ export class SwitchedNode<
         this.sync();
     }
 
-    public override destroy() {
+    public override destroy(keepNodes?: boolean) {
         this.cases.forEach(c => {
             const item = c.$case;
             if (item instanceof IValue) {
@@ -408,7 +406,7 @@ export class SwitchedNode<
         });
         this.cases.splice(0);
 
-        super.destroy();
+        super.destroy(keepNodes);
     }
 
     protected newChild(_index: number): Fragment<Node, Element, TagOptions, Runner> {

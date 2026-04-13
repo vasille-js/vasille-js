@@ -74,18 +74,18 @@ export class DevFragment<Node, Element, TagOptions extends object>
         });
     }
 
-    public destroy(): void {
+    public override destroy(keepNodes?: boolean): void {
         this.inspector.destroy({ id: this.id, time: Date.now() });
-        super.destroy();
+        super.destroy(keepNodes);
     }
 
-    protected pushNode(node: Fragment<Node, Element, TagOptions>): void {
+    protected override push(node: Fragment<Node, Element, TagOptions>): void {
         if ("id" in node && typeof node.id == "number") {
             this.inspector.setElementParent({
                 parent: this.id,
                 child: node.id,
             });
         }
-        super.pushNode(node);
+        super.push(node);
     }
 }

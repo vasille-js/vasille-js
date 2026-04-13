@@ -36,40 +36,40 @@ export class DevArrayModel<T> extends ArrayModel<T> {
         }
     }
 
-    public destroy(): void {
+    public override destroy(): void {
         this.inspector?.destroy({ id: this.id, time: Date.now() });
         super.destroy();
     }
 
-    public fill(value: T, start?: number, end?: number): this {
+    public override fill(value: T, start?: number, end?: number): this {
         this.shareChange("fill", [value, start, end], undefined);
         return super.fill(value, start, end);
     }
 
-    public pop(): T | undefined {
+    public override pop(): T | undefined {
         const result = super.pop();
         this.shareChange("pop", [], result);
         return result;
     }
 
-    public push(...items: T[]): number {
+    public override push(...items: T[]): number {
         const result = super.push(...items);
         this.shareChange("push", items, result);
         return result;
     }
 
-    public shift(): T | undefined {
+    public override shift(): T | undefined {
         const result = super.shift();
         this.shareChange("shift", [], result);
         return result;
     }
 
-    public splice(start: number, deleteCount?: number, ...items: T[]): ArrayModel<T> {
+    public override splice(start: number, deleteCount?: number, ...items: T[]): T[] {
         this.shareChange("splice", [start, deleteCount, ...items], undefined);
         return super.splice(start, deleteCount, ...items);
     }
 
-    public unshift(...items: T[]): number {
+    public override unshift(...items: T[]): number {
         const result = super.unshift(...items);
         this.shareChange("unshift", items, result);
         return result;
@@ -103,22 +103,22 @@ export class DevSetModel<T> extends SetModel<T> {
         });
     }
 
-    public destroy(): void {
+    public override destroy(): void {
         this.inspector?.destroy({ id: this.id, time: Date.now() });
         super.destroy();
     }
 
-    public add(value: T): this {
+    public override add(value: T): this {
         this.shareChange("add", [value], undefined);
         return super.add(value);
     }
 
-    public clear(): void {
+    public override clear(): void {
         this.shareChange("clear", [], undefined);
         return super.clear();
     }
 
-    public delete(value: T): boolean {
+    public override delete(value: T): boolean {
         const result = super.delete(value);
         this.shareChange("delete", [value], result);
         return result;
@@ -152,22 +152,22 @@ export class DevMapModel<K, T> extends MapModel<K, T> {
         });
     }
 
-    public destroy(): void {
+    public override destroy(): void {
         this.inspector?.destroy({ id: this.id, time: Date.now() });
     }
 
-    public clear(): void {
+    public override clear(): void {
         this.shareChange("clear", [], undefined);
         super.clear();
     }
 
-    public delete(key: K): boolean {
+    public override delete(key: K): boolean {
         const result = super.delete(key);
         this.shareChange("delete", [key], result);
         return result;
     }
 
-    public set(key: K, value: T): this {
+    public override set(key: K, value: T): this {
         this.shareChange("set", [key, value], undefined);
         return super.set(key, value);
     }
