@@ -12,13 +12,17 @@ export const CodeLine = component<Props>(({ content, number }) => {
     <div
       class={[styles.inner, styles.placeholder, reverse && styles.placeholderR]}
     >
-      <div class={styles.lineNumber}>{number}</div>
+      <div class={styles.lineNumber} aria-hidden="true" role="none">
+        {number}
+      </div>
       <div class={[styles.text, reverse ? styles.light : styles.dark]}>
         <Slot model={content} isDark={!reverse} />
       </div>
     </div>
     <div class={[styles.inner, styles.abs, reverse && styles.absR]}>
-      <div class={styles.lineNumber}>{number}</div>
+      <div class={styles.lineNumber} aria-hidden="true" role="none">
+        {number}
+      </div>
       <div class={[styles.text, reverse ? styles.dark : styles.light]}>
         <Slot model={content} isDark={reverse} />
       </div>

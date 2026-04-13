@@ -4,21 +4,32 @@ interface Props {
   text: string;
   primary?: boolean;
   minWidth?: number;
+  accessKey?: string;
+  action?(): void;
 }
 
-export const Button = component(({ primary, text, minWidth }: Props) => {
-  <a
-    href={"#"}
-    class={[styles.btn, primary ? styles.primary : styles.secondary]}
-    type={"button"}
-    style={{ "min-width": minWidth }}
-  >
-    <div class={[styles.text]}>
-      <div class={[styles.dark, styles.item]}>{text}</div>
-      <div class={[styles.light, styles.item]}>{text}</div>
-    </div>
-  </a>;
-});
+export const Button = component(
+  ({ primary, text, minWidth, accessKey, action }: Props) => {
+    <a
+      href={"#"}
+      class={[styles.btn, primary ? styles.primary : styles.secondary]}
+      type={"button"}
+      style={{ "min-width": minWidth }}
+      accesskey={accessKey}
+      onclick={action}
+      onkeydown={(e) => {
+        if (e.key === "Enter") {
+          action?.();
+        }
+      }}
+    >
+      <div class={[styles.text]}>
+        <div class={[styles.dark, styles.item]}>{text}</div>
+        <div class={[styles.light, styles.item]}>{text}</div>
+      </div>
+    </a>;
+  },
+);
 
 const styles = styleSheet({
   btn: {

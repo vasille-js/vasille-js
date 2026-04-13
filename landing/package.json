@@ -10,10 +10,10 @@
   },
   "devDependencies": {
     "typescript": "^5.8.3",
-    "vasille-web-cli": "^5.0.2"
+    "vasille-web-cli": "^5.1.5"
   },
   "dependencies": {
     "prettier": "^3.7.4",
-    "steel-frame": "^5.0.1"
+    "steel-frame": "^5.1.16"
   }
 }

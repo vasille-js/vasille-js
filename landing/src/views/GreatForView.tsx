@@ -180,13 +180,13 @@ const styles = styleSheet({
     padding: [3, 0, 3, 3],
   },
   yellowColor: {
-    color: ["#FD4B05", dark("#ff946a")],
+    color: ["#e10000", dark("#ff946a")],
   },
   yellowBg: {
-    "background-color": ["#FD4B05", dark("#ff946a")],
+    "background-color": ["#e10000", dark("#ff946a")],
   },
   yellowBorder: {
-    "border-color": ["#FD4B05", dark("#ff946a")],
+    "border-color": ["#e10000", dark("#ff946a")],
   },
   blueColor: {
     color: ["#0302DF", dark("#6380FF")],

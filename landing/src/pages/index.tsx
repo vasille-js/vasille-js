@@ -1,4 +1,16 @@
-import { afterMount, dark, Delay, mobile, page, styleSheet } from "steel-frame";
+import {
+  afterMount,
+  awaited,
+  dark,
+  Delay,
+  Else,
+  ElseIf,
+  If,
+  mobile,
+  page,
+  styleSheet,
+  Watch,
+} from "steel-frame";
 import { Panel } from "./../components/Panel.js";
 import { HeroView } from "../views/HeroView.js";
 import { DescriptionView } from "../views/DescriptionView.js";
@@ -9,76 +21,41 @@ import { GreatForView } from "../views/GreatForView.js";
 import { VisibilityTracker } from "../components/code-block/VisibilityTracker.js";
 import { ExperienceView } from "../views/ExperienceView.js";
 import { ReadyView } from "../views/ReadyView.js";
+import { Button } from "../components/Button.js";
 
 export default page(async () => {
-  function trackScroll() {
-    const key = "scroll";
-    const scrollTop = localStorage.getItem(key);
-    const scrolling = document.documentElement;
-
-    window.onscroll = () => {
-      localStorage.setItem(key, scrolling.scrollTop.toString());
-    };
-
-    if (scrollTop) {
-      scrolling.scroll({
-        top: parseInt(scrollTop),
-        behavior: "instant",
-      });
-    }
-  }
+  const [$err, $next, retry] = awaited(() => import("./../views/AllView.js"));
+  const $AllView = $next?.AllView;
 
   <div class={styles.page}>
     <VisibilityTracker>
       <HeroView />
     </VisibilityTracker>
-    <div class={styles.bigScreen}>
-      {/*<div class={styles.bg} />*/}
-      <Delay time={50}>
-        <div class={styles.content}>
-          <VisibilityTracker>
-            <DescriptionView />
-          </VisibilityTracker>
-          <Delay time={50}>
-            <VisibilityTracker>
-              <GetStartedView />
-            </VisibilityTracker>
-            <Delay time={50}>
-              <VisibilityTracker>
-                <GameChangerView />
-              </VisibilityTracker>
-              <Delay time={50}>
-                <VisibilityTracker>
-                  <ErrorsStopHereView />
-                </VisibilityTracker>
-                <Delay time={50}>
-                  <VisibilityTracker>
-                    <GreatForView />
-                  </VisibilityTracker>
-                  <Delay time={50}>
-                    <VisibilityTracker>
-                      <ExperienceView />
-                    </VisibilityTracker>
-                    <Delay
-                      time={50}
-                      slot={() => {
-                        <VisibilityTracker>
-                          <ReadyView />
-                        </VisibilityTracker>;
-                        afterMount(() => {
-                          trackScroll();
-                        });
-                      }}
-                    />
-                  </Delay>
-                </Delay>
-              </Delay>
-            </Delay>
-          </Delay>
+    <main role="main" class={styles.bigScreen}>
+      <If
+        $condition={$AllView}
+        slot={(AllView) => {
+          <AllView />;
+        }}
+      />
+      <ElseIf $condition={$err}>
+        <Button text={"Retry"} action={retry} />
+      </ElseIf>
+      <Else>
+        <div
+          style={{
+            display: "flex",
+            "justify-content": "center",
+            width: "100%",
+          }}
+        >
+          <div
+            class="loader"
+            style={{ margin: [40, 0], "align-self": "center" }}
+          ></div>
         </div>
-      </Delay>
-      {/*<div class={styles.bg} />*/}
-    </div>
+      </Else>
+    </main>
     <Delay time={1}>
       <Panel />
     </Delay>
@@ -98,13 +75,5 @@ const styles = styleSheet({
   },
   bg: {
     flex: "1",
-  },
-  content: {
-    flex: "9999",
-    // "max-width": 1025,
-    "max-width": ["calc(100dvw - 97px)", mobile("100%")],
-    display: "flex",
-    "flex-direction": "column",
-    "align-items": "center",
   },
 });

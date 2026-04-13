@@ -299,7 +299,16 @@ export const Accordion = component<Props>(({ items, id }) => {
             <div
               class={[styles.itemTitle, $isCurrent && styles.active]}
               onclick={() => ($current = item.id)}
+              onkeydown={(ev) => {
+                if (ev.key === "Enter" || ev.key === " ") {
+                  $current = item.id;
+                }
+              }}
               style={{ cursor: $isCurrent ? "default" : "pointer" }}
+              role="button"
+              aria-label={item.title}
+              aria-pressed={$isCurrent}
+              tabindex={$isCurrent ? "-1" : "0"}
             >
               <div style={{ flex: "1" }}>// {item.title}</div>
               <div
@@ -417,6 +426,11 @@ const styles = styleSheet({
     transition: "color 0.2s ease-in-out",
     display: "flex",
     "line-height": 24,
+    ":focus-visible": {
+      "outline-color": ["#e10000", dark("#ff946a")],
+      "outline-width": 2,
+      "outline-offset": "-2px",
+    },
   },
   itemDesc: {
     "border-radius": 16,
@@ -529,9 +543,9 @@ const styles = styleSheet({
     opacity: ["0", dark("1")],
   },
   active: {
-    color: ["#FD4B05", dark("#ff946a")],
+    color: ["#e10000", dark("#ff946a")],
   },
   activeBg: {
-    "background-color": ["#FD4B05", dark("#ff946a")],
+    "background-color": ["#e10000", dark("#ff946a")],
   },
 });

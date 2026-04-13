@@ -147,8 +147,6 @@ const styles = styleSheet({
     "justify-content": "center",
     "align-self": "center",
     transform: ["rotate(360deg)", dark("rotate(0)")],
-    border: "2px solid",
-    "border-color": ["#0302DF", dark("#8ba1ff")],
   },
   list: {
     "padding-top": 20,
@@ -158,14 +156,14 @@ const styles = styleSheet({
     "align-items": "flex-start",
     "font-size": 15,
     "letter-spacing": "-0.3px",
-    color: ["#6F6F6F", dark("#858585")],
+    color: ["#6F6F6F", dark("#b7b7b7")],
     transition: "color 0.2s ease-in-out",
   },
   listItemIcon: {
     width: 24,
     height: 24,
     "mask-size": [24, 24],
-    "background-color": ["#191919", dark("#EDEDED")],
+    "background-color": ["#0302DF", dark("#8ba1ff")],
     transition: "background-color 5s ease-in-out",
   },
   listItemText: {

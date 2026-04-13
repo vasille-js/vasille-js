@@ -1,7 +1,7 @@
 import { component, dark, mobile, Slot, styleSheet, tablet } from "steel-frame";
 import { MAX_WIDTH } from "./limits.js";
 
-export const Row = component((props: { slot(): void; class?: string }) => {
+export const Row = component((props: { slot?(): void; class?: string }) => {
   <div class={styles.container}>
     <div class={[styles.row, props.class ?? "noop"]}>
       <Slot model={props.slot} />

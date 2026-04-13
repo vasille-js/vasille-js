@@ -4,23 +4,36 @@ import { Button } from "../components/Button.js";
 import { DoubleTitle } from "../components/DoubleTitle.js";
 import { DoubleDescription } from "../components/DoubleDescription.js";
 import metalPng from "../assets/metal.avif";
-import { centerText, description, h1 } from "../style/text.js";
+import {
+  blueLight,
+  centerText,
+  description,
+  h1,
+  orangeDark,
+  orangeLight,
+} from "../style/text.js";
 
 export const HeroView = view(() => {
-  <div class={styles.hero}>
-    <img class={[styles.metal, styles.topRight]} src={metalPng} alt={"metal"} />
+  <header role="banner" class={styles.hero}>
+    <img
+      class={[styles.metal, styles.topRight]}
+      src={metalPng}
+      alt={"metal"}
+      fetchpriority={"high"}
+    />
     <img
       class={[styles.metal, styles.leftBottom]}
       src={metalPng}
       alt={"metal"}
     />
     <VLine />
-    <span class={styles.title}>SteelFrameKit</span>
+    <span class={styles.title}>SteelFrame</span>
     <div style={{ height: 32 }} />
     <DoubleTitle
-      title={({ classes }) => {
+      title={({ classes, isDark }) => {
         <h1 class={[h1, centerText, ...classes]} style={{ "max-width": 427 }}>
-          Build Fault–Tolerant Web Applications Effortlessly
+          <span class={isDark ? orangeDark : blueLight}>Carefree</span>
+          {" Web\xA0Applications Development"}
         </h1>;
       }}
     />
@@ -31,25 +44,42 @@ export const HeroView = view(() => {
         "justify-content": "center",
       }}
     >
-      <a class={styles.a} href="https://www.npmjs.com/package/steel-frame">
+      <a
+        class={styles.a}
+        href="https://www.npmjs.com/package/steel-frame"
+        rel="nofollow"
+        aria-label="See Steel Frame NPM package"
+      >
         <img
           alt="npm"
-          src="https://img.shields.io/npm/v/steel-frame?style=flat-square"
+          src="https://img.shields.io/npm/v/steel-frame?style=round"
         />
       </a>
-      <a class={styles.a} href="https://deepwiki.com/vasille-js/steel-frame">
+      <a
+        class={styles.a}
+        href="https://deepwiki.com/vasille-js/steel-frame"
+        rel="nofollow"
+        aria-label="See Steel Frame documentation on DeepWiki"
+      >
         <img alt="Ask DeepWiki" src="https://deepwiki.com/badge.svg" />
       </a>
       <a
         class={styles.a}
         href="https://coveralls.io/github/vasille-js/steel-frame?branch=v5"
+        rel="nofollow"
+        aria-label="See Steel Frame test coverage on Coveralls"
       >
         <img
           alt="Coverage Status"
           src="https://coveralls.io/repos/github/vasille-js/steel-frame/badge.svg?branch=v5"
         />
       </a>
-      <a class={styles.a} href="https://github.com/vasille-js/steel-frame">
+      <a
+        class={styles.a}
+        href="https://github.com/vasille-js/steel-frame"
+        rel="nofollow"
+        aria-label="See Steel Frame source code on GitHub"
+      >
         <img
           alt="GitHub"
           src="https://img.shields.io/github/last-commit/vasille-js/steel-frame"
@@ -60,20 +90,22 @@ export const HeroView = view(() => {
       description={({ classes }) => {
         <div
           class={[description, centerText, ...classes]}
-          style={{ "max-width": 494 }}
+          style={{ "max-width": 432 }}
         >
-          Imagine shipping features without fearing production breakdowns. With
-          intuitive state management and minimal boilerplate, focus on what
-          matters - building great products
+          Fault-tolerant by design, with compile-time safety and 100% test
+          coverage. Predictable synchronous reactivity,{" "}
+          {"fine\u2060-\u2060grained "}
+          performance, and pure JavaScript, HTML & CSS. Easy to refactor and
+          debug.
         </div>;
       }}
     />
     <div class={styles.cta}>
-      <Button text={"Get started"} primary minWidth={161} />
+      <Button text={"Get started"} primary minWidth={161} accessKey={"s"} />
       <Button text={"See Live Demo"} minWidth={161} />
     </div>
     <VLine reverse />
-  </div>;
+  </header>;
 });
 
 const styles = styleSheet({

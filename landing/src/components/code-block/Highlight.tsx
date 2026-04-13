@@ -1,4 +1,5 @@
 import { component, Slot } from "steel-frame";
+import { blueDark, blueLight } from "../../style/text.js";
 
 interface Props {
   isDark: boolean;
@@ -6,9 +7,7 @@ interface Props {
 }
 
 export const Highlight = component<Props>(({ isDark, slot }) => {
-  <span
-    style={{ color: isDark ? "#899fff" : "#0302DF", "font-weight": "bold" }}
-  >
+  <span style={{ "font-weight": "bol" }} class={isDark ? blueDark : blueLight}>
     <Slot model={slot} />
   </span>;
 });

@@ -1,7 +1,7 @@
 import { component, dark, Slot, styleSheet } from "steel-frame";
 
 interface Props {
-  slot(): void;
+  slot?(): void;
 }
 
 export const FeatureKey = component(({ slot }: Props) => {
@@ -22,7 +22,7 @@ const styles = styleSheet({
     width: 12,
     height: 12,
     "border-radius": 6,
-    "background-color": ["#b20000", dark("#ff946a")],
+    "background-color": ["#e10000", dark("#ff946a")],
     transition: "background-color 0.2s ease-in-out",
     "margin-right": 8,
   },

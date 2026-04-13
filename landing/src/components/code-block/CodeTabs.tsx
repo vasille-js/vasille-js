@@ -43,6 +43,12 @@ export const CodeTabs = component<Props>(({ tabs, storageKey }) => {
                   item.class === $currentTab && styles.activeTab,
                 ]}
                 onclick={() => ($currentTab = item.class)}
+                onkeydown={(ev) => {
+                  if (ev.key === "Enter" || ev.key === " ") {
+                    $currentTab = item.class;
+                  }
+                }}
+                tabindex={$currentTab === item.class ? "-1" : "0"}
               >
                 {item.label}
               </div>;
@@ -148,13 +154,16 @@ const styles = styleSheet({
       background: ["#19191910", dark("#ffffff10")],
     },
     transition: "background 0.2s ease-in-out, color 0.2s ease-in-out",
+    ":focus-visible": {
+      "outline-offset": "-4px",
+    },
   },
   activeTab: {
     background: ["#fff", dark("#191919")],
     ":hover": {
       background: ["#fcfcfc", dark("#232323")],
     },
-    color: ["#b20000", dark("#ff946a")],
+    color: ["#e10000", dark("#ff946a")],
   },
   code: {
     position: "relative",

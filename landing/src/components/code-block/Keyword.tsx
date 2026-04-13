@@ -1,4 +1,5 @@
 import { component, Slot } from "steel-frame";
+import { orangeDark, orangeLight } from "../../style/text.js";
 
 interface Props {
   isDark: boolean;
@@ -6,7 +7,7 @@ interface Props {
 }
 
 export const Keyword = component<Props>(({ isDark, slot }) => {
-  <span style={{ color: isDark ? "#ff946a" : "#b20000" }}>
+  <span class={isDark ? orangeDark : orangeLight}>
     <Slot model={slot} />
   </span>;
 });

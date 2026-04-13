@@ -4,16 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Steel Frame Kit</title>
+    <meta name="description" content="Steel Frame is a Dev Kit, fault-tolerant by design, with compile-time safety and 100% test coverage. Predictable synchronous reactivity, fine-grained performance, and pure JavaScript, HTML & CSS. Easy to refactor and debug.">
     <style>
-      @font-face { font-family: 'FF'; src: url('/font.ttf') format('truetype'); }
-      @font-face { font-family: 'FM'; src: url('/fira-code.ttf') format('truetype'); }
+      @font-face { font-family: 'FF'; src: url('/font.ttf') format('truetype'); font-display: swap }
+      @font-face { font-family: 'FM'; src: url('/fira-code.ttf') format('truetype'); font-display: swap }
       html {text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale }
       body{margin:0; font-family: 'FF', sans-serif; font-weight: 500; background-color: #fff; transition: background-color 0.2s ease-in-out; overflow-y: scroll; overflow-x: hidden}
       body.dark{background-color: #191919}
       * {scrollbar-color: #808080 #80808020}
+      .logo {mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3csvg%20width='56'%20height='56'%20fill='none'%20version='1.1'%20viewBox='0%200%2056%2056'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='m5.1032%2040.969v-9.5549l-0.0516-0.13444-0.0516-0.13445h2.0581v17.423l17.599%200.0432%200.0187%200.95625%200.0187%200.95624-19.591-1.2e-4zm21.249%208.5774v-0.97743h3.3998v1.9549h-3.3998zm4.9297%200v-0.97743h17.679v-17.395l0.0702-0.0708%201.9697%200.0528v19.368h-19.719zm-21.334-4.08-0.63347-0.63772%201.6643-1.6706%208e-3%20-30.317-1.6859-1.6637%201.3276-1.3198%200.74527%200.74181%200.74527%200.74182h31.696l0.74527-0.74182%200.74527-0.74181%200.68027%200.67627%200.68026%200.67627-0.76606%200.76926-0.76607%200.76926%202e-3%2030.59%201.4865%201.4946-0.66268%200.65051-0.66268%200.6505-1.398-1.3907h-31.873l-0.67596%200.67996-0.67597%200.67995h-0.0932zm33.148-17.424v-14.746h-30.003v29.493h30.003zm-26.688%208.0319v-3.5698h5.0996v1.9549h13.174v-3.8247h-18.274v-14.109h23.288v6.9695h-5.0146v-2.2098h-13.174v3.9947h18.189v14.364h-23.288zm-11.315-8.2019-0.0106-1.5724-0.0212-0.29748h1.9549l0.046%203.4423h-1.9584zm43.868-0.16999v-1.7424h2.0399v3.4848h-2.0399zm-43.857-3.3998-3.4e-4%20-0.0425v-18.529l6.8e-4%20-0.2557%2019.591%200.0432-0.0142%200.97743-0.0142%200.97744-17.65%200.0432%200.0225%208.414%200.0225%208.414h-1.9573zm43.857-8.3719v-8.4144h-17.679v-2.0399h19.719v18.869h-2.0399zm-22.608-9.4344v-1.0199h3.3998v2.0399h-3.3998z'%20fill='%23000'%20stroke-width='.084994'/%3e%3c/svg%3e");aspect-ratio: 1/1; width: 200px; max-width: 100%; background-color: #0302df; mask-size: 100% 100%; margin-bottom: 20px}
+      .dark .logo {background-color: #ff946a}
+      .loader {width:60px;height:16px;display:grid}
+      .loader:before, .loader:after {content:"";grid-area:1/1;--c:no-repeat linear-gradient(#0302df 0 0);background:var(--c), var(--c), var(--c);animation:l16-1 1.5s infinite linear, l16-2 1.5s infinite linear;transform:scale(var(--s,1)) translate(3px,-3px)}
+      .dark .loader:before, .dark .loader:after {--c:no-repeat linear-gradient(#ff946a 0 0)}
+      .loader:after {--s:-1}
+      .loading-page {width:100dvw;height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+      @keyframes l16-1{0%,3%{background-size: 0 4px,4px 0,0 4px}16.67%{background-size: 100% 4px,4px 0,0 4px}33.33%{background-size: 100% 4px,4px 100%,0 4px}46%,54% {background-size:100% 4px,4px 100%,100% 4px}66.67%{background-size: 0 4px,4px 100%,100% 4px}83.33%{background-size: 0 4px,4px 0,100% 4px}96%,100%{background-size: 0 4px,4px 0,0 4px}}
+      @keyframes l16-2{0%,49.9%{background-position: 0 0,100% 0,100% 100%}50%,100%{background-position: 100% 0,100% 100%,0 100%}}
     </style>
   </head>
   <body class="dark">
+    <div class="loading-page">
+      <div class="logo"></div>
+      <div class="loader"></div>
+    </div>
     <script type="module" src="/src/index.vasille.js"></script>
     <noscript>
         This page require enabled javascript :(

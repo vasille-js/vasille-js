@@ -1,7 +1,13 @@
 import { dark, styleSheet, view } from "steel-frame";
 import { VLine } from "../components/VLine.js";
 import { DoubleTitle } from "../components/DoubleTitle.js";
-import { centerText, description, h1 } from "../style/text.js";
+import {
+  blueLight,
+  centerText,
+  description,
+  h1,
+  orangeDark,
+} from "../style/text.js";
 import { DoubleDescription } from "../components/DoubleDescription.js";
 import { HLine } from "../components/HLine.js";
 
@@ -11,16 +17,16 @@ export const DescriptionView = view(() => {
     <VLine height={40} marginBottom={40} />
     <DoubleTitle
       title={({ classes, isDark }) => {
-        const color = isDark ? "#ff946a" : "#0302DF";
+        const className = isDark ? orangeDark : blueLight;
 
         <h2
           class={[h1, centerText, ...classes]}
           style={{ "max-width": 1000, "text-transform": "none" }}
         >
           SteelFrame is a Web Dev Kit that prioritizes{" "}
-          <span style={{ color }}>safety</span>,{" "}
-          <span style={{ color }}>predictability</span>, and{" "}
-          <span style={{ color }}>developer experience</span>.
+          <span class={className}>safety</span>,{" "}
+          <span class={className}>predictability</span>, and{" "}
+          <span class={className}>developer experience</span>.
         </h2>;
       }}
     />
@@ -30,10 +36,9 @@ export const DescriptionView = view(() => {
           class={[description, centerText, ...classes]}
           style={{ "max-width": 800 }}
         >
-          Unlike frameworks with asynchronous reactivity models, SteelFrame
-          updates the DOM synchronously when reactive values change. When a line
-          of code executes, the DOM is already in sync. This eliminates entire
-          classes of timing-related bugs.
+          Dev Kit straight points are: fault-tolerance out of the box,
+          compile-time checks, synchronous reactive updates, fine-grained
+          reactivity, strong web standards and focus on maintenance.
         </div>;
       }}
     />

@@ -4,7 +4,7 @@ import { MAX_WIDTH } from "../code-block/lib/limits.js";
 
 interface Props {
   reverse?: boolean;
-  slot(): void;
+  slot?(): void;
 }
 
 export const FeatureRow = component<Props>(({ reverse, slot }) => {

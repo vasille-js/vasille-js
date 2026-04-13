@@ -62,7 +62,7 @@ const styles = styleSheet({
     position: "absolute",
     width: 316,
     height: 316,
-    "background-color": ["#FD4B05", dark("#ff946a")],
+    "background-color": ["#e10000", dark("#ff946a")],
     "mask-size": [316, 316],
     transition: "background-color 0.2s ease-in-out",
     "@media screen and (max-width: 800px)": {

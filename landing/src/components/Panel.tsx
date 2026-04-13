@@ -1,5 +1,4 @@
 import { component, dark, mobile, styleSheet, watch } from "steel-frame";
-import logoSvg from "../assets/logo.svg";
 import docsSvg from "../assets/docs.svg";
 import githubSvg from "../assets/github.svg";
 import playgroundSvg from "../assets/playground.svg";
@@ -11,10 +10,17 @@ interface ItemProps {
   src: string;
   text: string;
   href: string;
+  $active: boolean;
+  accessKey: string;
 }
 
-const Item = component(({ src, text, href }: ItemProps) => {
-  <a class={[styles.panelItem, "panel-item"]} href={href}>
+const Item = component(({ src, text, href, $active, accessKey }: ItemProps) => {
+  <a
+    class={[styles.panelItem, "panel-item"]}
+    href={href}
+    accesskey={$active ? accessKey : undefined}
+    tabindex={$active ? "0" : "-1"}
+  >
     <div
       class={[styles.panelItemIcon, "panel-item-icon"]}
       style={{ mask: `url("${src}")` }}
@@ -73,7 +79,9 @@ const InternalPanel = component(
     $active,
     activeClassName,
   }: InternalPanelProps) => {
-    <div
+    <nav
+      role={"navigation"}
+      aria-hidden={$active ? "false" : "true"}
       class={[styles.panel, className, $active && activeClassName]}
       style={{
         "--fg": fg,
@@ -84,11 +92,29 @@ const InternalPanel = component(
         "--dark-z": `${darkZ}`,
       }}
     >
-      <div class={styles.logo} style={{ "mask-image": `url("${logoSvg}")` }} />
-      <Item src={docsSvg} text={"Docs"} href={"/docs"} />
-      <Item src={playgroundSvg} text={"Playground"} href={"/pg"} />
-      <Item src={githubSvg} text={"GitHub"} href={"/github"} />
-    </div>;
+      <div class={[styles.logo, "logo"]} />
+      <Item
+        src={docsSvg}
+        text={"Docs"}
+        href={"/docs"}
+        $active={$active}
+        accessKey={"d"}
+      />
+      <Item
+        src={playgroundSvg}
+        text={"Playground"}
+        href={"/pg"}
+        $active={$active}
+        accessKey={"p"}
+      />
+      <Item
+        src={githubSvg}
+        text={"GitHub"}
+        href={"/github"}
+        $active={$active}
+        accessKey={"g"}
+      />
+    </nav>;
   },
 );
 
@@ -172,6 +198,7 @@ const styles = styleSheet({
     transition: "left 0.2s ease-in-out",
     "backdrop-filter": "blur(10px)",
     "z-index": ["var(--light-z)", dark("var(--dark-z)")],
+    top: 0,
   },
   darkPanel: {
     left: ["-97px", dark(0), mobile(dark("-97px"))],
@@ -193,6 +220,7 @@ const styles = styleSheet({
     background: "var(--accent)",
     "mask-position": "center",
     "mask-repeat": "no-repeat",
+    "mask-size": 56,
   },
   panelItem: {
     width: 64,

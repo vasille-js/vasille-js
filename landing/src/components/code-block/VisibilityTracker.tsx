@@ -1,7 +1,7 @@
 import { component, Slot, watch, beforeDestroy, styleSheet } from "steel-frame";
 
 interface Props {
-  slot(): void;
+  slot?(): void;
 }
 
 export const VisibilityTracker = component<Props>(({ slot }) => {

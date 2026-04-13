@@ -29,11 +29,11 @@ const styles = styleSheet({
   light: {
     position: "absolute",
     top: ["0", dark("-100%")],
-    color: "#858585",
+    color: "#585858",
     transition: "top 1s ease-in-out 0.2s",
   },
   dark: {
-    color: "#8E8C8C",
+    color: "#a4a4a4",
     opacity: ["0", dark("1")],
     transition: "opacity 1s ease-in-out 0.2s",
   },
