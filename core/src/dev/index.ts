@@ -41,6 +41,7 @@ export {
     type ProtocolError,
     type IDevRunner,
     type DestroyData,
+    type EraseData,
     executionPosition,
     provideId,
     setupPosition,
