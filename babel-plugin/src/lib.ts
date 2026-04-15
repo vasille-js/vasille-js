@@ -3,7 +3,7 @@ import { Identifier } from "@babel/types";
 import * as t from "@babel/types";
 import { checkExpression, checkNode, Dependency, exprIsSure } from "./expression.js";
 import { Internal, ctx, inspector } from "./internal.js";
-import { calls } from "./call.js";
+import { bindFunctions, calls } from "./call.js";
 import { meshAllUnknown } from "./mesh";
 import { inspectorOf, nodeToStaticPosition } from "./transformer";
 
@@ -132,6 +132,10 @@ export function exprCall(
     return exprCall(path.get("expression") as NodePath<types.Expression>, path.node.expression, internal, opts, area);
   }
   if (parseCalculateCall(path, internal, area, opts.name)) {
+    return true;
+  }
+  // the expression is already transformed
+  if (calls(path, bindFunctions, internal) && path.node.arguments[0] === ctx) {
     return true;
   }
 

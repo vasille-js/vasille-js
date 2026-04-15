@@ -1,5 +1,5 @@
-import { component } from "steel-frame";
+import { component, setModel } from "steel-frame";
 
 const C = component(() => {
-  const set = new Set();
+  const set = setModel();
 });

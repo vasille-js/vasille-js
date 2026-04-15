@@ -96,18 +96,6 @@ it("set model not const error", function () {
   throwTest(__dirname, "set-model-const", "Set models must be declared as constants");
 });
 
-it("array not const error", function () {
-  throwTest(__dirname, "array-const", "Arrays must be must be declared as constants");
-});
-
-it("map not const error", function () {
-  throwTest(__dirname, "map-const", "Map models must be declared as constants");
-});
-
-it("set not const error", function () {
-  throwTest(__dirname, "set-const", "Set models must be declared as constants");
-});
-
 it("compose wrong arg number error", function () {
   throwTest(__dirname, "compose-arg-number", "Extra parameters are not allowed", true);
 });

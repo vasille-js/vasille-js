@@ -3,6 +3,7 @@ import { styleSheet, dark, prefersDark, prefersLight, mobile, laptop, tablet, th
 export const styles = styleSheet({
   c1: {
     margin: 0,
+    opacity: 1,
     padding: [10, 5],
     display: "block",
   },
@@ -11,6 +12,7 @@ export const styles = styleSheet({
       margin: 0,
       padding: [10, 5],
       display: "block",
+      flex: 1,
     },
   },
   c3: {

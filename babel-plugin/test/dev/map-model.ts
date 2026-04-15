@@ -1,5 +1,5 @@
-import { component } from "steel-frame";
+import { component, mapModel } from "steel-frame";
 
 const C = component(() => {
-  const map = new Map();
+  const map = mapModel();
 });

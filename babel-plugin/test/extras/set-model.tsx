@@ -1,7 +1,7 @@
-import { store, For, component } from "steel-frame";
+import { store, For, component, setModel } from "steel-frame";
 
 const modelStore = store(() => {
-  const s = new Set(["m"]);
+  const s = setModel(["m"]);
 
   return {
     s,

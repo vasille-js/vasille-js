@@ -57,7 +57,7 @@ it("property is not reactive error", function () {
 });
 
 it("raw without args error", function () {
-  throwTest(__dirname, "raw-no-args", "Failed to parse raw value");
+  throwTest(__dirname, "raw-no-args", "Failed to unwrap value");
 });
 
 it("beforeMount arg error", function () {

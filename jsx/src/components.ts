@@ -151,15 +151,17 @@ export function ArrayView<
     T extends unknown[],
     V = T extends (infer R)[] ? R : never,
 >(
-    props: Required<ForOptions<Node, Element, TagOptions, IValue<V[]>, [IValue<V>, IValue<number>]>> & {
+    props: {
+        $of: IValue<V[]>;
         key: (value: V) => number | string;
+        slot: (ctx: Fragment<Node, Element, TagOptions>, value: IValue<V>, index: IValue<number>) => void;
     },
     ctx: Fragment<Node, Element, TagOptions>,
 ) {
     ctx.create(
         new SinglePassArrayView<V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
             ctx.runner,
-            props.of,
+            props.$of,
             props.key,
             props.slot,
             ref,

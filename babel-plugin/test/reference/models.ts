@@ -1,11 +1,11 @@
-import { arrayModel, beforeMount, compose, mapModel, ref, setModel } from "steel-frame";
+import { arrayModel, beforeMount, compose, mapModel, ref, setModel, unwrap } from "steel-frame";
 
 const C = compose(() => {
   let $a = 3;
-  const b = [1, 2, $a];
-  const c = new Set([1, 2, $a]);
+  const b = [1, 2, unwrap($a)];
+  const c = new Set([1, 2, unwrap($a)]);
   const d = new Map([
-    [1, $a],
+    [1, unwrap($a)],
     [2, 3],
   ]);
   const e = {

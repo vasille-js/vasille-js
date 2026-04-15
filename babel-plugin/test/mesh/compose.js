@@ -1,10 +1,10 @@
-import { compose, For, ref as VasilleRef, arrayModel as VasilleArrayModel, safe as VasilleSafe, expr as VasilleExpr } from "vasille-web";
+import { compose, For, ref as VasilleRef, safe as VasilleSafe, expr as VasilleExpr } from "vasille-web";
 const C = compose(function C(Vasille, {
   $name = VasilleRef("name"),
   ["$data"]: $d = VasilleRef(),
   ...rest
 }) {
-  const model = VasilleArrayModel(Vasille, [{
+  const model = [{
     $name: VasilleRef("name1"),
     $data: VasilleRef({
       id: "x",
@@ -12,7 +12,7 @@ const C = compose(function C(Vasille, {
       height: 4
     }),
     $more: VasilleRef("more")
-  }]);
+  }];
   VasilleSafe(() => console.log($d.V.id, $d.V.width, $d.V.height, $name.V, rest.$more?.V))();
   Vasille.tag("div", {}, Vasille => {
     Vasille.text(VasilleExpr(Vasille, Vasille_0 => Vasille_0.id, [$d]));

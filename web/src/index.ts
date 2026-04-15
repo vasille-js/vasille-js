@@ -32,6 +32,11 @@ export {
     Switch,
     setErrorHandler,
     match,
+    ArrayView,
+    ArrayModelView,
+    MapModelView,
+    SetModelView,
+    QueuedRender,
 } from "vasille-jsx";
 
 export {
@@ -48,7 +53,7 @@ export { Router, type WebRouterInitialization, type NavigationMode } from "vasil
 
 export { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "vasille-css";
 
-export { context, impute, receive, share } from "vasille-context";
+export { context, impute, receive, share, receiveOptional } from "vasille-context";
 
 function createPortal(node: Fragment<Node, Element, TagOptions>) {
     const portal = new Portal<Node, Element, TagOptions>({ node: document.body }, node.runner);

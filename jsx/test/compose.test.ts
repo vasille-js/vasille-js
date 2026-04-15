@@ -52,7 +52,7 @@ it("MVVM test", function () {
     mount(body, mvvm, node.runner, {
         callback: node => {
             div = node?.div as Element;
-            expect(node?.className).toBeInstanceOf("replaced");
+            expect(node?.className).toBe("replaced");
         },
         slot(f: Fragment<Node, Element, object>) {
             mvvm({}, f, function (f: Fragment<Node, Element, object>) {

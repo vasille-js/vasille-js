@@ -10,6 +10,7 @@ import { CompilationErrorReport, CompilationErrorReporter } from "./communicatio
 const imports = new Map([["steel-frame", "VasilleWeb"]]);
 const ignoreMembers = new Set([
   "raw",
+  "unwrap",
   "theme",
   "dark",
   "mobile",
@@ -25,6 +26,8 @@ const ignoreMembers = new Set([
   "If",
   "ElseIf",
   "Else",
+  "Iterate",
+  "ForEach",
 ]);
 const filePathId = t.identifier("VasilleFilePath");
 
@@ -226,6 +229,9 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     args: (types.Expression | types.SpreadElement | types.ArgumentPlaceholder)[],
   ): types.CallExpression {
     used.add(key);
+    if (ids[key].startsWith("Vasille")) {
+      internal.mapping.set(ids[key], key);
+    }
     if (internal.global) {
       return t.callExpression(t.memberExpression(t.identifier(internal.global), t.identifier(key)), args);
     }

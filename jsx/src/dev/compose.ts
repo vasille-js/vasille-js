@@ -1,4 +1,4 @@
-import { App, Fragment, Reactive } from "vasille";
+import { App, Fragment, Reactive, reportError } from "vasille";
 import { DevReactive, errorToString, remapObject, StaticPosition, toDevIdOrValue } from "vasille/dev";
 import { IDevRunner } from "vasille/dev";
 import { CompositionProps } from "../compose.js";
@@ -57,7 +57,7 @@ export function devView<Node, Element, TagOptions extends object, In extends Com
     declaration: StaticPosition,
     name: string,
 ): DevComposed<Node, Element, TagOptions, In, Out> {
-    let fragments: DevFragmentMap<Node, Element, TagOptions, DevInput<In, Out>> = new Map();
+    const fragments: DevFragmentMap<Node, Element, TagOptions, DevInput<In, Out>> = new Map();
     const safeRun = function (
         parent: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
         props: DevInput<In, Out>,
@@ -99,7 +99,7 @@ export function devView<Node, Element, TagOptions extends object, In extends Com
         }
 
         node.create(frag);
-        fragments.set(frag, { props, node, usage });
+        fragments.set(frag, { props, node: frag, usage });
         frag.runOnDestroy(() => fragments.delete(frag));
         safeRun(frag, props, usage);
     };

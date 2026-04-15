@@ -16,6 +16,10 @@ import {
     DevSwitch,
     devView,
     DevWatch,
+    DevArrayView,
+    DevMapModelView,
+    DevSetModelView,
+    DevArrayModelView,
 } from "vasille-jsx/dev";
 import { WebRouterInitialization } from "vasille-web";
 import { devModal, devPrompt, devRouterApp, devMount } from "vasille-web/dev";
@@ -34,6 +38,7 @@ export {
     setupPosition,
 } from "vasille/dev";
 export { setErrorHandler, earlyInspector } from "vasille-jsx/dev";
+export { QueuedRender } from "vasille-jsx";
 export { type IdeSide, type AppSide } from "./communication.js";
 
 export {
@@ -49,7 +54,7 @@ export {
 } from "vasille-web";
 export { setLaptopMaxWidth, setTabletMaxWidth, setMobileMaxWidth } from "vasille-css";
 export { devStyleSheet as styleSheet } from "vasille-css/dev";
-export { context, impute, receive, share } from "vasille-context";
+export { context, impute, receive, share, receiveOptional } from "vasille-context";
 
 export const view = devView;
 export const component = devView;
@@ -73,6 +78,10 @@ export const mapModel = devMapModel;
 export const arrayModel = devArrayModel;
 export const Switch = DevSwitch;
 export const match = devMatch;
+export const ArrayView = DevArrayView;
+export const MapModelView = DevMapModelView;
+export const SetModelView = DevSetModelView;
+export const ArrayModelView = DevArrayModelView;
 
 export const screen = devScreen;
 export const page = devScreen;

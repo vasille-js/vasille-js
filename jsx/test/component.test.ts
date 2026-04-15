@@ -83,12 +83,13 @@ it("Slot", function () {
     expect(mustBeValue).toBe(2);
     expect(mustBeRef instanceof IValue).toBe(true);
 
-    let handled = false;
+    let handled: Error | undefined = undefined;
     const error = new Error();
 
     setErrorHandler(e => {
-        handled = true;
-        expect(e).toBe(error);
+        if (e === error) {
+            handled = e as Error;
+        }
     });
     Slot(
         {
@@ -98,7 +99,7 @@ it("Slot", function () {
         },
         node,
     );
-    expect(handled).toBe(true);
+    expect(handled).toBe(error);
 });
 
 it("For", function () {
@@ -215,7 +216,7 @@ it("ArrayView", function () {
 
     ArrayView(
         {
-            of: ref([{ id: 0, value: 1 }]),
+            $of: ref([{ id: 0, value: 1 }]),
             key: i => i.id,
             slot(f: Fragment<Node, Element, object>, value) {
                 f.text(value.V.value);
@@ -326,7 +327,7 @@ it("QueuedRender cancel", function (done) {
     }, 10);
 });
 
-it("QueuedRender split test", function (done) {
+it("QueuedRender split", function (done) {
     const [node, window] = createNode();
     const body = window.document.body;
 
@@ -348,5 +349,88 @@ it("QueuedRender split test", function (done) {
             node.destroy();
             done();
         }, 10);
+    }, 10);
+});
+
+it("QueuedRender order", function (done) {
+    const [node, window] = createNode();
+    const body = window.document.body;
+    let i = 0;
+    let low = 0;
+    let lowLow = 0;
+    let high = 0;
+    let highHigh = 0;
+    let highLow = 0;
+
+    QueuedRender({ priority: "low" }, node, (f: Fragment<Node, Element, object>) => {
+        low = ++i;
+        QueuedRender({ priority: "low" }, f, () => {
+            lowLow = ++i;
+        });
+    });
+    QueuedRender({ priority: "high" }, node, (f: Fragment<Node, Element, object>) => {
+        high = ++i;
+        QueuedRender({ priority: "low" }, f, () => {
+            highLow = ++i;
+        });
+        QueuedRender({ priority: "high" }, f, () => {
+            highHigh = ++i;
+        });
+    });
+
+    setTimeout(() => {
+        expect(high).toBe(1);
+        expect(highHigh).toBe(2);
+        expect(low).toBe(3);
+        expect(highLow).toBe(4);
+        expect(lowLow).toBe(5);
+        node.destroy();
+        done();
+    }, 10);
+});
+
+it("QueuedRender callback", function (done) {
+    const [node] = createNode();
+    let test = false;
+
+    QueuedRender(
+        {
+            priority: "low",
+            callback() {
+                test = true;
+            },
+        },
+        node,
+        () => {},
+    );
+
+    setTimeout(() => {
+        expect(test).toBe(true);
+        node.destroy();
+        done();
+    }, 10);
+});
+
+it("QueuedRender error", function (done) {
+    const [node] = createNode();
+    let test = true;
+
+    QueuedRender(
+        {
+            priority: "low",
+            callback() {
+                test = false;
+            },
+        },
+        node,
+        () => {
+            throw new Error("test");
+        },
+    );
+
+    setTimeout(() => {
+        expect(test).toBe(true);
+        node.destroy();
+        done();
     }, 10);
 });

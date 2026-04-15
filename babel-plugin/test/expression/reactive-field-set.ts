@@ -1,4 +1,4 @@
-import { compose, raw, ref, watch } from "steel-frame";
+import { compose, raw, ref, unwrap, watch } from "steel-frame";
 
 let o1 = {
   $x: ref(1),
@@ -10,7 +10,7 @@ const o2 = {
 
 const C = compose(() => {
   const arr = raw([0, 1]);
-  let index = raw(0);
+  let index = unwrap(0);
 
   const o3 = {
     $x: 1,

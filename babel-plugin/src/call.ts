@@ -18,7 +18,9 @@ export type FnNames =
   | "watch"
   | "ref"
   | "bind"
+  | "expr"
   | "raw"
+  | "unwrap"
   | "arrayModel"
   | "setModel"
   | "mapModel"
@@ -54,7 +56,7 @@ export const refFunctions = ["ref"] as const satisfies FnNames[];
 
 export const asyncFunctions = ["awaited"] as const satisfies FnNames[];
 
-export const bindFunctions = ["watch", "calculate", "bind"] as const satisfies FnNames[];
+export const bindFunctions = ["watch", "calculate", "bind", "expr"] as const satisfies FnNames[];
 
 export const modelFunctions = ["arrayModel", "mapModel", "setModel"] as const satisfies FnNames[];
 
@@ -72,6 +74,8 @@ export const styleOnly = [
 
 export const dependencyInjections = ["share", "receive", "impute"] as const satisfies FnNames[];
 
+export const unwrapFunctions = ["unwrap", "raw"] as const satisfies FnNames[];
+
 export const hintFunctions: FnNames[] = [
   ...refFunctions,
   ...asyncFunctions,
@@ -81,7 +85,7 @@ export const hintFunctions: FnNames[] = [
   ...composeOnly,
   ...styleOnly,
   ...dependencyInjections,
-  "raw",
+  ...unwrapFunctions,
 ];
 
 function checkCall<T extends string>(name: T, internal: Internal): T {

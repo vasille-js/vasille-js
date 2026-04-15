@@ -13,7 +13,15 @@ export {
     DevArrayModelView,
     DevArrayView,
 } from "./components.js";
-export { devStore, type DevComposed, devModel, devMount, devView, devDynamicalModule } from "./compose.js";
+export {
+    devStore,
+    type DevComposed,
+    devModel,
+    devMount,
+    devView,
+    devDynamicalModule,
+    type DevFragmentMap,
+} from "./compose.js";
 export { devArrayModel, devMapModel, devEnsure, devExpr, devMatch, devSetModel, devRef, devSet } from "./internal.js";
 export { devAwaited } from "./library.js";
 export { AbstractInspector, EarlyInspector, earlyInspector } from "./early-inspector.js";

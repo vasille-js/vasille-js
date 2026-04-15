@@ -4,9 +4,9 @@ const cStore = store(Vasille => {
   const $b = ref(2);
   const $c = calculate(Vasille, (Vasille_0, Vasille_1) => Vasille_0 + Vasille_1, [$a, $b]);
   const $d = ref($c.V);
-  const e = arrayModel(Vasille, [1, 2]);
-  const f = setModel(Vasille, [1, 2]);
-  const g = mapModel(Vasille, [[1, 2]]);
+  const e = [1, 2];
+  const f = new Set([1, 2]);
+  const g = new Map([[1, 2]]);
   const h = {
     a: 1
   };

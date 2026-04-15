@@ -1,6 +1,6 @@
 {
   "name": "vasille-shadow",
-  "version": "5.0.0",
+  "version": "6.0.0-rc.1",
   "description": "Pack fault tolerant steel-frame components to custom web components.",
   "main": "index.js",
   "types": "./index.d.ts",
@@ -39,9 +39,9 @@
   },
   "homepage": "https://github.com/vasille-js/steel-frame#readme",
   "dependencies": {
-    "vasille": "^5.0.0",
-    "vasille-jsx": "^5.0.0",
-    "vasille-web": "^5.0.1"
+    "vasille": "6.0.0-rc.4",
+    "vasille-jsx": "^6.0.0-rc.4",
+    "vasille-web": "^6.0.0-rc.2"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

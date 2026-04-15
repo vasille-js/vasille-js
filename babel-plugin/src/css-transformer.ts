@@ -4,6 +4,27 @@ import { calls, FnNames } from "./call.js";
 import { Internal } from "./internal.js";
 import { err, Errors } from "./lib";
 
+const pureNumbersProperties = new Set([
+  "opacity",
+  "flex",
+  "flex-grow",
+  "flex-shrink",
+  "z-index",
+  "zoom",
+  "tab-size",
+  "orphans",
+  "widows",
+  "order",
+  "grid-row-start",
+  "grid-row-end",
+  "grid-row",
+  "grid-column-start",
+  "grid-column-end",
+  "grid-column",
+  "font-weight",
+  "aspect-ratio",
+]);
+
 function tryProcessProp(
   path: NodePath<types.ObjectProperty | types.ObjectMethod | types.SpreadElement>,
   pseudo: string,
@@ -140,7 +161,7 @@ function processValue(
     return composeRules(path.node.value);
   }
   if (path.isNumericLiteral()) {
-    return composeRules(`${path.node.value}px`);
+    return composeRules(pureNumbersProperties.has(name) ? `${path.node.value}` : `${path.node.value}px`);
   }
   if (path.isArrayExpression()) {
     if (path.node.elements.every(item => t.isNumericLiteral(item))) {

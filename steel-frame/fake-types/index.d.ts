@@ -1,4 +1,4 @@
-import { App } from "vasille";
+import { App, ArrayModel, MapModel, SetModel } from "vasille";
 import type { TagOptions } from "vasille/web-runner";
 import type { StyleSheetProps as StyleProps } from "vasille-web";
 import type { ScreenProps } from "vasille-router";
@@ -57,9 +57,11 @@ export declare function screen<Route extends string>(renderer: Screen<Route>): S
 /** Composes a page, the file-based router navigates between pages (used for tests only) */
 export declare function page<Route extends string>(renderer: Screen<Route>): Screen<Route>;
 
-/** Returns the raw value of expression */
+/** Returns the raw value of the expression */
 export declare function raw<T>(v: T): T;
-/** Returns a reactive value of expression */
+/** Unwrap the expression */
+export declare function unwrap<T>(v: T): T;
+/** Pack value into a reactive reference */
 export declare function ref<T>(v: T): T;
 /** Returns a reactive-computed form of expression */
 export declare function bind<T>(v: T): T;
@@ -68,11 +70,11 @@ export declare function calculate<T>(fn: () => T): T;
 /** Runs the function each time when a dependency is changed */
 export declare function watch(f: () => void): void;
 /** Returns an array model of the array */
-export declare function arrayModel<T>(v?: T[]): T[];
+export declare function arrayModel<T>(v?: T[]): ArrayModel<T>;
 /** Returns a set model of array values */
-export declare function setModel<T>(v?: T[]): Set<T>;
+export declare function setModel<T>(v?: T[]): SetModel<T>;
 /** Returns a map model of map data */
-export declare function mapModel<K, T>(v?: [K, T][]): Map<K, T>;
+export declare function mapModel<K, T>(v?: [K, T][]): MapModel<K, T>;
 
 /** Awaits async data in a sync component */
 export declare function awaited<T>(target: Promise<T>): [unknown, T | undefined, () => void];
@@ -124,7 +126,49 @@ export declare function For<K, T>(props: {
     "vasille:slot"?: VasilleSlot;
 }): void;
 
-/** Refresh the content each time then the reactive model is updated */
+/** Renders content of an `array`, updates are tracked via a diff algorithm */
+export declare function ArrayView<T>(props: { $of: ReadonlyArray<T>; slot: ($value: T, $index: number) => void }): void;
+
+/** Renders content of an `array model`, which can be updated via `push`, `pull`, ... */
+export declare function ArrayModelView<T>(props: {
+    of: ReadonlyArray<T>;
+    slot: (value: T, $index: number) => void;
+}): void;
+
+/** Renders content of a `map model`, which can be updated via `set`, `delete`, ... */
+export declare function MapModelView<K, T>(props: { of: ReadonlyMap<K, T>; slot: ($value: T, key: K) => void }): void;
+
+/** Renders content of a `set model`, which can be updated via `add`, `delete`, ... */
+export declare function SetModelView<T>(props: { of: ReadonlySet<T>; slot: (value: T) => void }): void;
+
+/** Will be translated to for (let value of value) { slot(item) } */
+export declare function Iterate<
+    T extends { [Symbol.iterator](): IteratorObject<unknown, unknown, unknown> },
+    K = T extends { [Symbol.iterator](): IteratorObject<infer R, unknown, unknown> } ? R : never,
+>(props: { value: T; slot: (item: K) => void });
+
+/** Will be translated to value.forEach(slot) */
+export declare function ForEach<T>(props: {
+    value: ReadonlyArray<T>;
+    slot: (item: T, index: number, value: T[]) => void;
+});
+export declare function ForEach<T>(props: {
+    value: ReadonlySet<T>;
+    slot: (item: T, key: T, set: ReadonlySet<T>) => void;
+});
+export declare function ForEach<K, T>(props: {
+    value: ReadonlyMap<K, T>;
+    slot: (item: T, key: K, map: ReadonlyMap<K, T>) => void;
+});
+
+/** Renders content in a non-blocking way via queue */
+export declare function QueuedRender(props: {
+    priority?: "high" | "low";
+    callback?(): void;
+    "vasille:slot": VasilleSlot;
+}): void;
+
+/** Refresh the content each time, when the reactive model is updated */
 export declare function Watch<T>(props: { $model: T; slot?: (value: T) => void; "vasille:slot"?: VasilleSlot }): void;
 
 /** Render content after a while */
@@ -262,6 +306,19 @@ export declare function receive<Class>(className: abstract new (...args: unknown
 
 /** Receive a setting */
 export declare function receive(key: string): string;
+
+/** Receive an optional shared context */
+export declare function receiveOptional<Args extends unknown[], Value>(
+    ctx: SteelContext<Args, Value>,
+): Value | undefined;
+
+/** Receive an optional dependency */
+export declare function receiveOptional<Class>(
+    className: abstract new (...args: unknown[]) => Class,
+): Class | undefined;
+
+/** Receive an optional setting */
+export declare function receiveOptional(key: string): string | undefined;
 
 /** Create and share a context when it is missing */
 export declare function impute<Args extends unknown[], Value>(ctx: SteelContext<Args, Value>, ...args: Args): Value;

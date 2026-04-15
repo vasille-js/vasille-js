@@ -154,8 +154,8 @@ export class Router<Routes extends string> extends AbstractRouter<
 
         oldChildren.forEach(node => {
             node.destroy();
-            children.delete(node);
         });
+        children.splice(0, oldChildren.length);
 
         if (scope === "not-found") {
             this.window.history.replaceState({}, "", "/");
@@ -171,7 +171,7 @@ export class Router<Routes extends string> extends AbstractRouter<
         const { children } = node;
 
         children.forEach(node => node.destroy());
-        children.clear();
+        children.splice(0);
     }
 
     protected build(

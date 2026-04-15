@@ -1,7 +1,7 @@
-import { For, compose, arrayModel as VasilleArrayModel, mapModel as VasilleMapModel } from "vasille-web";
+import { For, compose, arrayModel, mapModel } from "vasille-web";
 const C = compose(Vasille => {
-  const a = VasilleArrayModel(Vasille, [1, 2, 3]);
-  const map = VasilleMapModel(Vasille, [["x", 1]]);
+  const a = arrayModel(Vasille, [1, 2, 3]);
+  const map = mapModel(Vasille, [["x", 1]]);
   For({
     of: a,
     slot: (Vasille, value) => {

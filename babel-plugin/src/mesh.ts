@@ -1,6 +1,14 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { calls, composeFunctions, dependencyInjections, hintFunctions, modelFunctions, refFunctions } from "./call.js";
+import {
+  calls,
+  composeFunctions,
+  dependencyInjections,
+  hintFunctions,
+  modelFunctions,
+  refFunctions,
+  unwrapFunctions,
+} from "./call.js";
 import { checkNode, exprIsSure, idIsIValue, memberIsIValue, nodeIsMeshed } from "./expression.js";
 import { ctx, inspector, Internal, V, VariableState } from "./internal.js";
 import { ConditionCollection, processConditions, transformJsx } from "./jsx.js";
@@ -67,7 +75,7 @@ export function meshComposeCall(
     return err(Errors.IncorrectArguments, path, "Invalid arguments number", internal);
   }
 
-  compose(arg, internal, false, false);
+  compose(arg, internal, false, false, false);
   arg.node.params.unshift(ctx);
 
   if (internal.devLayer && path.isCallExpression()) {
@@ -197,12 +205,12 @@ export function meshExpression(nodePath: NodePath<types.Expression | null | unde
         meshComposeCall(null, nodePath, internal);
       }
       // raw call
-      else if (calls(path, ["raw"], internal)) {
+      else if (calls(path, unwrapFunctions, internal)) {
         if (argPath && argPath.isExpression()) {
           meshExpression(argPath, internal);
           path.replaceWith(argPath);
         } else {
-          err(Errors.IncorrectArguments, argPath ?? path, "Failed to parse raw value", internal);
+          err(Errors.IncorrectArguments, argPath ?? path, "Failed to unwrap value", internal);
         }
       }
       // arrayModel/setModel/mapModel call
@@ -1285,8 +1293,8 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
           const init = declaration.node.init;
           const initPath = declaration.get("init");
 
-          // let a = raw(0)
-          if (calls(initPath, ["raw"], internal)) {
+          // let a = unwrap(0)
+          if (calls(initPath, unwrapFunctions, internal)) {
             declaration.get("init").replaceWith((init as types.CallExpression).arguments[0]);
             _path.node.kind = kind;
             switchToConst = false;
@@ -1339,36 +1347,6 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
             internal.stack.set(
               id.name,
               processObjectExpression(initPath as NodePath<types.ObjectExpression>, internal),
-            );
-            meshInit = false;
-            checkNonReactiveName(idPath, internal);
-          }
-          // const a = []
-          else if (initPath.isArrayExpression() && !(kind === "let" && id.name.startsWith("$"))) {
-            if (kind !== "const") {
-              err(Errors.RulesOfVasille, declaration, "Arrays must be must be declared as constants", internal);
-            }
-
-            meshExpression(initPath, internal);
-            meshInit = false;
-
-            initPath.replaceWith(arrayModel([initPath.node], declaration.node, internal, idName()));
-            checkNonReactiveName(idPath, internal);
-          }
-          // const s = new Set(), const m = new Map()
-          else if (
-            initPath.isNewExpression() &&
-            t.isIdentifier(initPath.node.callee) &&
-            ["Set", "Map"].includes(initPath.node.callee.name) &&
-            !(kind === "let" && id.name.startsWith("$"))
-          ) {
-            processModelCall(
-              initPath,
-              declaration.node,
-              initPath.node.callee.name as "Map" | "Set",
-              kind === "const",
-              internal,
-              idName(),
             );
             meshInit = false;
             checkNonReactiveName(idPath, internal);
@@ -1446,6 +1424,7 @@ export function compose(
   internal: Internal,
   isInternalSlot: boolean,
   isSlot: boolean,
+  skipCheckParams: boolean,
 ) {
   internal.stack.push();
 
@@ -1461,8 +1440,10 @@ export function compose(
     err(Errors.IncorrectArguments, path.get("params")[1], "Extra parameters are not allowed", internal);
   }
 
-  for (const param of path.get("params")) {
-    ignoreParams(param, internal, false);
+  if (!skipCheckParams) {
+    for (const param of path.get("params")) {
+      ignoreParams(param, internal, false);
+    }
   }
 
   if (!isSlot) {

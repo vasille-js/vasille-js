@@ -1,6 +1,6 @@
-import { store, For, component, setModel as VasilleSetModel } from "vasille-web";
+import { store, For, component, setModel } from "vasille-web";
 const modelStore = store(Vasille => {
-  const s = VasilleSetModel(Vasille, ["m"]);
+  const s = setModel(Vasille, ["m"]);
   return {
     s,
     addValue(value) {

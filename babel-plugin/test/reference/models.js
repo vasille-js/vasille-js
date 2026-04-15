@@ -1,9 +1,9 @@
 import { arrayModel, compose, mapModel, ref, setModel, safe as VasilleSafe } from "vasille-web";
 const C = compose(Vasille => {
   const $a = ref(3);
-  const b = arrayModel(Vasille, [1, 2, $a.V]);
-  const c = setModel(Vasille, [1, 2, $a.V]);
-  const d = mapModel(Vasille, [[1, $a.V], [2, 3]]);
+  const b = [1, 2, $a.V];
+  const c = new Set([1, 2, $a.V]);
+  const d = new Map([[1, $a.V], [2, 3]]);
   const e = {
     f: 1,
     e: 2,

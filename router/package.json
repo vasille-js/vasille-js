@@ -3,7 +3,7 @@
   "description": "The framework designed to build bulletproof frontends (router library).",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "5.0.0",
+  "version": "6.0.0-rc",
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
@@ -43,7 +43,7 @@
     "app",
     "safe",
     "simple",
-    "poweful"
+    "powerful"
   ],
   "author": "lixcode",
   "license": "MIT",
@@ -73,7 +73,7 @@
     "typescript-eslint": "^8.39.0"
   },
   "dependencies": {
-    "vasille": "^5.0.0",
-    "vasille-jsx": "^5.0.0"
+    "vasille": "6.0.0-rc.4",
+    "vasille-jsx": "^6.0.0-rc.2"
   }
 }

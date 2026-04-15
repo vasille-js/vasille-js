@@ -1,9 +1,9 @@
-import { compose, ref as VasilleRef, arrayModel as VasilleArrayModel, setModel as VasilleSetModel, mapModel as VasilleMapModel } from "vasille-web";
+import { compose, ref as VasilleRef } from "vasille-web";
 const C = compose(Vasille => {
   const $a = VasilleRef(3);
-  const b = VasilleArrayModel(Vasille, [1, 2, $a.V]);
-  const c = VasilleSetModel(Vasille, [1, 2, $a.V]);
-  const d = VasilleMapModel(Vasille, [[1, $a.V], [2, 3]]);
+  const b = [1, 2, $a.V];
+  const c = new Set([1, 2, $a.V]);
+  const d = new Map([[1, $a.V], [2, 3]]);
   const e = {
     f: 1,
     e: 2,

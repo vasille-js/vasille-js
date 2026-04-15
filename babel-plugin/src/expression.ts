@@ -1,6 +1,6 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { calls, dependencyInjections, hintFunctions } from "./call.js";
+import { calls, dependencyInjections, hintFunctions, unwrapFunctions } from "./call.js";
 import { ctx, Internal, StackedStates, V } from "./internal.js";
 import { checkNonReactiveName, err, Errors, ref } from "./lib";
 import { ignoreParams, meshAllUnknown, meshExpression } from "./mesh";
@@ -315,7 +315,7 @@ export function checkExpression(nodePath: NodePath<types.Expression | null | und
           err(Errors.IncompatibleContext, path, "The router is not available in stores", search.external, null);
         }
       } else if (
-        calls(path, ["raw"], search.external) &&
+        calls(path, unwrapFunctions, search.external) &&
         path.node.arguments.length === 1 &&
         t.isExpression(path.node.arguments[0])
       ) {
