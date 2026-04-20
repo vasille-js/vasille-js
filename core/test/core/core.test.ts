@@ -11,7 +11,7 @@ class CoreTest extends Reactive {
     freeze_test: IValue<boolean>;
 
     constructor() {
-        super();
+        super(1);
 
         this.ref0 = new Reference(1);
 
@@ -54,8 +54,8 @@ it("Reactive", function () {
 
     let test1 = false,
         test2 = false;
-    const destroyable1 = new Reactive(),
-        destroyable2 = new Reactive();
+    const destroyable1 = new Reactive(0),
+        destroyable2 = new Reactive(0);
 
     destroyable1.runOnDestroy(() => (test1 = true));
     destroyable2.runOnDestroy(() => (test1 = true));
@@ -64,12 +64,12 @@ it("Reactive", function () {
 
     coreTest.bind(destroyable1);
 
-    coreTest.destroy();
+    coreTest.destroy(Infinity);
 
     expect(test1).toBe(true);
     expect(test2).toBe(false);
 
-    destroyable2.destroy();
+    destroyable2.destroy(0);
 
     expect(test2).toBe(true);
 });

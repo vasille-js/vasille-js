@@ -6,5 +6,5 @@ export interface Destroyable {
     /**
      * Garbage collector method
      */
-    destroy(): void;
+    destroy(deep: number): void;
 }

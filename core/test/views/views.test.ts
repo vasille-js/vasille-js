@@ -22,17 +22,17 @@ it("array view", function () {
     let element!: Element;
     let view!: ArrayView<any, any, any, any, any>;
 
-    root.bind(array);
     root.tag("div", { k: node => (element = node) }, function (tag) {
         tag.create(
             (view = new ArrayView<number, Node, Element, TagOptions, typeof runner>(
                 runner,
+                tag.sDeep + 1,
                 array,
                 function (f, item) {
                     f.text(`${item}`);
                 },
                 v => new Reference(v),
-                r => new Fragment(r),
+                r => new Fragment(r, tag.sDeep + 1),
             )),
         );
     });
@@ -87,10 +87,10 @@ it("array view", function () {
     array.splice(1, 1, 4, 5, 6);
     expect(element.innerHTML).toBe("145637");
 
-    view.destroy();
+    view.destroy(view.sDeep);
     expect(element.innerHTML).toBe("");
 
-    root.destroy();
+    root.destroy(0);
     expect(window.document.body.children.length).toBe(0);
 });
 
@@ -106,6 +106,7 @@ it("single pass array view", function () {
         tag.create(
             (view = new SinglePassArrayView<{ id: number; value: number }, Node, Element, TagOptions, typeof runner>(
                 runner,
+                tag.sDeep + 1,
                 array,
                 item => item.id,
                 function (f, item, index) {
@@ -113,7 +114,7 @@ it("single pass array view", function () {
                 },
                 v => new Reference(v),
                 v => new Reference(v),
-                r => new Fragment(r),
+                r => new Fragment(r, tag.sDeep + 1),
             )),
         );
     });
@@ -178,10 +179,10 @@ it("single pass array view", function () {
     ];
     expect(element.innerHTML).toBe("(0:2)(1:3)");
 
-    view.destroy();
+    view.destroy(view.sDeep);
     expect(element.innerHTML).toBe("");
 
-    root.destroy();
+    root.destroy(0);
     expect(window.document.body.children.length).toBe(0);
 });
 
@@ -199,6 +200,7 @@ it("multiple text remount", function () {
         tag.create(
             new SinglePassArrayView<{ id: number; value: number }, Node, Element, TagOptions, typeof runner>(
                 runner,
+                tag.sDeep + 1,
                 array,
                 item => item.id,
                 function (f, item, index) {
@@ -211,7 +213,7 @@ it("multiple text remount", function () {
                 },
                 v => new Reference(v),
                 v => new Reference(v),
-                r => new Fragment(r),
+                r => new Fragment(r, tag.sDeep + 1),
             ),
         );
     });
@@ -221,7 +223,7 @@ it("multiple text remount", function () {
     array.V = [array.V[1]!, array.V[0]!];
     expect(element.innerHTML).toBe("0:10=11|1:0=1|");
 
-    root.destroy();
+    root.destroy(0);
 });
 
 it("multiple tag remount", function () {
@@ -238,6 +240,7 @@ it("multiple tag remount", function () {
         tag.create(
             new SinglePassArrayView<{ id: number; value: number }, Node, Element, TagOptions, typeof runner>(
                 runner,
+                tag.sDeep + 1,
                 array,
                 item => item.id,
                 function (f, item, index) {
@@ -250,7 +253,7 @@ it("multiple tag remount", function () {
                 },
                 v => new Reference(v),
                 v => new Reference(v),
-                r => new Fragment(r),
+                r => new Fragment(r, tag.sDeep + 1),
             ),
         );
     });
@@ -260,7 +263,7 @@ it("multiple tag remount", function () {
     array.V = [array.V[1]!, array.V[0]!];
     expect(element.innerHTML).toBe("<div>10</div><div>11</div><div>0</div><div>1</div>");
 
-    root.destroy();
+    root.destroy(0);
 });
 
 it("array view remount", function () {
@@ -277,6 +280,7 @@ it("array view remount", function () {
         tag.create(
             new SinglePassArrayView<{ id: number; value: number }, Node, Element, TagOptions, typeof runner>(
                 runner,
+                tag.sDeep + 1,
                 array,
                 item => item.id,
                 function (f, item, index) {
@@ -289,6 +293,7 @@ it("array view remount", function () {
                             typeof runner
                         >(
                             runner,
+                            f.sDeep + 1,
                             new Reference([item.V]),
                             i => i.id,
                             function (f, item, index) {
@@ -301,13 +306,13 @@ it("array view remount", function () {
                             },
                             v => new Reference(v),
                             v => new Reference(v),
-                            r => new Fragment(r),
+                            r => new Fragment(r, f.sDeep + 1),
                         ),
                     );
                 },
                 v => new Reference(v),
                 v => new Reference(v),
-                r => new Fragment(r),
+                r => new Fragment(r, tag.sDeep + 1),
             ),
         );
     });
@@ -317,7 +322,7 @@ it("array view remount", function () {
     array.V = [array.V[1]!, array.V[0]!];
     expect(element.innerHTML).toBe("<div>10</div><div>11</div><div>0</div><div>1</div>");
 
-    root.destroy();
+    root.destroy(0);
 });
 
 it("map view", function () {
@@ -332,17 +337,17 @@ it("map view", function () {
     let element!: HTMLElement;
     let view!: Fragment<any, any, any>;
 
-    root.bind(model);
     root.tag("div", { k: node => (element = node as HTMLElement) }, function (tag) {
         tag.create(
             (view = new MapView<number, number, Node, Element, TagOptions, typeof runner>(
                 runner,
+                tag.sDeep + 1,
                 model,
                 function (f, item) {
                     f.text(item);
                 },
                 v => new Reference(v),
-                r => new Fragment(r),
+                r => new Fragment(r, tag.sDeep + 1),
             )),
         );
     });
@@ -362,10 +367,10 @@ it("map view", function () {
     expect(element.innerHTML).toBe("");
 
     model.set(1, 1);
-    view.destroy();
+    view.destroy(view.sDeep);
     expect(element.innerHTML).toBe("");
 
-    root.destroy();
+    root.destroy(0);
     expect(window.document.body.children.length).toBe(0);
 });
 
@@ -383,12 +388,14 @@ it("map view remount", function () {
         tag.create(
             new SinglePassArrayView<{ id: number; value: number }, Node, Element, TagOptions, typeof runner>(
                 runner,
+                tag.sDeep + 1,
                 array,
                 item => item.id,
                 function (f, item) {
                     f.create(
                         new MapView<number, number, Node, Element, TagOptions, typeof runner>(
                             runner,
+                            f.sDeep + 1,
                             new MapModel([[item.V.id, item.V.value]]),
                             function (f, item, key) {
                                 f.tag("div", {}, ctx => {
@@ -399,13 +406,13 @@ it("map view remount", function () {
                                 });
                             },
                             v => new Reference(v),
-                            r => new Fragment(r),
+                            r => new Fragment(r, f.sDeep + 1),
                         ),
                     );
                 },
                 v => new Reference(v),
                 v => new Reference(v),
-                r => new Fragment(r),
+                r => new Fragment(r, tag.sDeep + 1),
             ),
         );
     });
@@ -415,7 +422,7 @@ it("map view remount", function () {
     array.V = [array.V[1]!, array.V[0]!];
     expect(element.innerHTML).toBe("<div>10</div><div>11</div><div>0</div><div>1</div>");
 
-    root.destroy();
+    root.destroy(0);
 });
 
 it("set view", function () {
@@ -426,16 +433,16 @@ it("set view", function () {
     let element!: HTMLElement;
     let view!: Fragment<any, any, any>;
 
-    root.bind(model);
     root.tag("div", { k: node => (element = node as HTMLElement) }, function (f) {
         f.create(
             (view = new SetView<number, Node, Element, TagOptions, typeof runner>(
                 runner,
+                f.sDeep + 1,
                 model,
                 function (f, item) {
                     f.text(`${item}`);
                 },
-                r => new Fragment(r),
+                r => new Fragment(r, f.sDeep + 1),
             )),
         );
     });
@@ -452,10 +459,10 @@ it("set view", function () {
     expect(element.innerHTML).toBe("");
 
     model.add(1);
-    view.destroy();
+    view.destroy(view.sDeep);
     expect(element.innerHTML).toBe("");
 
-    root.destroy();
+    root.destroy(0);
 
     expect(window.document.body.children.length).toBe(0);
 });
@@ -467,18 +474,18 @@ it("view timeout test", function (done) {
     const model = new SetModel([1, 2, 3]);
     let element!: HTMLElement;
 
-    root.bind(model);
     root.tag("div", { k: node => (element = node as HTMLElement) }, function (f) {
         f.create(
             new SetView<number, Node, Element, TagOptions, typeof runner>(
                 runner,
+                f.sDeep + 1,
                 model,
                 function (f, item) {
                     setTimeout(() => {
                         f.text(`${item}`);
                     }, 0);
                 },
-                r => new Fragment(r),
+                r => new Fragment(r, f.sDeep + 1),
             ),
         );
     });
@@ -493,7 +500,7 @@ it("view timeout test", function (done) {
 
         setTimeout(() => {
             expect(element.innerHTML).toBe("1234");
-            root.destroy();
+            root.destroy(0);
             done();
         }, 0);
     }, 0);
@@ -513,25 +520,27 @@ it("set view remount", function () {
         tag.create(
             new SinglePassArrayView<{ id: number; value: number }, Node, Element, TagOptions, typeof runner>(
                 runner,
+                tag.sDeep + 1,
                 array,
                 item => item.id,
                 function (f, item) {
                     f.create(
                         new SetView<number, Node, Element, TagOptions, typeof runner>(
                             runner,
+                            f.sDeep + 1,
                             new SetModel([item.V.id, item.V.value]),
                             function (f, item) {
                                 f.tag("div", {}, ctx => {
                                     ctx.text(item);
                                 });
                             },
-                            r => new Fragment(r),
+                            r => new Fragment(r, f.sDeep + 1),
                         ),
                     );
                 },
                 v => new Reference(v),
                 v => new Reference(v),
-                r => new Fragment(r),
+                r => new Fragment(r, tag.sDeep + 1),
             ),
         );
     });
@@ -541,5 +550,5 @@ it("set view remount", function () {
     array.V = [array.V[1]!, array.V[0]!];
     expect(element.innerHTML).toBe("<div>10</div><div>11</div><div>0</div><div>1</div>");
 
-    root.destroy();
+    root.destroy(0);
 });

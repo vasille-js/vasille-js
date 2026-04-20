@@ -7,14 +7,31 @@ import { Destroyable } from "./destroyable.js";
  * @extends Destroyable
  */
 export class Reactive implements Destroyable {
+    public readonly sDeep: number;
+    public rDeep: number;
+
+    public constructor(deep: number) {
+        this.sDeep = this.rDeep = deep;
+    }
     /**
      * A list of user-defined bindings
      */
-    private linked: Destroyable[] = [];
+    private linked?: Destroyable[];
     private onDestroy?: () => void;
 
-    public bind<T extends Destroyable>(value: T): void {
-        this.linked.push(value);
+    public bind<T extends Destroyable & { rDeep: number }>(value: T): void {
+        if (this.linked) {
+            this.linked.push(value);
+        } else {
+            this.linked = [value];
+        }
+        if (this.rDeep > value.rDeep) {
+            this.refreshDeep(value.rDeep);
+        }
+    }
+
+    public refreshDeep(deep: number) {
+        this.rDeep = deep;
     }
 
     public runOnDestroy(func: () => void) {
@@ -28,11 +45,16 @@ export class Reactive implements Destroyable {
         } else {
             this.onDestroy = safe(func);
         }
+        // this component needs manual destruction
+        this.refreshDeep(0);
     }
 
-    public destroy() {
+    public destroy(deep: number) {
         this.onDestroy?.();
-        this.linked.forEach(item => item.destroy());
-        this.linked.splice(0);
+        if (this.rDeep < deep) {
+            this.linked?.forEach(item => {
+                item.destroy(deep);
+            });
+        }
     }
 }

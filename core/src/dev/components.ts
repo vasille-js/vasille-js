@@ -4,8 +4,7 @@ import { IRunner } from "../node/runner.js";
 import { Watch, WatchOptions } from "../node/watch.js";
 import {
     DevValue,
-    IDevRunner,
-    Inspector,
+    inspector,
     provideId,
     StaticPosition,
     toDevIdOrValue,
@@ -16,15 +15,16 @@ import { DevFragment } from "./node.js";
 
 export class DevWatch<Node, Element, TagOptions extends object, T> extends Watch<Node, Element, TagOptions, T> {
     public constructor(
-        input: WatchOptions<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>, T>,
-        runner: IDevRunner<Node, Element, TagOptions>,
+        input: WatchOptions<Node, Element, TagOptions, IRunner<Node, Element, TagOptions>, T>,
+        runner: IRunner<Node, Element, TagOptions>,
         usage: StaticPosition,
     ) {
-        super(input, runner);
+        super(input, runner, 1);
+        this.rDeep = 0;
 
         const id = provideId();
 
-        runner.inspector.createComponent({
+        inspector.createComponent({
             id: id,
             usage: usage,
             name: "Watch",
@@ -33,18 +33,18 @@ export class DevWatch<Node, Element, TagOptions extends object, T> extends Watch
         });
 
         this.runOnDestroy(() => {
-            runner.inspector.destroy({ id, time: Date.now() });
+            inspector.destroy({ id, time: Date.now() });
         });
     }
 }
 
 export class DevApp<Node, Element, TagOptions extends object> extends App<Node, Element, TagOptions> {
-    public constructor(node: Element, runner: IDevRunner<Node, Element, TagOptions>) {
+    public constructor(node: Element, runner: IRunner<Node, Element, TagOptions>) {
         super(node, runner);
 
         const id = provideId();
 
-        runner.inspector.createComponent({
+        inspector.createComponent({
             id: id,
             name: "App",
             props: {},
@@ -52,7 +52,7 @@ export class DevApp<Node, Element, TagOptions extends object> extends App<Node, 
         });
 
         this.runOnDestroy(() => {
-            runner.inspector.destroy({ id, time: Date.now() });
+            inspector.destroy({ id, time: Date.now() });
         });
     }
 }
@@ -61,7 +61,7 @@ export class DevPortal<
     Node,
     Element,
     TagOptions extends object,
-    Runner extends IDevRunner<Node, Element, TagOptions>,
+    Runner extends IRunner<Node, Element, TagOptions>,
 > extends Portal<Node, Element, TagOptions, Runner> {
     public readonly id: number;
 
@@ -72,11 +72,12 @@ export class DevPortal<
         usage: StaticPosition | undefined,
         name: string | undefined,
     ) {
-        super(input, runner);
+        super(input, runner, 1);
+        this.rDeep = 0;
 
         const id = (this.id = provideId());
 
-        runner.inspector.createComponent({
+        inspector.createComponent({
             id: id,
             name: name ?? "Portal",
             props: {},
@@ -86,7 +87,7 @@ export class DevPortal<
         });
 
         this.runOnDestroy(() => {
-            runner.inspector.destroy({ id, time: Date.now() });
+            inspector.destroy({ id, time: Date.now() });
         });
     }
 }
@@ -95,17 +96,18 @@ export class DevSwitchedNode<Node, Element, TagOptions extends object> extends S
     Node,
     Element,
     TagOptions,
-    IDevRunner<Node, Element, TagOptions>
+    IRunner<Node, Element, TagOptions>
 > {
     public readonly id: number;
 
     public constructor(
         usage: StaticPosition,
-        runner: IDevRunner<Node, Element, TagOptions>,
-        cases: SwitchedNodeCase<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>[],
+        runner: IRunner<Node, Element, TagOptions>,
+        cases: SwitchedNodeCase<Node, Element, TagOptions, IRunner<Node, Element, TagOptions>>[],
         _default?: (node: Fragment<Node, Element, TagOptions>) => void,
     ) {
-        super(runner, cases, _default);
+        super(runner, 1, cases, _default);
+        this.rDeep = 0;
 
         const id = provideId();
         const conditions: { [k: number]: number | DevValue } = {};
@@ -115,7 +117,7 @@ export class DevSwitchedNode<Node, Element, TagOptions extends object> extends S
         });
 
         this.id = id;
-        runner.inspector.createComponent({
+        inspector.createComponent({
             id: id,
             name: "Switch",
             props: conditions,
@@ -124,18 +126,14 @@ export class DevSwitchedNode<Node, Element, TagOptions extends object> extends S
         });
     }
 
-    public override destroy(keepNodes?: boolean): void {
-        this.runner.inspector.destroy({ id: this.id, time: Date.now() });
-        super.destroy(keepNodes);
+    public override destroy(deep: number, keepNodes?: boolean): void {
+        inspector.destroy({ id: this.id, time: Date.now() });
+        super.destroy(deep, keepNodes);
     }
 
     protected override newChild(
         index: number,
-    ): Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>> {
-        const frag = new DevFragment(this.runner, null, null, "Case", { index });
-
-        this.runner.inspector.setElementParent({ parent: this.id, child: frag.id });
-
-        return frag;
+    ): Fragment<Node, Element, TagOptions, IRunner<Node, Element, TagOptions>> {
+        return new DevFragment(this.runner, this.sDeep + 1, null, null, "Case", { index });
     }
 }

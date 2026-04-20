@@ -39,7 +39,10 @@ export {
     type ProtocolEventTrigger,
     type ProtocolComposeTime,
     type ProtocolError,
-    type IDevRunner,
+    type ProtocolObject,
+    type ProtocolObjectUpdate,
+    type ProtocolModelItem,
+    type ProtocolObjectProperty,
     type DestroyData,
     type EraseData,
     executionPosition,
@@ -54,6 +57,11 @@ export {
     toDevObject,
     toDevValue,
     errorToString,
+    wrapObject,
+    processObject,
+    EarlyInspector,
+    AbstractInspector,
+    inspector,
 } from "./inspectable.js";
 export { DevArrayModel, DevMapModel, DevSetModel } from "./models.js";
 export { DevFragment, ModelId, shareStateById } from "./node.js";

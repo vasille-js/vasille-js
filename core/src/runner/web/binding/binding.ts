@@ -6,6 +6,7 @@ import type { IValue } from "../../../core/ivalue.js";
  * @class Binding
  */
 export class Binding<T> implements Destroyable {
+    public readonly rDeep: number;
     private binding: IValue<T>;
     private func!: (value: T) => void;
 
@@ -15,6 +16,7 @@ export class Binding<T> implements Destroyable {
      */
     public constructor(value: IValue<T>) {
         this.binding = value;
+        this.rDeep = value.rDeep;
     }
 
     protected init(bounded: (v: T) => void) {
@@ -26,7 +28,10 @@ export class Binding<T> implements Destroyable {
     /**
      * Just clear bindings
      */
-    public destroy() {
-        this.binding.off(this.func);
+    public destroy(deep: number) {
+        /* istanbul ignore else */
+        if (this.binding.rDeep < deep) {
+            this.binding.off(this.func);
+        }
     }
 }

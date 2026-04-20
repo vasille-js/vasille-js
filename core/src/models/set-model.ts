@@ -18,7 +18,8 @@ type Arguments<T> = [Ops.Clear] | [Ops.Remove, T] | [Ops.Add, T];
  * @extends Set
  */
 export class SetModel<T> extends Set<T> {
-    public listener: Listener<Arguments<T>>;
+    public readonly listener: Listener<Arguments<T>>;
+    public readonly rDeep: number;
 
     /**
      * Constructs a set model based on a set
@@ -30,7 +31,7 @@ export class SetModel<T> extends Set<T> {
         set?.forEach(item => {
             super.add(item);
         });
-        ctx?.bind(this);
+        this.rDeep = ctx?.sDeep || 0;
     }
 
     /**
@@ -60,10 +61,6 @@ export class SetModel<T> extends Set<T> {
         this.listener.emit(Ops.Remove, value);
         return super.delete(value);
     }
-
-    public destroy(): void {
-        this.clear();
-    }
 }
 
 export class SetView<
@@ -79,24 +76,25 @@ export class SetView<
 
     public constructor(
         runner: Runner,
+        deep: number,
         private readonly model: SetModel<T>,
         slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: T) => void,
-        private readonly frag: (runner: Runner) => Fragment<Node, Element, TagOptions, Runner>,
+        private readonly frag: (runner: Runner, deep: number) => Fragment<Node, Element, TagOptions, Runner>,
     ) {
-        super(runner);
+        super(runner, deep);
         this.slot = safe(slot);
     }
 
     public override compose() {
         const view = this;
 
-        function create(value: T) {
-            const frag = view.frag(view.runner);
+        function create(this: void, value: T) {
+            const frag = view.frag(view.runner, view.sDeep + 1);
 
-            frag.link(view, view.lastChild, undefined);
+            frag.link(view, view.last, undefined);
             view.slot(frag, value);
             view.map.set(value, frag);
-            view.lastChild = frag;
+            view.last = frag;
         }
         function acceptUpdate(op: Ops, value?: T) {
             if (op === Ops.Add) {
@@ -104,7 +102,7 @@ export class SetView<
 
                 if (existing) {
                     removeFragmentFromTree(existing);
-                    existing.destroy();
+                    existing.destroy(existing.sDeep);
                 }
                 create(value!);
             } else if (op === Ops.Remove) {
@@ -113,12 +111,12 @@ export class SetView<
                 /* istanbul ignore else */
                 if (item) {
                     removeFragmentFromTree(item);
-                    item.destroy();
+                    item.destroy(item.sDeep);
                 }
             } else {
-                view.map.forEach(frag => frag.destroy());
+                view.map.forEach(frag => frag.destroy(frag.sDeep));
                 view.map.clear();
-                view.lastChild = undefined;
+                view.last = undefined;
             }
         }
 
@@ -135,13 +133,17 @@ export class SetView<
         [...this.map.values()].reverse().forEach(item => item.remount());
     }
 
-    public override destroy(keepNodes?: boolean): void {
+    public override destroy(deep: number, keepNodes?: boolean): void {
         /* istanbul ignore else */
-        if (this.acceptUpdate) {
+        if (this.acceptUpdate && this.model.rDeep < deep) {
             this.model.listener.off(this.acceptUpdate);
         }
-        this.map.forEach(frag => frag.destroy());
-        this.map.clear();
-        super.destroy(keepNodes);
+        this.map.forEach(frag => {
+            /* istanbul ignore else */
+            if (frag.rDeep < deep || !keepNodes) {
+                frag.destroy(deep, keepNodes);
+            }
+        });
+        super.destroy(deep, keepNodes);
     }
 }

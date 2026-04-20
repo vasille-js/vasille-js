@@ -17,11 +17,11 @@ it("Fragment", function () {
     const runner = new Runner(window.document);
     const root = new App<Node, Element, TagOptions>(window.document.body, runner);
 
-    root.create(new FragmentTest(runner));
+    root.create(new FragmentTest(runner, 1));
     expect(root.children.length).toBe(1);
     expect(compose).toBe(true);
 
-    root.destroy();
+    root.destroy(0);
 });
 
 it("Tag", function () {
@@ -50,7 +50,7 @@ it("Tag", function () {
         expect(div.node!.childNodes[2]!.textContent).toBe("");
     });
 
-    root.destroy();
+    root.destroy(0);
 });
 
 it("if", function () {
@@ -60,7 +60,7 @@ it("if", function () {
     let check2 = true;
 
     root.create(
-        new SwitchedNode<Node, Element, TagOptions>(root.runner, [
+        new SwitchedNode<Node, Element, TagOptions>(root.runner, root.sDeep + 1, [
             {
                 $case: new Reference(true),
                 slot: (node, value) => {
@@ -71,7 +71,7 @@ it("if", function () {
         ]),
     );
     root.create(
-        new SwitchedNode<Node, Element, TagOptions>(root.runner, [
+        new SwitchedNode<Node, Element, TagOptions>(root.runner, root.sDeep + 1, [
             {
                 $case: new Reference(false),
                 slot: () => (check2 = false),
@@ -81,7 +81,7 @@ it("if", function () {
 
     expect(check1).toBe(true);
     expect(check2).toBe(true);
-    root.destroy();
+    root.destroy(0);
 });
 
 it("if else", function () {
@@ -96,6 +96,7 @@ it("if else", function () {
     root.create(
         new SwitchedNode<Node, Element, TagOptions>(
             root.runner,
+            root.sDeep + 1,
             [{ $case: iv1, slot: () => (check1 = 1) }],
             () => (check1 = 2),
         ),
@@ -104,6 +105,7 @@ it("if else", function () {
     root.create(
         new SwitchedNode<Node, Element, TagOptions>(
             root.runner,
+            root.sDeep + 1,
             [{ $case: iv2, slot: () => (check2 = 1) }],
             () => (check2 = 2),
         ),
@@ -118,7 +120,7 @@ it("if else", function () {
     expect(check1).toBe(2);
     expect(check2).toBe(1);
 
-    root.destroy();
+    root.destroy(0);
 });
 
 it("switch", function () {
@@ -131,6 +133,7 @@ it("switch", function () {
     root.create(
         new SwitchedNode<Node, Element, TagOptions>(
             root.runner,
+            root.sDeep + 1,
             [
                 { $case: new Expression(v => v == 1, [v]), slot: () => (check = 1) },
                 { $case: new Expression(v => v == 2, [v]), slot: () => (check = 2) },
@@ -154,7 +157,7 @@ it("switch", function () {
     v2.V = false;
     expect(check).toBe(4);
 
-    root.destroy();
+    root.destroy(0);
 });
 
 it("INode", function () {
@@ -162,7 +165,7 @@ it("INode", function () {
     const runner = new Runner(window.document);
     const root = new App<Node, Element, TagOptions>(window.document.body, runner);
 
-    root.create(new Fragment<Node, Element, TagOptions>(runner), function (test) {
+    root.create(new Fragment<Node, Element, TagOptions>(runner, 1), function (test) {
         // attr
         (function () {
             const attrName = "data-attr";
@@ -250,7 +253,7 @@ it("INode", function () {
         })();
     });
 
-    root.destroy();
+    root.destroy(0);
 });
 
 it("INode Events 1", function () {
@@ -267,7 +270,7 @@ it("INode Events 1", function () {
     element.click();
     expect(test).toBe(true);
 
-    root.destroy();
+    root.destroy(0);
 });
 
 it("INode Events 2", function () {
@@ -284,7 +287,7 @@ it("INode Events 2", function () {
     element.click();
     expect(test).toBe(true);
 
-    root.destroy();
+    root.destroy(0);
 });
 
 it("bind DOM api test", function () {
@@ -346,7 +349,7 @@ it("bind DOM api test", function () {
 
     expect(media2.volume).toBe(0.75);
 
-    root.destroy();
+    root.destroy(0);
 });
 
 it("Error handling", function () {
@@ -407,7 +410,7 @@ it("Insert adjacent", function () {
 
     root.tag("div", {}, function (node) {
         node.create(
-            new SwitchedNode<Node, Element, TagOptions>(node.runner, [
+            new SwitchedNode<Node, Element, TagOptions>(node.runner, node.sDeep + 1, [
                 {
                     $case: bool,
                     slot(node) {
@@ -430,7 +433,7 @@ it("Find first child of tag", function () {
 
     root.tag("div", {}, function (node) {
         node.create(
-            new SwitchedNode<Node, Element, TagOptions>(node.runner, [
+            new SwitchedNode<Node, Element, TagOptions>(node.runner, node.sDeep + 1, [
                 {
                     $case: bool,
                     slot(node) {
@@ -439,7 +442,7 @@ it("Find first child of tag", function () {
                 },
             ]),
         );
-        node.create(new Fragment<Node, Element, TagOptions>(runner), node => {
+        node.create(new Fragment<Node, Element, TagOptions>(runner, node.sDeep + 1), node => {
             node.tag("span", {});
         });
 

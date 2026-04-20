@@ -47,7 +47,7 @@ export function removeFragmentFromTree(fragment: Fragment<unknown, unknown, obje
     if (prev) {
         prev.next = next;
     }
-    if (parent.lastChild === fragment) {
-        parent.lastChild = prev;
+    if (parent.last === fragment) {
+        parent.last = prev;
     }
 }

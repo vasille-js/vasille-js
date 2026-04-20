@@ -28,8 +28,8 @@ export class Watch<
     private readonly slot?: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: T) => void;
     private handler?: (value: T) => void;
 
-    public constructor(input: WatchOptions<Node, Element, TagOptions, Runner, T>, runner: Runner) {
-        super(runner);
+    public constructor(input: WatchOptions<Node, Element, TagOptions, Runner, T>, runner: Runner, deep: number) {
+        super(runner, deep);
         this.model = input.model;
         this.slot = input.slot;
     }
@@ -40,10 +40,10 @@ export class Watch<
         if (slot) {
             const handler = (this.handler = value => {
                 this.children.forEach(child => {
-                    child.destroy();
+                    child.destroy(child.sDeep);
                 });
                 this.children.splice(0);
-                this.lastChild = undefined;
+                this.last = undefined;
                 slot(this, value);
             });
             this.model.on(handler);
@@ -51,10 +51,10 @@ export class Watch<
         }
     }
 
-    public override destroy() {
-        if (this.handler) {
+    public override destroy(deep: number) {
+        if (this.handler && this.model.rDeep < deep) {
             this.model.off(this.handler);
         }
-        super.destroy();
+        super.destroy(deep);
     }
 }

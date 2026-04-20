@@ -10,10 +10,10 @@ type Arguments<T> = [number, number, T[]] | [number, number];
 /**
  * Model based on Array class
  * @extends Array
- * @implements ListenableModel
  */
 export class ArrayModel<T> extends Array<T> {
-    public listener: Listener<Arguments<T>>;
+    public readonly listener: Listener<Arguments<T>>;
+    public readonly rDeep: number;
 
     /**
      * @param data {Array} input data
@@ -22,11 +22,11 @@ export class ArrayModel<T> extends Array<T> {
     public constructor(data?: Array<T> | number, ctx?: Reactive) {
         super(typeof data === "number" ? data : 0);
         this.listener = new Listener();
+        this.rDeep = ctx?.sDeep || 0;
 
         if (data instanceof Array) {
             super.push(...data);
         }
-        ctx?.bind(this);
     }
 
     /* Array members */
@@ -119,10 +119,6 @@ export class ArrayModel<T> extends Array<T> {
         this[at] = with_;
         return this;
     }
-
-    public destroy(): void {
-        this.splice(0);
-    }
 }
 
 interface CacheItem<Node, Element, TagOptions extends object, Runner extends IRunner<Node, Element, TagOptions>> {
@@ -149,11 +145,15 @@ class BaseArrayView<
         }
     }
 
-    public override destroy(keepNodes?: boolean): void {
+    public override destroy(deep: number, keepNodes?: boolean): void {
         for (let i = this.cache.length - 1; i >= 0; i--) {
-            this.cache[i]?.frag.destroy(keepNodes);
+            const frag = this.cache[i]!.frag;
+            /* istanbul ignore else */
+            if (!keepNodes || frag.sDeep < deep) {
+                frag.destroy(deep, keepNodes);
+            }
         }
-        super.destroy(keepNodes);
+        super.destroy(deep, keepNodes);
     }
 }
 
@@ -169,19 +169,20 @@ export class ArrayView<
 
     public constructor(
         runner: Runner,
+        deep: number,
         private readonly model: ArrayModel<T>,
         slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: T, index: IValue<number>) => void,
         private readonly ref: <T>(v: T) => IValue<T>,
-        private readonly frag: (runner: Runner) => Fragment<Node, Element, TagOptions, Runner>,
+        private readonly frag: (runner: Runner, deep: number) => Fragment<Node, Element, TagOptions, Runner>,
     ) {
-        super(runner);
+        super(runner, deep);
         this.slot = safe(slot);
     }
 
     public override compose() {
         const view = this;
 
-        function apply(index: number, remove: number, values?: T[]) {
+        function apply(this: void, index: number, remove: number, values?: T[]) {
             const children: CacheItem<Node, Element, TagOptions, Runner>[] = view.cache;
             const toInsert: CacheItem<Node, Element, TagOptions, Runner>[] = [];
             const prev = children[index - 1]?.frag;
@@ -192,7 +193,7 @@ export class ArrayView<
             // create new fragments
             for (let i = 0; i < length; i++) {
                 toInsert[i] = {
-                    frag: view.frag(view.runner),
+                    frag: view.frag(view.runner, view.sDeep + 1),
                     index: view.ref(i + index),
                 };
             }
@@ -207,7 +208,7 @@ export class ArrayView<
 
             // destroy removed nodes
             for (let i = 0; i < remove; i++) {
-                children[index + i]?.frag.destroy();
+                children[index + i]?.frag.destroy(view.sDeep + 1);
             }
 
             // modify the cache
@@ -229,12 +230,12 @@ export class ArrayView<
         this.apply = apply;
     }
 
-    public override destroy(keepNodes?: boolean) {
+    public override destroy(deep: number, keepNodes?: boolean) {
         /* istanbul ignore else */
-        if (this.apply) {
+        if (this.apply && this.model.rDeep < deep) {
             this.model.listener.off(this.apply);
         }
-        super.destroy(keepNodes);
+        super.destroy(deep, keepNodes);
     }
 }
 
@@ -258,14 +259,15 @@ export class DiffingArrayView<
 
     public constructor(
         runner: Runner,
+        deep: number,
         protected readonly model: IValue<T[]>,
         protected readonly key: (item: T) => number | string,
         slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: IValue<T>, index: IValue<number>) => void,
         protected readonly vRef: <T>(v: T) => IValue<T>,
         protected readonly iRef: <T>(v: T) => IValue<T>,
-        protected readonly frag: (runner: Runner) => Fragment<Node, Element, TagOptions, Runner>,
+        protected readonly frag: (runner: Runner, deep: number) => Fragment<Node, Element, TagOptions, Runner>,
     ) {
-        super(runner);
+        super(runner, deep);
         this.slot = safe(slot);
     }
 
@@ -276,7 +278,7 @@ export class DiffingArrayView<
         prev?: Fragment<Node, Element, TagOptions, Runner>,
         next?: Fragment<Node, Element, TagOptions, Runner>,
     ) {
-        const frag = this.frag(this.runner);
+        const frag = this.frag(this.runner, this.sDeep + 1);
         const index = this.iRef(newCache.length);
         const value = this.vRef(modelItem);
         const cache: KeyedCacheItem<T, Node, Element, TagOptions, Runner> = {
@@ -295,12 +297,12 @@ export class DiffingArrayView<
         return cache;
     }
 
-    public override destroy(keepNodes?: boolean) {
+    public override destroy(deep: number, keepNodes?: boolean) {
         /* istanbul ignore else */
-        if (this.match) {
+        if (this.match && this.model.rDeep < deep) {
             this.model.off(this.match);
         }
-        super.destroy(keepNodes);
+        super.destroy(deep, keepNodes);
     }
 }
 
@@ -410,7 +412,7 @@ export class SinglePassArrayView<
             // destroy removed nodes
             unmounted.forEach(item => {
                 existing.delete(item.key);
-                item.frag.destroy();
+                item.frag.destroy(item.frag.sDeep);
             });
 
             view.cache = newCache;
@@ -421,89 +423,3 @@ export class SinglePassArrayView<
         this.match = match;
     }
 }
-
-// export class MultiPassArrayView<
-//     T,
-//     Node,
-//     Element,
-//     TagOptions extends object,
-//     Runner extends IRunner<Node, Element, TagOptions>,
-// > extends DiffingArrayView<T, Node, Element, TagOptions, Runner> {
-//     public override compose() {
-//         const view = this;
-//
-//         function match(model: T[]) {
-//             const children = view.cache;
-//             const newCache: KeyedCacheItem<T, Node, Element, TagOptions, Runner>[] = [];
-//             const modelKeys = new Set<number | string>();
-//             const modelData: { item: T; key: number | string }[] = [];
-//
-//             // pass 1, transform model data to keyed data
-//             for (let i = 0; i < model.length; i++) {
-//                 const modelItem = model[i] as T;
-//                 const key = view.key(modelItem);
-//                 modelKeys.add(key);
-//                 modelData.push({ item: modelItem, key });
-//             }
-//
-//             let gt = 0,
-//                 lt = 0;
-//
-//             // pass 2, destroy unexisting items
-//             for (let i = 0; i < children.length; i++) {
-//                 const cacheItem = children[i]!;
-//                 const key = cacheItem.key;
-//
-//                 if (!modelKeys.has(key)) {
-//                     const { next, prev } = cacheItem.frag;
-//
-//                     if (prev) {
-//                         prev.next = next;
-//                     }
-//                     if (next) {
-//                         next.prev = prev;
-//                     }
-//
-//                     cacheItem.unmounted = true;
-//                     cacheItem.frag.destroy();
-//                 }
-//             }
-//
-//             const modelLength = model.length;
-//             const cacheLength = children.length;
-//             let modelIndex = 0;
-//             let cacheIndex = 0;
-//
-//             // pass 3, create new items
-//             while (modelIndex < modelLength && cacheIndex <= cacheLength) {
-//                 const modelItem = modelData[modelIndex]!;
-//                 const cacheItem = children[cacheIndex];
-//                 const key = modelItem.key;
-//
-//                 // ideal case, a match
-//                 if (key === cacheItem?.key) {
-//                     cacheItem.value.V = modelItem.item;
-//                     cacheItem.index.V = modelIndex;
-//                     newCache.push(cacheItem);
-//                     modelIndex++;
-//                     cacheIndex++;
-//                 }
-//                 // skip unmounted items in step 2
-//                 else if (cacheItem?.unmounted) {
-//                     cacheIndex++;
-//                 }
-//                 // add missing items
-//                 else {
-//                     view.addChild(newCache, key, modelItem.item, newCache[modelIndex - 1]?.frag, cacheItem?.frag);
-//                     modelIndex++;
-//                 }
-//             }
-//
-//             view.cache = newCache;
-//         }
-//
-//         match(this.model.V);
-//         this.model.on(match);
-//         this.match = match;
-//     }
-// }

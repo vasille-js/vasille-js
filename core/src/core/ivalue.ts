@@ -27,6 +27,14 @@ export abstract class IValue<T> {
      */
     public abstract off(handler: (value: T) => void): void;
 
+    /** self dependency deep */
+    public readonly sDeep: number;
+    public rDeep: number;
+
+    public constructor(deep: number) {
+        this.sDeep = this.rDeep = deep;
+    }
+
     public toJSON(): T {
         return this.V;
     }

@@ -1,9 +1,9 @@
 {
   "name": "vasille",
-  "description": "The same framework which is designed to build bulletproof frontends (core library).",
+  "description": "The same devkit which is designed to build fault tolerant frontends (core library).",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
-  "version": "6.0.0-rc.4",
+  "version": "7.0.0-rc.1",
   "exports": {
     ".": {
       "types": "./types/index.d.ts",

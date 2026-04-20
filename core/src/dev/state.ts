@@ -7,7 +7,7 @@ import {
     errorToString,
     ExecutionPosition,
     InspectableReference,
-    Inspector,
+    inspector,
     provideId,
     StaticPosition,
     toDevValue,
@@ -25,8 +25,8 @@ export class BaseDevReference<T> extends DevIValue<T> {
     protected state: T;
     protected readonly onChange: Set<(value: T, position?: ExecutionPosition) => void>;
 
-    public constructor(value: T) {
-        super();
+    public constructor(value: T, ctx?: Reactive) {
+        super(ctx?.sDeep ?? 0);
         this.state = value;
         this.onChange = new Set();
     }
@@ -75,15 +75,14 @@ export class BaseDevReference<T> extends DevIValue<T> {
 
 export class DevReference<T> extends BaseDevReference<T> implements InspectableReference<T>, Destroyable {
     public readonly id: number;
-    public readonly inspector: Inspector | undefined;
 
-    public constructor(value: T, declaration: StaticPosition, inspector?: Inspector) {
-        super(value);
+    public constructor(value: T, ctx: Reactive | undefined, declaration: StaticPosition) {
+        super(value, ctx);
 
         this.id = provideId();
-        this.inspector = inspector;
+        this.rDeep = ctx?.sDeep ?? 0;
 
-        inspector?.newReference({
+        inspector.newReference({
             id: this.id,
             declaration: declaration,
             value: toDevValue(this.state),
@@ -96,7 +95,7 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
     }
 
     protected override shareUpdate(position?: ExecutionPosition) {
-        this.inspector?.updateReference({
+        inspector.updateReference({
             id: this.id,
             time: Date.now(),
             position: position,
@@ -105,7 +104,7 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
     }
 
     protected override shareError(error: unknown, position?: ExecutionPosition) {
-        this.inspector?.reportReferenceError({
+        inspector.reportReferenceError({
             targetId: this.id,
             time: Date.now(),
             error: errorToString(error),
@@ -114,23 +113,21 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
     }
 
     protected shareDestroy() {
-        this.inspector?.destroy({ id: this.id, time: Date.now() });
+        inspector.destroy({ id: this.id, time: Date.now() });
     }
 }
 
 export class ExpressionDevReference<T> extends BaseDevReference<T> implements InspectableReference<T> {
     public readonly id: number;
-    public readonly inspector: Inspector | undefined;
 
-    public constructor(id: number, value: T, inspector: Inspector | undefined) {
+    public constructor(id: number, value: T) {
         super(value);
 
         this.id = id;
-        this.inspector = inspector;
     }
 
     protected override shareError(error: unknown, position: ExecutionPosition) {
-        this.inspector?.reportReferenceError({
+        inspector.reportReferenceError({
             targetId: this.id,
             time: Date.now(),
             error: errorToString(error),
@@ -145,7 +142,6 @@ export class DevExpression<T, Args extends unknown[]>
 {
     public readonly id: number;
     public readonly declaration: StaticPosition;
-    public readonly inspector: Inspector | undefined;
 
     private values: KindOfDevIValue<Args>;
     private readonly valuesCache: Args;
@@ -158,10 +154,9 @@ export class DevExpression<T, Args extends unknown[]>
         ctx: Reactive | undefined,
         depsCode: string[],
         declaration: StaticPosition,
-        inspector: Inspector | undefined,
         isWatch: boolean,
     ) {
-        super();
+        super(ctx?.sDeep ?? 0);
 
         const id = provideId();
         const handler = (i: number, value: unknown, position: ExecutionPosition) => {
@@ -172,7 +167,7 @@ export class DevExpression<T, Args extends unknown[]>
 
                 if (this.sync.V !== newValue || isWatch) {
                     this.sync.update(newValue, position);
-                    inspector?.updateExpression({
+                    inspector.updateExpression({
                         id: id,
                         time: Date.now(),
                         position: position,
@@ -181,7 +176,7 @@ export class DevExpression<T, Args extends unknown[]>
                     });
                 }
             } catch (e) {
-                inspector?.reportExpressionCalculationError({
+                inspector.reportExpressionCalculationError({
                     targetId: id,
                     time: Date.now(),
                     error: errorToString(e),
@@ -194,10 +189,9 @@ export class DevExpression<T, Args extends unknown[]>
 
         this.valuesCache = values.map(item => item?.V) as Args;
 
-        this.sync = new ExpressionDevReference(id, func.apply(this, this.valuesCache), inspector);
+        this.sync = new ExpressionDevReference(id, func.apply(this, this.valuesCache));
         this.id = id;
         this.declaration = declaration;
-        this.inspector = inspector;
 
         let i = 0;
         values.forEach(value => {
@@ -208,9 +202,10 @@ export class DevExpression<T, Args extends unknown[]>
         });
 
         this.values = values;
+        this.rDeep = Math.min(...values.filter(Boolean).map(item => item!.sDeep));
         ctx?.bind(this);
 
-        inspector?.newExpression({
+        inspector.newExpression({
             id: this.id,
             declaration: this.declaration,
             isWatch: isWatch,
@@ -251,7 +246,7 @@ export class DevExpression<T, Args extends unknown[]>
     }
 
     public destroy(): void {
-        this.inspector?.destroy({ id: this.id, time: Date.now() });
+        inspector.destroy({ id: this.id, time: Date.now() });
         for (let i = 0; i < this.values.length; i++) {
             this.values[i]?.off(this.linkedFunc[i]!);
         }

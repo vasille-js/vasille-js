@@ -1,44 +1,44 @@
 import { Reactive } from "../core/core.js";
+import { Destroyable } from "../core/destroyable.js";
 import { ArrayModel } from "../models/array-model.js";
 import { MapModel } from "../models/map-model.js";
 import { SetModel } from "../models/set-model.js";
-import { DevValue, Inspector, provideId, StaticPosition, toDevIdOrValue, toDevValue } from "./inspectable.js";
+import {
+    DevValue,
+    inspector,
+    Inspector,
+    provideId,
+    StaticPosition,
+    toDevIdOrValue,
+    toDevValue,
+} from "./inspectable.js";
 
-export class DevArrayModel<T> extends ArrayModel<T> {
+export class DevArrayModel<T> extends ArrayModel<T> implements Destroyable {
     public readonly id: number;
-    public readonly inspector: Inspector | undefined;
 
-    public constructor(
-        inspector: Inspector | undefined,
-        usage: StaticPosition,
-        data?: Array<T> | number,
-        ctx?: Reactive,
-    ) {
+    public constructor(usage: StaticPosition, data?: Array<T> | number, ctx?: Reactive) {
         super(data, ctx);
 
         this.id = provideId();
-        this.inspector = inspector;
 
-        if (inspector) {
-            const values: [DevValue, DevValue][] = [];
-
-            for (let i = 0; i < this.length; i++) {
-                values.push([toDevValue(i), toDevValue(this[i])]);
-            }
-
-            inspector.createModel({
-                id: this.id,
-                type: "array",
-                values: values,
-                usage: usage,
-                time: Date.now(),
+        ctx?.bind(this);
+        inspector.createModel({
+            id: this.id,
+            type: "array",
+            usage: usage,
+            time: Date.now(),
+        });
+        this.forEach((item, index) => {
+            inspector.createModelItem({
+                model: this.id,
+                key: toDevValue(index),
+                value: toDevValue(item),
             });
-        }
+        });
     }
 
-    public override destroy(): void {
-        this.inspector?.destroy({ id: this.id, time: Date.now() });
-        super.destroy();
+    public destroy(deep: number): void {
+        inspector.destroy({ id: this.id, time: Date.now() });
     }
 
     public override fill(value: T, start?: number, end?: number): this {
@@ -76,7 +76,7 @@ export class DevArrayModel<T> extends ArrayModel<T> {
     }
 
     protected shareChange(method: string, args: unknown[], result: unknown) {
-        this.inspector?.updateModel({
+        inspector.updateModel({
             id: this.id,
             method: method,
             args: args.map(toDevValue),
@@ -85,27 +85,30 @@ export class DevArrayModel<T> extends ArrayModel<T> {
     }
 }
 
-export class DevSetModel<T> extends SetModel<T> {
+export class DevSetModel<T> extends SetModel<T> implements Destroyable {
     public readonly id: number;
-    public readonly inspector: Inspector | undefined;
 
-    public constructor(inspector: Inspector | undefined, usage: StaticPosition, set?: T[], ctx?: Reactive) {
+    public constructor(usage: StaticPosition, set?: T[], ctx?: Reactive) {
         super(set, ctx);
         this.id = provideId();
-        this.inspector = inspector;
 
-        inspector?.createModel({
+        ctx?.bind(this);
+        inspector.createModel({
             id: this.id,
             type: "set",
-            values: [...this].map(item => [toDevValue(0), toDevValue(item)]),
             usage: usage,
             time: Date.now(),
         });
+        for (const item of this) {
+            inspector.createModelItem({
+                model: this.id,
+                value: toDevValue(item),
+            });
+        }
     }
 
-    public override destroy(): void {
-        this.inspector?.destroy({ id: this.id, time: Date.now() });
-        super.destroy();
+    public destroy(): void {
+        inspector.destroy({ id: this.id, time: Date.now() });
     }
 
     public override add(value: T): this {
@@ -125,7 +128,7 @@ export class DevSetModel<T> extends SetModel<T> {
     }
 
     protected shareChange(method: string, args: unknown[], result: unknown) {
-        this.inspector?.updateModel({
+        inspector.updateModel({
             id: this.id,
             method: method,
             args: args.map(toDevValue),
@@ -134,26 +137,31 @@ export class DevSetModel<T> extends SetModel<T> {
     }
 }
 
-export class DevMapModel<K, T> extends MapModel<K, T> {
+export class DevMapModel<K, T> extends MapModel<K, T> implements Destroyable {
     public readonly id: number;
-    public readonly inspector: Inspector | undefined;
 
-    public constructor(inspector: Inspector | undefined, usage: StaticPosition, map?: [K, T][], ctx?: Reactive) {
+    public constructor(usage: StaticPosition, map?: [K, T][], ctx?: Reactive) {
         super(map, ctx);
         this.id = provideId();
-        this.inspector = inspector;
 
-        inspector?.createModel({
+        ctx?.bind(this);
+        inspector.createModel({
             id: this.id,
             type: "map",
-            values: [...this.entries()].map(([key, value]) => [toDevValue(key), toDevValue(value)]),
             usage: usage,
             time: Date.now(),
         });
+        for (const [key, value] of this.entries()) {
+            inspector.createModelItem({
+                model: this.id,
+                key: toDevValue(key),
+                value: toDevValue(value),
+            });
+        }
     }
 
-    public override destroy(): void {
-        this.inspector?.destroy({ id: this.id, time: Date.now() });
+    public destroy(deep: number): void {
+        inspector.destroy({ id: this.id, time: Date.now() });
     }
 
     public override clear(): void {
@@ -173,7 +181,7 @@ export class DevMapModel<K, T> extends MapModel<K, T> {
     }
 
     protected shareChange(method: string, args: unknown[], result: unknown) {
-        this.inspector?.updateModel({
+        inspector.updateModel({
             id: this.id,
             method: method,
             args: args.map(toDevValue),

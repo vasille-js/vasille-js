@@ -14,7 +14,7 @@ it("Watch Test", function () {
             {
                 model,
                 slot: function (node, input) {
-                    node.create(new Fragment<Node, Element, TagOptions>(runner), ctx => {
+                    node.create(new Fragment<Node, Element, TagOptions>(runner, root.sDeep + 1), ctx => {
                         ctx.tag("div", {}, ctx => {
                             ctx.text(input);
                         });
@@ -22,10 +22,11 @@ it("Watch Test", function () {
                 },
             },
             runner,
+            root.sDeep + 1,
         ),
     );
 
-    root.create(new Watch<Node, Element, TagOptions, boolean>({ model }, runner));
+    root.create(new Watch<Node, Element, TagOptions, boolean>({ model }, runner, root.sDeep + 1));
 
     expect(body.children.length).toBe(1);
     expect(body.children[0]!.innerHTML).toBe("false");
@@ -33,7 +34,7 @@ it("Watch Test", function () {
     expect(body.children[0]!.innerHTML).toBe("true");
     expect(root.children.length).toBe(2);
 
-    root.destroy();
+    root.destroy(0);
 
     expect(body.children.length).toBe(0);
 });

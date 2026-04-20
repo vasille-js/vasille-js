@@ -20,7 +20,7 @@ export class App<
      * @param runner {IRunner} A adapter which execute DOM manipulation
      */
     constructor(node: Element, runner: Runner) {
-        super(runner);
+        super(runner, 0);
 
         this.node = node;
     }
@@ -48,8 +48,8 @@ export class Portal<
 > extends Fragment<Node, Element, TagOptions, Runner> {
     private readonly node: Element;
 
-    constructor(input: PortalOptions<Node, Element, TagOptions, Runner>, runner: Runner) {
-        super(runner);
+    constructor(input: PortalOptions<Node, Element, TagOptions, Runner>, runner: Runner, deep: number) {
+        super(runner, deep);
 
         this.node = input.node;
     }

@@ -1,10 +1,10 @@
 import { IValue } from "../core/ivalue.js";
 import { TextProps } from "../node/node.js";
+import { IRunner } from "../node/runner.js";
 import { Runner, Tag, TagOptions, TextNode } from "../runner/web/runner.js";
 import {
     getPosition,
-    IDevRunner,
-    Inspector,
+    inspector,
     provideId,
     StaticPosition,
     toDevId,
@@ -35,8 +35,8 @@ export function positionedText(text: unknown, position: StaticPosition) {
 export class DevTextNode extends TextNode<DevTagOptions, DevRunner> {
     public readonly id: number;
 
-    public constructor(input: TextProps, runner: DevRunner, usage: StaticPosition, inspector: Inspector) {
-        super(input, runner);
+    public constructor(input: TextProps, runner: DevRunner, deep: number, usage: StaticPosition) {
+        super(input, runner, deep);
         this.id = provideId();
 
         inspector.createNode({
@@ -47,9 +47,9 @@ export class DevTextNode extends TextNode<DevTagOptions, DevRunner> {
         });
     }
 
-    public override destroy(keepNodes?: boolean): void {
-        this.runner.inspector.destroy({ id: this.id, time: Date.now() });
-        super.destroy(keepNodes);
+    public override destroy(deep: number, keepNodes?: boolean): void {
+        inspector.destroy({ id: this.id, time: Date.now() });
+        super.destroy(deep, keepNodes);
     }
 
     public override compose(): void {
@@ -77,11 +77,11 @@ export class DevTag extends Tag<DevTagOptions, DevRunner> {
     public constructor(
         options: DevTagOptions,
         runner: DevRunner,
+        deep: number,
         tagName: string,
         usage: StaticPosition | undefined,
-        inspector: Inspector,
     ) {
-        super(options, runner, tagName);
+        super(options, runner, tagName, deep);
 
         this.id = provideId();
 
@@ -130,7 +130,7 @@ export class DevTag extends Tag<DevTagOptions, DevRunner> {
                     const userHandler = handler[0];
 
                     handler[0] = ev => {
-                        this.runner.inspector.eventTrigger({
+                        inspector.eventTrigger({
                             target: this.id,
                             eventName: key,
                             time: Date.now(),
@@ -140,7 +140,7 @@ export class DevTag extends Tag<DevTagOptions, DevRunner> {
                     };
                 } else {
                     options.e[key] = ev => {
-                        this.runner.inspector.eventTrigger({
+                        inspector.eventTrigger({
                             target: this.id,
                             eventName: key,
                             time: Date.now(),
@@ -154,9 +154,9 @@ export class DevTag extends Tag<DevTagOptions, DevRunner> {
         super.applyOptions(options);
     }
 
-    public override destroy(keepNodes?: boolean): void {
-        this.runner.inspector.destroy({ id: this.id, time: Date.now() });
-        super.destroy(keepNodes);
+    public override destroy(deep: number, keepNodes?: boolean): void {
+        inspector.destroy({ id: this.id, time: Date.now() });
+        super.destroy(deep, keepNodes);
     }
 
     public override compose(): void {
@@ -165,27 +165,25 @@ export class DevTag extends Tag<DevTagOptions, DevRunner> {
     }
 }
 
-export class DevRunner extends Runner<DevTagOptions> implements IDevRunner<Node, Element, DevTagOptions> {
-    public readonly inspector: Inspector;
-
-    public constructor(document: Document, inspector: Inspector) {
-        super(document);
-        this.inspector = inspector;
-    }
-
-    public override textNode(text: unknown): TextNode<DevTagOptions, DevRunner> {
+export class DevRunner extends Runner<DevTagOptions> implements IRunner<Node, Element, DevTagOptions> {
+    public override textNode(deep: number, text: unknown): TextNode<DevTagOptions, DevRunner> {
         if (text instanceof PositionedText) {
-            return new DevTextNode({ text: text.text }, this, text.position, this.inspector);
+            return new DevTextNode({ text: text.text }, this, deep, text.position);
         }
 
-        return new TextNode({ text: text }, this);
+        return new TextNode({ text: text }, this, deep);
     }
 
-    public override tag(tagName: string, input: DevTagOptions, cb?: ((ctx: DevTag) => void) | undefined): DevTag {
+    public override tag(
+        deep: number,
+        tagName: string,
+        input: DevTagOptions,
+        cb?: ((ctx: DevTag) => void) | undefined,
+    ): DevTag {
         if (cb) {
             input.l = cb;
         }
 
-        return new DevTag(input, this, tagName, input.usage, this.inspector);
+        return new DevTag(input, this, deep, tagName, input.usage);
     }
 }

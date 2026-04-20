@@ -19,7 +19,8 @@ type Arguments<K, T> = [Ops.Clear] | [Ops.Remove, K] | [Ops.Add, K, T];
  * @extends Map
  */
 export class MapModel<K, T> extends Map<K, T> {
-    public listener: Listener<Arguments<K, T>>;
+    public readonly listener: Listener<Arguments<K, T>>;
+    public readonly rDeep: number;
 
     /**
      * Constructs a map model
@@ -33,7 +34,7 @@ export class MapModel<K, T> extends Map<K, T> {
         map?.forEach(([key, value]) => {
             super.set(key, value);
         });
-        ctx?.bind(this);
+        this.rDeep = ctx?.sDeep || 0;
     }
 
     /**
@@ -64,10 +65,6 @@ export class MapModel<K, T> extends Map<K, T> {
         this.listener.emit(Ops.Add, key, value);
         return super.set(key, value);
     }
-
-    destroy(): void {
-        this.clear();
-    }
 }
 
 export class MapView<
@@ -90,28 +87,29 @@ export class MapView<
 
     public constructor(
         runner: Runner,
+        deep: number,
         private readonly model: MapModel<K, T>,
         slot: (ctx: Fragment<Node, Element, TagOptions, Runner>, value: IValue<T>, key: K) => void,
         private readonly ref: <T>(v: T) => IValue<T>,
-        private readonly frag: (runner: Runner) => Fragment<Node, Element, TagOptions, Runner>,
+        private readonly frag: (runner: Runner, deep: number) => Fragment<Node, Element, TagOptions, Runner>,
     ) {
-        super(runner);
+        super(runner, deep);
         this.slot = safe(slot);
     }
 
     public override compose() {
         const view = this;
 
-        function create(key: K, value: T) {
-            const frag = view.frag(view.runner);
+        function create(this: void, key: K, value: T) {
+            const frag = view.frag(view.runner, view.sDeep + 1);
             const ref = view.ref(value);
 
-            frag.link(view, view.lastChild, undefined);
+            frag.link(view, view.last, undefined);
             view.slot(frag, ref, key);
             view.map.set(key, { frag, value: ref });
-            view.lastChild = frag;
+            view.last = frag;
         }
-        function acceptUpdate(op: Ops, key?: K, value?: T) {
+        function acceptUpdate(this: void, op: Ops, key?: K, value?: T) {
             if (op === Ops.Add) {
                 const existing = view.map.get(key!);
 
@@ -126,13 +124,13 @@ export class MapView<
                 /* istanbul ignore else */
                 if (item) {
                     removeFragmentFromTree(item.frag);
-                    item.frag.destroy();
+                    item.frag.destroy(item.frag.sDeep);
                     view.map.delete(key!);
                 }
             } else {
-                view.map.forEach(({ frag }) => frag.destroy());
+                view.map.forEach(({ frag }) => frag.destroy(frag.sDeep));
                 view.map.clear();
-                view.lastChild = undefined;
+                view.last = undefined;
             }
         }
 
@@ -149,13 +147,17 @@ export class MapView<
         [...this.map.values()].reverse().forEach(item => item.frag.remount());
     }
 
-    public override destroy(keepNodes?: boolean): void {
+    public override destroy(deep: number, keepNodes?: boolean): void {
         /* istanbul ignore else */
-        if (this.acceptUpdate) {
+        if (this.acceptUpdate && this.model.rDeep < deep) {
             this.model.listener.off(this.acceptUpdate);
         }
-        this.map.forEach(({ frag }) => frag.destroy());
-        this.map.clear();
-        super.destroy(keepNodes);
+        this.map.forEach(({ frag }) => {
+            /* istanbul ignore else */
+            if (frag.rDeep < deep || !keepNodes) {
+                frag.destroy(deep, keepNodes);
+            }
+        });
+        super.destroy(deep, keepNodes);
     }
 }

@@ -21,8 +21,9 @@
   - [How POWERFUL is SteelFrameKit](#how-powerful-is-steelframekit)
   - [Road map](#road-map)
   - [Change log](#change-log)
-    - [5.1](#51)
-    - [5.0](#50)
+    - [7.0](#70)
+    - [6.0 RC (never released)](#60-rc-never-released)
+    - [5.0 - 5.1](#50---51)
     - [4.0 - 4.3](#40---43)
     - [3.0 - 3.2](#30---32)
     - [2.0 - 2.3](#20---23)
@@ -129,18 +130,24 @@ We respect semantic versioning:
 - A minor version is increased when we add functionality.
 - Patch version is increased when we fix bugs.
 
-### 5.1
+### 7.0
 
-Add support for web components compile target `web build components`.
-_Web components as custom tags are supported in any version._
+- WIP
 
-### 5.0
+### 6.0 RC (never released)
+
+- Add `QueueRenderer`, `ArrayView`, `ArrayModelView`, `SetModelView`, `MapModelView`, `Iterate` and `ForEach` components.
+- `const a = []` is not implicit array model, use explicit `arrayModel`. **[API change]**
+
+### 5.0 - 5.1
 
 - Add support for context and dependencies injection.
 - New developement direction: `fault tolerant`.
 - Renamed to `steel-frame`. **[API change]**
 - Removed `forward` and `backward` functions. **[API change]**
 - Removed `Debug` component. **[API change]**
+- Add support for web components compile target `web build components`.
+  _Web components as custom tags are supported in any version._
 
 ### 4.0 - 4.3
 

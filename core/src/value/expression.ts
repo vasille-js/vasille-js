@@ -40,7 +40,7 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> implements 
      * Creates a function bounded to N values
      */
     public constructor(func: (...args: Args) => T, values: KindOfIValue<Args>, ctx?: Reactive) {
-        super();
+        super(ctx?.sDeep ?? 0);
         const handler = safe((i?: number) => {
             /* istanbul ignore else */
             if (typeof i === "number") {
@@ -54,15 +54,22 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> implements 
         this.sync = new Reference(func.apply(this, this.valuesCache));
 
         let i = 0;
+        let deep = -1;
         values.forEach(value => {
             const updater = handler.bind(this, Number(i++));
 
+            if (value && (deep === -1 || value.rDeep < deep)) {
+                deep = value.rDeep;
+            }
             this.linkedFunc.push(updater);
             value?.on(updater);
         });
 
         this.values = values;
-        ctx?.bind(this);
+        this.rDeep = deep;
+        if (ctx && ctx.sDeep > deep) {
+            ctx.bind(this);
+        }
     }
 
     public get V(): T {

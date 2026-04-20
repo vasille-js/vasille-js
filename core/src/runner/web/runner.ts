@@ -47,11 +47,11 @@ export class TextNode<Options extends TagOptions, RunnerT extends Runner<Options
         this.parent.appendNode(this.node);
     }
 
-    public override destroy(keepNodes?: boolean) {
+    public override destroy(deep: number, keepNodes?: boolean) {
         if (!keepNodes) {
             this.node.remove();
         }
-        super.destroy(keepNodes);
+        super.destroy(deep, keepNodes);
     }
 
     public override unmount(): void {
@@ -91,8 +91,9 @@ export class Tag<Options extends TagOptions, RunnerT extends Runner<Options>> ex
         this.options.k?.(this.node);
     }
 
-    public override destroy(keepNodes?: boolean) {
-        super.destroy(true);
+    public override destroy(deep: number, keepNodes?: boolean) {
+        super.destroy(deep, true);
+        /* istanbul ignore else */
         if (!keepNodes) {
             this.node?.remove();
         }
@@ -218,10 +219,11 @@ export class Runner<Options extends TagOptions> implements IRunner<Node, Element
     appendChild(node: Element, child: Element | Node): void {
         node.appendChild(child);
     }
-    textNode(text: unknown): AbstractTextNode<Node, Element, Options> {
-        return new TextNode({ text }, this);
+    textNode(deep: number, text: unknown): AbstractTextNode<Node, Element, Options> {
+        return new TextNode({ text }, this, deep);
     }
     tag(
+        deep: number,
         tagName: string,
         input: Options,
         cb?: ((ctx: AbstractTag<Node, Element, Options>) => void) | undefined,
@@ -230,6 +232,6 @@ export class Runner<Options extends TagOptions> implements IRunner<Node, Element
             input.l = cb;
         }
 
-        return new Tag(input, this, tagName);
+        return new Tag(input, this, tagName, deep);
     }
 }

@@ -152,9 +152,14 @@ export interface ProtocolComposeTime {
 export interface ProtocolModel {
     id: number;
     type: "array" | "set" | "map";
-    values: [DevValue, DevValue][];
     usage: StaticPosition;
     time: number;
+}
+
+export interface ProtocolModelItem {
+    model: number;
+    key?: DevValue;
+    value: DevValue;
 }
 
 export interface ProtocolModelUpdate {
@@ -243,6 +248,25 @@ export interface ProtocolFunctionError extends ProtocolError {
     async: boolean;
 }
 
+export interface ProtocolObject {
+    id: number;
+    constructor: string;
+    position?: StaticPosition;
+    time: number;
+}
+
+export interface ProtocolObjectProperty {
+    id: number;
+    name: string;
+    value: DevValue;
+    time: number;
+}
+
+export interface ProtocolObjectUpdate {
+    id: number;
+    time: number;
+}
+
 export interface DestroyData {
     id: number;
     time: number;
@@ -278,6 +302,7 @@ export interface Inspector {
 
     // Models
     createModel(model: ProtocolModel): void;
+    createModelItem(item: ProtocolModelItem): void;
     updateModel(update: ProtocolModelUpdate): void;
     createStore(store: ProtocolStore): void;
     createCustomModel(model: ProtocolCustomModel): void;
@@ -294,10 +319,175 @@ export interface Inspector {
     functionThrows(error: ProtocolFunctionError): void;
     eventTrigger(call: ProtocolEventTrigger): void;
 
+    // objects
+    newObject(obj: ProtocolObject): void;
+    updateObject(update: ProtocolObjectUpdate): void;
+    objectProperty(prop: ProtocolObjectProperty): void;
+
     // any
     destroy(data: DestroyData): void;
     erase(data: EraseData): void;
 }
+
+export abstract class AbstractInspector implements Inspector {
+    createModelItem(item: ProtocolModelItem): void {
+        this.send(this.createModelItem.name, item);
+    }
+    newObject(obj: ProtocolObject): void {
+        this.send(this.newObject.name, obj);
+    }
+    updateObject(update: ProtocolObjectUpdate): void {
+        this.send(this.updateObject.name, update);
+    }
+    objectProperty(prop: ProtocolObjectProperty): void {
+        this.send(this.objectProperty.name, prop);
+    }
+    public addContextState(state: ProtocolState): void {
+        this.send(this.addContextState.name, state);
+    }
+
+    public composeTime(time: ProtocolComposeTime): void {
+        this.send(this.composeTime.name, time);
+    }
+
+    public createComponent(comp: ProtocolComponent): void {
+        this.send(this.createComponent.name, comp);
+    }
+
+    public createCustomModel(model: ProtocolCustomModel): void {
+        this.send(this.createCustomModel.name, model);
+    }
+
+    public createModel(model: ProtocolModel): void {
+        this.send(this.createModel.name, model);
+    }
+
+    public createNode(node: ProtocolNode): void {
+        this.send(this.createNode.name, node);
+    }
+
+    public createStore(store: ProtocolStore): void {
+        this.send(this.createStore.name, store);
+    }
+
+    public createTag(tag: ProtocolTag): void {
+        this.send(this.createTag.name, tag);
+    }
+
+    public destroy(data: DestroyData): void {
+        this.send(this.destroy.name, data);
+    }
+
+    public erase(data: EraseData) {
+        this.send(this.erase.name, data);
+    }
+
+    public eventTrigger(call: ProtocolEventTrigger) {
+        this.send(this.eventTrigger.name, call);
+    }
+
+    public functionCall(call: ProtocolFunctionCall): void {
+        this.send(this.functionCall.name, call);
+    }
+
+    public functionReturn(result: ProtocolFunctionResult): void {
+        this.send(this.functionReturn.name, result);
+    }
+
+    public functionThrows(error: ProtocolFunctionError): void {
+        this.send(this.functionThrows.name, error);
+    }
+
+    public newExpression(expr: ProtocolExpression): void {
+        this.send(this.newExpression.name, expr);
+    }
+
+    public newReference(ref: ProtocolReference): void {
+        this.send(this.newReference.name, ref);
+    }
+
+    public registerExecutionPosition(pos: ProtocolExecutionPosition): void {
+        this.send(this.registerExecutionPosition.name, pos);
+    }
+
+    public registeredRoutes(routes: ProtocolRoutes): void {
+        this.send(this.registeredRoutes.name, routes);
+    }
+
+    public reportComponentError(error: ProtocolError): void {
+        this.send(this.reportComponentError.name, error);
+    }
+
+    public reportComponentSlotError(error: ProtocolSlotError): void {
+        this.send(this.reportComponentSlotError.name, error);
+    }
+
+    public reportError(err: ProtocolError) {
+        this.send(this.reportError.name, err);
+    }
+
+    public reportExpressionCalculationError(error: ProtocolExpressionError): void {
+        this.send(this.reportExpressionCalculationError.name, error);
+    }
+
+    public reportReferenceError(error: ProtocolReferenceError): void {
+        this.send(this.reportReferenceError.name, error);
+    }
+
+    public routerActionCall(call: ProtocolRouterActionCall): void {
+        this.send(this.routerActionCall.name, call);
+    }
+
+    public routerStateChange(change: ProtocolRouterStateChange): void {
+        this.send(this.routerStateChange.name, change);
+    }
+
+    public routerTargetResult(data: ProtocolRouterTargetResult): void {
+        this.send(this.routerTargetResult.name, data);
+    }
+
+    public setElementParent(parent: ProtocolParent): void {
+        this.send(this.setElementParent.name, parent);
+    }
+
+    public updateExpression(update: ProtocolExpressionUpdate): void {
+        this.send(this.updateExpression.name, update);
+    }
+
+    public updateModel(update: ProtocolModelUpdate): void {
+        this.send(this.updateModel.name, update);
+    }
+
+    public updateReference(update: ProtocolReferenceUpdate): void {
+        this.send(this.updateReference.name, update);
+    }
+
+    protected abstract send(name: string, data: object): void;
+}
+
+export class EarlyInspector extends AbstractInspector {
+    protected inspector: Inspector | undefined;
+    protected queue: [string, object][] = [];
+
+    public connect(inspector: Inspector) {
+        this.inspector = inspector;
+
+        for (const item of this.queue) {
+            inspector[item[0]](item[1]);
+        }
+        this.queue = [];
+    }
+
+    protected send(name: string, data: object) {
+        if (this.inspector) {
+            this.inspector[name](data);
+        } else {
+            this.queue.push([name, data]);
+        }
+    }
+}
+
+export const inspector = new EarlyInspector();
 
 let id = 0;
 
@@ -313,11 +503,7 @@ export interface DevValue {
 
 const primitiveTypes: string[] = ["number", "string", "boolean"] as const;
 
-export function registerReference<T>(
-    value: DevReference<T>,
-    declaration: StaticPosition,
-    inspector: Inspector,
-): DevReference<T> {
+export function registerReference<T>(value: DevReference<T>, declaration: StaticPosition): DevReference<T> {
     inspector.newReference({
         id: value.id,
         value: toDevValue(value.V),
@@ -329,6 +515,7 @@ export function registerReference<T>(
 }
 
 const positionKey = Symbol("vasille-position");
+const objectKey = Symbol("vasille-object");
 let executionId = 0;
 
 export function setupPosition<T extends object>(obj: T, declaration: StaticPosition): T {
@@ -348,10 +535,9 @@ export function getPosition(obj: object): StaticPosition | undefined {
 export function wrapFn<Args extends unknown[], Result extends object>(
     fn: (...args: Args) => Result,
     declaration: StaticPosition,
-    inspector: Inspector,
 ): (...args: Args) => Result {
     return setupPosition((...args: Args) => {
-        return runFn(fn, args, declaration, inspector);
+        return runFn(fn, args, declaration);
     }, declaration);
 }
 
@@ -359,7 +545,6 @@ export function runFn<Args extends unknown[], Result extends object>(
     fn: (...args: Args) => Result,
     args: Args,
     declaration: StaticPosition,
-    inspector: Inspector,
 ): Result {
     const id = ++executionId;
 
@@ -415,12 +600,95 @@ export function runFn<Args extends unknown[], Result extends object>(
     }
 }
 
+interface ObjectMetaData {
+    id: number;
+    fields: { [k: string]: unknown };
+}
+
+let objectId = 0;
+
+export function processObject(obj: object, pos?: StaticPosition): number {
+    const time = Date.now();
+
+    if (objectKey in obj) {
+        const changes: [key: string, value: DevValue][] = [];
+        const meta = obj[objectKey] as ObjectMetaData;
+        const fields = meta.fields;
+
+        for (const [key, value] of Object.entries(obj)) {
+            if (obj[key] !== fields[key]) {
+                changes.push([key, toDevValue(value)]);
+            }
+        }
+
+        if (changes.length > 0) {
+            inspector.updateObject({
+                id: meta.id,
+                time: time,
+            });
+            changes.forEach(change => {
+                inspector.objectProperty({
+                    id: meta.id,
+                    name: change[0],
+                    value: change[1],
+                    time: time,
+                });
+            });
+        }
+        return meta.id;
+    } else {
+        const id = ++objectId;
+        const fields: { [k: string]: unknown } = {};
+
+        inspector.newObject({
+            id: id,
+            constructor: obj.constructor.name,
+            time: time,
+            position: pos,
+        });
+
+        for (const [key, value] of Object.entries(obj)) {
+            fields[key] = value;
+            inspector.objectProperty({
+                id: id,
+                name: key,
+                value: toDevValue(value),
+                time: time,
+            });
+        }
+
+        Object.defineProperty(obj, objectKey, {
+            value: {
+                id: id,
+                fields: fields,
+            },
+            enumerable: false,
+            configurable: false,
+            writable: false,
+        });
+
+        return id;
+    }
+}
+
+export function wrapObject<T extends object>(v: T, declaration: StaticPosition): T {
+    processObject(v, declaration);
+    return v;
+}
+
 export function toDevValue(value: unknown) {
     const type = typeof value;
 
     return {
         type: type,
-        value: primitiveTypes.includes(type) || value === null ? JSON.stringify(value) : undefined,
+        value:
+            primitiveTypes.includes(type) || value === null
+                ? JSON.stringify(value)
+                : type === "object"
+                  ? `${processObject(value as object)}`
+                  : type === "function"
+                    ? JSON.stringify(getPosition(value as Function))
+                    : undefined,
     } satisfies DevValue;
 }
 
@@ -446,8 +714,4 @@ export function toDevObject(value: object): { [k: string]: number | DevValue } {
         },
         {} as { [k: string]: number | DevValue },
     );
-}
-
-export interface IDevRunner<Node, Element, TagOptions extends object> extends IRunner<Node, Element, TagOptions> {
-    inspector: Inspector;
 }

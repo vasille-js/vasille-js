@@ -3,19 +3,19 @@ import { ArrayView, SinglePassArrayView } from "../models/array-model.js";
 import { MapView } from "../models/map-model.js";
 import { SetView } from "../models/set-model.js";
 import { Fragment } from "../node/node.js";
+import { IRunner } from "../node/runner.js";
 import { Reference } from "../value/reference.js";
-import { IDevRunner, provideId, StaticPosition, toDevObject } from "./inspectable.js";
+import { inspector, provideId, StaticPosition, toDevObject } from "./inspectable.js";
 import { DevArrayModel, DevMapModel, DevSetModel } from "./models.js";
 import { DevFragment } from "./node.js";
 import { DevReference } from "./state.js";
 
 function createDevFragment<Node, Element, TagOptions extends object>(
-    runner: IDevRunner<Node, Element, TagOptions>,
+    runner: IRunner<Node, Element, TagOptions>,
+    deep: number,
     host: { id: number },
 ): DevFragment<Node, Element, TagOptions> {
-    const frag = new DevFragment(runner, null, null, "Fragment", {});
-    runner.inspector.setElementParent({ parent: host.id, child: frag.id });
-    return frag;
+    return new DevFragment(runner, deep, null, null, "Fragment", {});
 }
 
 export class DevArrayView<Node, Element, TagOptions extends object, T> extends ArrayView<
@@ -23,27 +23,29 @@ export class DevArrayView<Node, Element, TagOptions extends object, T> extends A
     Node,
     Element,
     TagOptions,
-    IDevRunner<Node, Element, TagOptions>
+    IRunner<Node, Element, TagOptions>
 > {
     public readonly id: number;
 
     public constructor(
-        runner: IDevRunner<Node, Element, TagOptions>,
+        runner: IRunner<Node, Element, TagOptions>,
         model: DevArrayModel<T>,
+        deep: number,
         slot: (ctx: Fragment<Node, Element, TagOptions>, value: T, index: IValue<number>) => void,
         usage: StaticPosition,
         indexDeclaration?: StaticPosition,
     ) {
         super(
             runner,
+            deep,
             model,
             slot,
-            v => (indexDeclaration ? new DevReference(v, indexDeclaration, runner.inspector) : new Reference(v)),
-            runner => createDevFragment(runner, this),
+            v => (indexDeclaration ? new DevReference(v, this, indexDeclaration) : new Reference(v)),
+            runner => createDevFragment(runner, deep + 1, this),
         );
         this.id = provideId();
 
-        runner.inspector.createComponent({
+        inspector.createComponent({
             id: this.id,
             name: "ArrayModelView",
             props: toDevObject({ model }),
@@ -58,12 +60,13 @@ export class DevSinglePassArrayView<Node, Element, TagOptions extends object, T>
     Node,
     Element,
     TagOptions,
-    IDevRunner<Node, Element, TagOptions>
+    IRunner<Node, Element, TagOptions>
 > {
     public readonly id: number;
 
     public constructor(
-        runner: IDevRunner<Node, Element, TagOptions>,
+        runner: IRunner<Node, Element, TagOptions>,
+        deep: number,
         model: IValue<T[]>,
         key: (item: T) => number | string,
         slot: (ctx: Fragment<Node, Element, TagOptions>, value: IValue<T>, index: IValue<number>) => void,
@@ -73,17 +76,18 @@ export class DevSinglePassArrayView<Node, Element, TagOptions extends object, T>
     ) {
         super(
             runner,
+            deep,
             model,
             key,
             slot,
-            v => (valueDeclaration ? new DevReference(v, valueDeclaration, runner.inspector) : new Reference(v)),
-            v => (indexDeclaration ? new DevReference(v, indexDeclaration, runner.inspector) : new Reference(v)),
-            runner => createDevFragment(runner, this),
+            v => (valueDeclaration ? new DevReference(v, this, valueDeclaration) : new Reference(v)),
+            v => (indexDeclaration ? new DevReference(v, this, indexDeclaration) : new Reference(v)),
+            runner => createDevFragment(runner, deep + 1, this),
         );
 
         this.id = provideId();
 
-        runner.inspector.createComponent({
+        inspector.createComponent({
             id: this.id,
             name: "ArrayView",
             props: toDevObject({ model, slot }),
@@ -98,20 +102,21 @@ export class DevSetView<Node, Element, TagOptions extends object, T> extends Set
     Node,
     Element,
     TagOptions,
-    IDevRunner<Node, Element, TagOptions>
+    IRunner<Node, Element, TagOptions>
 > {
     public readonly id: number;
 
     public constructor(
-        runner: IDevRunner<Node, Element, TagOptions>,
+        runner: IRunner<Node, Element, TagOptions>,
+        deep: number,
         model: DevSetModel<T>,
         slot: (ctx: Fragment<Node, Element, TagOptions>, value: T) => void,
         usage: StaticPosition,
     ) {
-        super(runner, model, slot, runner => createDevFragment(runner, this));
+        super(runner, deep, model, slot, runner => createDevFragment(runner, deep + 1, this));
         this.id = provideId();
 
-        runner.inspector.createComponent({
+        inspector.createComponent({
             id: this.id,
             name: "SetView",
             props: toDevObject({ model, slot }),
@@ -127,12 +132,13 @@ export class DevMapView<Node, Element, TagOptions extends object, K, T> extends 
     Node,
     Element,
     TagOptions,
-    IDevRunner<Node, Element, TagOptions>
+    IRunner<Node, Element, TagOptions>
 > {
     public readonly id: number;
 
     public constructor(
-        runner: IDevRunner<Node, Element, TagOptions>,
+        runner: IRunner<Node, Element, TagOptions>,
+        deep: number,
         model: DevMapModel<K, T>,
         slot: (ctx: Fragment<Node, Element, TagOptions>, value: IValue<T>, key: K) => void,
         usage: StaticPosition,
@@ -140,14 +146,15 @@ export class DevMapView<Node, Element, TagOptions extends object, K, T> extends 
     ) {
         super(
             runner,
+            deep,
             model,
             slot,
-            v => (valueDeclaration ? new DevReference(v, valueDeclaration, runner.inspector) : new Reference(v)),
-            runner => createDevFragment(runner, this),
+            v => (valueDeclaration ? new DevReference(v, this, valueDeclaration) : new Reference(v)),
+            runner => createDevFragment(runner, deep + 1, this),
         );
         this.id = provideId();
 
-        runner.inspector.createComponent({
+        inspector.createComponent({
             id: this.id,
             name: "MapView",
             props: toDevObject({ model, slot }),
