@@ -1,6 +1,5 @@
 import { setErrorHandler as coreSetErrorHandler } from "vasille";
-import { errorToString } from "vasille/dev";
-import { earlyInspector } from "./early-inspector.js";
+import { errorToString, inspector } from "vasille/dev";
 
 export {
     DevDelay,
@@ -24,10 +23,9 @@ export {
 } from "./compose.js";
 export { devArrayModel, devMapModel, devEnsure, devExpr, devMatch, devSetModel, devRef, devSet } from "./internal.js";
 export { devAwaited } from "./library.js";
-export { AbstractInspector, EarlyInspector, earlyInspector } from "./early-inspector.js";
 
 function devErrorHandler(e: unknown) {
-    earlyInspector.reportError({
+    inspector.reportError({
         targetId: 0,
         error: errorToString(e),
         time: Date.now(),

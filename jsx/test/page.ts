@@ -12,7 +12,7 @@ export function createNode() {
         </html>
     `);
     const runner = new Runner(page.window.document);
-    const node = new Fragment(runner);
+    const node = new Fragment(runner, 1);
 
     node.parent = new App<Node, Element, TagOptions>(page.window.document.body, runner);
     global.HTMLElement = page.window.HTMLElement;

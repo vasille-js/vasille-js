@@ -1,4 +1,4 @@
-import { Fragment, IValue, safe, userError } from "vasille";
+import { Fragment, IValue, Runner, safe, userError } from "vasille";
 import {
     DevArrayModel,
     DevArrayView as DevCoreArrayView,
@@ -12,21 +12,19 @@ import {
     DevSwitchedNode,
     DevWatch as DevCoreWatch,
     errorToString,
+    inspector,
     StaticPosition,
 } from "vasille/dev";
-import { IDevRunner } from "vasille/dev";
 
 interface DevSlotOptions<Node, Element, TagOptions extends object, T extends object> {
-    model?: (input: T, ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>) => void;
-    slot?: (input: object, ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>) => void;
+    model?: (input: T, ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>) => void;
+    slot?: (input: object, ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>) => void;
 }
 
 export function DevSlot<Node, Element, TagOptions extends object, T extends object = {}>(
     { model, slot, ...options }: DevSlotOptions<Node, Element, TagOptions, T> & T,
-    ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
-    defaultSlot:
-        | ((ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>) => void)
-        | undefined,
+    ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>,
+    defaultSlot: ((ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>) => void) | undefined,
     usage: StaticPosition,
 ) {
     try {
@@ -38,7 +36,7 @@ export function DevSlot<Node, Element, TagOptions extends object, T extends obje
             defaultSlot(ctx);
         }
     } catch (e) {
-        ctx.runner.inspector.reportComponentSlotError({
+        inspector.reportComponentSlotError({
             targetId: "id" in ctx && typeof ctx.id === "number" ? ctx.id : 0,
             error: errorToString(e),
             usage: usage,
@@ -51,15 +49,15 @@ export function DevSlot<Node, Element, TagOptions extends object, T extends obje
 interface DevSwitchOptions<Node, Element, TagOptions extends object> {
     cases: {
         $case: DevIValue<unknown>;
-        slot: (ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>) => void;
+        slot: (ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>) => void;
     }[];
-    default?: (ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>) => void;
+    default?: (ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>) => void;
     slot?: never;
 }
 
 export function DevSwitch<Node, Element, TagOptions extends object>(
     options: DevSwitchOptions<Node, Element, TagOptions>,
-    ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+    ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>,
     _slot: undefined,
     usage: StaticPosition,
 ) {
@@ -68,7 +66,7 @@ export function DevSwitch<Node, Element, TagOptions extends object>(
 
 interface DevForOptions<Node, Element, TagOptions extends object, T, Args extends unknown[]> {
     of: T;
-    slot?: (ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>, ...args: Args) => void;
+    slot?: (ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>, ...args: Args) => void;
 }
 
 export function DevFor<
@@ -80,10 +78,8 @@ export function DevFor<
     V = T extends (infer R)[] ? R : T extends Set<infer R> ? R : T extends Map<unknown, infer R> ? R : never,
 >(
     { of: model, slot: _slot }: DevForOptions<Node, Element, TagOptions, T, [V, K]>,
-    ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
-    defaultSlot:
-        | ((ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>) => void)
-        | undefined,
+    ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>,
+    defaultSlot: ((ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>) => void) | undefined,
     usage: StaticPosition,
 ) {
     const slot = _slot ?? defaultSlot;
@@ -104,7 +100,7 @@ export function DevFor<
                 model,
                 (ctx, value, index) => {
                     slot(
-                        ctx as Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+                        ctx as Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>,
                         value,
                         index.V as K,
                     );
@@ -118,11 +114,7 @@ export function DevFor<
                 ctx.runner,
                 model,
                 (ctx, value, key) => {
-                    slot(
-                        ctx as Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
-                        value.V,
-                        key,
-                    );
+                    slot(ctx as Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>, value.V, key);
                 },
                 usage,
                 undefined,
@@ -135,7 +127,7 @@ export function DevFor<
                 model,
                 (ctx, value) => {
                     slot(
-                        ctx as Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+                        ctx as Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>,
                         value,
                         value as unknown as K,
                     );
@@ -178,7 +170,7 @@ export function DevArrayView<
     props: Required<DevForOptions<Node, Element, TagOptions, IValue<V[]>, [IValue<V>, IValue<number>]>> & {
         key: (value: V) => number | string;
     },
-    ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+    ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>,
     usage: StaticPosition,
     _defaultSlot: never,
     value: StaticPosition | undefined,
@@ -199,7 +191,7 @@ export function DevArrayView<
 
 export function DevArrayModelView<Node, Element, TagOptions extends object, V>(
     props: Required<DevForOptions<Node, Element, TagOptions, DevArrayModel<V>, [V, IValue<number>]>>,
-    ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+    ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>,
     _defaultSlot: never,
     usage: StaticPosition,
     index: StaticPosition | undefined,
@@ -209,7 +201,7 @@ export function DevArrayModelView<Node, Element, TagOptions extends object, V>(
 
 export function DevMapModelView<Node, Element, TagOptions extends object, K, V>(
     props: Required<DevForOptions<Node, Element, TagOptions, DevMapModel<K, V>, [IValue<V>, K]>>,
-    ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+    ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>,
     _defaultSlot: never,
     usage: StaticPosition,
     value: StaticPosition | undefined,
@@ -219,7 +211,7 @@ export function DevMapModelView<Node, Element, TagOptions extends object, K, V>(
 
 export function DevSetModelView<Node, Element, TagOptions extends object, V>(
     props: Required<DevForOptions<Node, Element, TagOptions, DevSetModel<V>, [V]>>,
-    ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+    ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>,
     usage: StaticPosition,
 ) {
     ctx.create(new DevSetView<Node, Element, TagOptions, V>(ctx.runner, props.of, props.slot, usage));
@@ -227,13 +219,13 @@ export function DevSetModelView<Node, Element, TagOptions extends object, V>(
 
 interface DevWatchOptions<Node, Element, TagOptions extends object, T> {
     $model: DevIValue<T>;
-    slot?: (ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>, value: T) => void;
+    slot?: (ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>, value: T) => void;
 }
 
 export function DevWatch<Node, Element, TagOptions extends object, T>(
     { $model, slot: _slot }: DevWatchOptions<Node, Element, TagOptions, T>,
-    ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
-    defaultSlot: (ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>) => void | undefined,
+    ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>,
+    defaultSlot: (ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>) => void | undefined,
     usage: StaticPosition,
 ) {
     const slot = _slot ?? defaultSlot;
@@ -246,13 +238,13 @@ export function DevWatch<Node, Element, TagOptions extends object, T>(
 
 interface DevDelayOptions<Node, Element, TagOptions extends object> {
     time?: number;
-    slot?: (ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>) => unknown;
+    slot?: (ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>) => unknown;
 }
 
 export function DevDelay<Node, Element, TagOptions extends object>(
     { time, slot: _slot }: DevDelayOptions<Node, Element, TagOptions>,
-    ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
-    defaultSlot: (ctx: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>) => void | undefined,
+    ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>,
+    defaultSlot: (ctx: Fragment<Node, Element, TagOptions, Runner<Node, Element, TagOptions>>) => void | undefined,
     usage: StaticPosition,
 ) {
     const fragment = new DevFragment<Node, Element, TagOptions>(ctx.runner, null, usage, "Delay", {

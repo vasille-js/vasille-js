@@ -134,6 +134,6 @@ export class DevSwitchedNode<Node, Element, TagOptions extends object> extends S
     protected override newChild(
         index: number,
     ): Fragment<Node, Element, TagOptions, IRunner<Node, Element, TagOptions>> {
-        return new DevFragment(this.runner, this.sDeep + 1, null, null, "Case", { index });
+        return new DevFragment(this.runner, null, null, "Case", { index });
     }
 }

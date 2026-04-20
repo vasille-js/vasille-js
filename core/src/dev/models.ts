@@ -3,6 +3,7 @@ import { Destroyable } from "../core/destroyable.js";
 import { ArrayModel } from "../models/array-model.js";
 import { MapModel } from "../models/map-model.js";
 import { SetModel } from "../models/set-model.js";
+import { DevReactive } from "./core.js";
 import {
     DevValue,
     inspector,
@@ -16,7 +17,7 @@ import {
 export class DevArrayModel<T> extends ArrayModel<T> implements Destroyable {
     public readonly id: number;
 
-    public constructor(usage: StaticPosition, data?: Array<T> | number, ctx?: Reactive) {
+    public constructor(usage: StaticPosition, data?: Array<T> | number, ctx?: Reactive, name?: string) {
         super(data, ctx);
 
         this.id = provideId();
@@ -35,9 +36,16 @@ export class DevArrayModel<T> extends ArrayModel<T> implements Destroyable {
                 value: toDevValue(item),
             });
         });
+        if (ctx instanceof DevReactive && name) {
+            inspector.addContextState({
+                id: ctx.id,
+                name: name,
+                stateId: this.id,
+            });
+        }
     }
 
-    public destroy(deep: number): void {
+    public destroy(): void {
         inspector.destroy({ id: this.id, time: Date.now() });
     }
 
@@ -88,7 +96,7 @@ export class DevArrayModel<T> extends ArrayModel<T> implements Destroyable {
 export class DevSetModel<T> extends SetModel<T> implements Destroyable {
     public readonly id: number;
 
-    public constructor(usage: StaticPosition, set?: T[], ctx?: Reactive) {
+    public constructor(usage: StaticPosition, set?: T[], ctx?: Reactive, name?: string) {
         super(set, ctx);
         this.id = provideId();
 
@@ -103,6 +111,13 @@ export class DevSetModel<T> extends SetModel<T> implements Destroyable {
             inspector.createModelItem({
                 model: this.id,
                 value: toDevValue(item),
+            });
+        }
+        if (ctx instanceof DevReactive && name) {
+            inspector.addContextState({
+                id: ctx.id,
+                name: name,
+                stateId: this.id,
             });
         }
     }
@@ -140,7 +155,7 @@ export class DevSetModel<T> extends SetModel<T> implements Destroyable {
 export class DevMapModel<K, T> extends MapModel<K, T> implements Destroyable {
     public readonly id: number;
 
-    public constructor(usage: StaticPosition, map?: [K, T][], ctx?: Reactive) {
+    public constructor(usage: StaticPosition, map?: [K, T][], ctx?: Reactive, name?: string) {
         super(map, ctx);
         this.id = provideId();
 
@@ -158,9 +173,16 @@ export class DevMapModel<K, T> extends MapModel<K, T> implements Destroyable {
                 value: toDevValue(value),
             });
         }
+        if (ctx instanceof DevReactive && name) {
+            inspector.addContextState({
+                id: ctx.id,
+                name: name,
+                stateId: this.id,
+            });
+        }
     }
 
-    public destroy(deep: number): void {
+    public destroy(): void {
         inspector.destroy({ id: this.id, time: Date.now() });
     }
 

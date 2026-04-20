@@ -24,14 +24,15 @@ it("model functions", function () {
     expect(arr1.length).toBe(2);
     expect(arr2.length).toBe(2);
 
-    node.destroy();
+    node.destroy(node.sDeep);
 
+    // lixcode update: no more cleanup on context destruction
     expect(set1.size).toBe(2);
-    expect(set2.size).toBe(0);
+    expect(set2.size).toBe(2);
     expect(map1.size).toBe(2);
-    expect(map2.size).toBe(0);
+    expect(map2.size).toBe(2);
     expect(arr1.length).toBe(2);
-    expect(arr2.length).toBe(0);
+    expect(arr2.length).toBe(2);
 });
 
 it("set test", function () {

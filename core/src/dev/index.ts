@@ -64,7 +64,7 @@ export {
     inspector,
 } from "./inspectable.js";
 export { DevArrayModel, DevMapModel, DevSetModel } from "./models.js";
-export { DevFragment, ModelId, shareStateById } from "./node.js";
+export { DevFragment, ModelId } from "./node.js";
 export {
     DevRunner,
     PositionedText,

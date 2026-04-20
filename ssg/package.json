@@ -1,7 +1,7 @@
 {
   "name": "vasille-ssg",
   "version": "5.0.1",
-  "description": "The same framework which is designed to build bulletproof frontends. (SSG alternative library)",
+  "description": "The same devkit which is designed to build fault tolerant frontends. (SSG alternative library)",
   "main": "index.js",
   "exports": {
     "types": "./types/index.d.ts",

@@ -1,6 +1,6 @@
 {
   "name": "vasille-router",
-  "description": "The framework designed to build bulletproof frontends (router library).",
+  "description": "The same devkit which is designed to build fault tolerant frontends (router library).",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "version": "6.0.0-rc",

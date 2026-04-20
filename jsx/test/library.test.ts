@@ -9,8 +9,8 @@ it("awaited", function (done) {
     const [frag] = createNode();
     const promise = new Promise(rv => setTimeout(() => rv(2)));
     const errPromise = new Promise((_, rj) => setTimeout(() => rj(4)));
-    const [successErr, successResult] = awaited(() => promise);
-    const [mustFailErr, mustFailResult] = awaited(() => errPromise);
+    const [successErr, successResult] = awaited(() => promise, frag);
+    const [mustFailErr, mustFailResult] = awaited(() => errPromise, frag);
     const [counterError, counterState, increase] = awaited(() => {
         return new Promise((resolve, reject) => {
             if (counter < 2) {
@@ -19,7 +19,7 @@ it("awaited", function (done) {
                 reject(counter);
             }
         });
-    });
+    }, frag);
 
     expect(successErr.V).toBeUndefined();
     expect(successResult.V).toBeUndefined();
@@ -44,7 +44,7 @@ it("awaited", function (done) {
             setTimeout(() => {
                 expect(counterState.V).toBeUndefined();
                 expect(counterError.V).toBe(2);
-                frag.destroy();
+                frag.destroy(frag.sDeep);
                 done();
             });
         });
@@ -55,16 +55,16 @@ it("awaited synchronous", function () {
     const [frag] = createNode();
     const [successErr, successResult] = awaited(() => {
         return 2 as unknown as Promise<2>;
-    });
+    }, frag);
     const [mustFailErr, mustFailResult] = awaited((): Promise<4> => {
         throw 4;
-    });
+    }, frag);
 
     expect(successErr.V).toBeUndefined();
     expect(successResult.V).toBe(2);
     expect(mustFailErr.V).toBe(4);
     expect(mustFailResult.V).toBeUndefined();
-    frag.destroy();
+    frag.destroy(frag.sDeep);
 });
 
 it("store test", function () {

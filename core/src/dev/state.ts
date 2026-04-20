@@ -2,6 +2,7 @@ import { Reactive } from "../core/core.js";
 import { Destroyable } from "../core/destroyable.js";
 import { IValue } from "../core/ivalue.js";
 import { reportError } from "../functional/safety.js";
+import { DevReactive } from "./core.js";
 import {
     Dependency,
     errorToString,
@@ -76,7 +77,7 @@ export class BaseDevReference<T> extends DevIValue<T> {
 export class DevReference<T> extends BaseDevReference<T> implements InspectableReference<T>, Destroyable {
     public readonly id: number;
 
-    public constructor(value: T, ctx: Reactive | undefined, declaration: StaticPosition) {
+    public constructor(value: T, ctx: Reactive | undefined, declaration: StaticPosition, name?: string) {
         super(value, ctx);
 
         this.id = provideId();
@@ -88,6 +89,13 @@ export class DevReference<T> extends BaseDevReference<T> implements InspectableR
             value: toDevValue(this.state),
             time: Date.now(),
         });
+        if (ctx instanceof DevReactive && name) {
+            inspector.addContextState({
+                id: ctx.id,
+                name: name,
+                stateId: this.id,
+            });
+        }
     }
 
     public destroy(): void {
@@ -152,6 +160,7 @@ export class DevExpression<T, Args extends unknown[]>
         func: (...args: Args) => T,
         values: KindOfDevIValue<Args>,
         ctx: Reactive | undefined,
+        name: string | undefined,
         depsCode: string[],
         declaration: StaticPosition,
         isWatch: boolean,
@@ -223,6 +232,13 @@ export class DevExpression<T, Args extends unknown[]>
             }),
             time: Date.now(),
         });
+        if (ctx instanceof DevReactive && name) {
+            inspector.addContextState({
+                id: ctx.id,
+                name: name,
+                stateId: id,
+            });
+        }
     }
 
     public update(value: T, position?: ExecutionPosition): void {

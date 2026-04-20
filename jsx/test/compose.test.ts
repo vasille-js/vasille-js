@@ -1,4 +1,4 @@
-import { Fragment, IValue, Reference, setErrorHandler } from "vasille";
+import { Fragment, IValue, Reactive, Reference, setErrorHandler } from "vasille";
 import { model } from "../src/compose.js";
 import { view, mount, ref, expr } from "../src/index.js";
 import { createNode } from "./page.js";
@@ -186,29 +186,35 @@ it("IValue keep test", function () {
     expect(count).toBe(111);
 });
 
-const Model = model((ctx, { x }: { x: number }) => {
+const Model = model((ctx, { x }: { x: Reference<number> }) => {
     const a = ref(2);
-    const b = expr(ctx, a => a + x, [a]);
+    const b = expr(ctx, (a, x) => a + x, [a, x]);
 
-    return { a, b, c: 10, destroy: () => ctx.destroy() };
+    return { a, b, c: 10 };
 });
 
 it("model", function () {
-    const { b, a, c, destroy } = Model({ x: 1 });
+    const root = new Reactive(0);
+    const m1 = Model({ x: new Reference(1) }, root);
+    const m2 = Model({ x: new Reference(1) });
 
-    expect(a).toBeInstanceOf(IValue);
-    expect(b).toBeInstanceOf(IValue);
+    expect(m1.a).toBeInstanceOf(IValue);
+    expect(m1.b).toBeInstanceOf(IValue);
 
-    expect(a.V).toBe(2);
-    expect(b.V).toBe(3);
-    expect(c).toBe(10);
+    expect(m1.a.V).toBe(2);
+    expect(m1.b.V).toBe(3);
+    expect(m1.c).toBe(10);
 
-    a.V = 4;
-    expect(a.V).toBe(4);
-    expect(b.V).toBe(5);
+    m1.a.V = 4;
+    expect(m1.a.V).toBe(4);
+    expect(m1.b.V).toBe(5);
 
-    destroy();
-    a.V = 7;
-    expect(a.V).toBe(7);
-    expect(b.V).toBe(5);
+    root.destroy(Infinity);
+    m1.a.V = 7;
+    m2.a.V = 7;
+    expect(m1.a.V).toBe(7);
+    // ok when value was not updated
+    expect(m1.b.V).toBe(5);
+    // of when value was updates
+    expect(m2.b.V).toBe(8);
 });

@@ -1,4 +1,4 @@
-import { IValue, Reactive } from "vasille";
+import { Reactive } from "vasille";
 import {
     DevArrayModel,
     DevExpression,
@@ -7,82 +7,61 @@ import {
     DevReference,
     DevSetModel,
     ExecutionPosition,
-    Inspector,
     KindOfDevIValue,
     StaticPosition,
 } from "vasille/dev";
-import { match, ref, set } from "../internal.js";
+import { match, set } from "../internal.js";
 
 export function devExpr<T, Args extends unknown[]>(
     ctx: Reactive | undefined,
     func: (...args: Args) => T,
     values: KindOfDevIValue<Args>,
+    name: string | undefined,
     depsCode: string[],
     declaration: StaticPosition,
-    inspector: Inspector,
 ): DevExpression<T, Args> {
-    return new DevExpression<T, Args>(func, values, ctx, depsCode, declaration, inspector, false);
+    return new DevExpression<T, Args>(func, values, ctx, name, depsCode, declaration, false);
 }
 
-export function devRef<T>(v: T, declaration: StaticPosition, inspector?: Inspector): DevIValue<T> {
-    return new DevReference(v, declaration, inspector);
+export function devRef<T>(v: T, ctx: Reactive | undefined, declaration: StaticPosition): DevIValue<T> {
+    return new DevReference(v, ctx, declaration);
 }
 
-export function devSetModel(
-    inspector: Inspector | undefined,
-    usage: StaticPosition,
-    ctx: Reactive | undefined,
-    data?: unknown[],
-) {
-    return new DevSetModel(inspector, usage, data, ctx);
+export function devSetModel(usage: StaticPosition, ctx: Reactive | undefined, data?: unknown[]) {
+    return new DevSetModel(usage, data, ctx);
 }
 
-export function devMapModel(
-    inspector: Inspector | undefined,
-    usage: StaticPosition,
-    ctx: Reactive | undefined,
-    data?: [unknown, unknown][],
-) {
-    return new DevMapModel(inspector, usage, data, ctx);
+export function devMapModel(usage: StaticPosition, ctx: Reactive | undefined, data?: [unknown, unknown][]) {
+    return new DevMapModel(usage, data, ctx);
 }
 
-export function devArrayModel(
-    inspector: Inspector | undefined,
-    usage: StaticPosition,
-    ctx: Reactive | undefined,
-    data?: unknown[] | number,
-) {
-    return new DevArrayModel(inspector, usage, data, ctx);
+export function devArrayModel(usage: StaticPosition, ctx: Reactive | undefined, data?: unknown[] | number) {
+    return new DevArrayModel(usage, data, ctx);
 }
 
 export function devEnsure<T extends object>(
     obj: T | null | undefined,
     key: keyof T,
+    ctx: Reactive | undefined,
     declaration: StaticPosition,
-    inspector: Inspector | undefined,
 ) {
     if (!obj) {
         return undefined;
     }
 
-    return key in obj ? obj[key] : (obj[key] = devRef(undefined, declaration, inspector) as unknown as T[keyof T]);
+    return key in obj ? obj[key] : (obj[key] = devRef(undefined, ctx, declaration) as unknown as T[keyof T]);
 }
 
-export function devMatch(
-    name: string | number | symbol,
-    data: unknown,
-    declaration: StaticPosition,
-    inspector: Inspector | undefined,
-) {
-    return match(name, data, v => devRef(v, declaration, inspector));
+export function devMatch(name: string | number | symbol, data: unknown, declaration: StaticPosition, ctx?: Reactive) {
+    return match(name, data, v => devRef(v, ctx, declaration));
 }
 
 export function devSet(
     o: object,
     key: string | symbol | number,
     value: unknown,
+    ctx: Reactive | undefined,
     declaration: StaticPosition,
-    inspector: Inspector | undefined,
     executionPosition: ExecutionPosition,
 ) {
     if (o[key] instanceof DevIValue) {
@@ -90,5 +69,5 @@ export function devSet(
         return value;
     }
 
-    return set(o, key, value, v => devRef(v, declaration, inspector));
+    return set(o, key, value, v => devRef(v, ctx, declaration));
 }

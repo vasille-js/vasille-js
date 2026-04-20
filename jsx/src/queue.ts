@@ -51,7 +51,7 @@ export function QueuedRender<Node, Element, TagOptions extends object>(
 ) {
     /* istanbul ignore else */
     if (defaultSlot) {
-        const node = new Fragment<Node, Element, TagOptions>(ctx.runner);
+        const node = new Fragment<Node, Element, TagOptions>(ctx.runner, ctx.sDeep + 1);
         const item: QueueItem<Node, Element, TagOptions> = {
             done: false,
             node: node,

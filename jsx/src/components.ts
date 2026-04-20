@@ -15,7 +15,6 @@ import {
     userError,
     Watch as CoreWatch,
 } from "vasille";
-import { TagOptions } from "vasille/web-runner";
 import { ref } from "./internal.js";
 
 interface SlotOptions<Node, Element, TagOptions extends object, T extends object> {
@@ -25,8 +24,9 @@ interface SlotOptions<Node, Element, TagOptions extends object, T extends object
 
 function frag<Node, Element, TagOptions extends object, TRunner extends Runner<Node, Element, TagOptions>>(
     runner: TRunner,
+    deep: number,
 ) {
-    return new Fragment<Node, Element, TagOptions>(runner);
+    return new Fragment<Node, Element, TagOptions>(runner, deep);
 }
 
 export function Slot<Node, Element, TagOptions extends object, T extends object = {}>(
@@ -60,7 +60,7 @@ export function Switch<Node, Element, TagOptions extends object>(
     options: SwitchOptions<Node, Element, TagOptions>,
     ctx: Fragment<Node, Element, TagOptions>,
 ) {
-    ctx.create(new SwitchedNode(ctx.runner, options.cases, options.default));
+    ctx.create(new SwitchedNode(ctx.runner, ctx.sDeep + 1, options.cases, options.default));
 }
 
 interface ForOptions<Node, Element, TagOptions extends object, T, Args extends unknown[]> {
@@ -90,6 +90,7 @@ export function For<
         ctx.create(
             new CoreArrayView<V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
                 ctx.runner,
+                ctx.sDeep + 1,
                 model,
                 (ctx, value, index) => {
                     slot(ctx, value, index.V as K);
@@ -102,6 +103,7 @@ export function For<
         ctx.create(
             new CoreMapView<K, V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
                 ctx.runner,
+                ctx.sDeep + 1,
                 model,
                 (ctx, value, key) => {
                     slot(ctx, value.V, key);
@@ -114,6 +116,7 @@ export function For<
         ctx.create(
             new CoreSetView<V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
                 ctx.runner,
+                ctx.sDeep + 1,
                 model,
                 (ctx, value) => {
                     slot(ctx, value, value as unknown as K);
@@ -161,6 +164,7 @@ export function ArrayView<
     ctx.create(
         new SinglePassArrayView<V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
             ctx.runner,
+            ctx.sDeep + 1,
             props.$of,
             props.key,
             props.slot,
@@ -178,6 +182,7 @@ export function ArrayModelView<Node, Element, TagOptions extends object, V>(
     ctx.create(
         new CoreArrayView<V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
             ctx.runner,
+            ctx.sDeep + 1,
             props.of,
             props.slot,
             ref,
@@ -193,6 +198,7 @@ export function MapModelView<Node, Element, TagOptions extends object, K, V>(
     ctx.create(
         new CoreMapView<K, V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
             ctx.runner,
+            ctx.sDeep + 1,
             props.of,
             props.slot,
             ref,
@@ -208,6 +214,7 @@ export function SetModelView<Node, Element, TagOptions extends object, V>(
     ctx.create(
         new CoreSetView<V, Node, Element, TagOptions, Runner<Node, Element, TagOptions>>(
             ctx.runner,
+            ctx.sDeep + 1,
             props.of,
             props.slot,
             frag,
@@ -229,7 +236,7 @@ export function Watch<Node, Element, TagOptions extends object, T>(
 
     /* istanbul ignore else */
     if (slot) {
-        ctx.create(new CoreWatch({ model: $model, slot: safe(slot) }, ctx.runner));
+        ctx.create(new CoreWatch({ model: $model, slot: safe(slot) }, ctx.runner, ctx.sDeep + 1));
     }
 }
 
@@ -243,7 +250,7 @@ export function Delay<Node, Element, TagOptions extends object>(
     ctx: Fragment<Node, Element, TagOptions>,
     defaultSlot?: (ctx: Fragment<Node, Element, TagOptions>) => void,
 ) {
-    const fragment = new Fragment<Node, Element, TagOptions>(ctx.runner);
+    const fragment = new Fragment<Node, Element, TagOptions>(ctx.runner, ctx.sDeep + 1);
     const slot = _slot ?? defaultSlot;
     let timer: number | undefined;
 

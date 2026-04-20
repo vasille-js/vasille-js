@@ -168,7 +168,7 @@ it("Delay", function (done) {
     expect(element.children.length).toBe(0);
     setTimeout(() => {
         expect(element.children.length).toBe(1);
-        node.destroy();
+        node.destroy(node.sDeep);
         setTimeout(() => {
             expect(element.children.length).toBe(1);
             expect(window.document.body.children.length).toBe(0);
@@ -227,7 +227,7 @@ it("ArrayView", function () {
 
     expect(body.innerHTML.trim()).toBe("1");
 
-    node.destroy();
+    node.destroy(node.sDeep);
     expect(body.innerHTML.trim()).toBe("");
 });
 
@@ -247,7 +247,7 @@ it("ArrayModelView", function () {
 
     expect(body.innerHTML.trim()).toBe("1");
 
-    node.destroy();
+    node.destroy(node.sDeep);
     expect(body.innerHTML.trim()).toBe("");
 });
 
@@ -267,7 +267,7 @@ it("SetModelView", function () {
 
     expect(body.innerHTML.trim()).toBe("1");
 
-    node.destroy();
+    node.destroy(node.sDeep);
     expect(body.innerHTML.trim()).toBe("");
 });
 
@@ -287,7 +287,7 @@ it("MapModelView", function () {
 
     expect(body.innerHTML.trim()).toBe("1");
 
-    node.destroy();
+    node.destroy(node.sDeep);
     expect(body.innerHTML.trim()).toBe("");
 });
 
@@ -304,7 +304,7 @@ it("QueuedRender", function (done) {
 
     setTimeout(() => {
         expect(body.innerHTML.trim()).toBe("12");
-        node.destroy();
+        node.destroy(node.sDeep);
         done();
     }, 10);
 });
@@ -319,7 +319,7 @@ it("QueuedRender cancel", function (done) {
     QueuedRender({ priority: "high" }, node, (f: Fragment<Node, Element, object>) => {
         f.text("2");
     });
-    node.destroy();
+    node.destroy(node.sDeep);
 
     setTimeout(() => {
         expect(body.children.length).toBe(0);
@@ -346,7 +346,7 @@ it("QueuedRender split", function (done) {
         expect(body.innerHTML.trim()).toBe("2");
         setTimeout(() => {
             expect(body.innerHTML.trim()).toBe("12");
-            node.destroy();
+            node.destroy(node.sDeep);
             done();
         }, 10);
     }, 10);
@@ -384,7 +384,7 @@ it("QueuedRender order", function (done) {
         expect(low).toBe(3);
         expect(highLow).toBe(4);
         expect(lowLow).toBe(5);
-        node.destroy();
+        node.destroy(node.sDeep);
         done();
     }, 10);
 });
@@ -406,7 +406,7 @@ it("QueuedRender callback", function (done) {
 
     setTimeout(() => {
         expect(test).toBe(true);
-        node.destroy();
+        node.destroy(node.sDeep);
         done();
     }, 10);
 });
@@ -430,7 +430,7 @@ it("QueuedRender error", function (done) {
 
     setTimeout(() => {
         expect(test).toBe(true);
-        node.destroy();
+        node.destroy(node.sDeep);
         done();
     }, 10);
 });

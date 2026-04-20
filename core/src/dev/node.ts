@@ -1,34 +1,8 @@
 import { Fragment } from "../node/node.js";
 import { IRunner } from "../node/runner.js";
 import { InspectableReactive, inspector, provideId, StaticPosition, toDevObject } from "./inspectable.js";
-import { DevArrayModel, DevMapModel, DevSetModel } from "./models.js";
-import { DevExpression, DevReference } from "./state.js";
 
 export const ModelId = Symbol("model-id");
-
-export function shareStateById<T>(id: number | undefined, name: string, value: T): T {
-    if (
-        value instanceof DevReference ||
-        value instanceof DevExpression ||
-        value instanceof DevArrayModel ||
-        value instanceof DevSetModel ||
-        value instanceof DevMapModel
-    ) {
-        inspector.addContextState({
-            id: id ?? 0,
-            name: name,
-            stateId: value.id,
-        });
-    } else if (value && typeof value == "object" && ModelId in value) {
-        inspector.addContextState({
-            id: id ?? 0,
-            name: name,
-            stateId: value[ModelId] as number,
-        });
-    }
-
-    return value;
-}
 
 export class DevFragment<Node, Element, TagOptions extends object>
     extends Fragment<Node, Element, TagOptions, IRunner<Node, Element, TagOptions>>
@@ -39,13 +13,12 @@ export class DevFragment<Node, Element, TagOptions extends object>
 
     public constructor(
         runner: IRunner<Node, Element, TagOptions>,
-        deep: number,
         declaration: StaticPosition | null,
         usage: StaticPosition | null,
         name: string,
         props: object,
     ) {
-        super(runner, deep);
+        super(runner, 1);
         this.id = provideId();
         this.declaration = declaration;
 

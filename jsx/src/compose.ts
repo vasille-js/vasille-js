@@ -19,7 +19,7 @@ export function view<Node, Element, TagOptions extends object, In extends Compos
         if (!node) {
             throw new Error("Vasille: Component context is missing");
         }
-        const frag = new Fragment<Node, Element, TagOptions>(node.runner);
+        const frag = new Fragment<Node, Element, TagOptions>(node.runner, node.sDeep + 1);
 
         if (slot) {
             props.slot = slot;
@@ -39,14 +39,14 @@ export function view<Node, Element, TagOptions extends object, In extends Compos
 }
 
 export function store<Out extends object>(fn: (ctx: Reactive) => Out): Out {
-    return fn(new Reactive());
+    return fn(new Reactive(0));
 }
 
 export function model<In extends object, Out extends object>(
     fn: (ctx: Reactive, o: In) => Out,
 ): (o: In, parent?: Reactive) => Out {
     return (o, parent) => {
-        const ctx = new Reactive();
+        const ctx = new Reactive(parent ? parent.sDeep + 1 : 0);
         parent?.bind(ctx);
         return fn(ctx, o);
     };
@@ -59,7 +59,7 @@ export function mount<Node, Element, TagOptions extends object, T>(
     $: T,
 ): App<Node, Element, TagOptions> {
     const root = new App<Node, Element, TagOptions>(tag, runner);
-    const frag = new Fragment<Node, Element, TagOptions>(runner);
+    const frag = new Fragment<Node, Element, TagOptions>(runner, 1);
 
     root.create(frag, function () {
         view($, frag);
