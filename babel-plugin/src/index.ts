@@ -13,6 +13,7 @@ export default function (): Babel.PluginObj<{
     shadow: unknown;
     throwAtFirstError: unknown;
     reporter: unknown;
+    hmr: unknown;
   };
 }> {
   return {
@@ -29,6 +30,7 @@ export default function (): Babel.PluginObj<{
           throwAtFirstError: !!params.opts.throwAtFirstError,
           reporter:
             typeof params.opts.reporter === "function" ? (params.opts.reporter as CompilationErrorReporter) : undefined,
+          hmr: params.opts.hmr === true,
         });
       },
     },

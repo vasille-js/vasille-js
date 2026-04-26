@@ -1,7 +1,6 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import { TSTypeElement } from "@babel/types";
-import { CompilationErrorReporter } from "./communication";
 
 export type VariableState = Record<string, 1>;
 
@@ -60,6 +59,7 @@ export interface Internal {
   headTag?: boolean;
   bodyTag?: boolean;
   shadow?: boolean;
+  hmr?: { local: types.Identifier; exported: types.Identifier | types.StringLiteral; isDynamic?: boolean }[];
   reportError(message: string, node: types.Node, e?: Error): void;
 
   // reactivity
@@ -107,12 +107,9 @@ export interface Internal {
   ): void;
   setupPosition(target: types.Expression, area: types.Node): types.Expression;
   wrapFunction(fn: types.FunctionExpression | types.ArrowFunctionExpression): types.Node;
-  shareStateById(value: types.Expression, name: string): types.Expression;
   positionedText(text: types.Expression, area: types.Node): types.Expression;
-  earlyInspector(): types.Expression;
 }
 
 export const ctx = t.identifier("Vasille");
 export const runner = t.memberExpression(ctx, t.identifier("runner"));
-export const inspector = t.memberExpression(runner, t.identifier("inspector"));
 export const V = t.identifier("V");

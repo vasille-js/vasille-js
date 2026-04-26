@@ -1,16 +1,18 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
 import {
+  asyncFunctions,
   calls,
   composeFunctions,
   dependencyInjections,
+  dynamicModulesFunctions,
   hintFunctions,
   modelFunctions,
   refFunctions,
   unwrapFunctions,
 } from "./call.js";
 import { checkNode, exprIsSure, idIsIValue, memberIsIValue, nodeIsMeshed } from "./expression.js";
-import { ctx, inspector, Internal, V, VariableState } from "./internal.js";
+import { ctx, Internal, V, VariableState } from "./internal.js";
 import { ConditionCollection, processConditions, transformJsx } from "./jsx.js";
 import {
   arrayModel,
@@ -1023,7 +1025,31 @@ export function meshStatement(path: NodePath<types.Statement | null | undefined>
       break;
     }
     case "ExportNamedDeclaration": {
-      meshStatement((path as NodePath<types.ExportNamedDeclaration>).get("declaration"), internal);
+      const declarationPath = (path as NodePath<types.ExportNamedDeclaration>).get("declaration");
+
+      if (internal.hmr) {
+        /* istanbul ignore else */
+        if (declarationPath.isVariableDeclaration()) {
+          for (const declaration of declarationPath.get("declarations")) {
+            const idPath = declaration.get("id");
+            const initPath = declaration.get("init");
+
+            /* istanbul ignore else */
+            if (idPath.isIdentifier()) {
+              internal.hmr.push({
+                local: idPath.node,
+                exported: idPath.node,
+                isDynamic: calls(initPath, dynamicModulesFunctions, internal),
+              });
+            }
+          }
+          /* istanbul ignore else */
+          if (!declarationPath.node.kind.endsWith("using")) {
+            declarationPath.node.kind = "let";
+          }
+        }
+      }
+      meshStatement(declarationPath, internal);
       break;
     }
     case "ClassDeclaration": {
@@ -1252,29 +1278,24 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
 
         ignoreParams(declaration.get("id"), internal, ["id", "array"]);
 
-        if (calls(declaration.get("init"), ["awaited"], internal)) {
+        if (calls(declaration.get("init"), asyncFunctions, internal)) {
           const callPath = declaration.get("init") as NodePath<types.CallExpression>;
 
           reactiveArrayPattern(declaration.get("id"), internal);
           meshAllUnknown(callPath.get("arguments"), internal);
+
           /* istanbul ignore else */
           if (internal.devLayer) {
-            const error = t.identifier("error");
-            const value = t.identifier("value");
             const { names, nodes } = idDoubleName();
 
             callPath.node.arguments.push(
-              t.arrowFunctionExpression(
-                [error, value],
-                t.blockStatement([
-                  t.expressionStatement(internal.shareStateById(error, names[0])),
-                  t.expressionStatement(internal.shareStateById(value, names[1])),
-                ]),
-              ),
-              t.arrayExpression([nodeToStaticPosition(nodes[0] ?? id), nodeToStaticPosition(nodes[1] ?? id)]),
-              inspector,
+              t.arrayExpression([
+                t.arrayExpression([nodeToStaticPosition(nodes[0] ?? id), t.stringLiteral(names[0])]),
+                t.arrayExpression([nodeToStaticPosition(nodes[1] ?? id), t.stringLiteral(names[1])]),
+              ]),
             );
           }
+          callPath.node.arguments.push(ctx);
           meshInit = false;
         } else if (calls(declaration.get("init"), dependencyInjections, internal)) {
           const callPath = declaration.get("init") as NodePath<types.CallExpression>;

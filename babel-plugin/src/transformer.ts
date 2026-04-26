@@ -1,6 +1,6 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { ctx, inspector, Internal, runner, StackedStates } from "./internal.js";
+import { ctx, Internal, StackedStates } from "./internal.js";
 import { meshStatement } from "./mesh.js";
 import { findStyleInNode } from "./css-transformer.js";
 import * as fs from "node:fs";
@@ -180,6 +180,7 @@ export interface TransformerOptions {
   shadow: boolean;
   reporter: CompilationErrorReporter | undefined;
   throwAtFirstError: boolean;
+  hmr: boolean;
 }
 
 export function nodeToStaticPosition(node: types.Node) {
@@ -218,7 +219,6 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     runFn: "VasilleRun",
     wrapFn: "VasilleWrap",
     setupPosition: "VasilleSetupPosition",
-    shareStateById: "VasilleState",
     positionedText: "VasillePosText",
     earlyInspector: "VasilleInspector",
     registerReference: "VasilleRefence",
@@ -236,6 +236,12 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
       return t.callExpression(t.memberExpression(t.identifier(internal.global), t.identifier(key)), args);
     }
     return t.callExpression(t.identifier(ids[key]), args);
+  }
+  function named(expression: types.CallExpression, name?: string) {
+    if (name) {
+      expression.arguments.push(t.stringLiteral(name));
+    }
+    return expression;
   }
 
   const reports: CompilationErrorReport[] = [];
@@ -257,12 +263,10 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     headTag: opts.headTag,
     bodyTag: opts.bodyTag,
     shadow: opts.shadow,
+    hmr: opts.hmr ? [] : undefined,
     ref(arg, area, name) {
       if (opts.devLayer) {
-        return named(
-          call("ref", [arg ? arg : t.buildUndefinedNode(), nodeToStaticPosition(area), getInspector()]),
-          name,
-        );
+        return named(call("ref", [arg ? arg : t.buildUndefinedNode(), getCtx(), nodeToStaticPosition(area)]), name);
       }
 
       return call("ref", arg ? [arg] : []);
@@ -276,7 +280,6 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
             t.arrayExpression(values),
             t.arrayExpression(codes.map(item => t.stringLiteral(item))),
             nodeToStaticPosition(area),
-            getInspector(),
           ]),
           name,
         );
@@ -286,30 +289,21 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     },
     setModel(arg, usage, name) {
       if (opts.devLayer) {
-        return named(
-          call("setModel", [getInspector(), nodeToStaticPosition(usage), getCtx(), arg ?? t.buildUndefinedNode()]),
-          name,
-        );
+        return named(call("setModel", [nodeToStaticPosition(usage), getCtx(), arg ?? t.buildUndefinedNode()]), name);
       }
 
       return call("setModel", arg ? [getCtx(), arg] : [getCtx()]);
     },
     mapModel(arg, usage, name) {
       if (opts.devLayer) {
-        return named(
-          call("mapModel", [getInspector(), nodeToStaticPosition(usage), getCtx(), arg ?? t.buildUndefinedNode()]),
-          name,
-        );
+        return named(call("mapModel", [nodeToStaticPosition(usage), getCtx(), arg ?? t.buildUndefinedNode()]), name);
       }
 
       return call("mapModel", arg ? [getCtx(), arg] : [getCtx()]);
     },
     arrayModel(arg, usage, name) {
       if (opts.devLayer) {
-        return named(
-          call("arrayModel", [getInspector(), nodeToStaticPosition(usage), getCtx(), arg ?? t.buildUndefinedNode()]),
-          name,
-        );
+        return named(call("arrayModel", [nodeToStaticPosition(usage), getCtx(), arg ?? t.buildUndefinedNode()]), name);
       }
 
       return call("arrayModel", arg ? [getCtx(), arg] : [getCtx()]);
@@ -321,21 +315,21 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
         : t.stringLiteral((arg.property as types.Identifier).name);
 
       if (opts.devLayer) {
-        return call("ensure", [object, property, nodeToStaticPosition(area), getInspector()]);
+        return call("ensure", [object, property, getCtx(), nodeToStaticPosition(area)]);
       }
 
       return call("ensure", [object, property]);
     },
     match(name, arg, area) {
       if (opts.devLayer) {
-        return call("match", [name, arg, nodeToStaticPosition(area), getInspector()]);
+        return call("match", [name, arg, nodeToStaticPosition(area), getCtx()]);
       }
 
       return call("match", [name, arg]);
     },
     set(obj, field, value, area) {
       if (opts.devLayer) {
-        return call("set", [obj, field, value, nodeToStaticPosition(area), getInspector(), getExecutionPosition(area)]);
+        return call("set", [obj, field, value, getCtx(), nodeToStaticPosition(area), getExecutionPosition(area)]);
       }
 
       return call("set", [obj, field, value]);
@@ -367,7 +361,6 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
               t.arrowFunctionExpression(params, body, fn.async),
               fn.params.length > 0 ? args : t.arrayExpression(),
               nodeToStaticPosition(fn),
-              getInspector(),
             ]),
           ),
         ]);
@@ -378,7 +371,7 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     },
     wrapFunction(fn: types.FunctionExpression | types.ArrowFunctionExpression): types.Node {
       if (opts.devLayer) {
-        return call("wrapFn", [fn, nodeToStaticPosition(fn), getInspector()]);
+        return call("wrapFn", [fn, nodeToStaticPosition(fn)]);
       }
 
       return fn;
@@ -386,15 +379,8 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     setupPosition(target: types.Expression, area: types.Node): types.Expression {
       return call("setupPosition", [target, nodeToStaticPosition(area)]);
     },
-    shareStateById(value: types.Expression, name: string): types.Expression {
-      return shareStateById(value, name);
-    },
     positionedText(text: types.Expression, area: types.Node): types.Expression {
       return call("positionedText", [text, nodeToStaticPosition(area)]);
-    },
-    earlyInspector(): types.Expression {
-      used.add("earlyInspector");
-      return t.identifier(ids["earlyInspector"]);
     },
     reportError(message: string, node: types.Node, e?: Error) {
       const pos = node.loc;
@@ -425,33 +411,11 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     return t.nullLiteral();
   }
 
-  function getInspector() {
-    if (internal.isComposing) {
-      return inspector;
-    }
-
-    used.add("earlyInspector");
-    return t.identifier(ids["earlyInspector"]);
-  }
-
   function getExecutionPosition(area: types.Node) {
     return call("executionPosition", [
-      getInspector(),
       nodeToStaticPosition(area),
       t.newExpression(t.identifier("Error"), [t.stringLiteral("execution-position")]),
     ]);
-  }
-
-  function named(node: t.CallExpression, name: string | undefined) {
-    if (name && internal.isComposing) {
-      return shareStateById(node, name);
-    }
-
-    return node;
-  }
-
-  function shareStateById(node: types.Expression, name: string) {
-    return call("shareStateById", [t.memberExpression(ctx, t.identifier("id")), runner, t.stringLiteral(name), node]);
   }
 
   for (const statementPath of path.get("body")) {
@@ -479,12 +443,42 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
       t.variableDeclaration("const", [t.variableDeclarator(filePathId, t.stringLiteral(internal.steelFilePath))]),
     );
   }
-}
-
-export function inspectorOf(internal: Internal) {
-  if (internal.isComposing) {
-    return inspector;
+  if (internal.hmr?.length) {
+    const newModule = t.identifier("VasilleNewModule");
+    path.node.body.push(
+      t.expressionStatement(
+        t.callExpression(
+          t.memberExpression(
+            t.memberExpression(t.memberExpression(t.identifier("import"), t.identifier("meta")), t.identifier("hot")),
+            t.identifier("accept"),
+          ),
+          [
+            t.arrowFunctionExpression(
+              [newModule],
+              t.blockStatement([
+                t.ifStatement(
+                  newModule,
+                  t.blockStatement(
+                    internal.hmr.map(item => {
+                      if (item.isDynamic) {
+                        return t.expressionStatement(
+                          t.callExpression(
+                            t.memberExpression(t.memberExpression(newModule, item.exported), t.identifier("recompose")),
+                            [t.memberExpression(item.local, t.identifier("fragments"))],
+                          ),
+                        );
+                      }
+                      return t.expressionStatement(
+                        t.assignmentExpression("=", item.local, t.memberExpression(newModule, item.exported)),
+                      );
+                    }),
+                  ),
+                ),
+              ]),
+            ),
+          ],
+        ),
+      ),
+    );
   }
-
-  return internal.earlyInspector();
 }

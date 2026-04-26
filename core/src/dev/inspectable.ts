@@ -1,4 +1,3 @@
-import { IRunner } from "../node/runner.js";
 import { DevExpression, DevReference } from "./state.js";
 
 export type StaticPosition = [string, number, number, number, number];
@@ -6,26 +5,13 @@ export type ExecutionPosition = number;
 
 let positionId: number = 1;
 
-function getErrorStack(error: Error) {
-    return (
-        error.stack
-            ?.split("\n")
-            .slice(1)
-            .map(line => line.trim()) ?? []
-    );
-}
-
-export function executionPosition(
-    inspector: Inspector,
-    pathLineAndChar: StaticPosition,
-    error: Error,
-): ExecutionPosition {
+export function executionPosition(pathLineAndChar: StaticPosition, error: Error): ExecutionPosition {
     const id = positionId++;
 
     inspector.registerExecutionPosition({
         id: id,
         position: pathLineAndChar,
-        stack: getErrorStack(error),
+        stack: error.stack ?? "",
     });
 
     return id;
@@ -194,7 +180,7 @@ export interface ProtocolRouterTargetResult {
 export interface ProtocolExecutionPosition {
     id: number;
     position: StaticPosition;
-    stack: string[];
+    stack: string;
 }
 
 export interface ProtocolDevValue {

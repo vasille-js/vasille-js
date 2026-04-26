@@ -1,6 +1,6 @@
 import { NodePath, types } from "@babel/core";
 import * as t from "@babel/types";
-import { ctx, inspector, Internal } from "./internal.js";
+import { ctx, Internal } from "./internal.js";
 import { bodyHasJsx } from "./jsx-detect.js";
 import { checkNonReactiveName, checkReactiveName, err, Errors, exprCall, toKebabCase } from "./lib.js";
 import { compose, meshExpression } from "./mesh.js";

@@ -4,7 +4,7 @@ const promptName = prompt(Vasille => {}, [VasilleFilePath, 3, 19, 3, 35], "promp
 const C = component(Vasille => {
   Vasille.tag("button", {
     e: {
-      click: VasilleWrap(() => promptName(Vasille, {}, void 0, [VasilleFilePath, 6, 25, 6, 39]), [VasilleFilePath, 6, 19, 6, 39], Vasille.runner.inspector)
+      click: VasilleWrap(() => promptName(Vasille, {}, void 0, [VasilleFilePath, 6, 25, 6, 39]), [VasilleFilePath, 6, 19, 6, 39])
     },
     usage: [VasilleFilePath, 6, 2, 6, 61]
   }, Vasille => {

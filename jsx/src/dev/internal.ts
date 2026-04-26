@@ -16,27 +16,37 @@ export function devExpr<T, Args extends unknown[]>(
     ctx: Reactive | undefined,
     func: (...args: Args) => T,
     values: KindOfDevIValue<Args>,
-    name: string | undefined,
     depsCode: string[],
     declaration: StaticPosition,
+    name?: string,
 ): DevExpression<T, Args> {
     return new DevExpression<T, Args>(func, values, ctx, name, depsCode, declaration, false);
 }
 
-export function devRef<T>(v: T, ctx: Reactive | undefined, declaration: StaticPosition): DevIValue<T> {
-    return new DevReference(v, ctx, declaration);
+export function devRef<T>(v: T, ctx: Reactive | undefined, declaration: StaticPosition, name?: string): DevIValue<T> {
+    return new DevReference(v, ctx, declaration, name);
 }
 
-export function devSetModel(usage: StaticPosition, ctx: Reactive | undefined, data?: unknown[]) {
-    return new DevSetModel(usage, data, ctx);
+export function devSetModel(usage: StaticPosition, ctx: Reactive | undefined, data?: unknown[], name?: string) {
+    return new DevSetModel(usage, data, ctx, name);
 }
 
-export function devMapModel(usage: StaticPosition, ctx: Reactive | undefined, data?: [unknown, unknown][]) {
-    return new DevMapModel(usage, data, ctx);
+export function devMapModel(
+    usage: StaticPosition,
+    ctx: Reactive | undefined,
+    data?: [unknown, unknown][],
+    name?: string,
+) {
+    return new DevMapModel(usage, data, ctx, name);
 }
 
-export function devArrayModel(usage: StaticPosition, ctx: Reactive | undefined, data?: unknown[] | number) {
-    return new DevArrayModel(usage, data, ctx);
+export function devArrayModel(
+    usage: StaticPosition,
+    ctx: Reactive | undefined,
+    data?: unknown[] | number,
+    name?: string,
+) {
+    return new DevArrayModel(usage, data, ctx, name);
 }
 
 export function devEnsure<T extends object>(

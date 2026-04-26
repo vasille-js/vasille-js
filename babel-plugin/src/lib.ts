@@ -1,11 +1,11 @@
 import { NodePath, types } from "@babel/core";
 import { Identifier } from "@babel/types";
 import * as t from "@babel/types";
-import { checkExpression, checkNode, Dependency, exprIsSure } from "./expression.js";
-import { Internal, ctx, inspector } from "./internal.js";
+import { checkNode, Dependency, exprIsSure } from "./expression.js";
+import { Internal, ctx } from "./internal.js";
 import { bindFunctions, calls } from "./call.js";
 import { meshAllUnknown } from "./mesh";
-import { inspectorOf, nodeToStaticPosition } from "./transformer";
+import { nodeToStaticPosition } from "./transformer";
 
 export enum Errors {
   IncorrectArguments = 1,
@@ -71,12 +71,11 @@ export function processCalculateCall(
       path.node.arguments.push(
         t.arrayExpression([...exprData.found.keys()].map(name => t.stringLiteral(name))),
         nodeToStaticPosition(area),
-        inspectorOf(internal),
       );
 
       /* istanbul ignore else */
       if (name) {
-        path.replaceWith(internal.shareStateById(path.node, name));
+        path.node.arguments.push(t.stringLiteral(name));
       }
     }
 
@@ -164,12 +163,11 @@ export function exprCall(
         expr.arguments.push(
           t.arrayExpression([...exprData.found.keys()].map(item => t.stringLiteral(item))),
           nodeToStaticPosition(area),
-          inspectorOf(internal),
         );
 
         /* istanbul ignore else */
         if (opts.name) {
-          path.replaceWith(internal.shareStateById(path.node, opts.name));
+          expr.arguments.push(t.stringLiteral(opts.name));
         }
       }
     } else {

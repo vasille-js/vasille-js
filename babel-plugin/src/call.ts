@@ -40,10 +40,8 @@ export type FnNames =
   | "receive"
   | "impute";
 
-export const composeFunctions = [
+export const dynamicModulesFunctions = [
   "compose",
-  "store",
-  "model",
   "view",
   "component",
   "page",
@@ -51,6 +49,8 @@ export const composeFunctions = [
   "prompt",
   "screen",
 ] as const satisfies FnNames[];
+
+export const composeFunctions = [...dynamicModulesFunctions, "store", "model"] as const satisfies FnNames[];
 
 export const refFunctions = ["ref"] as const satisfies FnNames[];
 

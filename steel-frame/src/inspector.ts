@@ -1,6 +1,6 @@
 import type { AppSide, IdeSide } from "./communication.js";
 import { App, Fragment, Reactive } from "vasille";
-import { TagOptions, TextNode, Runner } from "vasille/web-runner";
+import { TagOptions } from "vasille/web-runner";
 import { expr, ref } from "vasille-jsx";
 import { DevFragment, DevTag, DevTextNode, inspector } from "vasille/dev";
 import { AbstractInspector } from "vasille/dev";
