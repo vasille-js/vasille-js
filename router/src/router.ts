@@ -1,5 +1,5 @@
 import { Fragment } from "vasille";
-import { Answer, Routing, RouteParameters, QueryParams, ScreenProps } from "./types.js";
+import { Answer, Routing, QueryParams, ScreenProps } from "./types.js";
 
 export interface FallbackScreenProps {
     cause: "not-found" | "no-access";

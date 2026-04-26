@@ -56,7 +56,7 @@ export { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth } from "vasille
 export { context, impute, receive, share, receiveOptional } from "vasille-context";
 
 function createPortal(node: Fragment<Node, Element, TagOptions>) {
-    const portal = new Portal<Node, Element, TagOptions>({ node: document.body }, node.runner);
+    const portal = new Portal<Node, Element, TagOptions>({ node: document.body }, node.runner, node.sDeep + 1);
 
     node.create(portal);
 
@@ -111,7 +111,7 @@ export function prompt<T extends PromptProps>(
 
             function destroy() {
                 timer && clearTimeout(timer);
-                portal.destroy();
+                portal.destroy(portal.sDeep);
             }
 
             try {

@@ -3,12 +3,13 @@ import { TagOptions } from "vasille/web-runner";
 import { devMount as coreMount, devDynamicalModule, DevFragmentMap } from "vasille-jsx/dev";
 import { devRouteApp as coreRouteApp } from "vasille-router/dev";
 import {
+    DevFragment,
     DevPortal,
     DevRunner,
     DevTagOptions,
     errorToString,
-    IDevRunner,
     Inspector,
+    inspector,
     StaticPosition,
     toDevValue,
 } from "vasille/dev";
@@ -16,7 +17,7 @@ import { modal, prompt, PromptProps } from "./index.js";
 import { WebRouterInitialization } from "vasille-router/web-router";
 import { CompositionProps } from "vasille-jsx";
 
-function createPortal<Runner extends IDevRunner<Node, Element, TagOptions>>(
+function createPortal<Runner extends IRunner<Node, Element, TagOptions>>(
     node: Fragment<Node, Element, TagOptions>,
     declaration: StaticPosition | undefined,
     usage: StaticPosition | undefined,
@@ -44,7 +45,6 @@ export function devModal<T extends CompositionProps>(
     const run = function (parent: Fragment<Node, Element, TagOptions>, input: T, usage: StaticPosition | undefined) {
         modal<T>(modalFn, node => {
             const portal = createPortal(node, declaration, usage, name);
-            const inspector = portal.runner.inspector;
             const event = {
                 position: usage,
                 target: portal.id,
@@ -56,7 +56,7 @@ export function devModal<T extends CompositionProps>(
                 ...event,
             });
             portal.runOnDestroy(() => {
-                portal.runner.inspector.eventTrigger({
+                inspector.eventTrigger({
                     eventName: "close",
                     time: Date.now(),
                     ...event,
@@ -76,9 +76,7 @@ export function devModal<T extends CompositionProps>(
         if (!node) {
             throw new Error("Vasille: Modal context is missing");
         }
-        const frag = new Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>(
-            node.runner as IDevRunner<Node, Element, TagOptions>,
-        );
+        const frag = new DevFragment<Node, Element, TagOptions>(node.runner, null, null, name, {});
 
         if (!input.slot && slot) {
             input.slot = slot;
@@ -93,24 +91,23 @@ export function devModal<T extends CompositionProps>(
 }
 
 export function devPrompt<T extends PromptProps>(
-    modal: (node: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>, input: T) => void,
+    modal: (node: Fragment<Node, Element, TagOptions, IRunner<Node, Element, TagOptions>>, input: T) => void,
     declaration: StaticPosition,
     name: string,
 ): (
-    node: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+    node: Fragment<Node, Element, TagOptions, IRunner<Node, Element, TagOptions>>,
     input: T,
     timeout: number | undefined,
     usage: StaticPosition | undefined,
 ) => Promise<unknown> {
     const fragments: DevFragmentMap<Node, Element, TagOptions, T> = new Map();
     const run = function (
-        node: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+        node: Fragment<Node, Element, TagOptions, IRunner<Node, Element, TagOptions>>,
         input: T,
         timeout: number | undefined,
         usage: StaticPosition | undefined,
     ) {
         let target: number | null = null;
-        let inspector: Inspector | null = null;
         const event: { position: StaticPosition | undefined } = {
             position: usage,
         };
@@ -119,7 +116,6 @@ export function devPrompt<T extends PromptProps>(
             const portal = createPortal(node, declaration, usage, name);
 
             target = portal.id;
-            inspector = portal.runner.inspector;
 
             inspector.eventTrigger({
                 eventName: "open",
@@ -159,14 +155,12 @@ export function devPrompt<T extends PromptProps>(
         });
     };
     const renderer = (
-        node: Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>,
+        node: Fragment<Node, Element, TagOptions, IRunner<Node, Element, TagOptions>>,
         input: T,
         timeout: number | undefined,
         usage: StaticPosition | undefined,
     ) => {
-        const frag = new Fragment<Node, Element, TagOptions, IDevRunner<Node, Element, TagOptions>>(
-            node.runner as IDevRunner<Node, Element, TagOptions>,
-        );
+        const frag = new DevFragment<Node, Element, TagOptions>(node.runner, null, null, name, {});
 
         node.create(frag);
         fragments.set(frag, { props: input, node: frag, usage });
@@ -179,7 +173,7 @@ export function devPrompt<T extends PromptProps>(
 }
 
 export function devMount<T>(element: Element, component: ($: T) => void, input: T, inspector: Inspector) {
-    return coreMount<T>(element, component, new DevRunner(window.document, inspector), input, inspector);
+    return coreMount<T>(element, component, new DevRunner(window.document), input, inspector);
 }
 
 export function devRouterApp<Routes extends string>(

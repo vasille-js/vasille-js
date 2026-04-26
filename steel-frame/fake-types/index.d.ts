@@ -127,7 +127,11 @@ export declare function For<K, T>(props: {
 }): void;
 
 /** Renders content of an `array`, updates are tracked via a diff algorithm */
-export declare function ArrayView<T>(props: { $of: ReadonlyArray<T>; slot: ($value: T, $index: number) => void }): void;
+export declare function ArrayView<T>(props: {
+    $of: ReadonlyArray<T>;
+    key: (v: T) => string | number;
+    slot: ($value: T, $index: number) => void;
+}): void;
 
 /** Renders content of an `array model`, which can be updated via `push`, `pull`, ... */
 export declare function ArrayModelView<T>(props: {

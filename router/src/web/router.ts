@@ -153,7 +153,7 @@ export class Router<Routes extends string> extends AbstractRouter<
         }
 
         oldChildren.forEach(node => {
-            node.destroy();
+            node.destroy(node.sDeep);
         });
         children.splice(0, oldChildren.length);
 
@@ -170,7 +170,7 @@ export class Router<Routes extends string> extends AbstractRouter<
     protected clearNode(node: Fragment<Node, Element, TagOptions>) {
         const { children } = node;
 
-        children.forEach(node => node.destroy());
+        children.forEach(node => node.destroy(node.sDeep));
         children.splice(0);
     }
 
@@ -178,7 +178,7 @@ export class Router<Routes extends string> extends AbstractRouter<
         node: Fragment<Node, Element, TagOptions>,
         run?: (node: Fragment<Node, Element, TagOptions>) => void,
     ) {
-        const child = new Fragment<Node, Element, TagOptions>(node.runner);
+        const child = new Fragment<Node, Element, TagOptions>(node.runner, node.sDeep + 1);
 
         node.create(child, run);
     }

@@ -1,9 +1,9 @@
-import { AbstractInspector, earlyInspector } from "vasille-jsx/dev";
 import type { AppSide, IdeSide } from "./communication.js";
 import { App, Fragment, Reactive } from "vasille";
 import { TagOptions, TextNode, Runner } from "vasille/web-runner";
 import { expr, ref } from "vasille-jsx";
-import { DevFragment, DevTag, DevTextNode } from "vasille/dev";
+import { DevFragment, DevTag, DevTextNode, inspector } from "vasille/dev";
+import { AbstractInspector } from "vasille/dev";
 
 class AppHandler implements AppSide {
     private canvas: HTMLCanvasElement | null = null;
@@ -117,9 +117,11 @@ class AppHandler implements AppSide {
             ctx.fillStyle = "#ff000030";
 
             for (const tag of tags) {
-                const rect = tag.getNode().getBoundingClientRect();
+                const rect = tag.node?.getBoundingClientRect();
 
-                ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+                if (rect) {
+                    ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+                }
             }
         }
 
@@ -212,7 +214,7 @@ export class Inspector extends AbstractInspector implements IdeSide {
         this.queue = [];
         this.app = new AppHandler();
         this._connect();
-        earlyInspector.connect(this);
+        inspector.connect(this);
     }
 
     public setup(app: App<Node, Element, TagOptions>) {
@@ -260,7 +262,7 @@ export class Inspector extends AbstractInspector implements IdeSide {
         };
     }
 
-    protected send(method: string, arg: object) {
+    protected override send(method: string, arg: object) {
         this.callInspector(method, arg);
     }
 

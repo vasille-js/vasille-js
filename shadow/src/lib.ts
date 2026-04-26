@@ -17,7 +17,7 @@ class ShadowFragment extends Fragment<Node, Element, TagOptions> {
     public constructor(shadowApp: App<Node, Element, TagOptions>, parent?: Fragment<Node, Element, TagOptions>) {
         const parentNode = parent ?? shadowApp;
 
-        super(parentNode.runner);
+        super(parentNode.runner, parentNode.sDeep + 1);
         this.shadowApp = shadowApp;
         this.parent = parentNode;
     }
@@ -137,7 +137,7 @@ export function shadow(
             }
 
             public disconnectedCallback() {
-                this.root.destroy();
+                this.root.destroy(this.root.sDeep);
             }
 
             public attributeChangedCallback(name: string, oldValue: string, newValue: string | null) {
