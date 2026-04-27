@@ -6,6 +6,7 @@ const C = compose(Vasille => {
   const mm = mapModel(Vasille, [[1, 2], [3, 4]]);
   ArrayView({
     "$of": $arr,
+    key: item => item,
     slot: (Vasille, $item, $index) => {
       Vasille.tag("div", {}, Vasille => {
         Vasille.text(VasilleExpr(Vasille, (Vasille_0, Vasille_1) => Vasille_0 + Vasille_1, [$item, $index]));

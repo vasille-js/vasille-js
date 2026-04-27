@@ -7,3 +7,7 @@ it("HMR", function () {
 it("composes async", function () {
   runJsxTest(__dirname, "async-composing", false, { asyncComposing: true });
 });
+
+it("has string event", function () {
+  runJsxTest(__dirname, "string-event");
+});

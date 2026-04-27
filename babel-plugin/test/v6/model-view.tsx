@@ -20,6 +20,7 @@ const C = compose(() => {
 
   <ArrayView
     $of={$arr}
+    key={item => item}
     slot={($item, $index) => {
       <div>{$item + $index}</div>;
     }}

@@ -390,6 +390,8 @@ function transformJsxElement(
                 meshExpression(expressionPath, internal);
                 events.push(idToProp(name, expressionPath.node, 2));
               }
+            } else if (valuePath.isStringLiteral()) {
+              attrs.push(idToProp(name, valuePath.node));
             } else {
               err(Errors.TokenNotSupported, attrPath, "Expected event handler", internal);
             }
@@ -728,13 +730,6 @@ function transformJsxElement(
       }
     }
 
-    const filteredChildren = element.children.filter(item => {
-      if (!t.isJSXText(item)) {
-        return true;
-      }
-
-      return !textIsSpacesOnly(item);
-    });
     const isInternal = internal.mapping.has(name.name);
 
     const statements = transformJsxArray(path.get("children"), internal);
