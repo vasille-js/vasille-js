@@ -60,6 +60,7 @@ export interface Internal {
   bodyTag?: boolean;
   shadow?: boolean;
   hmr?: { local: types.Identifier; exported: types.Identifier | types.StringLiteral; isDynamic?: boolean }[];
+  asyncComposing?: boolean;
   reportError(message: string, node: types.Node, e?: Error): void;
 
   // reactivity

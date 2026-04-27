@@ -1297,6 +1297,10 @@ export function composeStatement(path: NodePath<types.Statement | null | undefin
           }
           callPath.node.arguments.push(ctx);
           meshInit = false;
+
+          if (internal.asyncComposing) {
+            callPath.replaceWith(t.awaitExpression(callPath.node));
+          }
         } else if (calls(declaration.get("init"), dependencyInjections, internal)) {
           const callPath = declaration.get("init") as NodePath<types.CallExpression>;
 
@@ -1483,6 +1487,9 @@ export function compose(
 
   if (!isSlot) {
     internal.isComposing = false;
+  }
+  if (internal.asyncComposing) {
+    node.async = true;
   }
 
   internal.stack.pop();

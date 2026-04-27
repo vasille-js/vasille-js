@@ -857,6 +857,13 @@ function transformJsxElement(
       }
     }
 
+    function addAwait(node: types.CallExpression): types.Expression {
+      if (internal.asyncComposing) {
+        return t.awaitExpression(node);
+      }
+      return node;
+    }
+
     const localComponentName = internal.shadow && internal.componentsImports.get(name.name);
     const call = localComponentName
       ? t.callExpression(t.memberExpression(ctx, t.identifier("tag")), [
@@ -864,12 +871,14 @@ function transformJsxElement(
           t.objectExpression([t.objectProperty(t.identifier("b"), t.objectExpression(props))]),
           ...(run ? [run] : []),
         ])
-      : t.callExpression(t.identifier(name.name), [
-          t.objectExpression(props),
-          ctx,
-          ...(run ? [run] : internal.devLayer ? [t.buildUndefinedNode()] : []),
-          ...(internal.devLayer ? [nodeToStaticPosition(path.node)] : []),
-        ]);
+      : addAwait(
+          t.callExpression(t.identifier(name.name), [
+            t.objectExpression(props),
+            ctx,
+            ...(run ? [run] : internal.devLayer ? [t.buildUndefinedNode()] : []),
+            ...(internal.devLayer ? [nodeToStaticPosition(path.node)] : []),
+          ]),
+        );
 
     call.loc = path.node.loc;
 

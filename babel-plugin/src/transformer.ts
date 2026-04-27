@@ -181,6 +181,7 @@ export interface TransformerOptions {
   reporter: CompilationErrorReporter | undefined;
   throwAtFirstError: boolean;
   hmr: boolean;
+  asyncComposing: boolean;
 }
 
 export function nodeToStaticPosition(node: types.Node) {
@@ -264,6 +265,7 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
     bodyTag: opts.bodyTag,
     shadow: opts.shadow,
     hmr: opts.hmr ? [] : undefined,
+    asyncComposing: opts.asyncComposing,
     ref(arg, area, name) {
       if (opts.devLayer) {
         return named(call("ref", [arg ? arg : t.buildUndefinedNode(), getCtx(), nodeToStaticPosition(area)]), name);

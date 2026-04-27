@@ -14,6 +14,7 @@ export default function (): Babel.PluginObj<{
     throwAtFirstError: unknown;
     reporter: unknown;
     hmr: unknown;
+    asyncComposing: unknown;
   };
 }> {
   return {
@@ -31,6 +32,7 @@ export default function (): Babel.PluginObj<{
           reporter:
             typeof params.opts.reporter === "function" ? (params.opts.reporter as CompilationErrorReporter) : undefined,
           hmr: params.opts.hmr === true,
+          asyncComposing: params.opts.asyncComposing === true,
         });
       },
     },
