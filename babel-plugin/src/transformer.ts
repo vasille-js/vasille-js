@@ -445,19 +445,20 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
   }
   if (internal.hmr?.length) {
     const newModule = t.identifier("VasilleNewModule");
+    const hot = t.memberExpression(
+      t.memberExpression(t.identifier("import"), t.identifier("meta")),
+      t.identifier("hot"),
+    );
+
     path.node.body.push(
       t.expressionStatement(
-        t.callExpression(
-          t.memberExpression(
-            t.memberExpression(t.memberExpression(t.identifier("import"), t.identifier("meta")), t.identifier("hot")),
-            t.identifier("accept"),
-          ),
-          [
-            t.arrowFunctionExpression(
-              [newModule],
-              t.blockStatement([
-                t.ifStatement(
-                  newModule,
+        t.callExpression(t.memberExpression(hot, t.identifier("accept")), [
+          t.arrowFunctionExpression(
+            [newModule],
+            t.blockStatement([
+              t.ifStatement(
+                newModule,
+                t.tryStatement(
                   t.blockStatement(
                     internal.hmr.map(item => {
                       if (item.isDynamic) {
@@ -473,11 +474,24 @@ export function transformProgram(path: NodePath<types.Program>, filename: string
                       );
                     }),
                   ),
+                  t.catchClause(
+                    t.identifier("e"),
+                    t.blockStatement([
+                      t.expressionStatement(
+                        t.callExpression(t.memberExpression(hot, t.identifier("invalidate")), [
+                          t.templateLiteral(
+                            [t.templateElement({ raw: "" }), t.templateElement({ raw: "" })],
+                            [t.identifier("e")],
+                          ),
+                        ]),
+                      ),
+                    ]),
+                  ),
                 ),
-              ]),
-            ),
-          ],
-        ),
+              ),
+            ]),
+          ),
+        ]),
       ),
     );
   }
