@@ -92,11 +92,11 @@ export const HeroView = view(() => {
           class={[description, centerText, ...classes]}
           style={{ "max-width": 432 }}
         >
-          Fault-tolerant by design, with compile-time safety and 100% test
-          coverage. Predictable synchronous reactivity,{" "}
-          {"fine\u2060-\u2060grained "}
-          performance, and pure JavaScript, HTML & CSS. Easy to refactor and
-          debug.
+          Fault-tolerant by design, with compile-time safety, predictable
+          synchronous reactivity, {"fine\u2060-\u2060grained "}
+          performance, and pure JavaScript, HTML & CSS.
+          <br />
+          Easy to refactor and debug.
         </div>;
       }}
     />

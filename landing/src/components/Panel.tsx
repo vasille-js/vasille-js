@@ -96,21 +96,21 @@ const InternalPanel = component(
       <Item
         src={docsSvg}
         text={"Docs"}
-        href={"/docs"}
+        href={"https://deepwiki.com/vasille-js/steel-frame"}
         $active={$active}
         accessKey={"d"}
       />
       <Item
         src={playgroundSvg}
         text={"Playground"}
-        href={"/pg"}
+        href={"#"}
         $active={$active}
         accessKey={"p"}
       />
       <Item
         src={githubSvg}
         text={"GitHub"}
-        href={"/github"}
+        href={"https://github.com/vasille-js/steel-frame"}
         $active={$active}
         accessKey={"g"}
       />

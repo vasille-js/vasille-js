@@ -31,6 +31,7 @@ export interface TagAttrs {
     lang: string;
     nonce: string;
     part: string;
+    role: string;
     slot: string;
     spellcheck: "true" | "false" | "" | boolean;
     tabindex: number;
@@ -151,6 +152,7 @@ interface ImgAttrs extends TagAttrs {
     referrerpolicy: string;
     decoding: string;
     loading: string;
+    fetchpriority: string;
 }
 
 interface IframeAttrs extends TagAttrs {

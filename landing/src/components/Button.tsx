@@ -16,7 +16,14 @@ export const Button = component(
       type={"button"}
       style={{ "min-width": minWidth }}
       accesskey={accessKey}
-      onclick={action}
+      onclick={
+        action
+          ? (ev) => {
+              ev.preventDefault();
+              action();
+            }
+          : undefined
+      }
       onkeydown={(e) => {
         if (e.key === "Enter") {
           action?.();

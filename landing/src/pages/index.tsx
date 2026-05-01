@@ -39,7 +39,9 @@ export default page(async () => {
         }}
       />
       <ElseIf $condition={$err}>
-        <Button text={"Retry"} action={retry} />
+        <div style={{ "align-self": "center", display: "flex" }}>
+          <Button text={"Retry"} action={retry} />
+        </div>
       </ElseIf>
       <Else>
         <div
@@ -72,6 +74,7 @@ const styles = styleSheet({
   bigScreen: {
     display: "flex",
     "align-items": "stretch",
+    "flex-direction": "column",
   },
   bg: {
     flex: "1",

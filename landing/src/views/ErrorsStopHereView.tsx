@@ -24,7 +24,7 @@ export const ErrorsStopHereView = view(() => {
     <FeatureDescription>
       SteelFrame, components are isolated by design — if one fails, the rest
       stay alive. Even when APIs change or data structures break, your core
-      experience remains stable and responsive
+      experience remains stable and responsive.
     </FeatureDescription>
   </FeatureRow>;
   <CodeTabs
