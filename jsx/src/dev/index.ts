@@ -21,7 +21,18 @@ export {
     devDynamicalModule,
     type DevFragmentMap,
 } from "./compose.js";
-export { devArrayModel, devMapModel, devEnsure, devExpr, devMatch, devSetModel, devRef, devSet } from "./internal.js";
+export {
+    devArrayModel,
+    devMapModel,
+    devEnsure,
+    devExpr,
+    devMatch,
+    devSetModel,
+    devRef,
+    devSet,
+    devSafeRef,
+    devSafeExpr,
+} from "./internal.js";
 export { devAwaited } from "./library.js";
 
 function devErrorHandler(e: unknown) {

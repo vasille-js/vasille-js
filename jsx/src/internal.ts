@@ -1,11 +1,19 @@
-import { IValue, Reactive, KindOfIValue, Expression, Reference, SetModel, MapModel, ArrayModel } from "vasille";
+import { IValue, Reactive, KindOfIValue, Expression, Reference, SetModel, MapModel, ArrayModel, safe } from "vasille";
 
 export function expr<T, Args extends unknown[]>(
     ctx: Reactive | undefined,
     func: (...args: Args) => T,
     values: KindOfIValue<Args>,
 ): Expression<T, Args> {
-    return new Expression<T, Args>(func, values, ctx);
+    return new Expression<T, Args>(func, args => ref(func.apply(null, args)), values, ctx);
+}
+
+export function safeExpr<T, Args extends unknown[]>(
+    ctx: Reactive | undefined,
+    func: (...args: Args) => T,
+    values: KindOfIValue<Args>,
+): Expression<T, Args> {
+    return new Expression<T, Args>(func, args => ref(safe(func).apply(null, args)), values, ctx);
 }
 
 /**
@@ -14,6 +22,14 @@ export function expr<T, Args extends unknown[]>(
  */
 export function ref<T>(v: T): IValue<T> {
     return new Reference(v);
+}
+
+/**
+ * It transforms a non-reactive value to a reactive one.
+ * 1. `let a = x.y` to `const a = safeRef(() => x.y)`
+ */
+export function safeRef<T>(fn: () => T): IValue<T | undefined> {
+    return new Reference(safe(fn)() as T | undefined);
 }
 
 /**
@@ -83,4 +99,12 @@ export function set(o: object, key: string | symbol | number, value: unknown, cr
         o[key] = value;
     }
     return value;
+}
+
+/**
+ * It safely initializes a child component.
+ * 1. `<Child x={y.z}/>` to `safeInit(() => Child({x: y.z))`
+ */
+export function safeInit(fn: () => void) {
+    safe(fn)();
 }

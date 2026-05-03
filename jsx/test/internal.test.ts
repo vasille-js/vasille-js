@@ -1,5 +1,16 @@
 import { IValue, Reference } from "vasille";
-import { arrayModel, ensure, mapModel, ref, set, setModel, match } from "../src/internal.js";
+import {
+    arrayModel,
+    ensure,
+    mapModel,
+    ref,
+    set,
+    setModel,
+    match,
+    safeRef,
+    safeExpr,
+    safeInit,
+} from "../src/internal.js";
 import { createNode } from "./page.js";
 
 it("model functions", function () {
@@ -85,4 +96,33 @@ it("ensure", function () {
     expect(t2).toBe(1);
     // @ts-expect-error
     expect(t3.V).toBeUndefined();
+});
+
+it("safety", function () {
+    const a = { b: 1 };
+    const b = null as unknown as { c: 1 };
+
+    const r1 = safeRef(() => a.b);
+    const r2 = safeRef(() => b.c);
+    const r3 = safeExpr(undefined, () => a.b, []);
+    const r4 = safeExpr(undefined, () => b.c, []);
+
+    expect(r1.V).toBe(1);
+    expect(r2.V).toBeUndefined();
+    expect(r3.V).toBe(1);
+    expect(r4.V).toBeUndefined();
+
+    let c = 0;
+
+    function tt() {
+        c = 1;
+        c = b.c;
+    }
+
+    expect(tt).toThrow("Cannot read properties of null");
+    expect(c).toBe(1);
+
+    c = 0;
+    safeInit(tt);
+    expect(c).toBe(1);
 });

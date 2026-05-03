@@ -6,7 +6,10 @@ import {
     DevMapModel,
     DevReference,
     DevSetModel,
+    errorToString,
+    executionPosition,
     ExecutionPosition,
+    inspector,
     KindOfDevIValue,
     StaticPosition,
 } from "vasille/dev";
@@ -20,11 +23,44 @@ export function devExpr<T, Args extends unknown[]>(
     declaration: StaticPosition,
     name?: string,
 ): DevExpression<T, Args> {
-    return new DevExpression<T, Args>(func, values, ctx, name, depsCode, declaration, false);
+    return new DevExpression<T, Args>(func, values, ctx, name, depsCode, declaration, false, false);
+}
+
+export function devSafeExpr<T, Args extends unknown[]>(
+    ctx: Reactive | undefined,
+    func: (...args: Args) => T,
+    values: KindOfDevIValue<Args>,
+    depsCode: string[],
+    declaration: StaticPosition,
+    name?: string,
+): DevExpression<T, Args> {
+    return new DevExpression<T, Args>(func, values, ctx, name, depsCode, declaration, false, true);
 }
 
 export function devRef<T>(v: T, ctx: Reactive | undefined, declaration: StaticPosition, name?: string): DevIValue<T> {
     return new DevReference(v, ctx, declaration, name);
+}
+
+export function devSafeRef<T>(
+    fn: () => T,
+    ctx: Reactive | undefined,
+    declaration: StaticPosition,
+    name?: string,
+): DevIValue<T | undefined> {
+    const ref = new DevReference<T | undefined>(undefined, ctx, declaration, name);
+
+    try {
+        ref.V = fn();
+    } catch (e) {
+        inspector.reportReferenceError({
+            time: Date.now(),
+            position: executionPosition(declaration, new Error()),
+            error: errorToString(e),
+            targetId: ref.id,
+        });
+    }
+
+    return ref;
 }
 
 export function devSetModel(usage: StaticPosition, ctx: Reactive | undefined, data?: unknown[], name?: string) {

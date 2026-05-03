@@ -164,6 +164,7 @@ export class DevExpression<T, Args extends unknown[]>
         depsCode: string[],
         declaration: StaticPosition,
         isWatch: boolean,
+        safe: boolean,
     ) {
         super(ctx?.sDeep ?? 0);
 
@@ -198,7 +199,23 @@ export class DevExpression<T, Args extends unknown[]>
 
         this.valuesCache = values.map(item => item?.V) as Args;
 
-        this.sync = new ExpressionDevReference(id, func.apply(this, this.valuesCache));
+        let initialValue: T | undefined;
+
+        try {
+            initialValue = func.apply(this, this.valuesCache);
+        } catch (e) {
+            inspector.reportExpressionCalculationError({
+                targetId: id,
+                time: Date.now(),
+                error: errorToString(e),
+                deps: this.valuesCache.map(toDevValue),
+            });
+            if (!safe) {
+                throw e;
+            }
+        }
+
+        this.sync = new ExpressionDevReference(id, initialValue as T);
         this.id = id;
         this.declaration = declaration;
 
