@@ -1,4 +1,5 @@
 import { Expression, IValue, Reactive, Reference } from "../../src/index.js";
+import { TestExpression } from "../page.js";
 
 class CoreTest extends Reactive {
     ref0: IValue<number>;
@@ -15,14 +16,14 @@ class CoreTest extends Reactive {
 
         this.ref0 = new Reference(1);
 
-        new Expression(
+        new TestExpression(
             v => {
                 this.watch_test = v;
             },
             [this.ref0],
         );
 
-        this.bind0 = new Expression(
+        this.bind0 = new TestExpression(
             x => {
                 return x + 1;
             },

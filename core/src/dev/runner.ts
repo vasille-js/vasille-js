@@ -59,7 +59,7 @@ export class DevTextNode extends TextNode<DevTagOptions, DevRunner> {
 }
 
 export function remapObject<Before, After>(
-    obj: { [k: string]: Before },
+    obj: { [k: string]: Before } | undefined,
     transform: (v: Before) => After,
 ): { [k: string]: After } {
     const r: { [k: string]: After } = {};

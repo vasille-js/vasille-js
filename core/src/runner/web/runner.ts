@@ -6,13 +6,13 @@ import { PropertyBinding } from "./binding/property.js";
 import { stringifyStyleValue, StyleBinding } from "./binding/style.js";
 
 export type AttrType<T> = IValue<T | string | null> | T | string | null | undefined;
-export type StyleType<T> = T | number | number[] | IValue<string | number | number[]>;
+export type StyleType<T> = T | number | number[] | IValue<string | number | number[] | undefined> | undefined;
 
 export interface TagOptions {
     /** attributes */
     a?: Record<string, AttrType<number | boolean>>;
     /** classes */
-    c?: (string | IValue<string> | Record<string, boolean | IValue<boolean>>)[];
+    c?: (string | IValue<string> | Record<string, boolean | IValue<boolean>> | undefined)[];
     /** style */
     s?: Record<string, StyleType<string>>;
     /** events */
@@ -167,7 +167,7 @@ export class Tag<Options extends TagOptions, RunnerT extends Runner<Options>> ex
 
                 if (value instanceof IValue) {
                     this.bind(new StyleBinding(this, name, value));
-                } else {
+                } else if (value) {
                     node.style.setProperty(name, stringifyStyleValue(value));
                 }
             }

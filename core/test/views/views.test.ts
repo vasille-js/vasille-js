@@ -12,7 +12,7 @@ import {
     SinglePassArrayView,
 } from "../../src/index.js";
 import { Runner, TagOptions } from "../../src/runner/web/runner.js";
-import { page } from "../page.js";
+import { page, TestExpression } from "../page.js";
 
 it("array view", function () {
     const window = page();
@@ -110,7 +110,7 @@ it("single pass array view", function () {
                 array,
                 item => item.id,
                 function (f, item, index) {
-                    f.text(new Expression((item, index) => `(${index}:${item.value})`, [item, index]));
+                    f.text(new TestExpression((item, index) => `(${index}:${item.value})`, [item, index]));
                 },
                 v => new Reference(v),
                 v => new Reference(v),
@@ -206,9 +206,9 @@ it("multiple text remount", function () {
                 function (f, item, index) {
                     f.text(index);
                     f.text(":");
-                    f.text(new Expression(item => item.id, [item]));
+                    f.text(new TestExpression(item => item.id, [item]));
                     f.text("=");
-                    f.text(new Expression(item => item.value, [item]));
+                    f.text(new TestExpression(item => item.value, [item]));
                     f.text("|");
                 },
                 v => new Reference(v),
@@ -245,10 +245,10 @@ it("multiple tag remount", function () {
                 item => item.id,
                 function (f, item, index) {
                     f.tag("div", {}, ctx => {
-                        ctx.text(new Expression(item => item.id, [item]));
+                        ctx.text(new TestExpression(item => item.id, [item]));
                     });
                     f.tag("div", {}, ctx => {
-                        ctx.text(new Expression(item => item.value, [item]));
+                        ctx.text(new TestExpression(item => item.value, [item]));
                     });
                 },
                 v => new Reference(v),
@@ -298,10 +298,10 @@ it("array view remount", function () {
                             i => i.id,
                             function (f, item, index) {
                                 f.tag("div", {}, ctx => {
-                                    ctx.text(new Expression(item => item.id, [item]));
+                                    ctx.text(new TestExpression(item => item.id, [item]));
                                 });
                                 f.tag("div", {}, ctx => {
-                                    ctx.text(new Expression(item => item.value, [item]));
+                                    ctx.text(new TestExpression(item => item.value, [item]));
                                 });
                             },
                             v => new Reference(v),

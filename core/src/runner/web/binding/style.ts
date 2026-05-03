@@ -18,18 +18,22 @@ export function stringifyStyleValue(value: string | number | number[]): string {
  * @class StyleBinding
  * @extends Binding
  */
-export class StyleBinding extends Binding<string | number | number[]> {
+export class StyleBinding extends Binding<string | number | number[] | undefined> {
     /**
      * Constructs a style binding attribute
      * @param node {Tag} the vasille node
      * @param name {string} the name of style property
      * @param value {IValue} the value to bind
      */
-    public constructor(node: Tag<Node, Element, object>, name: string, value: IValue<string | number | number[]>) {
+    public constructor(
+        node: Tag<Node, Element, object>,
+        name: string,
+        value: IValue<string | number | number[] | undefined>,
+    ) {
         super(value);
         this.init(value => {
             /* istanbul ignore else */
-            if (node.node instanceof HTMLElement) {
+            if (node.node instanceof HTMLElement && value !== undefined) {
                 node.node.style.setProperty(name, stringifyStyleValue(value));
             }
         });

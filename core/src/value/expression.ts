@@ -1,7 +1,6 @@
 import { Reactive } from "../core/core.js";
 import { Destroyable } from "../core/destroyable.js";
 import { safe } from "../functional/safety.js";
-import { Reference } from "./reference.js";
 import { IValue } from "../core/ivalue.js";
 
 export type KindOfIValue<T extends unknown[]> = {
@@ -34,12 +33,17 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> implements 
     /**
      * The buffer to keep the last calculated value
      */
-    protected sync: Reference<T>;
+    protected sync: IValue<T>;
 
     /**
      * Creates a function bounded to N values
      */
-    public constructor(func: (...args: Args) => T, values: KindOfIValue<Args>, ctx?: Reactive) {
+    public constructor(
+        func: (...args: Args) => T,
+        ref: (args: Args) => IValue<T>,
+        values: KindOfIValue<Args>,
+        ctx?: Reactive,
+    ) {
         super(ctx?.sDeep ?? 0);
         const handler = safe((i?: number) => {
             /* istanbul ignore else */
@@ -49,9 +53,7 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> implements 
             this.sync.V = func.apply(this, this.valuesCache);
         });
 
-        this.valuesCache = values.map(item => item?.V) as Args;
-
-        this.sync = new Reference(func.apply(this, this.valuesCache));
+        this.sync = ref((this.valuesCache = values.map(item => item?.V) as Args));
 
         let i = 0;
         let deep = -1;

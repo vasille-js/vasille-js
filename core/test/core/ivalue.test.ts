@@ -1,4 +1,5 @@
 import { Expression, Reference } from "../../src/index.js";
+import { TestExpression } from "../page.js";
 
 it("ivalue", function () {
     const ref = new Reference(22);
@@ -12,7 +13,7 @@ it("ivalue", function () {
 it("expression", function () {
     const a = new Reference(2);
     const b = new Reference(3);
-    const c = new Expression((a, b) => a + b, [a, b]);
+    const c = new TestExpression((a, b) => a + b, [a, b]);
 
     expect(c.V).toBe(5);
     c.V = 10;

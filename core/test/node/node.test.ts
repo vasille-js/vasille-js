@@ -1,7 +1,7 @@
 import { DOMWindow } from "jsdom";
 import { App, Expression, Fragment, IValue, Reference, SwitchedNode, Tag } from "../../src/index.js";
 import { Runner, TagOptions } from "../../src/runner/web/runner.js";
-import { page } from "../page.js";
+import { page, TestExpression } from "../page.js";
 
 let compose = false;
 
@@ -135,9 +135,9 @@ it("switch", function () {
             root.runner,
             root.sDeep + 1,
             [
-                { $case: new Expression(v => v == 1, [v]), slot: () => (check = 1) },
-                { $case: new Expression(v => v == 2, [v]), slot: () => (check = 2) },
-                { $case: new Expression(v => v == 3, [v]), slot: () => (check = 3) },
+                { $case: new TestExpression(v => v == 1, [v]), slot: () => (check = 1) },
+                { $case: new TestExpression(v => v == 2, [v]), slot: () => (check = 2) },
+                { $case: new TestExpression(v => v == 3, [v]), slot: () => (check = 3) },
                 { $case: v2, slot: () => (check = -2) },
             ],
             () => (check = 4),
@@ -178,7 +178,7 @@ it("INode", function () {
                     "data-checked2": new Reference(true),
                     "data-set": "test",
                     [attrName]: attrValue,
-                    "data-bind": new Expression(
+                    "data-bind": new TestExpression(
                         (str: string) => {
                             return str.length > 1 ? str : "alternative";
                         },
@@ -227,7 +227,7 @@ it("INode", function () {
         //style
         (function () {
             const dyn = new Reference("0px");
-            const num = new Expression(x => parseFloat(x) + 10, [dyn]);
+            const num = new TestExpression<number, [string]>(x => parseFloat(x) + 10, [dyn]);
             let el!: HTMLElement;
 
             test.tag("div", {
@@ -237,6 +237,7 @@ it("INode", function () {
                     padding: num,
                     width: 300,
                     inset: [12, 23],
+                    border: undefined,
                 },
                 k: node => (el = node as HTMLElement),
             });

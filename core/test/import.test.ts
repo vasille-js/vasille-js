@@ -33,29 +33,36 @@ it("import test", function () {
     const listener = new Listener();
     const arrayView = new ArrayView(
         runner,
+        0,
         array,
         () => void 0,
         v => new Reference(v),
-        runner => new Fragment(runner),
+        runner => new Fragment(runner, 1),
     );
     const mapView = new MapView(
         runner,
+        0,
         map,
         () => {},
         v => new Reference(v),
-        runner => new Fragment(runner),
+        runner => new Fragment(runner, 1),
     );
     const setView = new SetView(
         runner,
+        0,
         set,
         () => {},
-        runner => new Fragment(runner),
+        runner => new Fragment(runner, 1),
     );
-    const fragment = new Fragment(runner);
+    const fragment = new Fragment(runner, 1);
     const app = new App<Node, Element, TagOptions>(window.document.body, runner);
-    const expr = new Expression(v => v, [ref]);
-    const portal = new Portal<Node, Element, TagOptions>({ node: window.document.body }, runner);
-    const watch = new Watch({ model: ref }, runner);
+    const expr = new Expression(
+        v => v,
+        v => new Reference(v[0]),
+        [ref],
+    );
+    const portal = new Portal<Node, Element, TagOptions>({ node: window.document.body }, runner, 1);
+    const watch = new Watch({ model: ref }, runner, 1);
 
     expect(ref instanceof IValue).toBe(true);
     expect(array instanceof Array).toBe(true);

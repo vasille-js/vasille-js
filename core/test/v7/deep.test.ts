@@ -1,6 +1,6 @@
 import { IRunner } from "../../src/node/runner.js";
 import { Runner, TagOptions } from "../../src/runner/web/runner.js";
-import { page } from "../page.js";
+import { page, TestExpression } from "../page.js";
 import { App, ArrayModel, ArrayView, Expression, Fragment, Reference, SwitchedNode, Watch } from "../../src/index.js";
 
 class MyApp extends App<Node, Element, TagOptions> {
@@ -48,18 +48,18 @@ class MyApp extends App<Node, Element, TagOptions> {
         this.create(new Fragment<Node, Element, TagOptions>(this.runner, this.sDeep + 1), ctx => {
             this.frag_1 = ctx;
             this.ref_1 = new Reference(1, ctx);
-            this.expr_1 = new Expression(n => n, [this.ref_1], ctx);
+            this.expr_1 = new TestExpression(n => n, [this.ref_1], ctx);
 
             ctx.create(new Fragment<Node, Element, TagOptions>(this.runner, ctx.sDeep + 1), ctx => {
                 this.frag_1_1 = ctx;
                 this.ref_1_1 = new Reference(11, ctx);
-                this.expr_1_1 = new Expression((n, m) => n + m, [this.ref_1_1, this.ref_1], ctx);
+                this.expr_1_1 = new TestExpression((n, m) => n + m, [this.ref_1_1, this.ref_1], ctx);
 
                 if (triple) {
                     ctx.create(new Fragment<Node, Element, TagOptions>(this.runner, ctx.sDeep + 1), ctx => {
                         this.frag_1_1_1 = ctx;
                         this.ref_1_1_1 = new Reference(111, ctx);
-                        this.expr_1_1_1 = new Expression((n, m) => n, [this.ref_1_1_1, this.expr_1_1], ctx);
+                        this.expr_1_1_1 = new TestExpression((n, m) => n, [this.ref_1_1_1, this.expr_1_1], ctx);
                     });
                 }
                 if (runOnDestroy) {
@@ -72,7 +72,7 @@ class MyApp extends App<Node, Element, TagOptions> {
             this.ref_2 = new Reference(2, ctx);
 
             if (!triple) {
-                this.expr_2 = new Expression((n, m) => n + m, [this.ref_0, this.ref_2], ctx);
+                this.expr_2 = new TestExpression((n, m) => n + m, [this.ref_0, this.ref_2], ctx);
             }
 
             ctx.create(new Fragment<Node, Element, TagOptions>(this.runner, ctx.sDeep + 1), ctx => {
@@ -80,14 +80,14 @@ class MyApp extends App<Node, Element, TagOptions> {
                 this.ref_2_1 = new Reference(21, ctx);
 
                 if (!triple) {
-                    this.expr_2_1 = new Expression((n, m) => n + m, [this.ref_0, this.ref_2_1], ctx);
+                    this.expr_2_1 = new TestExpression((n, m) => n + m, [this.ref_0, this.ref_2_1], ctx);
                 }
 
                 if (triple) {
                     ctx.create(new Fragment<Node, Element, TagOptions>(this.runner, ctx.sDeep + 1), ctx => {
                         this.frag_2_1_1 = ctx;
                         this.ref_2_1_1 = new Reference(211, ctx);
-                        this.expr_2_1_1 = new Expression((n, m) => n + m, [this.ref_0, this.ref_2_1_1], ctx);
+                        this.expr_2_1_1 = new TestExpression((n, m) => n + m, [this.ref_0, this.ref_2_1_1], ctx);
                     });
                 }
             });
@@ -220,7 +220,7 @@ it("destroys array view", () => {
                 tag.sDeep + 1,
                 array,
                 function (f, item) {
-                    f.text(new Expression(a => a + item, [ref], f));
+                    f.text(new TestExpression(a => a + item, [ref], f));
                 },
                 v => new Reference(v),
                 r => new Fragment(r, tag.sDeep + 1),
@@ -243,7 +243,7 @@ it("destroys switched node", () => {
         tag.create(
             new SwitchedNode<Node, Element, TagOptions, typeof runner>(runner, tag.sDeep + 1, [
                 {
-                    $case: new Expression(n => n === 1, [ref], tag),
+                    $case: new TestExpression(n => n === 1, [ref], tag),
                     slot(node) {
                         node.text("2");
                     },
