@@ -1,6 +1,6 @@
 import { JSDOM } from "jsdom";
-import { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth, styleSheet } from "../src";
-import { devStyleSheet } from "../src/dev";
+import { setMobileMaxWidth, setTabletMaxWidth, setLaptopMaxWidth, styleSheet } from "../src/index.js";
+import { devStyleSheet } from "../src/dev.js";
 
 function page() {
     const page = new JSDOM(`
@@ -46,9 +46,10 @@ it("calculated style test", function () {
         testDev2: [],
     });
 
-    expect(classes.test).toBe("vasille-2");
-    expect(devStyles.test1).toBe("vasille-1-test1");
-    expect(devStyles.testDev2).toBe("vasille-2-testDev2");
+    expect(classes.test.inject()).toBe("vasille-2");
+    expect(classes.test.inject()).toBe("vasille-2");
+    expect(devStyles.test1.inject()).toBe("vasille-3-test1");
+    expect(devStyles.testDev2.inject()).toBe("vasille-4-testDev2");
 
     function style(index: number) {
         return window.document.head.children[index] as unknown as { media: string };

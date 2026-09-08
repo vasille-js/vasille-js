@@ -1,35 +1,26 @@
-import { insertRule } from "./lib.js";
+import { CssStyleInjector } from "./index.js";
 
-let index = 0;
+export class DevCssStyleInjector extends CssStyleInjector {
+    protected key: string;
+
+    public constructor(key: string, styles: (string | [number, string])[]) {
+        super(styles);
+        this.key = key;
+    }
+
+    protected generateClassName(): string {
+        return `${super.generateClassName()}-${this.key}`;
+    }
+}
 
 export function devStyleSheet<T extends { [k: string]: (string | [number, string])[] }>(
     styles: T,
-): { [K in keyof T]: string } {
-    const result: { [k: string]: string } = {};
+): { [K in keyof T]: DevCssStyleInjector } {
+    const result: { [k: string]: DevCssStyleInjector } = {};
 
     for (const key in styles) {
-        Object.defineProperty(result, key, {
-            get() {
-                const className = `vasille-${++index}-${key}`;
-
-                for (const item of styles[key]) {
-                    if (item instanceof Array) {
-                        const [target, rule] = item;
-
-                        insertRule(target, rule.replace("{}", className));
-                    } else {
-                        insertRule(0, item.replace("{}", className));
-                    }
-                }
-
-                styles[key].splice(0);
-                Object.defineProperty(result, key, { value: className });
-
-                return className;
-            },
-            configurable: true,
-        });
+        result[key] = new DevCssStyleInjector(key, styles[key]);
     }
 
-    return result as { [K in keyof T]: string };
+    return result as { [K in keyof T]: DevCssStyleInjector };
 }

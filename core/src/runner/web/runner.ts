@@ -1,3 +1,4 @@
+import { CssStyleInjector } from "vasille-css";
 import { TextNode as AbstractTextNode, Tag as AbstractTag, Runner as IRunner, IValue, safe } from "../../index.js";
 import { internalError } from "../../core/errors.js";
 import { AttributeBinding } from "./binding/attribute.js";
@@ -12,7 +13,7 @@ export interface TagOptions {
     /** attributes */
     a?: Record<string, AttrType<number | boolean>>;
     /** classes */
-    c?: (string | IValue<string> | Record<string, boolean | IValue<boolean>> | undefined)[];
+    c?: (string | CssStyleInjector | IValue<string> | Record<string, boolean | IValue<boolean>> | undefined)[];
     /** style */
     s?: Record<string, StyleType<string>>;
     /** events */
@@ -145,6 +146,8 @@ export class Tag<Options extends TagOptions, RunnerT extends Runner<Options>> ex
                     this.bind(new DynamicalClassBinding(this, item));
                 } else if (typeof item == "string") {
                     addClass(this, item);
+                } else if (item instanceof CssStyleInjector) {
+                    addClass(this, item.inject());
                 } else {
                     for (const name in item) {
                         const value = item[name];

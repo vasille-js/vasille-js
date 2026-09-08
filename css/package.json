@@ -1,6 +1,6 @@
 {
   "name": "vasille-css",
-  "version": "5.0.0",
+  "version": "7.0.0-rc.1",
   "description": "The same devkit which is designed to build fault tolerant frontends (CSS style library)",
   "main": "./lib/index.js",
   "types": "./types/index.d.ts",
