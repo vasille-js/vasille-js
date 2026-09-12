@@ -2,6 +2,7 @@ import { Reactive } from "../core/core.js";
 import { Destroyable } from "../core/destroyable.js";
 import { safe } from "../functional/safety.js";
 import { IValue } from "../core/ivalue.js";
+import { SyncedIValue } from "./synced.js";
 
 export type KindOfIValue<T extends unknown[]> = {
     [K in keyof T]: IValue<T[K]> | undefined;
@@ -12,7 +13,7 @@ export type KindOfIValue<T extends unknown[]> = {
  * @class Expression
  * @extends IValue
  */
-export class Expression<T, Args extends unknown[]> extends IValue<T> implements Destroyable {
+export class Expression<T, Args extends unknown[]> extends SyncedIValue<T> implements Destroyable {
     /**
      * The array of value which will trigger recalculation
      * @type {Array}
@@ -31,20 +32,18 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> implements 
     private linkedFunc: Array<() => void> = [];
 
     /**
-     * The buffer to keep the last calculated value
-     */
-    protected sync: IValue<T>;
-
-    /**
      * Creates a function bounded to N values
      */
     public constructor(
         func: (...args: Args) => T,
-        ref: (args: Args) => IValue<T>,
+        ref: (arg: Args) => IValue<T>,
         values: KindOfIValue<Args>,
         ctx?: Reactive,
     ) {
-        super(ctx?.sDeep ?? 0);
+        const cache = values.map(item => item?.V) as Args;
+
+        super(ref(cache), ctx);
+
         const handler = safe((i?: number) => {
             /* istanbul ignore else */
             if (typeof i === "number") {
@@ -52,11 +51,10 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> implements 
             }
             this.sync.V = func.apply(this, this.valuesCache);
         });
-
-        this.sync = ref((this.valuesCache = values.map(item => item?.V) as Args));
-
         let i = 0;
         let deep = -1;
+
+        this.valuesCache = cache;
         values.forEach(value => {
             const updater = handler.bind(this, Number(i++));
 
@@ -80,14 +78,6 @@ export class Expression<T, Args extends unknown[]> extends IValue<T> implements 
 
     public set V(value: T) {
         this.sync.V = value;
-    }
-
-    public on(handler: (value: T) => void): void {
-        this.sync.on(handler);
-    }
-
-    public off(handler: (value: T) => void): void {
-        this.sync.off(handler);
     }
 
     public destroy(): void {
