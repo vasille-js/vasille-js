@@ -57,8 +57,6 @@ const C = compose(Vasille => {
     }
   });
   Vasille.tag("div", {
-    a: {
-      class: $a
-    }
+    c: [$a]
   });
 });

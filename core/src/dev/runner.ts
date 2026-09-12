@@ -1,3 +1,4 @@
+import { CssStyleInjector } from "vasille-css";
 import { IValue } from "../core/ivalue.js";
 import { TextProps } from "../node/node.js";
 import { IRunner } from "../node/runner.js";
@@ -103,6 +104,9 @@ export class DevTag extends Tag<DevTagOptions, DevRunner> {
                     }
                     if (item instanceof IValue) {
                         return JSON.stringify(item.V);
+                    }
+                    if (item instanceof CssStyleInjector) {
+                        return item.inject();
                     }
 
                     return remapObject(item, toDevIdOrValue);

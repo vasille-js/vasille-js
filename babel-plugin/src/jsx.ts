@@ -464,11 +464,16 @@ function transformJsxElement(
             }
             // class={`a ${b}`}
             else if (expressionPath && expressionPath.isExpression()) {
+              const isTemplate = t.isTemplateLiteral(expressionPath.node);
+
               if (exprCall(expressionPath, expressionPath.node, internal, { strong: true }, expressionPath.node)) {
                 internal.reportError("This will slow down your application", attrPath.node);
               }
-
-              attrs.push(t.objectProperty(t.identifier("class"), expressionPath.node));
+              if (isTemplate) {
+                attrs.push(t.objectProperty(t.identifier("class"), expressionPath.node));
+              } else {
+                classElements.push(expressionPath.node);
+              }
             }
             // class="a b"
             else {
